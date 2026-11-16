@@ -1,0 +1,15 @@
+# Force LF line endings everywhere, on every platform.
+#
+# This is not cosmetic. build/build_course_json.py extracts the Director's
+# Brief and tutor prompts with the regex ```prompt\n(.*?)``` — on a CRLF
+# checkout the \n never matches, so every prompt in every chapter silently
+# disappears from the generated JSON with no error raised.
+#
+# Windows has core.autocrlf=true by default, which would convert these files
+# on checkout. The rule below overrides it for this repository.
+* text=auto eol=lf
+
+# Belt and braces for the file types that actually matter here.
+*.md    text eol=lf
+*.json  text eol=lf
+*.py    text eol=lf

@@ -1,0 +1,281 @@
+---
+id: m07-08-events-funnels-retention
+module: m07-security-observability-analytics
+slug: events-funnels-retention
+title: "Events, Funnels, Cohorts, Retention and Churn"
+order: 8
+duration_min: 25
+is_free: false
+mission: false
+volatility: low
+last_reviewed: 2026-11-16
+---
+
+## Key learnings
+- Define an event so that every number you build on it stays trustworthy
+- Read a funnel and name the step that is actually losing you people
+- Explain what a retention curve flattening out tells you about your product
+- Tell a vanity metric from one that would change a decision
+- Say what belongs in a product event and what must never go into one
+
+## Lesson
+
+### The pain
+
+A team presents in week nine. "Users love it." The evidence: 200 signups and a WhatsApp message from a friend saying it is cool.
+
+Somebody asks how many people have ordered twice. Nobody knows. They go and count rows in the database by hand, and the number is nine. Two hundred signed up; nine came back. The product they thought they had — a daily canteen habit — does not exist. What exists is a thing people try once because a classmate asked them to.
+
+That is not necessarily a bad product. It is an unknown product, unknown for nine weeks because nobody had decided in advance what to record about what people do.
+
+### The idea
+
+**An event is a named thing one person did, at a time, with a few properties. Funnels, cohorts, retention and churn are all just arithmetic on events.**
+
+That is the whole of this chapter's machinery. `order_placed`, with a user id, a timestamp, an item count and a total. Record the right dozen events honestly and every question below becomes countable. Record them carelessly and nothing above them can be trusted, whatever the charts look like.
+
+**A boundary, stated up front.** This chapter teaches the concepts: what an event is, what a funnel measures, how to read a retention curve, what churn means. Doing it on real users — the first hundred, a full taxonomy, hunting the real leak, growth loops, an experiment programme — is **M16, at the Company tier**. Here you learn to read the instruments. There you fly the plane.
+
+### The analogy
+
+The canteen's daily sales register, again — but asking a different question of it.
+
+The register tells you 180 plates went out today. A real number that answers almost nothing: it cannot tell you whether 180 students came once or 60 students came three times. Those are two different businesses — a stall people pass, and a canteen people belong to.
+
+To know which, record not just the plate but who collected it. With a name beside each line you can ask: of the students who came in the first week of term, how many are still coming in week eight? That number, not the plate count, tells you whether you have a canteen.
+
+**Where the analogy breaks:** a register is written by a person who understands what they are recording. Your events are fired by code, thousands of times, and if the code fires `order_placed` when the button is *tapped* rather than when the order is *saved*, your register faithfully records orders that never happened, with nobody to notice the absurdity. Hence this chapter's verification: check that events mean what their names claim.
+
+### Naming events so they survive
+
+Boring and load-bearing. The convention matters less than having one, written down and applied everywhere.
+
+- **Object then action, past tense, lower case with underscores:** `order_placed`, `menu_viewed`, `signup_completed`. Past tense because an event is something that *happened*.
+- **Fire on success, not on intent.** `payment_succeeded` when the money is confirmed, not when Pay is tapped. If you want the intent too, that is a separate event: `payment_started`.
+- **Put the variation in properties, not in the name.** One `order_placed` with `payment_mode: "upi"` beats `order_placed_upi` and `order_placed_cash`, which cannot be summed and will drift apart.
+- **A dozen events beats a hundred.** Instrument the steps that matter to a decision; the rest is noise you pay for and maintain.
+- **Never put personal data in an event.** User id, not phone number. Chapter nine explains why this is a legal position as well as a tidy one.
+
+Write the list in a file in your repository, one line per event saying when it fires and what it carries. That file is the only defence against one event meaning three things by month three.
+
+### Picture it
+
+```
+  SIGNUP ─▶ FIRST ORDER, 7 days, 412 students
+
+  opened app       412  ████████████████████████  100%
+  viewed menu      358  █████████████████████      87%
+  added to cart    196  ███████████                48%  ◀ −39
+  reached payment  171  ██████████                 41%
+  order placed      94  █████                      23%  ◀ −18
+```
+
+A funnel is ordered steps with the count of people reaching each, and the two marked drops — 39 and 18 points — are where the product is losing students.
+
+A funnel has three honest requirements, and generated dashboards routinely break all three. The steps must be genuinely **ordered**, so reaching step three implies having passed step two. It must count **people, not events**, or one student adding four items inflates a step. And it needs a **window** — "within seven days of signup" — or you mix someone who ordered in minutes with someone who ordered next month.
+
+Read the drops in percentage points, and resist the pull of the biggest one. A 39-point drop between menu and cart may be perfectly healthy; plenty of people look at a menu without being hungry. An 18-point drop between reaching payment and ordering is smaller and far more alarming, because those people had decided to buy and something stopped them. Big drop early, small drop late: the late one is usually the bug.
+
+### Cohorts, retention and churn
+
+A **cohort** is a group defined by something they share, almost always *when they joined*. "Students who signed up in the first week of term" is a cohort. Cohorts exist because a single overall number mixes yesterday's joiners with July's and moves whenever you get new users — so it tells you about your marketing rather than your product.
+
+**Retention** asks: of one cohort, what share is still active after N periods? Plot it and you get a curve.
+
+```
+  % of the week-1 cohort still ordering, by week
+
+  100 │ ●
+      │
+   50 │     ●
+      │          ●    ●
+   20 │                    ●    ●    ●    ●  ◀ flattens
+    0 └────┴────┴────┴────┴────┴────┴────┴───
+       W1   W2   W3   W4   W5   W6   W7   W8
+```
+
+The curve falls steeply and then, if you have a real product, **flattens**. That flat line — about 18% here — is the share of people for whom your product became a habit, and it is the single most informative number about a young product. A curve that keeps falling to zero means you have an activity, not a product.
+
+Two notes that save arguments. **"Active" must be defined by you**, and it must be the action that constitutes value: for a canteen app, "placed an order", not "opened the app". And the **period must match natural frequency** — a daily habit in days, a weekly one in weeks. Measuring a weekly product daily makes healthy retention look like collapse.
+
+**Churn** is the same thing from the other side: the share of a cohort that stopped, and it only means something with a window attached. Be careful in a product with seasons: a canteen app loses everybody during exam break, and that is a holiday, not churn.
+
+Finally, a **vanity metric** goes up and changes no decision — total signups, cumulative views, installs. An **actionable metric** changes what you build this week: the payment drop-off, the flattening point, the share of second orders. Before putting a number on a slide, ask what you would do if it halved.
+
+### Where it lives
+
+Chapters four to seven measured whether your *system* is healthy. This chapter measures whether your *product* is working, and they are different questions: an app with a perfect p95 and zero errors can have a retention curve that falls to zero. These events are also not chapter five's logs — logs debug one request, events count many people, and one stream doing both does neither well.
+
+M04 is where the data these events describe actually lives. Chapter nine is experiments and consent, and consent directly shapes the numbers here. M11's going-live checkpoint asks for analytics before you call the product live, and M16 at the Company tier is the practicum: real users, a full taxonomy, leak-hunting, activation, growth loops and a real experiment programme. This chapter is the vocabulary you need to not waste that module.
+
+### Words to own
+
+| Term | Plain meaning | Example |
+|---|---|---|
+| Event | A named thing one person did, with properties | `order_placed` |
+| Taxonomy | Your written list of events and their meanings | A file in your repo |
+| Funnel | Ordered steps with the count reaching each | Signup to first order |
+| Cohort | A group defined by when they joined or what they did | Week-1 signups |
+| Retention | Share of a cohort still active after N periods | 18% at week 8 |
+| Flattening point | Where a retention curve stops falling | Your real product |
+| Churn | Share of a cohort that stopped, in a window | 40% monthly |
+| Activation | The first moment a user got real value | First order placed |
+| Vanity metric | A number that changes no decision | Cumulative signups |
+| Active | Your own definition of a meaningful action | "Placed an order" |
+
+### Tradeoffs and gotchas
+
+**Instrument late, decide early.** Write your event list before the dashboard, and keep it to a dozen. Teams that instrument everything spend weeks on plumbing and still cannot answer "are people coming back?" — which needed two events and a definition of active.
+
+**Your analytics will never match your database, and that is normal.** Ad blockers, refused consent, lost 4G, people closing the app mid-request. Use events for *shapes and comparisons* and your database for anything that must be exact, like money. Reconciling the two to the last order is a trap.
+
+**Event names drift, silently and expensively.** `order_placed`, `orderPlaced` and `placed_order` are three events, every chart built on one is quietly wrong, and nothing warns you. Chapter five's discipline, in a place where the cost is a wrong decision rather than a slow search.
+
+**Small numbers are stories, not statistics.** With 60 users, a step moving from 48% to 55% is three people. Read it as a hint, talk to those three, and save percentages for when there are hundreds.
+
+**Beware the survivors.** Your most loyal users are the ones who already stayed; the ones who left would tell you why the curve fell. Notice the drop-off before they go.
+
+**Defining "active" generously is self-deception.** "Opened the app" makes every chart look better and every chart useless. Pick the action that is the point of your product and do not move it because a number got embarrassing.
+
+### Verify it
+
+AI will build you a funnel chart in minutes. These five checks decide whether it means anything.
+
+1. **Check when each event actually fires**, then do the action yourself and confirm it appears once. **Events fired on page load rather than on success** are the most common fault, and they inflate the steps you most want to trust.
+2. **Count people, not events, at every funnel step.** Ask directly whether each step is distinct users or raw event count. One enthusiastic tester can double a step.
+3. **Check the steps are really ordered and really windowed.** If someone can reach step four without step three, it is a bar chart wearing a funnel's name. If no window is stated, ask for one.
+4. **Check the definition of "active" behind any retention number.** If it is "opened the app", the number is decoration. **Counting signups as activation** is the same error: a signup is a form submission, not value received.
+5. **Search your event properties for personal data** — phone numbers, emails, names, UPI ids. Anything found is a privacy problem and, as chapter nine explains, a legal one, usually there because a generated snippet sent the whole form object.
+
+Red flags: the same event spelled two ways; a funnel with no window; percentages from fewer than a hundred people quoted as facts; cumulative totals presented as growth; "active users" with no stated definition; and a retention curve drawn over a period shorter than your product's natural frequency.
+
+## Walkthrough
+1. Write one sentence saying what a successful user of your product does, and how often. "Places an order on three days out of five" is a sentence; "engages with the platform" is not.
+2. From that sentence, name the single action that counts as **active** for your product, and write it in your repository. Everything else in this walkthrough depends on it.
+3. List the steps a brand-new user passes through from first opening your app to that active action. You should have four to six steps; if you have twelve, your onboarding is the finding.
+4. Turn those steps into an event list: object, past-tense action, and the two or three properties each one carries. Keep it to a dozen events total.
+5. Beside each event write exactly when it fires — on success, never on intent — and what would make it fire wrongly. Save this file; it is your taxonomy.
+6. Check what your product already records, in the database or in logs, that could answer these questions today without any new instrumentation. Most teams find they can already compute first orders and second orders.
+7. Build the funnel by hand for the last month, from whatever data you have, even if it means counting rows. Write the count and the percentage at each step.
+8. Mark the two biggest drops in percentage points, then argue about which one is actually the problem. Write one sentence defending your choice.
+9. Pick your earliest cohort of users and compute, by hand, how many were still active one week and four weeks later. Two numbers. Plot them with two more and look at the shape.
+10. Write down one decision you would make differently if the flattening point were half what it is, and one you would make if it were double. If neither changes anything, you have chosen the wrong metric — go back to step 2.
+11. Put the taxonomy file and the funnel numbers in your repository with today's date, so M16 starts from evidence rather than memory.
+
+## Talk to AI
+```prompt
+CONTEXT:      I am a student in a team of three. I direct AI and verify its
+              output; I do not write code. Our product: [describe it in two
+              sentences]. Our users are students in India on budget Android
+              phones. A successful user of our product does [the one action]
+              about [how often]. We currently have [number] users and we
+              record [what you already record, e.g. rows in a database,
+              server logs]. We have no product analytics yet.
+
+GOAL:         A written event taxonomy of at most twelve events, and a
+              funnel and retention definition I can compute from it — both
+              designed so the numbers would actually change a decision.
+
+REQUIREMENTS: 1. Help me define "active" for my product in one sentence,
+                 and tell me two tempting definitions I should reject and
+                 why each one would flatter me.
+              2. Propose at most twelve events using object_action past
+                 tense, with the properties each should carry. For each, say
+                 exactly when it must fire and name one way it could fire
+                 wrongly.
+              3. Define my signup-to-activation funnel: the ordered steps,
+                 the time window, and whether each step counts people or
+                 events. Explain why the window matters.
+              4. Define my retention measurement: the cohort, the period
+                 length matched to my product's natural frequency, and what
+                 a healthy flattening point would look like for a product
+                 of this kind.
+              5. Tell me which of these numbers I could compute today from
+                 what I already record, with no new instrumentation.
+              6. List every field in my product that must never appear in
+                 an event property, and what to send instead.
+              7. Give me three numbers that would look impressive on a
+                 slide and change no decision, and say what to replace each
+                 one with.
+
+CONSTRAINTS:  Free tier only. At most twelve events — argue me down rather
+              than up. Explain every term on first use. Assume I verify by
+              doing the action myself and watching what gets recorded. No
+              code until I approve the taxonomy.
+
+NON-GOALS:    Do not design A/B tests or consent flows; the next chapter
+              covers those. Do not plan how to acquire users or build
+              growth loops — that is a later module. Do not recommend an
+              analytics vendor. Do not modify any files yet.
+
+ACCEPTANCE:   - My definition of active is the action that is the point of
+                my product, and I can defend rejecting the other two
+              - Every event has a firing condition I could test by hand
+              - My funnel has a stated window and counts people
+              - My retention period matches how often a real user would
+                return
+              - For each metric I can name a decision it would change
+
+ASK:          First ask me up to five questions about my product, my users
+              and their natural frequency. Then give me the definition of
+              active and the event list only, and stop before the funnel.
+```
+
+## Stuck? Ask AI
+```prompt
+Explain the difference between a vanity metric and an actionable metric using a college canteen as the example. Then give me ten numbers a student startup might put on a slide and ask me, one at a time, which kind each is and what decision it would or would not change. Do not tell me the answers first.
+```
+
+```prompt
+Draw me, in plain text, three retention curves for the same product: one that flattens at a healthy level, one that keeps falling to zero, and one that looks bad only because the time period was chosen wrongly. Explain how I would tell the third apart from the second if I only had the chart.
+```
+
+```prompt
+Here is my funnel: [paste your steps with counts]. Interrogate it before interpreting it. Are the steps genuinely ordered? Is it counting people or events? Is there a time window? Then tell me which drop-off is most likely to be a real problem rather than normal behaviour, and why the biggest drop might not be the answer.
+```
+
+## Quiz
+
+### Q1 · L4
+Your funnel shows a 39-point drop from menu to cart and an 18-point drop from reaching payment to placing an order. Which is more likely to be the real problem?
+- (a) The 39-point drop, because it loses more people
+- (b) The 18-point drop — those people had already decided to buy ✅
+- (c) Neither; both are within normal ranges
+- (d) Whichever happens earlier in the funnel
+> Browsing a menu without ordering is ordinary behaviour. Abandoning at payment means intent existed and something broke it, which is far more likely to be a fixable defect than a change of mind.
+
+### Q2 · L3
+A retention curve flattens at 18% by week eight. What does the flat line tell you?
+- (a) That 82% of users are dissatisfied and should be surveyed
+- (b) That roughly 18% formed a habit — that share is your real product ✅
+- (c) That the measurement period was too long
+- (d) That churn is 18% per week
+> The steep part is people trying and leaving; the flat part is people for whom the product became routine. A curve that never flattens means everyone eventually leaves, which is the distinction worth knowing early.
+
+### Q3 · L4
+AI builds you a funnel where the first step fires on page load. What is wrong with every number downstream?
+- (a) Nothing; page load is the honest start of the funnel
+- (b) Step one is inflated by people who never intended anything, so every rate below it is understated ✅
+- (c) The events will be deduplicated and the step will be too low
+- (d) Page-load events cannot carry properties
+> Firing on load rather than on a deliberate action counts bots, accidental taps and bounced loads as participants. The conversion rates then look worse than reality, and the step you would optimise is the wrong one.
+
+### Q4 · L5
+Your analytics shows 1,180 orders last month; your database shows 1,274. What should you do?
+- (a) Treat the database number as broken and investigate the gap
+- (b) Expect the gap; use events for shapes and the database for exact counts ✅
+- (c) Replace the analytics tool, since it is losing data
+- (d) Fire the event from the server so both numbers always agree
+> Blockers, refused consent and dropped 4G requests mean client events always undercount. Chasing an exact match wastes weeks; the discipline is knowing which number each question deserves.
+
+### Q5 · L4
+Which definition of "active" is most useful for a canteen pre-order app?
+- (a) Opened the app at least once
+- (b) Placed an order ✅
+- (c) Viewed the menu
+- (d) Has an account that has not been deleted
+> Active should be the action that is the point of the product. The generous definitions make every chart look better and make none of them capable of changing a decision.
+
+## Go deeper
+- [PostHog docs: funnels](https://posthog.com/docs/product-analytics/funnels)
+- [PostHog docs: retention](https://posthog.com/docs/product-analytics/retention)
