@@ -4,7 +4,7 @@ module: m12-ship-apps-for-real
 slug: ota-updates
 title: "OTA Updates and Shipping Without a Review Queue"
 order: 6
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,29 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Friday evening. A user messages you: tapping "Pay" on the checkout screen crashes the app for everyone on Android. Your crash dashboard confirms it — 340 crashes in two hours, all on the same line.
+Friday evening. Tapping "Pay" crashes the app for everyone on Android — 340 crashes in two hours, all on the same line. You find the bug in four minutes: one incorrect property name in your JavaScript. Then you upload to the Play Store and wait. Review takes a day and a half, and after approval the update still has to reach devices, which depends on each user's auto-update setting. By Monday some users are fixed and some are not.
 
-You find the bug in four minutes. It is one incorrect property name in your JavaScript. You fix it, you build, you upload to the Play Store, and then you wait. Review takes a day and a half, and after it is approved the update still has to actually reach devices, which depends on each user's auto-update setting and whether they are on Wi-Fi. By Monday afternoon some users are fixed and some are not. Your weekend was spent watching a graph.
-
-Now the other failure. A different team discovers over-the-air updates, loves them, and starts pushing changes straight to users several times a day with no review of their own. One Tuesday they push an update that calls a new API endpoint which has not been deployed yet. Every user who receives the update is broken, and the update mechanism itself is now the thing that broke them. They have no rollback plan, so they spend an hour panicking before anyone thinks to re-publish the previous bundle.
+The other failure: a team discovers over-the-air updates and pushes changes several times a day with no review of their own. One Tuesday they push an update calling an API endpoint that is not deployed yet. Every user who receives it is broken, and they have no rollback plan.
 
 ### The idea
 
 **Your app is two things in one file: native code that only a store build can change, and JavaScript that you can replace over the air in minutes.**
 
-The whole of this chapter is learning exactly where that line sits, because everything useful and everything dangerous about over-the-air updates comes from it.
-
-Your screens, your logic, your text, your styling, your API calls — JavaScript. Updatable in minutes, no review queue. The camera module you installed, a new permission in the manifest, the app icon, the app name, the Expo SDK version, anything that changed a native file — native. Store build, review queue, days.
+Your screens, logic, text, styling and API calls are JavaScript — updatable in minutes, no review queue. The camera module you installed, a new permission in the manifest, the app icon, the app name, the Expo SDK version, anything that changed a native file is native — store build, review queue, days.
 
 With Expo this mechanism is EAS Update: your app checks a URL on launch, and if a newer compatible JavaScript bundle exists it downloads it and runs it on the next start.
 
 ### The analogy
 
-The canteen can change its menu card in thirty seconds. New prices, a new dish name, the samosa marked sold out — print it, clip it to the board, done. Nobody inspects a menu card.
+The canteen can change its menu card in thirty seconds — new prices, a dish marked sold out — and nobody inspects a menu card. Adding a tandoor needs a licence amendment, an inspection and a shutdown. You cannot slip a tandoor in by changing the card, and a card advertising tandoori food you cannot cook is worse than no card.
 
-Rebuilding the kitchen to add a tandoor is a different matter entirely. That needs a licence amendment, an inspection, and a shutdown. You cannot slip a tandoor in by changing the menu card, and a menu card that *advertises* tandoori food you cannot cook is worse than no card at all.
-
-**Where the analogy breaks** in a way you must plan around. A menu card change is instant and universal: everyone standing at the board sees the new card. An over-the-air update lands on each phone whenever that phone next opens the app — which for some users is in ten seconds and for others is in three weeks. For a period of time your users are running two or three different versions of your JavaScript against one API. The canteen never has customers ordering from last month's card. You will.
+**Where the analogy breaks.** A menu card change is instant and universal; an over-the-air update lands on each phone whenever that phone next opens the app — ten seconds for one user, three weeks for another. So your users run two or three versions of your JavaScript against one API. The canteen never has customers ordering from last month's card. You will.
 
 ### Picture it
 
@@ -70,11 +64,11 @@ Anything that changes a native file goes the slow way through a store; anything 
 
 ### Where it lives
 
-An over-the-air update is a second deploy pipeline sitting beside the one you built in M06. It has its own channels, usually one per release lane: a `preview` channel your team runs, and a `production` channel real users receive. The channel a build listens to is baked in at build time, which is why the build and the update are linked rather than independent.
+An over-the-air update is a second deploy pipeline beside the one you built in M06. It has **channels**, one per release lane: a `preview` channel your team runs, a `production` channel real users receive. The channel is baked in at build time, which is why the build and the update are linked.
 
-The compatibility link is the **runtime version**. Every build declares one, and an update is only delivered to builds with a matching runtime version. This is the safety mechanism that stops you from shipping JavaScript that calls a native module the installed app does not contain. When you add a native module, you change the runtime version, you make a new store build, and your old installs simply stop receiving updates — correctly.
+The compatibility link is the **runtime version**. Every build declares one, and an update is only delivered to builds that match. This is what stops you shipping JavaScript that calls a native module the installed app does not contain: add a native module, the runtime version changes, you make a new store build, and your old installs correctly stop receiving updates.
 
-Downstream, M13 takes this much further: feature flags, canaries and rollback as a rehearsed drill. For now you need the beginner version of all three.
+M13 takes this further — feature flags, canaries, rollback as a rehearsed drill.
 
 ### Words to own
 
@@ -92,33 +86,27 @@ Downstream, M13 takes this much further: feature flags, canaries and rollback as
 
 ### Tradeoffs and gotchas
 
-**You cannot push a permission, a native module or an icon over the air.** This is the single most common mistake. If an AI tells you a new camera feature can go out as an OTA update, it is wrong — the camera module is native. The runtime version mechanism will usually protect you by refusing to deliver the update, which is good, but the plan was still wrong and you have lost a day.
+**You cannot push a permission, a native module or an icon over the air.** The most common mistake. If an AI says a new camera feature can go out as an OTA update, it is wrong — the camera module is native. The runtime version will usually refuse to deliver it, but the plan was still wrong and you have lost a day.
 
-**Your API must keep working for old bundles.** Because updates arrive whenever each user next opens the app, you always have users on older JavaScript. So your API changes must be additive: add fields, do not rename them; add endpoints, do not delete them; keep old shapes working for a few weeks. Shipping a JavaScript update and an API change simultaneously, with the API change going first, is how teams break every user who has not updated yet.
+**Your API must keep working for old bundles.** You always have users on older JavaScript, so API changes must be additive: add fields, do not rename them; add endpoints, do not delete them; keep old shapes working for a few weeks.
 
-**Users pay for the bundle download.** An update is a real download on a real metered connection. Keep bundles small, do not publish eleven times a day, and understand that each publish costs your users data. This matters far more in Nashik than in Nebraska.
+**Users pay for the bundle download.** Each publish is a real download on a metered connection. Keep bundles small and do not publish eleven times a day. This matters far more in Nashik than in Nebraska.
 
-**Store policies allow JavaScript updates but not a change of purpose.** Both stores permit code updates to interpreted code within an app. What they do not permit is using that mechanism to turn a reviewed app into a different app — adding a store you did not declare, enabling features review rejected, or changing what the app is for. Fix bugs and improve what you declared. Do not use OTA to go around a reviewer.
+**Store policies allow JavaScript updates but not a change of purpose.** What they do not permit is turning a reviewed app into a different app — enabling features review rejected, or changing what the app is for.
 
-**An OTA update needs the same review as a store build — your own.** The whole danger of a fast mechanism is that it removes the friction that was accidentally protecting you. Keep the discipline you built in M01: a pull request, a teammate reading the diff, and a check on a real device before publishing. The speed should be there for emergencies, not for skipping review.
-
-**Rollback is not automatic.** Know, before you need it, exactly how you re-publish the previous bundle, and how long it takes to reach a user. Write the command and the expected time in your runbook. The day you need it, you will not be in a state to work it out.
-
-**Updates apply on next launch, not instantly.** The user who is in the app right now when you publish is still on the old bundle. If you need an update applied urgently, you have to decide whether to prompt the user to restart — and doing that mid-task is its own rudeness.
+**Rollback is not automatic, and updates apply on next launch.** Know before you need it exactly how to re-publish the previous bundle, and how long it takes to reach someone with the app open right now. Put the command and the expected time in your runbook.
 
 ### Verify it
 
-**Red flag: an AI claiming a native change can go out over the air.** The test question is blunt: "does this change touch any native module, permission, app config field or the Expo SDK version?" If yes, it is a store build. If the answer is vague, assume store build. A second check: ask whether the change requires the runtime version to change, and why.
+**Red flag: an AI claiming a native change can go out over the air.** Ask bluntly: "does this touch any native module, permission, app config field or the Expo SDK version?" If yes, or if the answer is vague, it is a store build.
 
-**Red flag: an API change shipped in the same breath as a JavaScript update.** Ask explicitly: "what happens to a user still running the previous bundle after this API change deploys?" A correct answer describes additive changes and a window during which both shapes work. An answer of "they will get the update soon" is not an answer.
+**Red flag: an API change shipped in the same breath as a JavaScript update.** Ask: "what happens to a user still running the previous bundle after this API change deploys?" A correct answer describes additive changes and a window where both shapes work.
 
-**Red flag: no rollback step.** An update plan without a documented way back is incomplete. Demand the exact steps, and ask how long it takes for the rollback to reach a user who has the app open right now.
+**Red flag: no rollback step**, or no staged rollout and no crash check. The plan must name the number you watch — crash-free sessions, from chapter 8 — and how long before you widen.
 
-**Red flag: no staged rollout and no crash check.** The point of a fast mechanism is a fast correction, which only works if you are watching. The update plan must say which number you watch — your crash-free sessions rate from chapter 8 — and for how long before you widen the rollout.
+**Red flag: OTA used to get around a reviewer.** A policy violation with account termination at the end of it.
 
-**Red flag: OTA used to get around a reviewer.** If any plan involves shipping a feature over the air because review rejected it or would reject it, stop. That is a policy violation with account termination at the end of it.
-
-**Verify on a real device, twice.** Install the previous build, publish the update, close the app completely, reopen it, and confirm the new behaviour appears on the second launch rather than the first. Then roll it back and confirm you can get the old behaviour returned the same way. A rollback you have never performed is a hope.
+**Verify on a real device, twice.** Install the previous build, publish the update, close the app completely, reopen, and confirm the new behaviour appears on the second launch rather than the first. Then roll it back and confirm you get the old behaviour the same way. A rollback you have never performed is a hope.
 
 ## Walkthrough
 1. Write two lists for your app: changes you can ship over the air, and changes that need a store build. Put your next five planned changes into one of the two lists.

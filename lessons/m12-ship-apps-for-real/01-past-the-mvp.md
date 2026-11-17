@@ -4,7 +4,7 @@ module: m12-ship-apps-for-real
 slug: past-the-mvp
 title: "Past the MVP: What Production Actually Demands"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,43 +22,29 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your MVP works. You shipped it in M11, you demoed it, your mentor nodded, and the installable PWA you built at the end of M08 sits on your own home screen. Twelve people you know have used it.
-
-Then your team puts the link in three WhatsApp groups and 180 strangers arrive over a weekend.
-
-A student in Nashik on a ₹8,000 Android phone with 3 GB of RAM opens it on 4G at the bus stand. It takes eleven seconds. She switches to WhatsApp to answer a message, comes back, and the app has been killed by the operating system and restarts from the login screen, losing the order she had half-filled. She never tells you. She leaves a one-line review saying "not working" and uninstalls.
-
-Meanwhile a different user hits a crash on a code path you never ran. You find out nine days later, from a 2.9-star rating. You push a fix — and discover it has to go through a store review queue you have not set up, from an account nobody created, signed with a key that does not exist yet. Your two-day bug becomes a two-week bug.
-
-Nothing in that paragraph is a coding problem. Every one is a production problem, and production problems are what this module is about.
+Your MVP works, so your team drops the link in three WhatsApp groups and 180 strangers arrive over a weekend. A student in Nashik on a ₹8,000 Android phone with 3 GB of RAM waits eleven seconds for it to load on 4G, switches to WhatsApp, and comes back to find the OS killed the app and her half-filled order is gone. She reviews it "not working" and uninstalls. Another user hits a crash you never ran; you hear nine days later from a 2.9-star rating, and your fix needs a review queue, an account and a signing key that do not exist yet.
 
 ### The idea
 
-**An MVP proves the idea can work once. Production promises it will keep working for someone you have never met, on a device you do not own, on a network you cannot control — and that you can fix it when it does not.**
+**An MVP proves the idea can work once. Production promises it keeps working for someone you have never met, on a device you do not own, on a network you cannot control — and that you can fix it when it does not.** Five promises, one per chapter.
 
-Those promises are specific. There are five of them, and every chapter in this module is one of them made real.
-
-**It runs on their device, not yours.** Budget Android, small screen, 200% font scale, Hindi, no headroom.
-**It survives a bad network.** Patchy 4G, a train tunnel, 300 ms round trips, data the user is paying for by the megabyte.
-**It is findable and installable.** A store listing, a review that can reject you, an icon and a name a stranger will judge in four seconds.
-**You can see what is going wrong without being told.** Crash reports with real stack traces, a crash-free sessions number, performance measured in the field.
-**You can change it quickly and safely.** A signed build, a release channel, over-the-air updates for the parts that allow it, and a way back when a release is bad.
+**It runs on their device.** Budget Android, 200% font scale, Hindi.
+**It survives a bad network.** Patchy 4G, 300 ms round trips, metered data.
+**It is findable and installable.** A listing, an icon, a review that can reject you.
+**You see what breaks without being told.** Stack traces, crash-free sessions, field performance.
+**You can change it quickly and safely.** A signed build, OTA updates, a way back.
 
 ### The boundary with M08
 
-M08 was the overview. It taught you how to *choose* between native, cross-platform, PWA and hybrid; it explained app lifecycle, permissions and push at the level of what the words mean; and its mission turned your product into an installable PWA. A PWA is still a legitimate answer for many products.
+M08 was the overview: how to *choose* between native, cross-platform, PWA and hybrid, what lifecycle and permissions and push mean, and a mission that made your product an installable PWA — still a legitimate answer for many products.
 
-M12 is the practicum. Here you build a real React Native app with Expo, sign it, submit it to both stores, measure it on a cheap phone, instrument its crashes, and write the listing that decides whether anyone installs it. Where M08 said "Android requires a runtime permission for notifications since Android 13", M12 has you request it at the right moment and measure your opt-in rate.
-
-If a sentence here feels familiar from M08, that is the design. The difference is that this time it ends with something in a store.
+M12 is the practicum. You build a real React Native app with Expo, sign it, submit it to both stores, measure it on a cheap phone, instrument its crashes, and write the listing that decides whether anyone installs it. Where M08 said Android 13 needs a runtime permission for notifications, M12 has you request it at the right moment and measure opt-in.
 
 ### The analogy
 
-In M00 the canteen was one person cooking in a hostel room for three friends. That is your MVP. You know the three friends, you know they will forgive a burnt dosa, and if you run out of oil you go and buy some.
+Your MVP is one person cooking in a hostel room for three friends who forgive a burnt dosa. Production is a licensed stall in the canteen block: an FSSAI licence before you serve anyone, declared ingredients, fixed hours, a complaints register, and forty people at 1:10 pm who cannot be told to come back later.
 
-Production is a licensed stall in the main canteen block. You need an FSSAI licence before you can serve anyone. Your prices must be on a board. You declare what is in the food. You open at a fixed time whether or not you feel like it, you keep a complaints register, and when the 1:10 pm rush arrives with forty people you cannot say "come back later". One bad batch produces a complaint that stays on the record.
-
-**Where the analogy breaks**, in two ways that matter. First, a canteen that has a bad day can shut and reopen tomorrow with a clean slate; an app store rating is cumulative and effectively permanent, so your first fifty users set a number that takes hundreds of later users to move. Second, a food inspector visits occasionally; app review happens on *every single update* you ever ship, against rules that change without telling you. That is why chapters 5 and 11 are tagged as high-volatility and get re-checked every six months.
+**Where the analogy breaks.** A canteen that has a bad day reopens with a clean slate, but a store rating is cumulative and permanent — your first fifty users set a number hundreds of later users cannot move. And app review happens on *every single update*.
 
 ### Picture it
 
@@ -79,11 +65,13 @@ The same product moves left to right by taking on five promises; each arrow is a
 
 ### Where it lives
 
-This module sits on top of almost everything you already have. The API your app talks to is the one from M04, with its auth sessions and object storage. Caching and offline tolerance come from M05. The pipeline that builds and signs your app is CI/CD from M06, and M06's warning about secrets in build artefacts becomes literal here, because an app bundle is a file strangers can download and open. Crash reporting and consent are M07 made mobile. The product itself is the MVP from M11.
+This module sits on top of what you already have:
 
-Two modules sit downstream. M13 takes release strategy further — canaries, feature flags, rollback as a practised drill rather than a panic. M16 uses the analytics you wire up here to work out why 1,000 people saw your listing and 40 installed.
+- **M04** the API · **M05** caching and offline tolerance · **M07** crash reporting · **M11** the product
+- **M06** the build-and-sign pipeline — a bundle is a file strangers can unpack, so its secrets warning is literal here
+- **M13** and **M16**, downstream — rollback as a drill, and why 1,000 saw your listing and 40 installed
 
-And the money matters, because this is the first module in the program where free tiers run out. A Google Play Console developer account is a **one-time** registration fee of roughly US$25 — about ₹2,100 at the time of writing. An Apple Developer Program membership is an **annual** fee of roughly US$99 — about ₹8,400 every year. For a team of three students that is one shared Play account for the price of two weeks of lunch, and an Apple account that costs more than this entire course tier. The honest recommendation for an Indian student team: ship Android first, share one Play account per team, and treat iOS as something you do only if you have a user who genuinely needs it or a budget that genuinely exists. Everything else in this module — Expo, EAS free build quota, crash reporting, push — has a usable free tier.
+This is also the first module where free tiers run out. A Google Play Console developer account costs a **one-time** US$25, about ₹2,100; an Apple Developer Program membership costs an **annual** US$99, about ₹8,400 every year. Ship Android first, share one Play account per team, do iOS only if a user needs it. Expo, EAS builds, crash reporting and push have free tiers.
 
 ### Words to own
 
@@ -102,33 +90,22 @@ And the money matters, because this is the first module in the program where fre
 
 ### Tradeoffs and gotchas
 
-**Going to the stores is a real cost, and sometimes the wrong one.** If your users reach you through a shared link, your product is text and forms, and you need no camera, no push and no offline writes, the installable PWA from M08 may genuinely be the better product. The store buys you three things: discoverability, push notifications that work reliably on Android, and the credibility of an install. If you cannot say which of those three you need, you are not ready to pay for the account.
+**The stores are a real cost, and sometimes the wrong one.** The store buys three things: discoverability, reliable Android push, and the credibility of an install. If your users arrive by shared link and you need none of those, the M08 PWA is the better product.
 
-**Production work is unglamorous and it is most of the remaining work.** Your feature list will barely grow in this module. What grows is the share of users for whom the existing features actually work.
+**"It works on my phone" is the most expensive sentence in this module.** Your phone is newer, your network is campus Wi-Fi, your account already has data in it, and your build is a development build. Four lies in one sentence.
 
-**"It works on my phone" is the single most expensive sentence in this module.** Your phone is newer, your network is campus Wi-Fi, your account already has data in it, and your app is a development build that behaves differently from a release build. Four separate lies in one sentence.
-
-**Do not start the store account on the last week.** Chapter 5 explains why in detail, but the headline is that account verification, a mandatory testing period for new accounts, and a review queue can easily add two weeks that no amount of coding speed removes. Open the account the day you start this module.
-
-**Your rating is set by your worst users, not your average ones.** The people who had a good time mostly say nothing. Everything in chapters 8 and 9 exists so that you learn about the bad experience from your tooling instead of from a public review.
+**Do not start the store account in the last week.** Account verification, a mandatory testing period and a review queue add two weeks no coding speed removes.
 
 ### Verify it
 
-Ask an AI to plan your move from MVP to production and you will get a confident checklist in fifteen seconds. Here is how to tell whether it understood *your* situation.
+**Make an AI plan name your constraints back to you**: budget device, network, the Play-first decision, one-time versus annual fees, the review calendar. If none appear, it is a generic article. Red flags:
 
-**Demand that the plan name your constraints back to you.** A usable plan mentions the budget device, the network, the Play-first decision, the one-time versus annual fee difference, and the review calendar. If none of those appear, you have been handed a generic article.
+- **Assumes a fast connection and a new phone** — no mention of 4G at 1.2 Mbps with 300 ms latency, of no network at all, or of a 3 GB RAM device.
+- **"Then just publish to the stores"** — that "just" hides accounts, identity verification, signing keys, a privacy policy URL, a data safety declaration, a content rating, a testing track, and a review that can say no.
+- **No way back** — ask what you do if tomorrow's build crashes on launch for 30% of users, and how long the fix takes.
+- **Secrets in the app** — a shipped bundle is a file anyone can unpack.
 
-**Red flag: a plan that assumes a fast connection.** If nothing in it mentions what happens on 4G at 1.2 Mbps with 300 ms latency, or what the app does with no network at all, it was written for a user in San Francisco.
-
-**Red flag: a plan that assumes a current flagship phone.** "Users expect 60 fps and instant startup" is not a plan. Ask for the numbers it expects on a 3 GB RAM device.
-
-**Red flag: "then just publish to the stores".** The word "just" is doing an enormous amount of hiding: account creation, identity verification, signing keys, a privacy policy at a live URL, a data safety declaration, a content rating, a testing track, and a review that can say no. If the plan is one bullet, it is wrong by about two weeks.
-
-**Red flag: a release plan with no way back.** Ask the explicit question: "if the build I ship tomorrow crashes on launch for 30% of users, what exactly do I do, and how long does it take?" A plan that has no answer is not a production plan.
-
-**Red flag: secrets in the app.** If any step says to put an API key, a service account or a database credential into the app's config so the app can call a service directly, stop. A shipped app bundle is a file anyone can download and unpack. This is the M06 secrets-in-build-artefacts warning, and on mobile it is not theoretical.
-
-Write the five promises into your decision log from M01, each with a number. "Cold start under 3 seconds on a 3 GB Android phone" is a promise. "Fast" is a feeling.
+Write the five promises into your M01 decision log, each with a number.
 
 ## Walkthrough
 1. Open your MVP on the cheapest Android phone anyone in your team or your hostel owns. Not an emulator, not your own phone. Note the make, the RAM and the price.

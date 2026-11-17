@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: ai-gateways-and-cost-control
 title: "AI Gateways, Semantic Caching and Cost Control"
 order: 14
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: high
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-M09 chapter 14 taught you to compute cost per request and per active user from measured token counts, and gave the five levers in order. M10 chapter 6 taught the provider's prompt cache. M05 taught cache layers and rate limiting. None says where any of it is *enforced*, and by now you have a problem of shape rather than arithmetic.
+M09 chapter 14 taught cost per request from measured tokens, M10 chapter 6 the provider's prompt cache, M05 cache layers and rate limiting. New here is where any of it is *enforced*.
 
-Count what calls a model in your product after this module: a hosted API for the assistant, a cheap model for classification, a fine-tuned endpoint, a local build, an orchestrator with four agents, and an eval suite. Six callers, four credentials, three SDKs, keys in the application's environment.
-
-Then three failures arrive together. One user, or one loop, spends ₹4,100 in a night, because nothing enforced a per-user ceiling. A provider has a bad hour and your product is down, because every call goes to one place with no fallback. And when the bill arrives nobody can say which feature caused it. Switching providers means editing fourteen files.
+Count what calls a model in your product by now: a hosted API, a cheap classifier, a fine-tuned endpoint, a local build, four agents, an eval suite. Six callers, four credentials, keys in the app's environment. So one loop spends ₹4,100 overnight with no per-user ceiling, a provider's bad hour takes you down with no fallback, and the bill cannot be attributed.
 
 ### The idea
 
 **One gateway: a single internal service every model call passes through, where keys, routing, budgets, caching, retries and accounting all live.**
 
-It does six jobs. **One API shape** over many providers, so a switch is configuration. **Key custody**, so application code never holds a credential. **Routing and fallback**, including a cheap-to-expensive cascade. **Budgets** per user, tenant and feature, enforced by refusing. **Caching**, in the two forms you own. And **accounting**: every request tagged with feature, user, release id, tokens and rupees.
-
-None of the six is hard. The point is that they are in one place, which is the only way any of them is reliably true.
+Six jobs: **one API shape** over many providers, so a switch is configuration; **key custody**, so app code holds no credential; **routing and fallback**; **budgets** per user, tenant and feature, enforced by refusing; **caching**, in the two forms you own; and **accounting**, every request tagged with feature, user, release id, tokens and rupees.
 
 ### The analogy
 
-The canteen has six counters and one store room. Each counter holds its own key, sends its own helper in, and takes what it needs.
+Six counters, one store room, each with its own key. Nobody knows what the dosa counter consumed this month, and a helper with a key can empty a shelf at 2 am. Put one issue window on the store room: one key, every request written against the counter that asked, a counter past its allowance told no.
 
-Nobody knows what the dosa counter consumed this month. When the rice runs out, every counter discovers it separately. A helper with a key can empty a shelf at 2 am unnoticed. And when the supplier changes, six counters must be told.
-
-Put a single issue window on the store room instead. One person holds the key. Every request is written down against the counter that asked. A counter that has used its day's allowance is told no. If the usual rice is out, the window substitutes. One place to change the supplier, one ledger explaining the bill.
-
-**Where the analogy breaks.** The issue window can see a counter asking for forty kilos and refuse on judgement. Your gateway sees a token count and a price and nothing else — it cannot tell a heavy user from a runaway loop. That is why the budget must be a hard number set in advance, and why the alert must fire during the night rather than in a report.
+**Where it breaks.** The window can refuse forty kilos on judgement. Your gateway sees only tokens and a price, so it cannot tell a heavy user from a runaway loop.
 
 ### Picture it
 
@@ -74,33 +66,28 @@ Every caller reaches models only through one gateway, which holds the keys, chec
 
 ### Three caches, and only two are yours
 
-**The provider's prompt cache** is M10 chapter 6's: a discount on an unchanged prefix. You do not operate it. Your gateway's job is to keep the stable prefix byte-identical, never injecting a timestamp or a per-user string above the rules.
+**The provider's prompt cache** is M10 chapter 6's discount on an unchanged prefix. You do not operate it; the gateway just keeps that prefix byte-identical.
 
-**Your exact-match answer cache** stores a full answer against a hash of the request. It can never answer a different question, so it is safe, and its hit rate is modest — good for popular identical questions, menus and policy lookups. The difficulty is the key: it must include everything that changes the correct answer — the model and version, the prompt version, the retrieved document versions, the locale, and **the permission scope**. Omit the last and user B receives an answer computed from documents user A was allowed to see, which is an incident rather than a stale cache.
+**Your exact-match cache** stores an answer against a hash of the request, so it can never answer a different question. The difficulty is the key: model and prompt versions, document versions, locale, and **the permission scope**. Omit the last and user B gets an answer built from user A's documents — an incident, not a stale cache.
 
-**A semantic cache** embeds the incoming query, searches previous ones, and returns a stored answer if similarity passes a threshold. The hit rate is far higher, because people ask the same thing in different words. The risk is categorical rather than occasional.
+**A semantic cache** returns a stored answer above a similarity threshold: higher hit rate, categorical risk.
 
 ### Making a semantic cache safe
 
-Consider "can I cancel order 4821?" and "can I cancel order 4812?" Their embeddings are almost identical and their correct answers differ. That is the shape of every semantic-cache incident.
+"Cancel order 4821?" and "cancel order 4812?" have near-identical embeddings and different correct answers. That is every semantic-cache incident.
 
-Four rules follow. **Never semantic-cache anything containing an identifier, a quantity, a date or a name** — route those to the exact-match cache or straight through. **Set the threshold from measurement**: build a hundred labelled query pairs, fifty that genuinely want the same answer and fifty that look similar and do not, then pick the threshold keeping the false-hit rate at zero on the second fifty and accept whatever hit rate remains. **Scope the key by user or tenant and by permission.** And **log every hit** with both queries, because a false hit is otherwise invisible.
-
-The economics are then honest. A hit saves one request's cost. A false hit produces a confidently wrong answer, which costs more than any number of tokens. So the threshold is set by the second number.
+Four rules. **Never semantic-cache text containing an identifier, quantity, date or name.** **Set the threshold by measurement:** a hundred labelled query pairs, fifty wanting the same answer and fifty that only look similar, then the threshold holding the false-hit rate at zero on the negatives. **Scope the key by user and permission.** **Log every hit with both queries.** A hit saves one request; a false hit is a confident wrong answer, so it sets the threshold.
 
 ### Cost control that actually controls
 
-Four enforcements, all at the gateway, all returning a refusal rather than writing a log line.
+Four enforcements, all at the gateway, all refusing rather than logging.
 
-**A per-user daily budget** in rupees or tokens, returning a 429 with a clear message, using M05 chapter 4's machinery. This is the control that would have prevented the ₹4,100 night.
+- **A per-user daily budget** returning a 429 with a message the product can show — what would have prevented the ₹4,100 night.
+- **A per-feature monthly budget** with a kill switch, so one experiment cannot eat the month.
+- **A maximum output cap** per feature; unbounded output is the commonest surprise bill.
+- **A cascade:** cheap model first, expensive only for hard requests — also where a rate limit becomes a fallback.
 
-**A per-feature monthly budget** with a kill switch, so one experiment cannot consume the month.
-
-**A maximum output cap** per feature. Unbounded output length is the commonest source of a surprise bill.
-
-**A cascade**: a cheap model or classifier decides first, and only hard requests reach the expensive model. M09 chapter 13 called this the professional answer; the gateway is where it is implemented, and also where a rate limit becomes a fallback rather than an error.
-
-Beside all four, one alert: spend crossing a fraction of the monthly budget, or any request exceeding a multiple of your median cost, paging a person while it happens. M07 chapter 7 is where that lives.
+Plus one alert that pages a person mid-spend.
 
 ### Tools today
 
@@ -108,9 +95,10 @@ Managed AI gateway products exist and churn quickly, as does every provider's pr
 
 ### Where it lives
 
-Below: M07 chapter 2 for secret custody, M05 chapters 2 to 4 for cache layers and rate limiting, M09 chapter 14 for the arithmetic this enforces, and M10 chapter 6 for the provider cache it must not break. Chapter 7 supplies the things being routed to; chapter 13 supplies the release id stamped on every line.
-
-Above: M17 chapter 6 is where per-feature cost attribution becomes margin, and it is only answerable if the gateway tagged every request with a feature. That tag is the most valuable field in this chapter.
+- M07 chapter 2, M05 chapters 2 to 4 — secret custody, caches, rate limits
+- M09 chapter 14, M10 chapter 6 — the arithmetic enforced here, the cache it must not break
+- Chapters 7, 13 — what is routed to, and the release id on every line
+- M17 chapter 6 — per-feature cost as margin, answerable only with a feature tag
 
 ### Words to own
 
@@ -131,31 +119,26 @@ Above: M17 chapter 6 is where per-feature cost attribution becomes margin, and i
 
 ### Tradeoffs and gotchas
 
-**A gateway is a single point of failure, so keep it thin.** A few milliseconds, no clever logic. Timeouts and a circuit breaker from M05 chapter 8 belong here; anything that could make the gateway itself slow does not.
+**A gateway is a single point of failure, so keep it thin.** Timeouts and a circuit breaker belong here; anything that could slow it does not.
 
-**Caching the wrong thing is worse than not caching.** Anything personalised, permissioned, time-dependent or containing an identifier should not be answer-cached. What is worth caching is the boring repeated questions — also most of your traffic.
+**Caching the wrong thing is worse than not caching.** Nothing personalised, permissioned or carrying an identifier — the boring repeated questions are both safe and most of your traffic.
 
-**Measure the false-hit rate before the savings.** Teams ship a semantic cache at a guessed threshold, celebrate a 40% hit rate, and learn the wrong-answer rate months later from a complaint. The labelled pair set is an afternoon and it is the safety argument.
+**Measure the false-hit rate before the savings.** Teams ship at a guessed threshold, celebrate a 40% hit rate, and learn the wrong-answer rate from a complaint.
 
-**A budget that logs is not a budget.** The only acceptable behaviour on exhaustion is refusing the call with a message the product can show. Anything else records money already spent.
-
-**Fallback must be tested, and feature tags must exist from day one.** A fallback to a different model changes quality, so run chapter 10's suite against that path too. And retrofitting feature attribution across six callers is tedious enough that nobody does it — without it, M17's margin question has no answer.
-
-**Do not let the gateway rewrite prompts.** Injecting a timestamp or request id above the stable prefix destroys the provider's prompt cache on every request — M10 chapter 6's mistake, committed centrally for every feature at once.
+**Do not let the gateway rewrite prompts.** A timestamp above the stable prefix destroys the provider's cache for every feature at once.
 
 ### Verify it
 
-The red flag here is the module's bluntest: **a per-request cost nobody has measured** — and its cousin, a monthly bill nobody can attribute to a feature.
+The red flag is the module's bluntest: a cost nobody measured.
 
-1. **Ask for last month's cost broken down by feature.** If it cannot be produced, the feature tag is missing and that is the first thing to build.
-2. **Ask what happens when one user sends a thousand requests in an hour.** The answer must be a refusal at a stated number, not an alert.
-3. **Ask where the provider keys are.** Any in application code or a frontend is a stop-everything finding.
-4. **For a semantic cache, demand the labelled pair set and the measured false-hit rate.** No measurement, no semantic cache.
-5. **Read the cache key out loud, field by field.** Model, prompt version, document versions, locale, permission scope. A missing permission scope is a data leak.
-6. **Ask what the fallback is, when it was last exercised,** and whether the regression suite was run against it.
-7. **Check the gateway does not modify the prompt prefix,** then compare prompt-cache hit rates before and after it appeared.
+1. **Ask for last month's cost by feature.** If it cannot be produced, the feature tag is missing.
+2. **Ask what a thousand requests in an hour from one user gets:** a refusal at a stated number.
+3. **Ask where the provider keys are.**
+4. **For a semantic cache, demand the labelled pairs and the measured false-hit rate.**
+5. **Read the cache key field by field.** A missing permission scope is a data leak.
+6. **Ask when the fallback was last exercised.**
 
-Red flags: no per-feature cost attribution; a per-user budget that only warns; keys outside the gateway; a threshold chosen by intuition; a cache key without a permission scope; no fallback or an untested one; no output cap; a gateway injecting anything above the stable prefix; and cache hits not logged with both queries.
+Red flags: no per-feature attribution; a budget that only warns; keys outside the gateway; a guessed threshold; no permission scope in the key; an untested fallback.
 
 ## Walkthrough
 1. List every place in your product that calls a model, including background jobs, the eval suite and each agent. Write down which credential each one uses. The length of this list is the argument for the chapter.

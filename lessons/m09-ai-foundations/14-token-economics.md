@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: token-economics
 title: "Token Economics: What Your AI Feature Actually Costs"
 order: 14
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: high
@@ -22,33 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team ships an AI tutor for their canteen-ordering startup. It explains dishes, suggests meals within a budget, answers in Marathi. The demo is the best in the cohort.
-
-They price it at ₹49 a month and sign up 1,500 students. Revenue is about ₹73,500 a month, which feels like a business.
-
-Then the first real bill arrives. Their tutor uses a reasoning model, carries a 1,200-token system prompt, keeps the full conversation history, and retrieves menu context every turn. One turn consumes roughly 6,000 input tokens and about 1,800 output tokens once hidden thinking tokens are counted. Conversations run about eight turns. Students have about three a month.
-
-That is roughly ₹65,000 a month in model costs against ₹73,500 of revenue, before hosting, before the database, before anyone's time. The product does not have a margin. It has a leak.
-
-Nobody did anything stupid. Every decision was reasonable. None of them were ever multiplied out, and the arithmetic takes twenty minutes.
+A team ships an AI tutor at ₹49 a month to 1,500 students, for about ₹73,500 of monthly revenue. Then the first bill arrives. The tutor uses a reasoning model, carries a 1,200-token system prompt, keeps full history and retrieves menu context every turn: roughly 6,000 input and 1,800 output tokens per turn, eight turns a conversation, three conversations a month. That is ₹65,000 against ₹73,500, before hosting. Nobody multiplied it out.
 
 ### The idea
 
 **Cost per request is measured tokens multiplied by today's published price. Everything else is that number multiplied by how often it happens, and compared against what a user is worth to you.**
 
-Two numbers decide whether an AI feature can exist: **cost per successful request** and **revenue per active user per month**. If the first, multiplied by how often a user triggers it, approaches the second, you do not have a product — and at Indian price points, where ₹49 or ₹99 a month is what a student will actually pay, this happens far more easily than teams expect.
+Two numbers decide whether an AI feature can exist: **cost per successful request** and **revenue per active user per month**. If the first, times how often a user triggers it, approaches the second, you have no product.
 
-And the warning that governs this entire chapter, stated once and meant absolutely. **Every price in this chapter is a placeholder for teaching the arithmetic. Every price an AI gives you is probably stale. The provider's own pricing page, read today, with the date written next to it, is the only authority for any number that goes into your budget.** Prices get cut, restructured, tiered and withdrawn; an AI's knowledge of them predates its cutoff, which chapter 11 explained is structural. This is M00's knowledge-cutoff failure mode landing exactly where it costs money.
+One warning governs this whole chapter. **Every price here is a placeholder for teaching the arithmetic. Every price an AI gives you is probably stale. The provider's own pricing page, read today, with the date written next to it, is the only authority for any number in your budget.**
 
 ### The analogy
 
-The canteen prices a thali at ₹60 and the owner is pleased, because the rice, dal and vegetables come to about ₹22.
+The canteen prices a thali at ₹60 and the owner is pleased, because rice, dal and vegetables come to ₹22. Then someone sits down with the ledger: the free chapatis, the curd refills, the 4% of plates remade, the gas, the pickle, the washing. The real cost is ₹51, and on high-wastage days the thali loses money. Nobody had written down every line attached to one plate.
 
-Then someone sits down with the ledger. The two extra chapatis nobody charges for. The curd refill a third of customers ask for. The 4% of plates sent back and remade. The gas. The ₹3 of pickle. The plate washed by someone who is paid. The real cost is ₹51, and on high-wastage days the thali loses money while the queue is at its longest.
-
-Nothing was stolen and nobody made a bad decision. The owner simply never wrote down every line that attaches to one plate, and so never knew the number that mattered.
-
-**Where the analogy breaks:** the canteen's input prices move slowly. Model prices move fast and in both directions — a model can get four times cheaper in a year, or be retired and replaced at a different price. So your cost model is not a spreadsheet you build once. It is a spreadsheet with a date on it and a reason to be rebuilt.
+**Where the analogy breaks:** the canteen's input prices move slowly. Model prices move fast and in both directions — four times cheaper in a year, or retired at a different price. Your cost model is not a spreadsheet you build once; it is one with a date on it.
 
 ### Picture it
 
@@ -75,9 +63,7 @@ Nothing was stolen and nobody made a bad decision. The owner simply never wrote 
 
 One request is built from several token buckets, and the monthly bill is that request multiplied by every repetition in your product.
 
-### The arithmetic, done once, slowly
-
-Here is the tutor from the top of the chapter, as a ledger. **The rates below are invented round numbers so the method is clear — do not reuse them.**
+The tutor from the top of the chapter, as a ledger. **The rates below are invented round numbers so the method is clear — do not reuse them.**
 
 ```
   EXPENSIVE VERSION  (reasoning model)
@@ -103,9 +89,9 @@ Here is the tutor from the top of the chapter, as a ledger. **The rates below ar
 
 The tutor's monthly model cost, built up from one turn to the whole user base.
 
-Read the last three lines again. One turn costs under two rupees and nobody would blink at it. The same number, multiplied by turns, conversations and users, is ₹64,800 against ₹73,500 of revenue.
+Read the last three lines again: one turn costs under two rupees, and that same number times turns, conversations and users is ₹64,800 against ₹73,500 of revenue.
 
-Now the same feature after the levers, with a cheap model at an invented ₹20 per million input and ₹80 per million output:
+The same feature after the levers, at an invented ₹20 per million input and ₹80 per million output:
 
 ```
   TRIMMED VERSION  (small model, no reasoning)
@@ -125,35 +111,13 @@ Now the same feature after the levers, with a cheap model at an invented ₹20 p
   × 1,500 users                         ₹2,310
 ```
 
-The same feature, rebuilt with four decisions changed, at roughly one twenty-eighth of the cost.
-
-₹64,800 becomes ₹2,310, with nothing removed that a student would notice. Four decisions changed: a shorter system prompt, less history, fewer retrieved chunks, and a smaller model without reasoning — which chapter 13's comparison would have shown was good enough.
-
-### The six multipliers
-
-Cheap-looking features become expensive through these, in roughly this order of frequency.
-
-**The system prompt, charged every turn.** A 1,200-token prompt across eight turns is 9,600 input tokens of pure repetition. M10's prompt caching is the right fix; shortening it is the free one.
-
-**Conversation history.** Each turn re-sends all prior turns, so a ten-turn chat costs far more than ten single turns — closer to fifty, as chapter 8 showed.
-
-**Retries.** Malformed JSON, a timeout, a rate limit. If one request in ten retries, your real cost is ten per cent higher, and uncapped retry loops have produced genuinely alarming bills.
-
-**Thinking tokens.** A reasoning model can spend thousands of invisible billed tokens before a short answer.
-
-**Agent steps.** An agent that reads, thinks, calls a tool, reads the result and answers has made four or five calls for one user action, each carrying the growing context. This is M10's territory and where costs surprise people most.
-
-**Free users.** If the feature is open to anyone, cost scales with usage and revenue does not. One enthusiastic user can cost more than a hundred paying ones, which is why per-user rate limits are a cost control and not only an abuse control.
+The same feature, rebuilt with four decisions changed, at roughly one twenty-eighth of the cost: a shorter system prompt, less history, fewer chunks, and a smaller model without reasoning — and nothing a student would notice.
 
 ### Where it lives
 
-Three places in the course meet here.
-
-**M00's billing alerts are the safety net, and they are not optional.** Set a hard spend limit and an alert at a fraction of it today, before any feature ships. A runaway retry loop at 2 am is how students lose a semester's budget overnight.
-
-**M05's caching is the mechanics.** Identical or near-identical requests should not be paid for twice. Of the levers, caching has the best return for a product where many users ask similar questions — exactly what a canteen assistant is.
-
-**M07's metrics are where this lives permanently.** Log input tokens, output tokens, model name and estimated cost on every model call from day one. Without that, "why did the bill double" is unanswerable. With it, it is a query.
+- **Billing alerts are the safety net and are not optional.** Set a hard spend cap and an alert before any feature ships; a runaway retry loop at 2 am is how a semester's budget disappears.
+- **M05's caching is the mechanics**: near-identical requests should not be paid for twice.
+- **M07's metrics are where this lives permanently.** Log input tokens, output tokens, model name and estimated cost on every call, or "why did the bill double" is unanswerable.
 
 ### Words to own
 
@@ -174,33 +138,23 @@ Three places in the course meet here.
 
 ### Tradeoffs and gotchas
 
-**Apply the levers in order of return, not of cleverness.** Trim the system prompt and the history. Cap max output tokens. Cache repeated questions. Route easy requests to a cheap model. Only then redesign. The first three are an afternoon and routinely cut most of the cost; teams reach for the last two first because they are more interesting.
-
-**Sometimes the right answer is not to use a model at all.** "Which category is this ticket" can be a small classifier trained once, as chapter 4 argued, at effectively zero per request. "What is today's menu" is a database query. Before optimising a call, ask whether it needs to exist.
-
-**Latency and cost move together.** Shorter prompts and capped outputs are both cheaper and faster, so this work pays twice — once on the bill and once in M05's latency numbers.
-
-**A free tier is not a cost model.** Free credits tell you nothing about what the feature costs at a thousand users. Do the arithmetic at your target scale on day one, while the design is still cheap to change.
-
-**Currency matters.** Most providers price and bill in dollars; your revenue is in rupees. An exchange-rate move raises your costs and not your prices, so keep a margin rather than budgeting at the day's rate.
-
-**Every number here expires, including the structure.** Prices change, caching discounts change, and token accounting for reasoning models has changed more than once. Put a date on your spreadsheet and a reminder to rebuild it.
+- **Six multipliers turn cheap features expensive**: the system prompt charged every turn, history re-sent every turn, retries, billed-but-invisible thinking tokens, agent steps that turn one action into five calls, and free users whose cost scales while revenue does not.
+- **Apply the levers in order of return, not cleverness.** Trim prompt and history, cap output tokens, cache repeats, route easy requests cheaply, then redesign.
+- **Sometimes the right answer is not to use a model.** Ticket categories can be a small classifier at near-zero cost; today's menu is a database query.
+- **Latency and cost move together**: shorter prompts and capped outputs pay twice.
+- **A free tier is not a cost model.** Do the arithmetic at target scale on day one.
+- **Currency matters.** Providers bill in dollars and your revenue is in rupees, so an exchange-rate move raises costs and not prices.
+- **Every number here expires, including the structure.**
 
 ### Verify it
 
-**Red flag, the headline one: a confidently quoted price.** Any figure per million tokens, from any AI, is a rumour. Open the pricing page, read it, write the date. An AI that gives you a price without telling you to verify it is itself the warning sign.
-
-**Red flag: an estimate with no output-token line, or no thinking-token line.** Output is the dearer half and thinking tokens are invisible. An estimate missing either is not an estimate.
-
-**Red flag: no multiplier for turns, retries or agent steps.** Ask: how many model calls does one user action make, and how many tokens does each carry? For an agent the answer is rarely one.
-
-**Red flag: a cost per request with no revenue comparison.** "Five paise per request" sounds free until you multiply it by eight turns, three conversations and 1,500 users and set it beside ₹49 a month.
-
-**Red flag: "we are on the free tier so it costs nothing."** Ask what it would cost at a thousand users. If nobody has computed it, nobody knows whether the product can exist.
-
-**Red flag: no spend cap and no billing alert.** Not an estimation error — an unbounded liability. M00 covered it; this is where it becomes real money.
-
-And the measurement no estimate substitutes for: make ten real calls through your feature, read the input and output token counts the provider returns, and average them. Those two numbers, times today's published prices, are your cost per request. Everything else is multiplication.
+- **A confidently quoted price** — the headline one. Any figure per million tokens is a rumour: open the pricing page, read it, write the date.
+- **An estimate with no output-token or thinking-token line.** Output is the dearer half and thinking tokens are invisible.
+- **No multiplier for turns, retries or agent steps.** Ask how many calls one user action makes.
+- **A cost per request with no revenue comparison.** "Five paise" sounds free until it meets eight turns, three conversations, 1,500 users and ₹49 a month.
+- **"We are on the free tier, so it costs nothing."** Ask what a thousand users would cost.
+- **No spend cap and no billing alert** is an unbounded liability.
+- **The measurement no estimate replaces:** average the token counts from ten real calls and multiply by today's published prices.
 
 ## Walkthrough
 1. Pick the one AI feature in your product that will be used most. Write down who triggers it and what one use of it means.

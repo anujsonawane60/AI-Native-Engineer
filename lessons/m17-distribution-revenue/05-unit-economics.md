@@ -4,7 +4,7 @@ module: m17-distribution-revenue
 slug: unit-economics
 title: "Unit Economics: CAC, LTV, Margin and Payback"
 order: 5
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,35 +22,41 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team presents at the month-four review. Their slide says: CAC ₹75, LTV ₹3,980, a 53-times return. The room nods. It is the best-looking slide of the afternoon. Then someone asks four questions.
+A team presents at the month-four review: CAC ₹75, LTV ₹3,980, a 53-times return. Then someone asks where the numbers came from. CAC: ₹3,000 of printing, samosas and a boosted post for forty customers, with sixty founder-hours at a canteen stall left out because "our time is free". LTV: ₹199 of monthly revenue divided by a 5% churn rate taken from two weeks of one forty-user cohort. Gross margin: never computed, because inference was never subtracted from the ₹199.
 
-Where did CAC come from? Printing, samosas and one boosted post — ₹3,000 for forty customers, with the sixty hours they spent at a canteen stall left out because "our time is free". Where did LTV come from? Monthly revenue of ₹199 divided by a 5% churn rate. Where did 5% come from? Two weeks of data from one cohort of forty. And the gross margin? Nobody has computed one, because the AI feature's inference cost has never been subtracted from the ₹199.
+```
+  THE SAME COHORT, TOLD TWO WAYS
 
-The honest version of the same slide, from the same team's real numbers: CAC ₹300, six-month contribution ₹430, a ratio of 1.4, and a payback period of four and a half months. That is not a disaster — it is a business that might work — but it is a different business from the one on the slide, and every decision made from the slide was made about a company that does not exist.
+                        the pitch     the ledger
+  CAC                         ₹75           ₹300
+  monthly value per user     ₹199           ₹130
+  churn used                   5%     real curve
+  LTV or contribution      ₹3,980           ₹430
+  ratio to CAC                 53x           1.4x
+  payback               0.4 months     4.5 months
+```
+
+Four errors — free labour, revenue as margin, an invented churn rate and an infinite horizon — compound into a number thirty-eight times too good. The right-hand column is a business that might work, but it is a different business from the one on the slide.
 
 ### The idea
 
 **Unit economics asks one question: does one customer pay back more than one customer costs, and how fast?**
 
-Four numbers answer it, computed in this order, because each depends on the last.
+Four numbers answer it, computed in this order because each depends on the last. **Gross profit per customer per month** is revenue minus every cost of serving them. **CAC** is what it cost to get one paying customer, including your time. **Contribution over a bounded horizon** is gross profit times how long they actually stay. **Payback period** is the months of gross profit needed to recover CAC.
 
-**Gross profit per customer per month** — revenue minus every cost of serving them. **CAC** — what it cost to get one paying customer, including your time. **Contribution over a bounded horizon** — gross profit times how long they actually stay, from a real retention curve. **Payback period** — months of gross profit needed to recover CAC.
+A ratio of 1.4 is survivable. The number that stops you is the 4.5-month payback, because payback is about **cash**: ₹12,000 spent this month is ₹12,000 you do not have for four and a half months, which at a student's cash level is the binding constraint.
 
-The boundary with M16 is worth stating plainly. **M16 measures behaviour: who activated, who came back, what the retention curve looks like, how many churned. M17 turns that behaviour into money.** If your retention curve is not instrumented, nothing here can be computed — go back and instrument it.
+**M16 measures behaviour: who activated, who came back, what the retention curve looks like, how many churned. M17 turns that behaviour into money.** If your retention curve is not instrumented, nothing here can be computed — go back and instrument it.
 
 ### The analogy
 
-The canteen owner knows two numbers by heart, and they are the only two he needs.
+The canteen owner knows two numbers by heart. What a plate costs him: ₹51 against a ₹60 price, so ₹9. And what a regular is worth: ₹2,000 of flyers brought eighty regulars, so ₹25 each, and a regular eats twelve plates a month, which is ₹108 of margin — so he recovers the ₹25 in the first week and can print more flyers tomorrow without thinking. His ₹9 is measured and his ₹25 includes the nephew he paid to hand them out.
 
-The first is what a plate costs him: ₹51 against a ₹60 price, so ₹9 a plate. The second is what a regular is worth. He printed ₹2,000 of flyers and eighty people became regulars, so ₹25 to get one. A regular eats twelve plates a month, which is ₹108 of margin, so he recovers ₹25 in the first week and can print more flyers tomorrow without thinking.
+**Where the analogy breaks:** his customers leave and come back with no record, so he can only guess at retention. You can measure it per user, to the day — but you have only a few weeks of history, which is exactly why LTV is the most abused number in a student pitch.
 
-That is why he sleeps well and the team with the 53-times slide does not. His ₹9 is measured, his ₹25 includes the nephew he paid to hand out flyers, and he has watched the same regulars for two years.
+### Picture it
 
-**Where the analogy breaks:** his customers leave and come back with no record, so he can only guess at retention. You can measure it per user, to the day, which removes your excuse for guessing — but you have only a few weeks of history, which is exactly why LTV is the most abused number in a student pitch. Measurable and short is a different problem from unmeasurable and long, and it needs a different kind of honesty.
-
-### Number one: gross profit per subscriber
-
-Start here, because everything else is built on it. Revenue is not margin.
+Revenue is not margin, and the other three numbers are built on this one.
 
 ```
   GROSS MARGIN ON ONE SUBSCRIBER, PER MONTH
@@ -66,13 +72,9 @@ Start here, because everything else is built on it. Revenue is not margin.
 
 Every cost of serving one subscriber for a month, subtracted from the price, leaving ₹130 of gross profit at 65%.
 
-The line missing from most student calculations is the inference line, and it is usually the largest. Chapter 6 is entirely about where that ₹59 comes from and why it is often worse. If your table has no inference line and your product has an AI feature, you do not have a gross margin — you have a price.
+Inference is the line missing from most student calculations, and usually the largest — chapter 6 is where that ₹59 comes from. Without it you have a price rather than a margin. Rent, the laptop and the hours spent building stay out: they are fixed costs.
 
-Note what is *not* here: rent, salaries, the laptop, the hours spent building. Those are fixed costs, and mixing them in produces a number that changes every time you hire someone, which makes it useless for deciding whether a customer is worth acquiring.
-
-### Number two: CAC, including your time
-
-**CAC** is acquisition spend divided by new paying customers in the same period. Two things go wrong: people divide by signups instead of paying customers, and people leave out labour.
+**CAC** is acquisition spend divided by new *paying* customers in the same period — not signups.
 
 ```
   CAC FOR ONE MONTH OF ACQUISITION
@@ -90,15 +92,11 @@ Note what is *not* here: rent, salaries, the laptop, the hours spent building. T
   CAC, founders' time included    ₹12,000/40 = ₹300
 ```
 
-The same month of acquisition produces a CAC of ₹75 or ₹300 depending entirely on whether the founders' sixty hours are counted.
+The same month of acquisition produces a CAC of ₹75 or ₹300, depending entirely on whether the founders' sixty hours are counted.
 
-Your time is not free. It is the scarcest thing you have, you are spending it instead of building, and a channel that only works when three people stand in a canteen stops the day you stop standing. Pick a notional hourly rate — whatever a part-time job in your city pays is defensible — write it down, and use it consistently.
+Your time is not free, and a channel that only works when three people stand in a canteen stops the day you stop standing. Pick a notional hourly rate — a part-time job in your city is defensible — and use it consistently. Keep blended CAC and paid CAC apart, as the table below defines them.
 
-One more distinction. **Blended CAC** divides all spend by all new customers, including those who arrived free by word of mouth. **Paid CAC** divides only paid spend by the customers that spend produced. Blended flatters you and hides a bad channel inside a good average; chapter 7 is where the channel-by-channel version lives.
-
-### Number three: contribution, not LTV
-
-`LTV = margin ÷ churn` is a real formula and poison in your hands, because it assumes an infinite horizon and your churn estimate comes from a few weeks. Divide by a slightly wrong small number and the answer moves enormously. Use a **bounded horizon** instead: take a real cohort, follow it for as many months as you actually have, and multiply.
+`LTV = margin ÷ churn` assumes an infinite horizon while your churn comes from a few weeks, and dividing by a slightly wrong small number moves the answer enormously. Use a **bounded horizon**: one real cohort, as many months as you have, multiplied.
 
 ```
   SIX-MONTH CONTRIBUTION AND PAYBACK, 40-USER COHORT
@@ -113,33 +111,13 @@ One more distinction. **Blended CAC** divides all spend by all new customers, in
       6      14      35%          ₹46        ₹430
 ```
 
-A real cohort's retention curve multiplied by gross profit, accumulating to ₹430 of contribution per original user over six months, with CAC of ₹300 recovered during month four.
+A real retention curve multiplied by gross profit, accumulating to ₹430 per original user over six months, with the ₹300 of CAC recovered during month four.
 
-Say "six-month contribution per customer: ₹430" instead of "LTV". It is defensible, computed from your own data, and in M18 nobody can take it apart. With three months of data, say three-month contribution.
-
-### Number four: payback, the one that constrains you
-
-```
-  THE SAME COHORT, TOLD TWO WAYS
-
-                        the pitch     the ledger
-  CAC                         ₹75           ₹300
-  monthly value per user     ₹199           ₹130
-  churn used                   5%     real curve
-  LTV or contribution      ₹3,980           ₹430
-  ratio to CAC                 53x           1.4x
-  payback               0.4 months     4.5 months
-```
-
-Four separate errors — free labour, revenue as margin, an invented churn rate and an infinite horizon — compound into a number thirty-eight times too good.
-
-The ratio of 1.4 is survivable and needs work. But the number that will actually stop you is the payback period of four and a half months, because it is about **cash**, not returns. Spending ₹12,000 this month means ₹12,000 you do not have for four and a half months. At a student's cash level that is the binding constraint, and a beautiful ratio will not pay a bill. Shorter payback beats higher ratio almost every time at your scale.
+Say "six-month contribution per customer: ₹430" rather than "LTV" — and with three months of data, say three-month contribution.
 
 ### Where it lives
 
-Chapter 2 set the price and therefore the revenue line. Chapter 3's structure decides whether contribution even has a curve — a one-time product has none. Chapter 6 supplies the inference line, which most often turns a good-looking margin into a bad one. M16 supplies the retention curve and the churn measurement; M05 and M13 supply infrastructure costs.
-
-Forwards: chapter 7 computes CAC per channel, chapter 11 puts gross margin and payback on the weekly scorecard, and M18 is where these four numbers get questioned in front of people. The only defence is that you computed them yourself and can show every line.
+Chapter 2 set the revenue line, chapter 3's structure decides whether contribution has a curve at all — a one-time product has none — and chapter 6 supplies the inference line that turns a good-looking margin into a bad one. M16 supplies the retention curve; fixed costs belong on chapter 11's scorecard against runway. Forwards: chapter 7 computes CAC per channel, chapter 11 puts gross margin and payback on the weekly scorecard, and M18 is where these four numbers get questioned in front of people.
 
 ### Words to own
 
@@ -159,33 +137,24 @@ Forwards: chapter 7 computes CAC per channel, chapter 11 puts gross margin and p
 
 ### Tradeoffs and gotchas
 
-**A high ratio with a long payback can still kill you.** Returns are about eventual value; payback is about cash this month. Student teams run out of cash, not out of returns.
-
-**Blended CAC hides a dead channel.** If word of mouth brings thirty customers free and a ₹9,000 campaign brings ten, your blended CAC looks fine and the campaign cost ₹900 a customer.
-
-**Discounts and refunds reduce ARPU after the fact.** A three-month half-price launch offer means your first cohort's gross profit is not ₹130, it is about ₹30.
-
-**Annual plans distort both ends.** Cash arrives in month one and nobody can churn until month twelve, so your retention curve looks magnificent for a year. State which effect you are seeing.
-
-**Fixed costs do not belong in gross margin, and they do not disappear either.** Keep them on chapter 11's scorecard, against runway.
+| Gotcha | Why it matters |
+|---|---|
+| A high ratio with a long payback can still kill you | Returns are about eventual value, payback is about cash this month, and student teams run out of cash rather than returns |
+| Blended CAC hides a dead channel | Thirty free customers from word of mouth plus ten from a ₹9,000 campaign looks fine blended, and the campaign cost ₹900 each |
+| Discounts move ARPU after the fact | A three-month half-price launch means your first cohort's gross profit is about ₹30, not ₹130 |
+| Annual plans distort both ends | Cash arrives in month one and nobody can churn until month twelve, so the retention curve looks magnificent for a year |
 
 ### Verify it
 
-AI is good at this arithmetic and bad at refusing to do it without data. It will produce a complete, confident model from assumptions it invented, labelled in a clause you skim past.
+**Red flag, the headline one: LTV from a retention curve with two weeks of data.** Ask how many months of real retention it rests on and refuse any longer horizon. Two weeks supports a two-week observation and no LTV at all.
 
-**Red flag, the headline one: LTV computed from a retention curve with two weeks of data.** Ask how many months of real retention the number rests on, and refuse any horizon longer than that. Two weeks supports a two-week observation and no LTV at all.
+**Red flag: CAC that excludes the founders' time.** How many hours, at what rate, and is it in the numerator? A four-times error hides here.
 
-**Red flag: CAC that excludes the founders' time.** Ask directly: how many hours, at what rate, and is it in the numerator? A four-times error hides here routinely.
+**Red flag: a margin that forgets inference.** Gateway fees and hosting alone, in a product that makes model calls, means the biggest line is missing — and an LTV built on ₹199 instead of ₹130 is the same error one step later.
 
-**Red flag: a margin calculation that forgets inference cost.** If the cost lines are gateway fees and hosting only and your product makes model calls, the biggest line is missing. This is the commonest fatal omission in an AI product's economics.
+**Red flag: no payback line, or "a healthy LTV to CAC is 3:1" quoted as a fact.** A ratio alone hides the cash constraint, and that benchmark is repeated everywhere with no source attached to your market.
 
-**Red flag: LTV computed from revenue rather than gross profit.** ₹199 is not what a customer is worth to you; ₹130 is.
-
-**Red flag: `margin ÷ churn` with a churn rate from fewer than forty users.** The formula divides by a small, noisy number, so the output is dominated by the noise.
-
-**Red flag: a model with no payback line, or a benchmark quoted as a fact.** A ratio alone hides the cash constraint, and "a healthy LTV to CAC is 3:1" is repeated everywhere with no source attached to your market. Ask for the source; the absence of one is your answer.
-
-The test that settles it: hand your four numbers to a teammate and ask them to find the line that is missing or invented. If it takes under two minutes, M18 will take under one.
+Then hand your four numbers to a teammate and ask them to find the line that is missing or invented. If it takes under two minutes, M18 will take under one.
 
 ## Walkthrough
 1. Build your gross margin table for one subscriber for one month: price, gateway fee, inference cost per active user from chapter 6, and every other per-user cost. Show every line.

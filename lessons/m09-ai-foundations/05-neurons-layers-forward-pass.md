@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: neurons-layers-forward-pass
 title: "Neurons, Layers, Weights and the Forward Pass"
 order: 5
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A group reads that a model has "7B parameters" and decides to run it on a free Colab GPU. The notebook dies partway through loading with an out-of-memory error. They try the 70B version, reasoning that bigger must be better; it dies faster. Two days go into forum posts and random settings, and into an AI that confidently suggests fixes which do not help, because none of them address the actual problem.
-
-The actual problem is arithmetic they could have done in ten seconds, if anybody had told them that a parameter is a number, that numbers take up space, and that a free Colab GPU has about 15 to 16 gigabytes of its own memory.
-
-That single piece of intuition — parameters are numbers, numbers take space, space is what you have — decides which models you can touch for free, what your inference costs, and why a model that runs beautifully on a server will not run on a budget Android phone.
+A group reads that a model has "7B parameters" and tries to run it on a free Colab GPU. The notebook dies while loading, so they try the 70B version, reasoning that bigger must be better; it dies faster. Two days disappear into forum posts and an AI suggesting fixes that cannot help, because the real problem is arithmetic: a parameter is a number, numbers take space, and a free Colab GPU holds about 15 GB.
 
 ### The idea
 
-**A neuron is a weighted vote. A layer is thousands of those votes computed at once. A model is the entire collection of weights, stored in a file. Running input through all the layers to get an output is the forward pass.**
+**A neuron is a weighted vote. A layer is thousands of those votes computed at once. A model is the whole collection of weights, stored in a file. Running input through all the layers to get an output is the forward pass.**
 
-One neuron takes several numbers in, multiplies each by its own importance — its **weight** — adds them up with a small offset called a **bias**, and passes the total through a simple gate that decides how much of it continues. That is all. Nothing in a neuron is clever. What is extraordinary is that stacking millions of them and tuning all the weights produces something that writes Marathi poetry.
+One neuron takes several numbers in, multiplies each by its own importance — its **weight** — adds them with a small offset called a **bias**, and passes the total through a gate. Nothing in a neuron is clever; what is extraordinary is that stacking millions of them produces something that writes Marathi poetry.
 
 ### The analogy
 
-The canteen is deciding whether to cook extra biryani tomorrow, and the head cook polls his team.
+The head cook polls his team on extra biryani. The storekeeper reports rice left, the cashier yesterday's till, the server the queue length — and he has learned the cashier's view counts double and the trainee's barely counts. He adds up the weighted opinions, applies his standing lean ("extra on Fridays regardless"), and if the total crosses a threshold, extra biryani happens. That is one neuron: opinions are inputs, the importance he assigns is the weights, his lean is the bias, the threshold is the gate. Run a thousand such polls in parallel and feed their answers into a second thousand, ninety times over: a deep network.
 
-Each person has an opinion based on what they watch. The storekeeper weighs how much rice is left. The cashier weighs yesterday's till. The server weighs how long the queue was. The cook does not treat them equally: he has learned over years that the cashier's view counts double and the new trainee's counts for very little. He adds up the weighted opinions, applies his own standing mood — "I lean towards cooking extra on Fridays regardless" — and if the total crosses a threshold, extra biryani happens.
-
-That is one neuron. The opinions are inputs, the importance he assigns each person is the weights, his standing lean is the bias, the threshold is the activation gate.
-
-Now imagine the kitchen has a thousand such polls running in parallel, each asking a different sub-question, and the answers of the first thousand become the inputs to a second thousand, and so on for ninety rounds. Nobody in round forty could tell you what their question means. That is a deep network.
-
-**Where the analogy breaks:** every person in the canteen poll is answering a question a human named. In a real network, only the first layer's inputs and the last layer's output mean anything to us. The middle layers invent their own intermediate questions during training, and those questions have no names and often no human-readable meaning at all. This is why you cannot open a large model and read its reasoning — there is no sentence in there to read.
+**Where the analogy breaks:** every person in the poll answers a question a human named. In a real network only the first layer's inputs and the last layer's output mean anything to us — the middle layers invent their own questions during training, with no names and no readable meaning.
 
 ### Picture it
 
@@ -69,19 +59,9 @@ Now imagine the kitchen has a thousand such polls running in parallel, each aski
 
 A neuron multiplies each input by a learned weight, sums them with a bias and passes the total through a gate; a forward pass is doing that layer after layer from input to answer.
 
-### Why the gate matters
+The gate — the **activation function** — is why depth works: without it a hundred layers of weighted sums collapse into one, no better than chapter 4's linear regression. ReLU turns negative totals into zero, and that one bend, repeated, represents curved, conditional relationships.
 
-The gate — properly, the **activation function** — looks like a detail and is the reason deep networks work at all.
-
-Without it, stacking layers achieves nothing. A hundred layers of pure weighted sums collapses mathematically into one weighted sum, so a hundred-layer network would be exactly as capable as a single layer: able to represent only straight-line relationships, like chapter 4's linear regression. The gate bends things. The commonest one, called ReLU, simply passes positive totals through unchanged and turns negative totals into zero — "ignore weak or contrary signals entirely". That one bend, repeated across layers, is what lets a network represent curved, conditional, interacting relationships.
-
-You never choose this yourself. You need it only to answer the question "why are many layers better than one", whose answer is: because of the gate between them.
-
-### Parameters, and the arithmetic that decides what you can run
-
-Every weight and every bias is one **parameter**. A 7-billion-parameter model has seven billion numbers in it, and those numbers have to be somewhere for the model to run.
-
-Each number is stored in a few bytes. Two bytes each is the common choice for running models today. So the rough memory requirement in gigabytes is a little more than twice the parameter count in billions:
+Every weight and bias is one **parameter**, and those numbers must be in memory to run. At two bytes each, the gigabytes needed are a little over twice the parameter count in billions.
 
 ```
   model size        numbers    at 2 bytes each   fits on a free
@@ -96,17 +76,13 @@ Each number is stored in a few bytes. Two bytes each is the common choice for ru
 
 Parameter count translated into rough memory, against what a free Colab GPU can hold.
 
-Two corrections to keep this honest. **Running a model needs more than the weights** — there is working space for the input being processed, which grows with how long your prompt is, so a model that theoretically fits at 14 GB often does not fit in practice. And **the bytes per number can be reduced**, which is called quantization: squeeze each number into one byte or less and a 7-billion model drops to around 7 GB or lower, at some cost in quality. Quantization in practice — actually doing it, measuring what it cost you — is M14. Here you need only the shape of the trade: fewer bytes per number means smaller and faster, and eventually worse.
-
-**Training needs several times more memory than running**, because it also has to hold the blame signals and the optimiser's own bookkeeping for every parameter. The rule of thumb is that a model you can just barely run cannot be trained on the same hardware.
+Two corrections: working space grows with prompt length, so a model that fits on paper often does not in practice; and **quantization** at one byte per number drops a 7B model to about 7 GB, at some cost in quality.
 
 ### Where it lives
 
-A trained model is a file. You can see it on disk and its size is roughly the arithmetic above. For your own small models that file lives in object storage (M04) and gets loaded by your server at startup.
-
-The **forward pass is the thing you pay for.** Every request to a model — yours or a provider's — is one forward pass per token generated, and the price on a provider's bill is a proxy for exactly this work. That is why a bigger model costs more per request, and why chapter 14's cost arithmetic is ultimately arithmetic about forward passes.
-
-The backward pass, which is how the weights got their values, is chapter 6. Running real training loops is M14.
+- **A trained model is a file**, its size roughly the arithmetic above, living in object storage and loading at server startup.
+- **The forward pass is the thing you pay for** — one per token generated, which is why chapter 14's cost arithmetic is arithmetic about forward passes.
+- **The backward pass, which gave the weights their values, is chapter 6.** Real training loops and quantization are M14.
 
 ### Words to own
 
@@ -127,29 +103,20 @@ The backward pass, which is how the weights got their values, is chapter 6. Runn
 
 ### Tradeoffs and gotchas
 
-**Bigger is not automatically better, and it is always more expensive.** More parameters means more memory, more latency per token, and a higher price per request. For many narrow jobs — classifying a support ticket, extracting a price from a line of text — a small model is as good and costs a fraction. Chapter 13 makes you prove this on your own task rather than assume it.
-
-**Parameter count tells you about size, not about quality.** Two models with the same count can differ enormously depending on what they were trained on and for how long. Treat the number as a cost and memory signal, never as a quality ranking.
-
-**A model that fits in memory may still be unusably slow.** Memory is the first gate; throughput is the second. A 7-billion model squeezed onto a free GPU may generate a few tokens per second — fine for a batch job, intolerable in a chat interface.
-
-**Your users' phones are not your laptop.** M08 made this point about apps and it applies doubly here: budget Android devices in India have a few gigabytes of total RAM shared with everything else. On-device models for those phones are measured in hundreds of millions of parameters, not billions. "Just run it locally on the phone" is a sentence to check with arithmetic.
-
-**Nothing in the middle layers is inspectable.** When someone promises you an explanation of why a large model produced a specific answer, be sceptical. A model can produce a plausible-sounding explanation of its own output, and that explanation is also generated text, not a recording of what happened inside. This matters for chapter 16 and for M07.
+- **Bigger is not automatically better, and is always more expensive** in memory, latency and price per request. For narrow jobs a small model is as good for a fraction of the cost.
+- **Parameter count tells you about size, not quality.** Treat it as a cost signal, never a ranking.
+- **A model that fits in memory may still be unusably slow.** Memory is the first gate, throughput the second: a few tokens per second is fine for a batch job, intolerable in chat.
+- **Your users' phones are not your laptop.** Budget Android devices share a few gigabytes with everything else, so on-device models there run in hundreds of millions of parameters.
+- **Nothing in the middle layers is inspectable.** A model's explanation of its own output is generated text, not a recording of what happened inside.
 
 ### Verify it
 
-**Red flag: an invented parameter count.** Numbers about specific named models are exactly the kind of fact an AI produces confidently and wrongly, because model line-ups change monthly. Any parameter count, context size or hardware requirement quoted in a chat window must be checked against the model's own page before you plan around it.
-
-**Red flag: a model name you cannot find.** Plausible model names get invented constantly, usually by mixing a real family with a size that never shipped. If you cannot find the exact string on the provider's or Hugging Face's own page, assume it does not exist.
-
-**Red flag: "this will run fine on free Colab" with no arithmetic shown.** Make it state the parameter count, the bytes per number, the resulting gigabytes, and the GPU's actual memory, as four separate numbers. Then check the fourth yourself, in the notebook, rather than trusting it.
-
-**Red flag: "just run it on the user's phone."** Ask for the device's RAM, the model's size after quantization, and how many tokens per second it would generate on a four-year-old mid-range Android. Two of those three will be guesses.
-
-**Red flag: a confident explanation of a large model's internal reasoning.** The honest version is "here is what the output suggests", not "here is what the network computed".
-
-The check you can do yourself takes two minutes: in a free notebook, print the GPU's total and free memory before loading anything, then load the model and print it again. The difference is the real answer, and it almost always differs from the estimate. That habit — measure the thing rather than accept the summary — is the whole method of this course applied to hardware.
+- **An invented parameter count.** Line-ups change monthly, so any count, context size or hardware claim from a chat window must be checked on the model's own page.
+- **A model name you cannot find.** Names get invented by mixing a real family with a size that never shipped.
+- **"This runs fine on free Colab" with no arithmetic.** Make it state four numbers: parameters, bytes per number, gigabytes, and the GPU's actual memory.
+- **"Just run it on the user's phone."** Ask device RAM, size after quantization, and tokens per second on an old Android. Two will be guesses.
+- **A confident account of a model's internal reasoning.** The honest version is "here is what the output suggests".
+- **Check yourself:** print the GPU's free memory, load the model, print again. The difference rarely matches the estimate.
 
 ## Walkthrough
 1. Draw one neuron on paper with three inputs. Label each arrow with a weight you invent, add a bias, and write the gate at the end.

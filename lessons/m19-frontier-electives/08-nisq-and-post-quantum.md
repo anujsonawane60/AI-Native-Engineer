@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: nisq-and-post-quantum
 title: "NISQ, Error Correction and Post-Quantum Cryptography"
 order: 8
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -22,11 +22,11 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A health startup launches in 2026. Patient records move between the app and the server over TLS, with the session key agreed using an elliptic-curve exchange, which is what every browser does. Nothing is wrong with the implementation.
+A health startup launches in 2026. Patient records move between app and server over TLS, with the session key agreed using an elliptic-curve exchange — what every browser does. Nothing is wrong with the implementation.
 
-Someone with patience and a network tap records the encrypted traffic. Not to break it today — they cannot — but to store it. In 2040, if a cryptographically relevant quantum computer exists, that recording can be opened, and a 2026 patient record is still a 2026 patient record. The startup's security was correct at the time and the data is still exposed, because the attacker's clock runs forwards and the data's sensitivity does not expire.
+Someone with a network tap records the encrypted traffic. Not to break it today — they cannot — but to store it. In 2040, if a cryptographically relevant quantum computer exists, that recording can be opened, and a 2026 patient record is still a 2026 patient record. The attacker's clock runs forwards; the data's sensitivity does not expire.
 
-That is harvest-now-decrypt-later, and it is the one reason a technology that does not yet work is already on a real engineering agenda. Note carefully what it is *not*: it is not a reason to believe quantum computers are nearly here, and it is not a reason to change your product this sprint. It is a reason to understand which of your secrets have a long shelf life.
+That is harvest-now-decrypt-later, the one reason a technology that does not yet work is already on a real engineering agenda. It is not a reason to believe quantum computers are nearly here, nor to change your product this sprint. It is a reason to know which secrets have a long shelf life.
 
 ### The idea
 
@@ -34,17 +34,17 @@ That is harvest-now-decrypt-later, and it is the one reason a technology that do
 
 Three facts in tension, and holding all three at once is the literacy this chapter is for.
 
-Fact one: we are in the NISQ era — noisy, intermediate-scale quantum. Machines have hundreds to low thousands of physical qubits with error rates around one in a hundred to one in a thousand per two-qubit gate, and circuits must finish before coherence runs out.
+Fact one: we are in the NISQ era — noisy, intermediate-scale quantum. Machines have hundreds to low thousands of physical qubits, error rates around one in a hundred to one in a thousand per two-qubit gate, and circuits that must finish before coherence runs out.
 
-Fact two: a *logical* qubit is a reliable qubit assembled from many physical ones through error correction, which works by spreading one qubit's information across many and measuring the disagreements rather than the data. Current overhead estimates run from hundreds to a few thousand physical qubits per logical qubit. Breaking a 2048-bit RSA key is commonly estimated at a few thousand logical qubits running for hours — which lands at millions of physical qubits. Today's largest machines are three to four orders of magnitude short.
+Fact two: a *logical* qubit is a reliable qubit assembled from many physical ones by error correction, which spreads one qubit's information across many and measures the disagreements rather than the data. Estimates run from hundreds to a few thousand physical qubits per logical one. Breaking a 2048-bit RSA key is commonly put at a few thousand logical qubits — millions of physical qubits, three to four orders of magnitude beyond today's largest machines.
 
-Fact three: migration takes a decade. Protocols, libraries, certificates, hardware security modules, embedded devices, and every vendor in your chain. The deadline is not when the machine arrives; it is the machine's arrival minus your migration time minus how long your data must stay secret. Compare those three durations and you have your answer — that comparison is known as Mosca's inequality, and it needs no formula to use.
+Fact three: migration takes a decade, across protocols, libraries, certificates, hardware security modules and every vendor in your chain. The deadline is the machine's arrival minus your migration time minus how long your data must stay secret — Mosca's inequality, which needs no formula to use.
 
 ### The analogy
 
-The canteen's cold store has a good lock. A thief cannot pick it. But he comes by every week with a camera and photographs the lock, the keyway, the hinges, the brand plate. In nine years a machine exists that cuts a key from those photographs. The milk in the store today will be long gone, so for the canteen this is a non-event — and the safe in the back office holding fifteen years of staff records is a different matter entirely.
+The canteen's cold store has a good lock a thief cannot pick. But he comes by weekly with a camera and photographs the lock, the keyway, the hinges, the brand plate. In nine years a machine exists that cuts a key from those photographs. The milk is long gone by then — the safe holding fifteen years of staff records is a different matter.
 
-**Where the analogy breaks**, usefully: the canteen can change its lock in an afternoon. A cryptographic protocol change rolls across every client, every server, every certificate and every device, over years, with a long tail of things that will never be updated at all. Chapter 12's fridge sensors are exactly that tail — devices deployed in villages with no update path, which will still be running the algorithm you shipped them long after you have stopped existing.
+**Where the analogy breaks**, usefully: the canteen can change its lock in an afternoon. A protocol change rolls across every client, server, certificate and device over years, with a long tail that is never updated at all. Chapter 12's fridge sensors are that tail.
 
 ### Picture it
 
@@ -78,11 +78,9 @@ Your deadline is set by adding your data's secrecy lifetime to your migration ti
 
 ### Where it lives
 
-M02 gave you TLS. That is where this lands first, and the good news is that it has largely landed already: major browsers and large providers ship hybrid key exchange, which performs both a classical and a post-quantum exchange and mixes the results, so you are protected if either survives. For most products the entire action is "keep your TLS libraries current and let the hybrid default do its work".
+M02's TLS is where this lands first, and it has largely landed already: major browsers and providers ship hybrid key exchange, which runs a classical and a post-quantum exchange and mixes the results, so you are protected if either survives. For most products the entire action is "keep your TLS libraries current". Token signing (M04) is less urgent, because a signature need only resist attack while it is still trusted. Crypto agility — changing algorithm without a rewrite — is the M07 and M13 practice this creates.
 
-M04's auth and token signing is the second place, and it is less urgent — a signature only needs to resist attack while it is still being trusted, so a one-hour token has no post-quantum problem at all. M07's secrets discipline and M13's operations are where crypto agility becomes a practice: can you change an algorithm without rewriting your product? Chapter 12 is where it gets genuinely hard, because post-quantum keys and signatures are larger and constrained devices have little memory and little bandwidth.
-
-The standards are settled enough to name, and this is the part that moves, so verify it against current publications. The US standards body NIST published its first post-quantum standards in 2024: ML-KEM, derived from the Kyber proposal, for key exchange; ML-DSA from Dilithium and SLH-DSA from SPHINCS+ for signatures, with a further signature standard following. Government migration guidance generally points at 2030 to 2035 for retiring classical public-key cryptography. India's own advisories follow the same direction; check the current position rather than trusting this paragraph.
+The standards are settled enough to name, and this is the part that moves, so verify it against current publications. NIST published its first post-quantum standards in 2024: ML-KEM, from the Kyber proposal, for key exchange; ML-DSA from Dilithium and SLH-DSA from SPHINCS+ for signatures. Government guidance points at 2030 to 2035 for retiring classical public-key cryptography; check the current position rather than trusting this paragraph.
 
 ### Words to own
 
@@ -102,27 +100,25 @@ The standards are settled enough to name, and this is the part that moves, so ve
 
 ### Tradeoffs and gotchas
 
-**Quantum does not break AES, and it does not break hashing.** Grover gives a square-root improvement on brute-forcing a key, which means AES-256 remains comfortably out of reach and AES-128 moves from absurd to merely unreachable. Symmetric encryption and modern hash functions are fine. The problem is specifically public-key: RSA, Diffie-Hellman and elliptic curves.
+**Quantum does not break AES, and it does not break hashing.** Grover gives only a square-root improvement on brute-forcing a key, so AES-256 stays comfortably out of reach. Symmetric encryption and modern hash functions are fine; the problem is specifically public-key — RSA, Diffie-Hellman and elliptic curves.
 
-**Short-lived secrets have no urgency.** A session token valid for an hour, a one-time password, a signature on a receipt nobody will verify in 2040 — none of these are harvest-now targets. Sorting your secrets by shelf life is the actual work.
+**Short-lived secrets have no urgency.** An hour-long session token, a one-time password, a signature nobody will verify in 2040 — none are harvest-now targets. Sorting secrets by shelf life is the actual work.
 
-**Post-quantum keys and signatures are bigger.** That is the real cost: larger handshakes, more bytes on a constrained radio link, more flash on a microcontroller. For chapter 11's LoRa links, where payloads are tens of bytes, this is a genuine design problem.
+**Post-quantum keys and signatures are bigger.** That is the real cost: larger handshakes, more bytes on a radio link, more flash on a microcontroller. On chapter 11's LoRa links, where payloads are tens of bytes, it is a genuine design problem.
 
-**New implementations mean new bugs.** These algorithms are young in production. This is a reason for hybrid mode and for using well-maintained libraries, and an absolute reason never to implement one yourself.
-
-**Devices outlive companies.** A sensor shipped in 2026 with no update path will still be using 2026 cryptography in 2041. Chapter 12 treats this as the design failure it is.
+**Devices outlive companies.** A sensor shipped in 2026 with no update path still runs 2026 cryptography in 2041.
 
 ### Verify it
 
-**Red flag: "quantum computers will break AES".** They will not. If an answer says this, it does not know which family of cryptography is at risk, and nothing else it says about the topic can be trusted.
+**Red flag: "quantum computers will break AES".** They will not. An answer that says this does not know which family is at risk, and nothing else it says can be trusted.
 
-**Red flag: "migrate everything immediately".** Ask which of your secrets must stay secret for more than ten years. For most student products the honest answer is none, and the correct action is keeping libraries current plus writing down crypto agility as a requirement.
+**Red flag: "migrate everything immediately".** Ask which secrets must stay secret for more than ten years. For most student products the answer is none, and the action is keeping libraries current.
 
-**Red flag: harvest-now-decrypt-later missing.** If an answer argues that nothing needs doing because machines are far away, it has missed the one argument that makes this a present-tense issue for long-lived data.
+**Red flag: harvest-now-decrypt-later missing.** An answer arguing nothing needs doing because machines are far away has missed the one argument that makes this present-tense.
 
-**Red flag: NISQ demonstrations presented as cryptographically relevant.** A record qubit count or a sampling result is not a step towards breaking keys in any direct way. Ask for the logical qubit count implied, and the physical-to-logical ratio assumed.
+**Red flag: NISQ demonstrations presented as cryptographically relevant.** A record qubit count is not a step towards breaking keys. Ask for the logical qubit count implied and the physical-to-logical ratio assumed.
 
-**Red flag: a bespoke "quantum-safe" scheme.** Any proposal to invent, combine or obfuscate your own algorithm is worse than doing nothing. The only acceptable answers are standardised algorithms in maintained libraries, used in hybrid mode.
+**Red flag: a bespoke "quantum-safe" scheme.** Inventing or combining your own algorithm is worse than doing nothing; these algorithms are young and their implementations carry new bugs. The only acceptable answers are standardised algorithms in maintained libraries, in hybrid mode.
 
 ## Walkthrough
 1. Open your own product in a browser and inspect the connection's security details. Write down the key exchange and the certificate's signature algorithm.

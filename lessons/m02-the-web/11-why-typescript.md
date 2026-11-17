@@ -4,7 +4,7 @@ module: m02-the-web
 slug: why-typescript
 title: "Types: Why Teams Add TypeScript"
 order: 11
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,31 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Three students and an agent are working on the same project. On Tuesday, one of them asks the agent to tidy up the order API, and the agent renames `price_paise` to `price` because it reads better.
+On Tuesday a student asks the agent to tidy up the order API, and it renames `price_paise` to `price`. Nothing errors and the build succeeds. Everything that read `price_paise` now gets `undefined`, which added to a number gives `NaN`, which the formatter prints as "₹NaN" on one screen nobody opens in testing. A user finds it on Friday, and tracing it takes two hours because the rename is buried in a commit called "tidy up order API".
 
-Nothing breaks. Nothing errors. The code runs. The build succeeds. Everything that reads `price_paise` now reads a field that does not exist, which gives back `undefined`, which added to a number gives `NaN`, which the price formatter turns into "₹NaN" on exactly one screen that nobody opens during testing.
-
-It is found on Friday by a user. Tracing it back takes two hours, because by Friday there are forty commits and the rename is inside one labelled "tidy up order API".
-
-Now the version with types. The same rename produces, immediately and before anything runs, eleven errors naming the eleven exact places that referred to the old field. The agent sees them, fixes them, and the whole episode costs ninety seconds.
+With types, the same rename produces eleven errors before anything runs, each naming the place that used the old field. The agent fixes them in ninety seconds.
 
 ### The idea
 
 **A type is the shape of your data written down in a form a machine checks, before the code is ever run.**
 
-Chapter 9 ended with a data contract written in a table. Types are that same table expressed so that a tool can enforce it. "A dish has an `id` number, a `name` string, a `price_paise` number and an optional `photo_url` string or null" stops being a document somebody might read and becomes a rule that fails loudly the moment anything disagrees with it.
+Chapter 9's data contract was a table somebody might read. Types are that same table expressed so a tool enforces it: "a dish has an `id` number, a `name` string, a `price_paise` number and an optional `photo_url`" becomes a rule that fails loudly the moment anything disagrees.
 
 ### The analogy
 
-The canteen's coloured tokens.
+Blue tokens are for the dosa counter, yellow for chaat, green for beverages. Hand a blue token at the chaat counter and you are refused instantly, before anything is cooked. Without colours every token is just a token: the chaat gets made, and the mix-up surfaces when you come back for your dosa and it has been eaten.
 
-Blue tokens are for the dosa counter, yellow for chaat, green for beverages. Hand a blue token at the chaat counter and you are refused instantly — before anything is cooked, before anybody's time is wasted, and with the refusal naming the problem: wrong counter.
-
-Without colours, every token is just a token. You hand it over, the chaat is made, and only when you come back for your dosa does anyone discover that two orders got mixed up and one of them has already been eaten.
-
-**Where the analogy breaks:** and this is the most important paragraph in the chapter. The token colour is checked **at the counter, at the moment of service** — in programming terms, at run time. TypeScript's checks happen **before the kitchen opens**, when the code is compiled. Once your app is actually running, the types are gone; they do not exist in the shipped JavaScript at all.
-
-So types cannot check anything that arrives while the app is running. Data from your API, data from a form, data from a URL — a type says "I expect this shape" and the data is under no obligation to comply. That is validation, it happens at run time, and it is M04's job. Confusing the two is the single most dangerous misconception about types, because it produces an app that feels safe and checks nothing.
+**Where the analogy breaks — the most important paragraph here.** The token colour is checked at the counter, at the moment of service: at run time. TypeScript checks **before the kitchen opens**, and once the app runs the types are gone from the shipped JavaScript. So they cannot check anything arriving while the app runs — API data, form data, a URL. That is validation, and it is M04's job. Confusing the two produces an app that feels safe and checks nothing.
 
 ### Picture it
 
@@ -70,11 +60,11 @@ Types move the discovery of a shape mistake from a user on Friday to the moment 
 
 ### Where it lives
 
-Types live in the client box and the server box both, which is most of their value: when the same type describes the dish your server sends and the dish your page renders, a mismatch between the two becomes impossible to introduce accidentally.
+Types live in the client box and the server box both, which is most of their value: when one type describes the dish your server sends and the dish your page renders, a mismatch cannot be introduced by accident.
 
-The checking itself happens in your tooling, before deployment. In M06 you will put that check into CI, so a pull request that breaks a type cannot be merged — which is the point at which types stop being a personal convenience and become a team guarantee. In M01's PR review, "the type check passes" is one of the few things about a diff you did not write that you can verify without reading it.
-
-And M04 is where the boundary gets properly guarded: data arriving from a network or a form gets *validated* at run time, and only then is it allowed to be treated as the type it claims to be.
+- M06 puts the check into CI, so a type-breaking pull request cannot be merged — where types become a team guarantee, not a personal convenience
+- In M01's PR review, "the type check passes" is one of the few claims about someone else's diff you can verify without reading it
+- M04 guards the boundary: incoming data is *validated* before it is treated as its claimed type
 
 ### Words to own
 
@@ -93,41 +83,34 @@ And M04 is where the boundary gets properly guarded: data arriving from a networ
 | Validation | Checking real incoming data at run time | On the server, M04 |
 | Generated types | Types produced from a database or API schema | Kept in sync automatically |
 
-### What types actually catch
-
-It is worth being precise, because the honest list is narrower than the enthusiasm suggests and still extremely valuable.
-
-They catch **renames and typos** — the Tuesday story, and `price_pasie` instead of `price_paise`. They catch **missing cases**: if a field can be `null`, every place that uses it must say what happens when it is. They catch **wrong units by name**, if you name your fields honestly. They catch **the forgotten consumer**: the eleventh file nobody remembered. And they give an AI agent something to read — the error message names the file, the line and the expected shape, which is far better direction than anything you would have typed.
-
-They do **not** catch wrong logic. A total that adds instead of multiplying is perfectly well-typed. They do not catch bad data from outside. They do not catch a security hole. And they do not make the app faster — there is no type code in the shipped bundle at all.
-
 ### Tradeoffs and gotchas
 
-**`any` turns the whole thing off.** It means "stop checking", and one `any` on a dish object removes the protection from every field and every consumer downstream. When an AI's type errors "all got fixed" very quickly, this is usually how.
+The honest list is narrower than the enthusiasm suggests:
 
-**A cast is a promise you are making on the tool's behalf.** Writing `as Dish` tells the checker "trust me, this is a dish" and it stops asking. Applied to data that just arrived over the network, it is precisely the dangerous misconception above, written as code. It looks like typing and it is the opposite.
+| Types catch | Types do not catch |
+|---|---|
+| Renames and typos — `price_pasie` for `price_paise` | Wrong logic: a total that adds instead of multiplying is well-typed |
+| Missing cases: a nullable field forces every use to handle null | Bad data arriving from outside the app |
+| The forgotten eleventh consumer | Security holes |
+| Errors an agent can act on: file, line, expected shape | Speed — no type code ships |
 
-**Types slow down day one and pay back in week three.** On a two-day prototype they are overhead. On a six-month project with three people and an agent touching the same files, they are the thing that makes the files safe to touch at all. Your project is the second kind.
+**`any` turns the whole thing off.** One `any` on a dish removes the protection from every field and consumer downstream. When type errors "all got fixed" very fast, this is usually how.
 
-**Generated types beat hand-written ones.** If the database or the API can produce the types, do that, because hand-written ones drift the moment someone changes a column and forgets. M04 returns to this.
+**A cast is a promise you make on the tool's behalf.** `as Dish` tells the checker "trust me" and it stops asking — on data that just arrived over the network, that is the misconception above written as code.
 
-**Types are not documentation of intent.** `price_paise: number` says it is a number. It does not say it must be positive, under ₹10,000, or an integer. Those are run-time validations and they still need to exist.
-
-**An over-typed codebase is its own problem.** Elaborate generic machinery to describe something simple makes a codebase nobody — including the AI — can change confidently. If an AI produces a type you cannot read aloud in one sentence, ask for a simpler one.
+**Types cost on day one and pay back in week three.** Overhead on a two-day prototype; on a six-month project three people and an agent all touch, they are what makes the files safe to change. Prefer generated types, which do not drift when a column does — and remember `price_paise: number` is not intent: not positive, not integer, not under ₹10,000. Those are validations.
 
 ### Verify it
 
-You are not going to read type definitions line by line. You are going to check for the escape hatches and the boundary.
+1. **Search for `any`.** Each one is checking switched off; the target on new work is zero.
+2. **Search for `as`.** Casts are assertions, and a cast on anything from `fetch`, a form or a URL is the dangerous kind.
+3. **Ask the AI what the type checks at run time.** The answer is "nothing". If it says types protect you from a bad API response, everything built on that belief needs re-examining.
+4. **Compare the type against the real response** in the Network panel, field by field.
+5. **Check the boundary is validated.** Ask what checks each entry point at run time; "it is typed" is not an answer.
+6. **Run the type check yourself and read the count,** not the AI's summary. Zero errors with four new `any` declarations is worse than eleven honest ones.
+7. **Make a deliberate rename and watch.** Fewer consumers listed than expected means something between is `any`.
 
-1. **Search for `any`.** Every occurrence is a place where checking has been switched off. On new work the target is zero, and each one needs a reason stated out loud.
-2. **Search for `as`.** Casts are assertions, not checks. Pay special attention to any cast applied to something that came from `fetch`, a form or a URL — those are the dangerous ones.
-3. **Ask the AI: what does the type check at run time?** The correct answer is "nothing". If it tells you the types will protect you from a bad API response, it has the central misconception and everything it builds on top of that belief needs re-examining.
-4. **Compare the type against the real response.** Open the Network panel, read the actual JSON, and check it field by field against the declared type. A type is a claim about reality, and this is how you find out whether reality agrees.
-5. **Check the boundary is validated.** For every place data enters your app from outside, ask what checks it at run time. "It is typed" is not an answer to that question.
-6. **Run the type check yourself and read the count.** Not the AI's summary — the actual output. Zero errors with four new `any` declarations is worse than eleven honest errors.
-7. **Make a deliberate rename and watch.** Change one field name and confirm the checker lists every consumer. If it finds fewer places than you expect, something in between is `any`.
-
-Red flags in AI output: new `any` declarations; `as` casts on network data; a type that disagrees with the actual API response; `@ts-ignore` or similar suppression comments; types hand-written when the schema could generate them; and the claim that adding types removed the need for validation. That last one is the one to watch for hardest, because it sounds like progress.
+Red flags: new `any` declarations · `as` casts on network data · a type that disagrees with the real response · `@ts-ignore` suppressions · hand-written types where the schema could generate them · the claim that types removed the need for validation, which sounds like progress.
 
 ## Walkthrough
 1. Take the data contract table you wrote in chapter 9 for your own product's main object. Have it in front of you.

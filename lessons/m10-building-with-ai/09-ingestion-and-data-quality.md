@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: ingestion-and-data-quality
 title: "Ingestion and Data Quality: PDFs, Scans, Tables and Multi-Modal Input"
 order: 9
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,39 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team collects two hundred college circulars for their student-services assistant: fee rules, hostel timings, exam policies, mess notices. They push all of them through a text extractor, embed everything, and ask their first question. The answers are nonsense.
+A team pushes two hundred college circulars through a text extractor, embeds everything, and asks a question. The answers are nonsense.
 
-Picking it apart takes an afternoon. Around sixty of the PDFs are scans — photographs of paper saved as PDF — so the extractor returned empty strings, and empty strings embed to a point in space that happens to sit near plenty of questions. The fee table came out as a single line of ninety-seven digits with no column structure, so "what is the hostel fee for second years" retrieves it and no human could answer from it either. The Marathi circular came out as a row of boxes. Every chunk from every document ends with "Page 3 of 7 · Confidential · do not circulate", which is now the most common phrase in the entire corpus and pulls unrelated chunks together. And two of the fee circulars are superseded by a third, with nothing in the pipeline that knows or cares.
-
-Not one of these is a retrieval bug. Every one of them happened before the first embedding was computed.
+Sixty of the PDFs are scans, so the extractor returned empty strings — which embed to a point that sits near plenty of questions. The fee table came out as ninety-seven digits with no columns, the Marathi circular came out as boxes, and every chunk ends with "Page 3 of 7 · Confidential", now the corpus's most common phrase. None of this is a retrieval bug; it all happened before the first embedding was computed.
 
 ### The idea
 
-**Retrieval quality is capped by ingestion quality. A model cannot find what the extractor never produced, and bad text in your store is indistinguishable from fact.**
+**Retrieval quality is capped by ingestion quality. A model cannot find what the extractor never produced, and bad text in your store is indistinguishable from a fact.**
 
-This chapter comes before the RAG pipeline deliberately. Teams spend weeks tuning chunk sizes and rerankers on a corpus where a third of the documents are blank, and the tuning cannot possibly help.
+This chapter comes before the RAG pipeline deliberately. Teams spend weeks tuning chunk sizes on a corpus where a third of the documents are blank, and no tuning can help.
 
 ### The analogy
 
-Before anything reaches the canteen kitchen, somebody receives the delivery. They weigh the sack, look for rot, reject the crate that arrived wet, and write the delivery date on the side with a marker. It is nobody's favourite job and it decides what the food tastes like.
+Before anything reaches the kitchen, somebody receives the delivery: weighs the sack, looks for rot, rejects the wet crate, writes the date on the side. It is nobody's favourite job and it decides what the food tastes like. A kitchen that cooks whatever arrives serves bad food, plated beautifully.
 
-A kitchen that cooks whatever arrives, without looking, serves bad food that is plated beautifully.
-
-**Where the analogy breaks:** rotten onions smell. A badly scanned page produces text that looks like perfectly ordinary text — slightly odd spellings, a few missing lines, numbers run together — and nothing downstream can tell. Your pipeline has no nose. Every check has to be a number you deliberately compute.
-
-### The document ladder
-
-Four rungs, each needing a different route, and the whole point is to sort before you process.
-
-**Born-digital text.** A PDF made from a word processor. The characters are really in the file. A text extractor gets almost everything, cheaply, and this is the easy case.
-
-**Scanned image PDF.** A photocopier or a flatbed scanner produced a picture of a page. There are no characters in the file at all. A text extractor returns nothing, usually without an error, which is the dangerous part. This needs OCR.
-
-**Phone photo.** A student photographs a notice board at an angle, in bad light, with a thumb in the corner. OCR built for flatbed scans struggles. A vision-capable model usually does better because it can use layout and context to resolve what a character-by-character engine cannot.
-
-**Handwriting.** A handwritten tiffin order, a signed receipt. Expect real error rates and design for review rather than accuracy. Never let handwriting reach a money field unchecked.
-
-Sort your corpus onto these rungs first. It takes twenty minutes and it tells you what the rest of the work is.
+**Where the analogy breaks:** rotten onions smell. A badly scanned page produces text that looks perfectly ordinary — odd spellings, missing lines, numbers run together — and nothing downstream can tell. Your pipeline has no nose, so every check has to be a number you deliberately compute.
 
 ### Picture it
 
@@ -85,51 +67,21 @@ Sort your corpus onto these rungs first. It takes twenty minutes and it tells yo
    ready for chunking (chapter 10)
 ```
 
-Six stages. The SCORE stage is the one teams omit, and it is the one that catches the sixty blank scans before they poison everything downstream.
+Six stages. SCORE is the one teams omit, and the one that catches sixty blank scans before they poison everything downstream.
 
-### Tables are the hard part
 
-A table is a two-dimensional fact flattened into one dimension, and flattening destroys the relation that made it useful. "Second year · hostel · 42000" means nothing once it is "Second year hostel 42000 First year hostel 38000 Mess 14000".
+Sort your corpus onto four rungs first; twenty minutes, and it tells you what the work is.
 
-Three workable approaches, in order of preference.
-
-**Take the structured data out of documents entirely.** If the fees are also rows in your database, answer fee questions with a tool from chapter four and never retrieve the table at all. This is the best answer and the most often missed.
-
-**Extract the table to markdown or CSV and keep it whole.** A small markdown table inside one chunk preserves the row-column relation and a model reads it well. Do not let a table be split across two chunks; that is worse than not having it.
-
-**Have a vision model describe the table in sentences,** stored alongside the table. "The hostel fee for second-year students is ₹42,000 per year." Verbose, and it retrieves far better than a grid, because the question is a sentence too.
-
-### Metadata is the deliverable
-
-The extracted text is only half the output. The other half decides whether everything after this chapter can work at all.
-
-Capture, per document and per chunk: a stable **id**, the **title**, the **source** path or URL, the **created** date, the **effective** date if the document says when a rule starts, the **language**, the **page number**, an **access level**, and a **superseded_by** pointer when a newer document replaces it.
-
-Each buys something specific. The id and page make a citation checkable in chapter eleven. The dates are how you detect staleness and prefer the newest fee circular. The access level is how retrieval becomes permission-aware, which chapter eight named as the failure that turns a feature into an incident. The language field stops a Marathi question retrieving only English chunks. And `superseded_by` stops two obsolete circulars competing with the current one.
-
-### Cleaning, and what to throw away
-
-**Repeated boilerplate.** Headers, footers, page numbers, confidentiality notices. A line appearing on more than half a document's pages is furniture, not content. Strip it.
-
-**Hyphenation across line breaks.** "admis-\nsion" must become "admission" or neither search nor embedding will find it.
-
-**Near-duplicates.** Three copies of the same circular with different filenames will all retrieve, filling your five slots with one fact. De-duplicate on content, not on filename.
-
-**Near-empty pages.** A page yielding four characters is a failed extraction, not a short page. Send it to review.
-
-### Multi-modal input, in Indian conditions
-
-Your real inputs are not clean. A photo taken on a budget phone at 11 pm under a tube light. A WhatsApp forward with four layers of quoted text. A fee receipt photographed at an angle with glare across the amount. A Marathi voice note that needs transcribing first. Devanagari OCR is noticeably weaker than Latin-script OCR, and mixed-script text breaks naive pipelines entirely.
-
-Design for this rather than apologising for it later. Compress before upload. Keep the original file forever so you can re-extract when tools improve. And route anything low-confidence to a human rather than guessing — a wrong fee amount read through a glare is worse than no answer.
-
-One more thing, from chapter seven: **ingestion is an injection surface.** A document you are about to read can contain instructions aimed at whatever reads it. Extraction should happen in a call with no tools, returning text and metadata only, and anything that looks like an instruction stays data forever after.
+- **Born-digital text** — the characters are in the file; an extractor gets almost everything.
+- **Scanned image PDF** — a picture of a page; the extractor returns nothing, usually silently. Needs OCR.
+- **Phone photo** — a vision model usually beats flatbed OCR, because it can use layout and context.
+- **Handwriting** — real error rates; design for review, and never a money field.
 
 ### Where it lives
 
-Ingestion is a batch job, not a request-time path. It belongs in M04's queues-and-workers territory: a worker picks up a file, extracts, scores, cleans, writes metadata, and either stores the result or files it for review. It runs on upload and again whenever a document changes.
+Ingestion is a batch job, not a request-time path: M04's queues-and-workers territory, running on upload and whenever a document changes. Originals stay in object storage untouched, so better tools later do not mean re-OCRing everything, and chapter ten chunks from the extracted table rather than raw PDFs.
 
-The original files live in object storage from M04, untouched. The extracted text and metadata go to a table. Chapter ten chunks and embeds from that table, never from the raw PDFs, so that re-chunking later does not mean re-OCRing everything.
+Metadata is half the deliverable: a stable id, title, source, created and effective dates, language, page number, access level, and a `superseded_by` pointer. Id and page make citations checkable, dates detect staleness, access level makes retrieval permission-aware, language stops a Marathi question retrieving only English.
 
 ### Words to own
 
@@ -148,33 +100,26 @@ The original files live in object storage from M04, untouched. The extracted tex
 
 ### Tradeoffs and gotchas
 
-**A silent empty extraction is the worst outcome in this chapter.** No exception, no warning, a blank string stored and embedded. It will retrieve, because a near-empty vector sits in an unhelpfully central place. Score every page and fail loudly.
+**A silent empty extraction is the worst outcome here.** No exception, no warning, a blank string stored and embedded — and it *will* retrieve, because a near-empty vector sits in a central place. Score every page; fail loudly.
 
-**OCR everything is wasteful; OCR nothing is broken.** Triage first. OCR is slow and, on free tiers, quota-limited. Running it on born-digital PDFs wastes your allowance on the easy rung.
+**Tables are the hard part**, because a table is a two-dimensional fact flattened into one. Best: take the structured data out of documents and answer fee questions with a tool. Otherwise extract the table to markdown and keep it whole in one chunk, or have a vision model describe it in sentences — which retrieves better, because the question is a sentence too.
 
-**Keep the originals, always.** Extraction tools improve and your chunking will change. A pipeline that discards source files has made every future improvement impossible.
+**Triage before you OCR, and keep every original.** Use the per-page confidence your tool reports: below threshold goes to human review, not your store. Devanagari OCR is weaker than Latin-script, so route low confidence to a person.
 
-**Confidence scores are a gift — use them.** Most OCR and vision tools report per-page confidence. A number below your threshold should route to review, not to your store. Without a threshold you are trusting the worst page as much as the best.
+**Ingestion is an injection surface.** A document can carry instructions aimed at whatever reads it, so extract in a tool-less call and treat the result as data forever after.
 
-**Nobody owns data quality, so it decays.** New circulars arrive, nothing re-ingests them, and the index quietly becomes last year's. Put re-ingestion on a schedule and a count of documents older than six months on a dashboard, per M07.
-
-**Do not ingest what belongs in a table.** Fees, prices, timings and stock are structured data. Ingesting a PDF of them, then embedding it, is three lossy steps to reach something you already had exactly.
+**Nobody owns data quality, so it decays.** Put re-ingestion on a schedule and a count of documents older than six months on a dashboard. Strip the furniture: repeated footers, hyphens across line breaks, near-duplicates.
 
 ### Verify it
 
-**Compute characters per page for every document and sort ascending.** Read the worst twenty by hand. This single measurement finds nearly every failed scan in one pass, and it takes minutes.
+- **Compute characters per page for every document and sort ascending**, then read the worst twenty by hand. This finds nearly every failed scan.
+- **Spot-check a tenth of the corpus with your eyes**, extracted text beside the original page. The percentage with a missing section or mangled table *is* your corpus quality.
+- **Ask a question whose answer is only in a table.** Wrong or absent means table handling is broken.
+- **Ask a regional-language question against a regional-language document, then the reverse.** They fail differently.
+- **Search your store for a phrase you know is in document seventeen.** Not found means it is not indexed, whatever the file count says.
+- **Check the newest version wins.** If an obsolete circular answers, your dates or `superseded_by` are unused.
 
-**Spot-check a tenth of the corpus, with your eyes, side by side.** Open the extracted text next to the original page. Count how many have a missing section, a mangled table or dropped diacritics. Write the percentage down — that number is your corpus quality and you should be able to quote it.
-
-**Ask a question whose answer is only in a table.** If the answer is wrong or absent, your table handling is not working regardless of how good the rest looks.
-
-**Ask a regional-language question whose answer is in a regional-language document.** Then the reverse. Both directions fail differently and you need to know which.
-
-**Search your store for a phrase you know is in document seventeen.** If it is not found, that document is not really in your index, whatever the file count says.
-
-**Check that the newest version wins.** Ask about something that changed. If an obsolete circular answers, your dates or `superseded_by` are not being used.
-
-Red flags: documents stored with zero or near-zero extracted text; no characters-per-page measurement anywhere; a corpus where the most frequent phrase is a page footer; a table split across two chunks; no language field; no effective date; no access level; original files deleted after extraction; and a corpus nobody has read a sample of by hand.
+Red flags: documents stored with near-zero extracted text; no characters-per-page measurement; a corpus whose most frequent phrase is a page footer; a table split across two chunks; no language field; no effective date; no access level; originals deleted after extraction; a corpus nobody has sampled by hand.
 
 ## Walkthrough
 1. Gather the real documents your product needs. Real ones, including the ugly scan and the regional-language one — a clean sample proves nothing.

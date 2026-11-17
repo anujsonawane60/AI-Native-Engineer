@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: firmware-edge-ai-iot-security
 title: "Firmware, Flashing, Edge AI and IoT Security"
 order: 12
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -24,9 +24,9 @@ last_reviewed: 2026-11-16
 
 Fifty fridge and cold-store nodes are deployed across a district. Then, in one week, four things go wrong.
 
-A unit-conversion bug makes every node report Fahrenheit as if it were Celsius, so a fridge at 4 degrees reads as safe at 39. There is no way to fix it, because the firmware was flashed over a cable in a lab and the devices are now in fifty different buildings. Separately, a security researcher finds the fleet's MQTT broker on the public internet with one username and password shared by every node, and that password is in a configuration file anyone can read off a device's flash chip with a ₹200 clip. Then a node that *can* actuate — the one wired to a cold-store fan — is reachable by anyone who found that password, which makes this a safety problem rather than only a data problem. And eighteen months later the startup shuts down, the cloud account lapses, and fifty devices in fifty buildings keep trying to reach a server that no longer exists, forever.
+A unit-conversion bug makes every node report Fahrenheit as if it were Celsius, so a fridge at 4 degrees reads as safe at 39 — unfixable, because the firmware was flashed over a cable in a lab and the devices are now in fifty buildings. A researcher finds the fleet's MQTT broker on the public internet with one password shared by every node, sitting in a config file anyone can read off a flash chip with a ₹200 clip. Since one node is wired to a cold-store fan, that is a safety problem. And eighteen months later the startup shuts down and fifty devices keep calling a server that is gone.
 
-None of those four is exotic. They are the ordinary way IoT fails, they map one-to-one onto the published top-ten list of IoT weaknesses, and every one of them is decided at design time by somebody who is not thinking about year three.
+None of those four is exotic. They are the ordinary way IoT fails, they map onto the published top-ten list of IoT weaknesses, and each is decided at design time by somebody not thinking about year three.
 
 ### The idea
 
@@ -34,15 +34,13 @@ None of those four is exotic. They are the ordinary way IoT fails, they map one-
 
 Four properties make that true. You need an update path, or every bug you ship is permanent. Updates must be signed, or your update path is an attacker's installation path. You need two firmware slots and automatic rollback, or a bad update bricks the fleet. And you need per-device credentials, or one compromised device is all of them.
 
-Edge AI sits on top of this and inherits every one of those constraints. Running a small model on the device saves bandwidth and keeps raw data local, which is a genuine privacy benefit — and it means your model is now firmware, so it drifts, it cannot be retrained in place, and it can only be improved through the same update path.
+Edge AI sits on top and inherits all four. Running a small model on the device saves bandwidth and keeps raw data local — and it makes your model firmware, so it drifts and can improve only through the same update path.
 
 ### The analogy
 
-Compare two things in the canteen. The staff rota on the whiteboard can be changed by anyone who walks past with a marker, in seconds, as often as needed. The vending machine's control card was welded in at the factory: to change its behaviour, somebody with a key and a replacement card must physically visit it.
+Two things in the canteen. The staff rota on the whiteboard can be changed by anyone walking past with a marker. The vending machine's control card was welded in at the factory: changing its behaviour needs somebody with a key and a replacement card to visit it. Firmware is the welded card, and an over-the-air update path is what turns it, carefully, into something closer to the whiteboard.
 
-Firmware is the welded card. An over-the-air update path is what turns it, carefully and at some risk, into something closer to the whiteboard.
-
-**Where the analogy breaks**, and it is the reason this chapter is 35 minutes long: you can walk to the vending machine. It is forty feet away. You cannot walk to fifty nodes in fifty buildings across a district, and you certainly cannot walk to two hundred in forty villages. Physical access as a fallback is an assumption that holds for exactly as long as your deployment is one room, and every student project crosses that line without noticing.
+**Where the analogy breaks**: you can walk to the vending machine. It is forty feet away. You cannot walk to fifty nodes in fifty buildings across a district. Physical access as a fallback holds for exactly as long as your deployment is one room, and every student project crosses that line without noticing.
 
 ### Picture it
 
@@ -95,13 +93,9 @@ Choosing where inference runs is mostly a choice between keeping data local and 
 
 ### Where it lives
 
-M06 is the direct parent. Flashing a board is exactly the build-and-deploy pipeline you already know: a toolchain produces an artefact, continuous integration builds it reproducibly, and a release is a versioned artefact with a changelog. The difference is that the deploy target has no shell and cannot be rolled back by a human.
+M06 is the direct parent: flashing a board is the build-and-deploy pipeline you know, except the target has no shell and no human to roll it back. M07 is its hardest case, because flash can be read physically — so credentials must be provisioned per device, ideally into a secure element the firmware can use but not export. And a device that can switch a fan or open a gate is an M10 agent on a physical system, so the permission question becomes "what is the worst this device can do to a person" — bounded in hardware, not only software.
 
-M07 is the other parent and this chapter is its hardest case. Secrets in an image are secrets in an attacker's hands, because flash can be read physically. Device credentials must be provisioned per device, ideally into a secure element the firmware can use but not export. The published OWASP list of IoT weaknesses opens with weak and default passwords for a reason.
-
-M09 supplies the edge-AI content: quantization, small models, and the accuracy you trade for a model that fits in a few hundred kilobytes. M10's agent lessons matter more than they look — a device that can switch a fan or open a gate is an agent acting on a physical system, so M00's agent-permission question becomes "what is the worst thing this device can do to a person", and the answer must be bounded in hardware, not only in software.
-
-Regulation moves here, which is why this chapter is marked as volatile. India's DPDP Act governs the personal data a device collects, including who it is shared with and for how long, and several jurisdictions now require a stated support period and a ban on default passwords for connected consumer products. Verify the current position rather than this paragraph.
+Regulation moves here, which is why this chapter is marked volatile. India's DPDP Act governs the personal data a device collects, and several jurisdictions now require a stated support period and ban default passwords on consumer products. Verify the current position rather than this paragraph. Everything here can be built in a free simulator.
 
 ### Words to own
 
@@ -123,31 +117,27 @@ Regulation moves here, which is why this chapter is marked as volatile. India's 
 
 ### Tradeoffs and gotchas
 
-**Your update path is an attack path.** Unsigned updates are worse than no updates, because now anyone who can reach the device can own it permanently. Signature verification against a key the firmware cannot overwrite is not optional.
+**Your update path is an attack path.** Unsigned updates are worse than no updates, because anyone who can reach the device then owns it permanently. Signature verification against a key the firmware cannot overwrite is not optional.
 
-**The signing key is the fleet.** Lose it and you can never update again. Leak it and anyone can. It belongs in the same category as a production database credential — M07's discipline, one named owner, and written down in your decision log.
+**The signing key is the fleet.** Lose it and you can never update again; leak it and anyone can. Treat it like a production database credential, with one named owner.
 
-**Per-device credentials cost real effort.** Someone must generate, record and install a unique identity for every unit. It is tedious, it is the single highest-value security decision you will make, and shared credentials are the shortcut that produces the incidents.
+**Per-device credentials cost real effort.** Someone must generate, record and install a unique identity for every unit. It is tedious, and it is the highest-value security decision you will make.
 
-**LoRa cannot carry an update.** From chapter 11: tens of bytes, a few messages an hour. A LoRa-only fleet has no over-the-air path, which must be a conscious decision with a plan behind it, not a discovery in year two.
+**LoRa cannot carry an update.** A LoRa-only fleet has no over-the-air path at all, which must be a conscious decision rather than a discovery in year two.
 
-**Edge AI freezes your model into firmware.** Model improvements now ride the update path, with all its risk. A sensor that ages, a camera that gets dirty, a season that changes — the model keeps its old opinion until you ship new firmware.
-
-**Devices outlive companies.** Decide now what happens when you stop operating: a final firmware that works standalone, a documented way to point the device at a different server, or at minimum a published statement so buyers know what they own. A device that quietly bricks itself when your cloud bill lapses is a failure you chose.
+**Devices outlive companies.** Decide now what happens when you stop operating: standalone firmware, a documented way to repoint the device, or at minimum a published statement.
 
 ### Verify it
 
-**Red flag: no update path.** The first question for any device design. How does firmware version two reach a deployed unit, who authorises it, and what happens if it fails? A design with no answer has decided that every future bug is permanent, and it should say so out loud.
+**Red flag: no update path.** The first question for any device design. How does version two reach a deployed unit, who authorises it, and what happens if it crashes on boot? A design with no answer has decided every future bug is permanent.
 
-**Red flag: default or shared credentials.** Ask whether each device has its own identity and where it comes from. One password for the fleet is the single most common cause of real IoT compromise, and it is also what makes revoking one node impossible.
+**Red flag: default or shared credentials.** Ask whether each device has its own identity and where it comes from. One password for the fleet is the commonest cause of real IoT compromise, and it makes revoking one node impossible.
 
-**Red flag: unencrypted transport.** Ask which port, whether TLS, and how the server's identity is verified. Plain MQTT means credentials and readings are readable by anyone on the path.
+**Red flag: unencrypted transport.** Ask which port, whether TLS, and how the server's identity is verified. Plain MQTT means credentials and readings are readable on the path.
 
-**Red flag: secrets in the firmware image.** Ask what an attacker learns from reading the flash chip off one device, which costs very little to do. If the answer includes a Wi-Fi password, an API key or the fleet credential, the design is broken for the whole fleet, not for one unit.
+**Red flag: secrets in the firmware image.** Ask what an attacker learns from reading one device's flash chip. A Wi-Fi password, an API key or the fleet credential breaks the whole fleet, not one unit.
 
-**Red flag: no rollback and no health check.** Ask what happens when an update boots and then crashes. Without a trial boot and automatic rollback, one bad release bricks everything at once.
-
-**Red flag: no end-of-life statement.** Ask what the device does in year five if your servers are gone. Silence here is the failure that outlasts the company.
+**Red flag: no end-of-life statement.** Ask what the device does in year five if your servers are gone. Silence is the failure that outlasts the company.
 
 ## Walkthrough
 1. In a free in-browser simulator, build a node that reads a sensor and prints a version string at startup. Note the version.

@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: multi-agent-systems
 title: "Multi-Agent Systems: Orchestrators, Sub-Agents and Handoffs"
 order: 11
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -19,32 +19,23 @@ last_reviewed: 2026-11-16
 - Catch a multi-agent system doing work one agent would have done
 
 ## Lesson
-
 ### The pain
 
-M10 chapter 15 designed multi-agent systems properly: the orchestrator-and-workers shape, the three things multi-agent actually buys, the five-field sub-agent contract, the single-writer rule, correlation ids, and the requirement to beat a measured single-agent baseline or delete the design. M10 chapter 14 gave the loop its five stopping conditions and its guardrails. That chapter ends by saying M14's practicum takes multi-agent into production. This is it, and what is new is everything that happens when real users, real money and a 3 am crash are involved.
+M10 chapter 15 designed multi-agent systems properly: orchestrator and workers, the sub-agent contract, the single-writer rule, the duty to beat a single-agent baseline. New here is what happens when real users, real money and a 3 am crash are involved.
 
-Three failures define the chapter. A team's research orchestrator fans out to six workers. One worker's tool times out, the orchestrator has no policy for a partial result, so it retries the whole fan-out — and the five that succeeded run again, each re-sending a message. Users receive duplicates.
-
-Second: the same system is triggered by a webhook at 3 am. A worker hits a loop the step budget should have caught, but the budget was per worker and there were nine workers, so the run spends ₹2,100 before anyone wakes up. The budget existed; it was not shared.
-
-Third, and most common: a team runs five agents where one prompted call with two tools would have produced the same answer in a tenth of the time. Nobody re-measured the baseline after the design settled, so the complexity became permanent.
+An orchestrator fans out to six workers. One tool times out, there is no policy for a partial result, so it retries the whole fan-out and the five that succeeded run again, each re-sending a message. At 3 am the same system hits a loop the step budget should have caught, but the budget was per worker, and nine workers spent ₹2,100.
 
 ### The idea
 
-**In production, a multi-agent run is one distributed transaction with a shared budget, durable state and an idempotency rule — and the orchestrator's real job is to enforce all three.**
+**In production, a multi-agent run is one distributed transaction with a shared budget, durable state and an idempotency rule — and the orchestrator's job is to enforce all three.**
 
-Design questions were M10's. Production adds four. Where does the run's state live when the process dies? What is the single budget across every agent, and what cuts the run off when it is spent? What happens when some workers succeed and others fail? And when control is actually handed to another agent rather than delegated, what travels with it and what must not?
+Design questions were M10's. Production adds four: where state lives when the process dies, what the single budget is and what cuts the run off, what happens when some workers fail, and what travels on a handoff.
 
 ### The analogy
 
-Lunch rush. The head cook is the orchestrator: she decides what needs making, assigns stations, and she alone puts plates on the counter.
+Lunch rush. The head cook is the orchestrator: she assigns stations and she alone plates up. Three things matter now that did not at design time. One gas budget for the service, not one per station. A slip board, so if she is called away the next person sees what is made. And re-reading a slip makes no second plate.
 
-In production three things matter that did not when you designed the kitchen. There is one gas budget for the whole service, not one per station — a station leaving a burner high burns the kitchen's budget, not its own. There is a slip board, so if the head cook is called away the next person sees what has been made and what has not, instead of starting again. And each station has a rule that re-reading the same slip does not produce a second plate.
-
-Handoffs differ from assignment. Sending a vegetable to the chopping station and getting it back is **delegation**. Walking a customer with a billing dispute to the manager's desk, where the manager now owns the conversation and you step away, is a **handoff**. Only one returns to you, and only one needs a rule about what you tell the manager.
-
-**Where the analogy breaks.** A station that cannot finish shouts across the kitchen. Workers fail silently, return plausible-looking output, or produce nothing. The head cook has to *check* rather than trust, which is why every worker contract from M10 chapter 15 ends with an output schema the orchestrator validates.
+**Where it breaks.** Workers fail silently, so the orchestrator must *check*, not trust — hence the schema it validates.
 
 ### Picture it
 
@@ -72,41 +63,29 @@ Handoffs differ from assignment. Sending a vegetable to the chopping station and
 
 The orchestrator holds one budget for the whole run, the only write capability and the approval gate, dispatches read-only idempotent workers through a queue under a concurrency limit, and records every step in durable state so a crash resumes instead of restarting.
 
-### Delegation versus handoff
-
-M10 chapter 15 was right that a fixed A-then-B-then-C chain is a workflow, not multi-agent. But one pattern it set aside matters in production: **control transfer**.
-
-**Delegation** is what the diagram shows. The orchestrator asks a worker, the worker returns a result matching a schema, the orchestrator continues. The worker never talks to the user. This is the default and should be most of what you build.
-
-**A handoff** transfers ownership. A support agent decides the issue is a billing dispute and hands the live conversation to a billing agent with different tools, permissions and system prompt. The first agent stops. The user keeps talking to one thing.
-
-A handoff needs three rules written down. **The payload contract**: what state travels — the conversation so far, the verified identity, the classification and why — and what does not, meaning anything the receiving agent may not see. **The hop budget**: a maximum per conversation, usually two or three, because A-to-B-to-A is a real failure that looks like politeness. And **the terminal rule**: after the last hop, a human takes it with the full trace attached.
-
 ### Partial failure, and why idempotency is not optional
 
-Five workers succeed, two fail. This is the normal case, not the edge case, and production needs one policy chosen in advance.
+Five workers succeed, two fail. That is the normal case, and one policy must be chosen in advance.
 
-**All-or-nothing with compensation.** Undo the five successes and report failure. Only possible if every action is reversible, which rules it out the moment a message has been sent.
+- **All-or-nothing with compensation** — undo the five. Impossible once a message has been sent.
+- **Best effort with gaps declared** — use the five, name the two missing.
+- **Retry the failed subset only** — usually right, and safe only if every action carries an **idempotency key**, since a retry is indistinguishable from a duplicate request.
 
-**Best effort with gaps declared.** Use the five results and state plainly which two are missing. The honest default for research and summarisation, and it needs a final answer that can say "incomplete".
-
-**Retry the failed subset only.** Usually right, and safe only if every worker action carries an **idempotency key** — the same key means the action is not performed twice. M04 chapter 17 taught this for payments; an agent retry is indistinguishable from a duplicate request.
-
-Whichever you choose, the orchestrator must classify failures as M10 chapter 14 taught — transient, permanent, or the agent's own mistake — and retry only the first.
+Classify failures too — transient, permanent, or the agent's mistake — and retry only the first.
 
 ### Budgets that can actually stop a run
 
-A per-agent budget multiplies. Nine workers with a 10-step budget each is a 90-step run, and if each step re-sends a growing transcript the cost grows faster than the step count.
+A per-agent budget multiplies: nine workers with ten steps each is a ninety-step run, and a growing transcript makes cost grow faster than steps.
 
-So the ceiling has to be **one ledger for the run**, in steps and rupees, decremented by every agent including the orchestrator, checked before each dispatch, and enforced by refusing to dispatch rather than logging a warning. Two numbers belong beside it: a wall-clock deadline for the run, and a concurrency limit, because twelve simultaneous workers hit your provider's rate limit and turn into retries that cost money and look like slowness.
-
-And an alert. A run spending more than a multiple of your median should page a human while it happens, not appear in a report. M07 chapter 7 is where that alert lives.
+So the ceiling is **one ledger for the run**, in steps and rupees, decremented by every agent including the orchestrator, checked before each dispatch, and enforced by refusing to dispatch rather than warning. Beside it: a wall-clock deadline, a concurrency limit, and an alert that pages a human mid-run.
 
 ### Where it lives
 
-Below: M10 chapters 13 to 15 for whether to do this at all, the loop and the contracts. M04 chapter 16's queues are the mechanism for fan-out; M05 chapters 4 and 8 are the rate limiting, timeouts and circuit breakers that keep a fan-out from becoming an outage. M07 chapters 5 to 7 are the traces, the span tree and the alert.
-
-Above: chapter 10's regression suite is the only thing that can tell you multi-agent still beats the baseline after six weeks of changes, and its trajectory assertions catch a run that quietly grew from four steps to nineteen. Chapter 13 versions every agent's prompt and config. Chapter 14's gateway is where the per-run budget is most easily enforced.
+- M10 chapters 13 to 15 — whether to do this at all, the loop, the contracts
+- M04 chapter 16, M05 chapters 4, 8 — queues, rate limits, timeouts
+- M07 chapters 5 to 7 — traces, span tree, alert
+- Chapter 10 — proof multi-agent still beats the baseline
+- Chapters 13, 14 — versioned prompts; the gateway enforcing the budget
 
 ### Words to own
 
@@ -127,31 +106,27 @@ Above: chapter 10's regression suite is the only thing that can tell you multi-a
 
 ### Tradeoffs and gotchas
 
-**The baseline is not a one-time check.** M10 chapter 15 made you measure a single-agent version before building this. In production, re-measure it quarterly: models get better and the cheap version often catches up. The honest outcome of this chapter is sometimes deleting the orchestrator.
+**The baseline is not a one-time check.** Re-measure the single-agent version quarterly; the honest outcome is sometimes deleting the orchestrator.
 
-**Latency gets worse before it gets better.** Fan-out helps only if workers genuinely run in parallel and the slowest beats doing everything sequentially. With a concurrency limit of 3 and seven workers you have three waves, and the user waits for all of them plus the synthesis.
+**Durable state is written before the action:** record the intent, act, record the result. A crash in between is then a retry on an idempotent action.
 
-**Cost attribution per worker is the debugging tool you will miss most.** Log tokens and rupees per worker per run, tagged with the run id. Without it, "the bill went up" is unanswerable and the loop is unfindable.
+**Approval gates belong only at the orchestrator,** never inside a worker. And fan-out makes latency worse before better: three waves plus the synthesis.
 
-**Two agents can be endlessly polite.** Deadlock is rare here because workers do not talk to each other — keep it that way. Livelock, where A hands to B which hands back to A, is common, and the hop budget is the fix.
-
-**Durable state is written before the action, not after.** Record the intent, act, record the result. A crash in between is then a retry on an idempotent action rather than a lost step or a duplicate.
-
-**Approval gates belong only at the orchestrator.** A worker that can ask a human for permission can be talked into asking, and it breaks the single-writer rule. One gate, before the single write.
+**A handoff is not a delegation.** Delegation returns a schema-checked result; a handoff transfers ownership and the first agent stops. Write down the payload contract (what travels, what must not), the hop budget — two or three, since A-to-B-to-A looks like politeness — and the terminal rule: after the last hop, a human.
 
 ### Verify it
 
-The named red flag is the one from M10, still the most common: **a multi-agent system where one agent would do.** In production it acquires five more.
+The red flag is still M10's: a multi-agent system where one agent would do.
 
-1. **Demand the current baseline number, dated.** Single agent, same eval set, this quarter. Anything older is not evidence.
-2. **Ask where the budget lives.** If the answer is per-agent, it does not exist. Then ask what happens when it is exhausted — refusing to dispatch is the only acceptable answer.
-3. **Ask what happens if the process dies at step 14.** If the answer is "it restarts", there is no durable state.
-4. **Ask what happens when five of seven workers succeed.** One named policy, and if it is retry, an idempotency key per action.
-5. **Check the concurrency limit exists** and that rate-limit responses are handled with backoff rather than immediate retry.
-6. **Ask for the per-worker cost breakdown of one real run.** If it cannot be produced, cost regressions will be invisible.
-7. **For any handoff, demand the payload contract and the hop budget** in writing, including what the receiving agent must not be told.
+1. **Demand the baseline number, dated.**
+2. **Ask where the budget lives.** Per-agent means it does not exist, and exhaustion must refuse to dispatch.
+3. **Ask what happens if the process dies at step 14.** "It restarts" means no durable state.
+4. **Ask what happens when five of seven succeed.** One named policy, with an idempotency key if it retries.
+5. **Check the concurrency limit and rate-limit backoff.**
+6. **Ask for per-worker cost on one run.**
+7. **For a handoff, demand the payload contract and hop budget.**
 
-Red flags: five agents doing one agent's work; a per-agent budget presented as a ceiling; no durable state; no concurrency limit; no partial-failure policy; retries without idempotency keys; handoffs with no hop budget; cost logged per run but not per worker; an approval gate inside a worker; and a baseline comparison nobody has repeated since the design was written.
+Red flags: five agents doing one agent's work; a per-agent budget as a ceiling; no durable state; no partial-failure policy; retries without idempotency keys; no hop budget.
 
 ## Walkthrough
 1. Take your M10 chapter 15 multi-agent design, or build the simplest version of one. Write down, in one sentence each, the three things it buys you — parallelism, context isolation, scoped tools — and which of them you can actually demonstrate.

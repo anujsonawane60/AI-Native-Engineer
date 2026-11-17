@@ -4,7 +4,7 @@ module: m13-production-engineering
 slug: security-hardening
 title: "Security Hardening: Threat Modelling, Pen-Test Basics, Dependency Scanning"
 order: 11
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-M07 chapter 1 taught you the OWASP Top Ten and the observation that nine of the ten are an application trusting something it had no business trusting. It gave you `/orders/8421` becoming `/orders/8420` and a ₹1 thali from an edited price. M07 chapter 2 taught you secrets: the three categories, the forbidden destinations, and the revoke-first leak sequence. That is the knowledge. This chapter is the *practice* that keeps it true over months, which is a different problem, because your attack surface grows every week whether you work on it or not.
+M07 chapter 1 taught you the OWASP Top Ten and that nine of the ten are an application trusting something it should not — `/orders/8421` becoming `/orders/8420`, a ₹1 thali from an edited price. M07 chapter 2 taught you secrets. That is the knowledge; this chapter is the practice that keeps it true over months, because your attack surface grows every week whether you work on it or not.
 
-Here is what that looks like. A team enables a free dependency scanner in month two. It reports 180 findings, 23 of them marked high. Nobody has time, so nobody looks. By month five the badge is red, the number is 340, and the team has learned to see it as decoration — exactly the pattern from chapter 6's flaky tests, applied to security. One of those 340 is a real, reachable, remotely exploitable flaw in an image-processing library their upload endpoint calls directly. It had been sitting in the list for eleven weeks. The scanner did its job perfectly and bought them nothing, because an unread list is not a control.
-
-Second failure, newer and specific to how you work. An agent, asked to add a CSV export, installs a package with forty weekly downloads and one maintainer. It works. It also runs a script at install time that reads environment variables. Nobody reviewed the dependency, because the diff everyone read was the application code and the dependency arrived in a lockfile line. M07's secrets chapter told you a key in the browser is public; this is the newer version — a key in your build environment is readable by every package you install.
+A team enables a free dependency scanner: 180 findings, 23 high. Nobody looks; by month five it is 340 and the badge is decoration. One of them is a reachable, remotely exploitable flaw in an image library the upload endpoint calls on every request. An unread list is not a control.
 
 ### The idea
 
 **Hardening is three repeatable practices, not a one-off audit: draw your trust boundaries and ask four questions at each, triage dependency findings by whether your code can actually reach them, and test your own system the way an attacker would.**
 
-The four questions, asked at every boundary where data crosses from something you do not control into something you do: *what are we building here, what can go wrong, what are we doing about it, and did we do a good enough job?* That is threat modelling, and it is a forty-minute conversation with a diagram, not a document.
+The four questions, asked wherever data crosses into your system: *what are we building, what can go wrong, what are we doing about it, and did we do a good enough job?* That is threat modelling — forty minutes with a diagram, not a document.
 
 ### The analogy
 
-M07 gave you the canteen at 1 p.m. with three doors: the staff door with no lock, the order slip the cashier reads literally, and the store room whose lock was never fitted.
+M07 gave you the canteen at 1 p.m. with its three doors.
 
-Now the hygiene inspection arrives, and it has two halves. The first is the kitchen itself: surfaces, temperatures, who may stand where. That is the part you control and the part M07 taught you. The second half is the **supplier audit**, and it is the half everyone forgets. The inspector asks where the paneer came from, whether that dairy has a licence, and what happened the week their cold chain failed. You can cook perfectly and still poison forty students with an ingredient you did not check.
+Now the hygiene inspection arrives, with two halves. The first is the kitchen itself, which is the part M07 taught. The second is the **supplier audit**, the half everyone forgets: where the paneer came from and whether that dairy has a licence. You can cook perfectly and still poison forty students with an ingredient you did not check.
 
-Then the triage problem. The inspector leaves a sheet with sixty items. Four of them matter — the fridge at the wrong temperature, the unlocked store room. Fifty-six are about paint and signage. A kitchen that treats all sixty as equal fixes none of them, and a kitchen that ignores the sheet because it is long misses the fridge.
-
-**Where the analogy breaks:** the inspector visits once a term, and between visits the kitchen stays as inspected. Your dependencies change under you. A package that was clean on Tuesday has a published exploit on Friday, posted publicly with instructions, and the attacker scanning the internet for it has automation you do not. Security is not a state you reach; it is a rate you have to keep up with.
+**Where the analogy breaks:** the inspector visits once a term and the kitchen stays as inspected. Your dependencies change under you — a package clean on Tuesday has a published exploit on Friday. Security is a rate, not a state.
 
 ### Picture it
 
@@ -68,9 +64,12 @@ Each dotted line is a trust boundary where data or code crosses from something y
 
 ### Where it lives
 
-This extends M07 chapters 1 and 2 across time, and it touches four chapters of this module. Chapter 4 is where least-privilege permissions become reviewable: an IAM policy in code is a diff you can read, and "this service can write to one bucket" is far easier to verify than a console checkbox. Chapter 5's kill switch is a security control, because the fastest response to an abused feature is turning it off. Chapter 6 is where a security fix becomes permanent: a test that reproduces the IDOR is worth more than the fix alone. Chapter 10 is where a suspected breach becomes an incident, and a security incident has one extra step — preserve evidence before you mitigate, because you may need to know what was taken.
+This extends M07 chapters 1 and 2 across time:
 
-The India-specific part: under the DPDP rules, the strongest control available to a student team is collecting less. A phone number you never stored cannot leak. Before hardening a field, ask whether you need it.
+- **Chapter 5's** kill switch is a security control: the fastest response to abuse is turning the feature off.
+- **Chapter 6** makes a security fix permanent, and **chapter 10** is where a suspected breach becomes an incident — with one extra step: preserve evidence before you mitigate.
+
+The India-specific part: under the DPDP rules, the strongest control available to a student team is collecting less. A phone number you never stored cannot leak.
 
 ### Words to own
 
@@ -94,31 +93,25 @@ The India-specific part: under the DPDP rules, the strongest control available t
 
 ### Tradeoffs and gotchas
 
-**Triage by reachability or the list will beat you.** A critical flaw in a library your code never calls is less urgent than a medium one in the path your upload endpoint runs on every request. Sort findings into three buckets: reachable and exploitable in your deployment, present but not reachable, and development-only. Fix the first bucket on a deadline, record a decision for the second, and ignore the third openly in writing. A short list you act on beats a complete list you do not. **A hundred unread findings is worse than ten read ones**, because it teaches the team to look away.
+**Triage by reachability or the list will beat you.** Three buckets: reachable in your deployment, present but not reachable, development-only. A hundred unread findings is worse than ten read ones.
 
-**Pin your dependencies and read the lockfile diff.** The lockfile is where a supply-chain attack arrives, and it is the part of a pull request nobody reads. Make a rule: any new dependency gets a human look at its age, maintainer count, weekly downloads and whether it runs anything at install time. This is the newest and most AI-specific risk in the course, because an agent adding a package is a two-second action with a permanent consequence.
+**Pin your dependencies and read the lockfile diff,** which is where a supply-chain attack arrives and the part of a pull request nobody reads. Check a new package's age, maintainers and install-time scripts: an agent adding one is a two-second action with permanent consequences.
 
-**Your build environment holds secrets, and every package you install runs inside it.** M07 said a key in the browser bundle is public. The extension: a key in your CI environment is available to every install script in your dependency tree. Scope your CI credentials to the minimum and never give a build pipeline production database access.
+**Your build environment holds secrets, and every package you install runs inside it.** Never give a build pipeline production database access.
 
-**Only ever attack what you own, and only where you are allowed.** Running a free scanner against your own staging environment is education. Running it against a classmate's site, a college portal, or a payment provider's sandbox is a crime in India under the IT Act and will end your internship. Write the target in your notes before you start, and never test a third party — which is also chapter 7's rule for the same reason.
+**Only ever attack what you own.** A scanner against your own staging is education; the same scan against a college portal is a crime under the IT Act.
 
-**Test the authorization matrix, not the login.** M07's broken-access-control entry is the top of the list for a reason: almost everyone checks that login works and nobody checks that a logged-in student cannot reach the staff page, edit another student's order, or call the refund endpoint directly with a crafted request. Build the grid of roles against actions, then test every cell that should say no. Most of them have never been tried.
-
-**Rotate credentials on a schedule, and prove it by doing it once.** An unexecuted rotation procedure is chapter 9's untested backup in a different costume. Rotate one key on a quiet afternoon and find out where it was hard-coded.
-
-**A scanner's green tick is not a security result.** Scanners find known patterns. They do not find business-logic flaws: a discount applied twice, a refund endpoint missing an ownership check, a price trusted from the client. Those come only from the threat model and from a human asking "what would I try if I wanted a free thali?"
+**A scanner's green tick is not a security result.** Scanners find known patterns, not business-logic flaws: a discount applied twice, a price trusted from the client. And rotate one credential on a quiet afternoon — an unexecuted rotation is chapter 9's untested backup in costume.
 
 ### Verify it
 
-1. **Count your reachable findings, not your total findings.** If nobody can tell you how many of the 340 are reachable from your own code, triage has not happened and the scanner is decoration.
-2. **Check the age of the oldest unactioned high-severity finding.** Anything older than a month tells you the process is not real, regardless of what the dashboard says.
-3. **Read the lockfile diff in your last five pull requests.** Note any package you cannot explain. For each, check its maintainer count and whether it runs at install time.
-4. **Pick three cells from your authorization matrix that should say no, and try them yourself** — with a crafted request, not through the UI, because the UI hides the button and the endpoint does not.
-5. **Ask AI for the threat model's *missing* half.** Generated threat models cover the login page and the database and almost never cover webhooks, file uploads, background jobs, admin tooling, or the dependency boundary. Name those explicitly and ask again.
-6. **Ask what data you could stop collecting.** An answer that only hardens existing fields has skipped the strongest control available to you.
-7. **Confirm your CI credentials cannot reach production data.** This is a single check and it closes the newest hole in the chapter.
+1. **Count your reachable findings, not your total.** If nobody knows how many are reachable, the scanner is decoration.
+2. **Check the age of the oldest unactioned high finding.** Older than a month means the process is not real.
+3. **Read the lockfile diff in your last five pull requests;** check any package you cannot explain.
+4. **Pick three authorization-matrix cells that should say no and try them yourself,** with a crafted request rather than through the UI.
+5. **Ask AI for the threat model's *missing* half** — webhooks, uploads, background jobs, admin tooling, the dependency boundary.
 
-Red flags: a dependency scanner whose findings are all ignored; a threat model that lists only the login page; a new dependency with one maintainer and forty weekly downloads added by an agent; secrets available to the build pipeline with production scope; a scanner run against something you do not own; an authorization fix with no regression test; a severity list with no reachability column; and "we are secure because we use HTTPS", which M06 chapter 13 already told you proves only encryption and a name.
+Red flags: a scanner whose findings are all ignored; a threat model listing only the login page; a one-maintainer dependency added by an agent; build secrets with production scope.
 
 ## Walkthrough
 1. Draw your attack surface on one page: every endpoint, every file upload, every webhook, every background job, every admin tool, and the dependency boundary. Count the items. Most teams find twice what they expected.

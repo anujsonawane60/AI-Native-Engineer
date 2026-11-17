@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: tokens-and-prediction
 title: "Tokens, Tokenization and Next-Token Prediction"
 order: 8
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team ships an "ask our canteen" feature. It works beautifully in testing. Two weeks later their free credits are gone and nobody can explain where.
-
-They investigate. Three things are happening. The feature was built for Marathi-speaking students, and the same question in Marathi consumes roughly two to three times as many tokens as in English, so every request costs more than the English tests suggested. The system prompt is 700 tokens of careful instructions and it is re-sent on every single turn of every conversation. And the chat keeps the full history, so by turn ten each message is re-paying for all nine earlier ones.
-
-None of this is a bug. All of it is a direct consequence of how these models consume text, and every one of those three facts is invisible unless you know what a token is. The team was billed in a currency they had never looked at.
+A team ships an "ask our canteen" feature that works beautifully in testing. Two weeks later the free credits are gone and nobody can explain where. Three things were happening: the same question in Marathi costs two to three times the tokens of its English equivalent, the 700-token system prompt is re-sent every turn, and the chat keeps full history, so by turn ten each message re-pays for all nine before it. None of it is a bug, and all of it is invisible unless you know what a token is.
 
 ### The idea
 
 **A model does not see letters or words. Text is chopped into tokens, each token becomes a number, and the model's one and only ability is to predict which token comes next. It then appends that token and does it again.**
 
-That is genuinely all of it. "Write me a poem" produces a poem one token at a time, each token chosen with the whole preceding text in view. There is no plan, no outline held in reserve, no sentence assembled before it starts. The fluency is a side effect of doing this extremely well, at enormous scale.
+That is all of it. "Write me a poem" produces a poem one token at a time, each chosen with the whole preceding text in view — no plan, no outline held in reserve. The fluency is a side effect of doing this extremely well at enormous scale.
 
-A token is roughly a short word or a chunk of one. In English, a useful rule of thumb is about four characters per token, or about three tokens for every four words. "canteen" is probably one token. "unavailability" is probably three. A space usually travels attached to the front of the following word.
+A token is roughly a short word or a chunk of one: about four characters, or three tokens for every four English words. "Canteen" is probably one token, "unavailability" probably three.
 
 ### The analogy
 
-The canteen runs on order slips, and the slips use codes rather than sentences.
-
-The kitchen has a fixed printed codebook: `TH` for thali, `BIR` for biryani, `XC` for extra curd. A cashier taking an order does not write "one thali with extra curd" — they write `TH` `XC`, because the kitchen only understands codes from the book. That codebook is the **vocabulary**, the act of translating an order into codes is **tokenization**, and the codes themselves are **tokens**.
-
-The codebook was printed years ago by someone who studied the commonest orders. Popular items got their own short code. Rare items did not, so "Kashmiri dum aloo" has to be written as four separate codes cobbled together from fragments. The slip gets longer, and since the kitchen charges per code, the rare dish costs more to order even though it is one dish.
+The kitchen has a fixed printed codebook: `TH` for thali, `BIR` for biryani, `XC` for extra curd. A cashier writes `TH` `XC`, not "one thali with extra curd", because the kitchen only understands codes from the book. That codebook is the **vocabulary**, translating an order into codes is **tokenization**, and the codes are **tokens**. It was printed by someone who studied the commonest orders, so popular items got short codes and rare ones did not: "Kashmiri dum aloo" becomes four fragments, and since the kitchen charges per code, the rare dish costs more.
 
 **Where the analogy breaks:** the cashier knows what `TH` means. The model has no codebook meanings at all — it only ever saw which codes follow which other codes, across trillions of slips. And unlike a canteen, you cannot ask for a new code to be added; the vocabulary was fixed when the model was trained, and whoever fixed it was probably optimising for English.
 
@@ -70,31 +62,20 @@ The codebook was printed years ago by someone who studied the commonest orders. 
 
 Text is split into tokens and turned into numbers; the model scores every possible next token, one is picked, appended, and the whole thing runs again.
 
-### What this explains
+Hold "it predicts the next token" and a list of confusing behaviour becomes obvious.
 
-Once you hold "it predicts the next token", a long list of confusing behaviour becomes obvious rather than mysterious.
-
-**Why it cannot count the letters in a word.** It never saw letters. "strawberry" may arrive as two or three tokens, and counting the r's inside a token is not an operation it has. Asking a language model to do character-level work is asking it to inspect something it cannot see.
-
-**Why arithmetic is shaky.** "1,247" might be three tokens. There is no calculator underneath — it is producing the token sequence that most plausibly follows, which for common sums is reliably correct and for unusual ones is confidently wrong. Chapter 4's point, from the other direction.
-
-**Why it is confidently wrong rather than silent.** At every step some token is the most plausible continuation. There is no path through the machinery that produces "I do not know" unless that phrase was itself the plausible continuation. This is M00's first failure mode, explained at the mechanism level.
-
-**Why output arrives word by word.** Streaming is not a user-interface flourish. Each token genuinely has to be computed after the one before it, so generating 500 tokens takes roughly 500 times as long as generating one. Input is different: the whole prompt is read in parallel, which is why long prompts are cheap to read and long answers are slow to write.
-
-**Why non-English text costs more.** The vocabulary was built mostly from English text, so English words tend to be single tokens while Devanagari words get fragmented into several. The same question in Marathi or Hindi can cost two to three times the tokens of its English equivalent. For an Indian student product this is not a curiosity — it is a line item, and it is the clearest case in this course of a technical default having an economic consequence for your users.
+- **It cannot count letters.** It never saw letters; "strawberry" arrives as two or three tokens, and looking inside one is not an operation it has.
+- **Arithmetic is shaky.** "1,247" might be three tokens and there is no calculator underneath, so common sums are right and unusual ones confidently wrong.
+- **It is confidently wrong rather than silent.** Some token is always most plausible, so nothing produces "I do not know" unless that phrase was itself plausible.
+- **Output arrives word by word.** Each token waits for the one before, while input is read in parallel: long prompts are cheap to read, long answers slow to write.
+- **Non-English text costs more.** The vocabulary came mostly from English, so Devanagari words fragment into several tokens — a line item, not a curiosity.
 
 ### Where it lives
 
-Tokens are the unit of three different things, which is why this short chapter matters so much.
-
-**They are the unit of billing.** Providers price per million input tokens and per million output tokens, with output usually several times dearer. That is chapter 14, and it is where the team from the top of this chapter needed to be before they shipped.
-
-**They are the unit of the context window.** The limit on how much a model can consider at once is a token count, not a word count or a character count. Chapter 12.
-
-**They are the unit of latency.** Time to first token depends mostly on your input length; total time depends mostly on your output length. That distinction is the one that tells you whether to shorten your prompt or cap your answer, and it connects straight to M05's latency work.
-
-Every provider publishes a tokenizer or a token-counting endpoint. Using it on your own real text, rather than estimating, is the habit this chapter is trying to install.
+- **Tokens are the unit of billing** — priced per million in and per million out, output usually several times dearer. That is chapter 14.
+- **Tokens are the unit of the context window**, never a word or character count. That is chapter 12.
+- **Tokens are the unit of latency.** Time to first token follows input length, total time follows output length, which tells you whether to shorten the prompt or cap the answer.
+- **Every provider publishes a tokenizer.** Running your real text through it instead of estimating is the habit this chapter installs.
 
 ### Words to own
 
@@ -114,29 +95,20 @@ Every provider publishes a tokenizer or a token-counting endpoint. Using it on y
 
 ### Tradeoffs and gotchas
 
-**Estimate with the rule of thumb, bill with the tokenizer.** Four characters per token is good enough for a rough plan and wrong enough to matter for a budget. Before you commit to a cost model, run your actual prompts — including your real Marathi or Hindi examples — through the provider's own counter.
-
-**Your system prompt is charged on every turn.** A 700-token instruction block in a ten-turn conversation is 7,000 input tokens of pure overhead. This is the most common avoidable cost in a student AI feature, and M10's prompt caching is the proper answer to it.
-
-**Conversation history grows faster than you expect.** Each turn re-sends everything before it, so the cost of a long chat grows much faster than the number of turns. Ten turns is not ten times one turn; it is closer to fifty.
-
-**Output tokens are the expensive ones.** They are priced higher and they are slow, because each must wait for the one before. Capping maximum output length is simultaneously a cost control, a latency control and a quality control, since an uncapped model will pad.
-
-**Token counts differ between providers.** Each family has its own tokenizer, so the same text is a different number of tokens on different models. You cannot compare two providers' prices without converting through each one's own count — which chapter 13 will make you do properly.
+- **Estimate with the rule of thumb, bill with the tokenizer.** Four characters per token is fine for a sketch and wrong enough to matter for a budget.
+- **Your system prompt is charged on every turn.** A 700-token block across ten turns is 7,000 input tokens of pure overhead, and M10's prompt caching is the answer.
+- **Conversation history grows faster than you expect.** Each turn re-sends everything before it, so ten turns is closer to fifty than to ten.
+- **Output tokens are the expensive ones**, priced higher and slow because each waits for the one before. Capping output length controls cost, latency and quality at once.
+- **Token counts differ between providers**, so you cannot compare two prices without converting through each one's own count.
 
 ### Verify it
 
-**Red flag: a token count asserted rather than measured.** If an AI tells you your prompt is "about 300 tokens", treat that as a guess. Run it through the provider's tokenizer. For non-English text the guess will usually be badly low, which is exactly where it costs you money.
-
-**Red flag: a price quoted confidently.** Model prices change, get cut, get restructured, and sit well behind any model's knowledge cutoff. A price from a chat window is a rumour. The provider's own pricing page is the only authority, and chapters 13 and 14 return to this because it is the one that costs real rupees.
-
-**Red flag: "one word is one token".** A plausible simplification that breaks on exactly the cases you care about: Indian languages, code, long technical words, numbers, and emoji.
-
-**Red flag: a language model proposed for character-level or arithmetic work.** Counting letters, reversing strings, checking digits, summing a column — ask for ordinary code instead. It will be correct, free and instant.
-
-**Red flag: a cost estimate with no output-token line.** If the plan prices only what you send, it has missed the dearer half.
-
-The check you can run in ten minutes, and should run before any AI feature ships: take five real user messages, including at least two in the language your users actually type in, count their tokens with the provider's tool, add your system prompt's token count, make one real call and record the input and output token counts the response reports back. You now have a measured number per request instead of a hope, and chapter 14 turns it into a monthly figure.
+- **A token count asserted rather than measured.** "About 300 tokens" is a guess, and for non-English text it runs badly low.
+- **A price quoted confidently.** Prices change and sit behind any model's cutoff, so a price from a chat window is a rumour and the provider's own pricing page is the only authority.
+- **"One word is one token".** It breaks on exactly the cases you care about: Indian languages, code, numbers, emoji.
+- **A language model proposed for character-level or arithmetic work.** Ask for ordinary code: correct, free and instant.
+- **A cost estimate with no output-token line** has missed the dearer half.
+- **Check yourself:** count five real user messages, two in your users' language, add the system prompt, then make one call and record the counts it reports.
 
 ## Walkthrough
 1. Open any free tokenizer playground and paste one English sentence. Record the token count and look at where the splits fell. Note any word that broke into pieces.

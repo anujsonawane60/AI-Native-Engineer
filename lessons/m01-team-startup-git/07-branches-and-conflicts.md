@@ -4,7 +4,7 @@ module: m01-team-startup-git
 slug: branches-and-conflicts
 title: "Branches, Commits and Merge Conflicts When Agents Touch Many Files"
 order: 7
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,31 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Three people in a group of three, all working on the main branch, all using agents.
+Three people, all on the main branch, all using agents. Monday evening: Product's agent restructures the menu component; Tech's agent, working from a morning copy, rewrites the same component to add a sold-out state; Growth's agent inserts an analytics line into every page.
 
-Monday evening: Product's agent restructures the menu component. Tech's agent, working from a copy pulled that morning, rewrites the same component to add a sold-out state. Growth's agent adds analytics by inserting a line into every page, including that one.
-
-Tuesday morning: nobody can push. Everyone has conflicts. Two of the three cannot explain what their agent changed. The main branch has been broken since Monday afternoon, so the deployed site is down, and resolving the conflicts means choosing between two versions of a file that neither author read closely.
-
-This is not bad luck. Three people with agents on one branch produces exactly this by Tuesday, every time.
+Tuesday morning nobody can push. Main has been broken since Monday, the deployed site is down, and resolving the conflicts means choosing between two versions of a file neither author read. Three people with agents on one branch produces exactly this, every time.
 
 ### The idea
 
 **A branch is a parallel copy of the whole project where you can work without affecting anyone else. One change, one branch, merged back when it works.**
 
-Branches cost nothing to create and nothing to throw away. That is what makes them the right unit of work for agent-driven development, where a change is often large and sometimes wrong.
+Branches cost nothing to create and nothing to throw away. That makes them the right unit of work for agent-driven development, where a change is often large and sometimes wrong.
 
 ### The analogy
 
-The canteen register again. You want to try a new pricing scheme.
+You want to try new canteen prices. Without branches you write them into the live register, in front of customers, while your colleague writes in it too — and if the scheme is bad you must remember the old prices. With branches you photocopy the register, try the scheme in the copy, then copy the changes back or throw the photocopy away. The detail that matters: while you work in the copy, your colleague keeps writing in the original. That gap is where conflicts come from.
 
-Without branches you write the new prices directly into the live register, in front of customers, while your colleague is also writing in it. If the scheme is bad you have to remember what the old prices were.
-
-With branches you photocopy the whole register, try the new scheme in the copy, and run it for a week. If it works you copy the changes back into the real register. If it does not, you throw the photocopy away and the real register never knew.
-
-The important detail: while you are working in the copy, your colleague keeps writing in the original. When you come back, the original has moved on. That gap is where conflicts come from.
-
-**Where the analogy breaks:** photocopying a register is slow and a branch is instant, because git stores only the differences. Creating a branch for a ten-minute task is normal and costs nothing.
+**Where the analogy breaks:** photocopying is slow, a branch is instant, because git stores only the differences. A branch for a ten-minute task is normal.
 
 ### Picture it
 
@@ -62,30 +52,13 @@ The important detail: while you are working in the copy, your colleague keeps wr
   ● = a commit
 ```
 
-The main branch is the one that always works and always deploys. Each change happens on its own branch, which is merged back when it is finished and verified. Two branches can exist at once without touching each other.
+Main always works and always deploys. Each change gets its own branch, merged back when verified; two branches coexist without touching each other. The rule that follows: **main is never broken**, because a broken main stops the deployed site and blocks everyone's new work.
 
-The rule that follows: **main is never broken.** If main is broken, the deployed site is broken, nobody can safely start new work, and your team is blocked rather than just one person.
+A prefix and a short description is enough for a name — `feat/sold-out-toggle`, `fix/cart-ignores-quantity`, `chore/add-gitignore`. What matters more is that the branch is **small**. A week-old branch has diverged far from main and will conflict badly; one open for an afternoon usually merges cleanly. Agents sharpen this, because they produce a week's changes in an afternoon: diff size causes conflicts, not calendar time.
 
-### Branch naming, and keeping them small
+### Where it lives
 
-A branch name is read by other people in a list, so it should say what the change is:
-
-```
-feat/sold-out-toggle
-fix/cart-ignores-quantity
-chore/add-gitignore
-docs/update-prd
-```
-
-A prefix and a short description. What matters more than the convention is **the branch being small**. A branch open for a week has diverged a long way from main and will conflict badly. A branch open for an afternoon usually merges cleanly.
-
-With agents this matters more than it used to, because an agent can produce a week's worth of changes in an afternoon. The size of the diff is what causes conflicts, not the calendar time.
-
-### What a merge conflict actually is
-
-A conflict happens when two branches changed **the same lines of the same file** and git cannot tell which version you want. That is all it is. Git is not confused about anything else — different files, or different parts of the same file, merge silently.
-
-When it happens, git edits the file and puts both versions in it:
+A conflict happens when two branches changed **the same lines of the same file** and git cannot tell which version you want. That is all — different files, or different parts of one file, merge silently. When it happens, git puts both versions in the file:
 
 ```
 <<<<<<< HEAD
@@ -95,35 +68,9 @@ When it happens, git edits the file and puts both versions in it:
 >>>>>>> feat/sold-out-toggle
 ```
 
-Between `<<<<<<<` and `=======` is what is on your current branch. Between `=======` and `>>>>>>>` is what is coming in. Your job is to delete the markers and leave the correct code — which might be either version, or a combination, or something new.
+Between `<<<<<<<` and `=======` is your current branch; between `=======` and `>>>>>>>` is what is coming in. Delete the markers, leave the correct code — either version, a combination, or something new — then `git add` the file and complete the merge.
 
-Then stage the file and complete the merge. The conflict is a question, and you are answering it.
-
-**Read both sides before choosing.** The temptation is to keep your own. If you did not write either side — and with agents you often did not — keeping "yours" is a coin flip, and the resolution is where real bugs get introduced silently.
-
-### The agent conflict pattern
-
-Humans and agents cause different conflicts, and the agent ones are worse.
-
-A human asked to add a sold-out toggle edits the menu component and maybe one more file. An agent asked the same thing may also reformat the file, rename a variable for consistency, update three call sites, add a type definition, and tidy an import. Most of that is reasonable. All of it is surface area for conflict.
-
-So the conflict you get is not "we both changed this one line". It is "forty lines of this file look different and I cannot tell which differences were the point".
-
-Three habits defend against it, and they all come from M00:
-
-**Scope the brief.** "Change only `MenuItem.tsx`. Do not reformat, do not rename anything, do not touch other files." The NON-GOALS line exists for exactly this.
-
-**Keep branches short.** Merge the same day. An agent branch open for three days is a guaranteed painful merge.
-
-**Pull from main before you start, and before you merge back.** Most conflicts are caused by working from a stale copy. `git pull origin main` costs two seconds.
-
-And one more that is specific to teams: **agree who owns which files for the week.** Three agents editing one component is the problem; three agents editing three components is fine. This is the practical reason the role split in chapter 1 matters.
-
-### Where it lives
-
-Branches are the unit that pull requests are built on, which is the next chapter. They are also what makes CI useful in M06 — tests run on the branch before it reaches main, so main stays working automatically rather than by discipline alone.
-
-In M06's deploy chapter, most platforms give every branch its own preview URL. That is the thing that makes a branch genuinely reviewable: your teammate can click a link and use the change rather than reading the code.
+Branches are what pull requests are built on, next chapter, and what makes CI useful in M06: tests run on the branch before it reaches main. Every branch also gets its own preview URL, which is what makes it genuinely reviewable — a teammate clicks a link and uses the change rather than reading code.
 
 ### Words to own
 
@@ -142,29 +89,29 @@ In M06's deploy chapter, most platforms give every branch its own preview URL. T
 
 ### Tradeoffs and gotchas
 
-**Pull before you start. This prevents most conflicts you will ever have.** Working from a copy that is two days old is the single most common cause, and it is free to avoid.
+**Agent conflicts are worse than human ones.** A human adding a sold-out toggle edits the menu component and maybe one more file. An agent may also reformat it, rename a variable, update three call sites and tidy an import — mostly reasonable, all of it conflict surface. So the conflict becomes "forty lines look different and I cannot tell which differences were the point." Three defences, all from M00: **scope the brief** ("change only `MenuItem.tsx`, do not reformat, do not rename, do not touch other files"), **keep branches short** — merge the same day — and **`git pull origin main` before you start and before you merge back**.
 
-**Never commit directly to main once you have teammates.** Not as a formality — because main is what deploys and what everyone else branches from. One broken commit on main blocks three people.
+**Agree who owns which files for the week.** Three agents editing one component is the problem; three agents editing three components is fine. This is the practical reason the chapter 1 role split matters.
 
-**Do not let an agent resolve a conflict for you unsupervised.** It will produce something that compiles. Whether it preserved the intent of both changes is a different question, and compiling is not evidence. Read the resolution.
+**Never commit directly to main once you have teammates.** Main deploys and everyone branches from it, so one broken commit blocks three people.
 
-**A conflict is not an error.** Beginners panic at the markers. Git is telling you it did its job and found a genuine question only you can answer. Nothing is broken and nothing is lost.
+**Read both sides before resolving, and never let an agent resolve for you.** It will produce something that compiles; whether both intents survived is a different question. Keeping "yours" when you wrote neither side is a coin flip, and resolution is where real bugs get introduced silently.
 
-**Prefer merge over rebase while you are learning.** Rebase produces cleaner history and rewrites commits, which is confusing when it goes wrong and dangerous on a shared branch. Merge is harder to break.
+**A conflict is not an error.** Git found a question only you can answer. Nothing is broken, nothing is lost.
 
-**`git stash` is for emergencies, not storage.** It is easy to stash something, forget it, and lose a day's work that is technically still there. If the work matters, commit it on a branch.
+**Prefer merge over rebase while learning; treat `git stash` as an emergency, not storage.** Rebase rewrites commits, which is dangerous on a shared branch. Stashed work is easy to forget — if it matters, commit it on a branch.
 
 ### Verify it
 
-Before merging any branch, five checks. Three of them are about the agent, which is where the risk is.
+Five checks before merging any branch.
 
 1. **Did you pull main first?** If not, you are about to merge a stale branch.
-2. **Does the file list match what you asked for?** `git diff main --stat` shows files and line counts. An unexpected file is a scope violation to investigate before merging, not after.
-3. **Do you understand every resolution you made?** If you kept one side of a conflict without reading the other, go back and read it.
-4. **Does it actually work on the branch?** Run it. In M06 CI will do this for you; until then, you do it.
-5. **Is main still working after the merge?** Check immediately. A broken main blocks everyone, and the fastest fix is to revert the merge rather than debug it under pressure.
+2. **Does the file list match what you asked for?** `git diff main --stat` shows files and line counts; an unexpected file is a scope violation to investigate before merging.
+3. **Do you understand every resolution you made?** If you kept one side unread, go back and read it.
+4. **Does it work on the branch?** Run it. In M06 CI does this; until then, you do.
+5. **Is main still working after the merge?** Check immediately — revert the merge rather than debug under pressure.
 
-The recovery you should know before you need it: **a merge you have not pushed can be undone.** `git merge --abort` during a conflict returns you to before the merge started. After a completed local merge, `git reset --hard HEAD~1` discards it — destructive, so be sure your own work is committed first. Knowing these two exist is what lets you merge without anxiety.
+Know the recovery before you need it: **`git merge --abort`** during a conflict returns you to before the merge started. After a completed local merge, **`git reset --hard HEAD~1`** discards it — destructive, so be sure your own work is committed first.
 
 ## Walkthrough
 1. Make sure you are on main with a clean tree: `git switch main`, then `git status`, then `git pull origin main`. This three-command sequence starts every piece of work from now on.

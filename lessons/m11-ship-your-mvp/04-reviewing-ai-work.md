@@ -4,7 +4,7 @@ module: m11-ship-your-mvp
 slug: reviewing-ai-work
 title: "Reviewing AI's Work: Diffs, Tests and Red Flags"
 order: 4
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -24,27 +24,21 @@ last_reviewed: 2026-11-16
 
 **Read this in the middle of week three, immediately before Checkpoint 3.** By now your product has authentication, a schema and an AI feature arriving, and the changes coming out of your agent are no longer eighty lines in three files. Checkpoint 3 asks you to show tests and a security pass on exactly this kind of work, so this is the craft chapter that makes that gate passable.
 
-M01.8 taught you to review a small diff: the four passes, the six questions, blocking versus non-blocking comments. All of that still holds and is assumed here. **What is new is scale.** M01.8's answer to a 1,400-line diff was "split it" — correct, and sometimes not available. A migration plus an endpoint plus a permission change plus their tests is genuinely one change, and it is 1,100 lines. The skill this week is deciding what *not* to read, and knowing where the risk has collected.
-
 ### The pain
 
-A student receives a 1,900-line change across 31 files. It is well organised, with a clear description and fourteen passing tests. They review it properly by their own standards: three evenings, nearly every line read, six comments on naming and structure. They approve it.
-
-Two weeks later a student account can read every other student's order history. The cause is eleven characters in one file: a permission check that compares the requested user id to a value taken from the request body instead of from the session. Our student read that line, on the second evening, among four hundred others, and it looked like a permission check, because it is one.
-
-The failure was not inattention. It was **uniform attention** — spreading the same care over 1,900 lines, which guarantees that the eleven characters that matter get the same tiny slice as a CSS class rename. Three evenings of reading produced less safety than forty minutes in the right four files.
+A student receives a 1,900-line change across 31 files with fourteen passing tests. They read nearly every line over three evenings, comment on naming, and approve it. Two weeks later any student account can read everyone else's order history. The cause is eleven characters: a permission check reading the user id from the request body instead of the session. It looked like a permission check — because it is one.
 
 ### The idea
 
 **Risk in a large diff is not spread evenly, and your attention must not be either. Decide what you will not read, then spend almost everything you have on the files where a mistake is unrecoverable.**
 
-Line count is not a risk signal. A 600-line new page is usually safe; a one-line change to an authorization check can expose every user's data. Review by **what the code can do**, not how much of it there is.
+M01.8 said split a 1,400-line diff; sometimes you cannot. Line count is not a risk signal either — review by **what the code can do**.
 
 ### The analogy
 
-The canteen does a monthly stock audit. Nobody counts every item — there are four hundred things in the storeroom and two hours to do it in. So you count the gas cylinders, the oil tins and the paneer exactly, because that is where the money and the spoilage are. You weigh the rice roughly, glance at the salt, and move on. If the oil is short by three litres you find out why; if the salt is short you do not care. An unreviewable diff gets the same treatment.
+The canteen's monthly stock audit: four hundred items, two hours. You count the gas cylinders, the oil tins and the paneer exactly, because that is where the money is; the rice roughly, the salt not at all.
 
-**Where the analogy breaks:** in a storeroom, value is obvious from the price tag, and the expensive items are also the big ones. In a diff the most dangerous change is often the smallest and looks exactly like the safe version of itself. One character — `>=` instead of `>`, the request body instead of the session — carries more risk than a thousand lines of markup. So you cannot triage by looking; you triage by asking what each file is *allowed to do*.
+**Where the analogy breaks:** in a storeroom the expensive items are also the big ones. In a diff the most dangerous change is the smallest and looks like the safe version of itself, so you triage by what each file is *allowed to do*.
 
 ### Picture it
 
@@ -70,53 +64,24 @@ The canteen does a monthly stock audit. Nobody counts every item — there are f
 
 Four files out of thirty-one get sixty per cent of the time, and seven get none after a glance to confirm they are what they claim.
 
-### Sorting the files, before you read any code
+Sort the files from `git diff main --stat` before opening any code.
 
-Ten minutes with the file list, no code — from `git diff main --stat`.
+- **Tier A, every line** — who may do what, anything changing stored data, money, external calls, config, secrets, deletes
+- **Tier B, with intent** — dependency manifests, error handling, retries, failure paths, the tests
+- **Tier C, skim** — for a decision that belongs elsewhere: a price recalculated, a role inferred, an odd user id
+- **Tier D, do not read** — only confirm a lockfile is genuinely all it claims
 
-**Tier A — read every line.** Money and prices. Anything deciding who may do what: sessions, roles, middleware, row-level rules. Anything changing stored data: migrations, schema files, new required columns. Anything calling an external service, including a model API. Configuration, environment and deployment settings. Anything that deletes.
-
-**Tier B — read with intent.** Dependency manifests. Error handling and retries. The failure paths of the new feature. Caching and rate limits. And the tests, which get their own treatment below.
-
-**Tier C — skim.** New pages, components, copy, styling. Read the top of each file and the names of what it exports, looking for a decision that should not be here: a price recalculated, a role inferred, a user id read from somewhere odd.
-
-**Tier D — do not read.** Lockfiles, generated clients, snapshot files, machine-formatted whitespace. One check only: **is that genuinely all they contain?** A real change hidden in a 3,000-line lockfile is how a swapped dependency gets through.
-
-If Tier A is more than about six files, stop reviewing and ask for the change to be split. That is no longer a scale problem; it is an unscoped brief, and M01.8's answer applies.
-
-### Reviewing the tests
-
-Fourteen passing tests is a claim, not evidence. Three questions settle it, faster than reading them line by line.
-
-**1. Does it fail when I break the feature?** Change one meaningful line in the implementation — invert the permission check, drop the division by a hundred — run the tests, and see if anything goes red. If everything still passes, the tests are decorative. It takes two minutes and is the highest-value thing you can do with a suite you did not write.
-
-**2. Does it assert behaviour or implementation?** "Calling this endpoint as a student returns 403" is behaviour and survives a rewrite. "The `checkRole` function is called once" is implementation: it passes forever, including after someone removes the thing it was protecting.
-
-**3. Does anything test the failure states?** Agents write happy-path tests by default. If every test has valid input and a user of the right role, the suite measures that the code runs, not that it is correct.
-
-And count the skips. A test marked skipped or pending is a failing test with better manners.
-
-### The red flags that recur
-
-These recur in agent-written code across tools and models. Learn them as a list; you will recognise them faster than you can reason about them.
-
-| Red flag | Why it matters |
-|---|---|
-| A decision made only on the client | Prices, roles and totals must be re-decided on the server |
-| An id taken from the request instead of the session | The caller chooses whose data they read |
-| A caught error that logs nothing and returns success | The failure becomes invisible, and users see a false confirm |
-| A permissive default | `role = 'admin'` when unset opens the door quietly |
-| A new dependency you did not ask for | Unreviewed code, new licence, new supply chain |
-| A new required column with no backfill | Every existing row becomes invalid |
-| A disabled lint rule or a loosened type | The check that would have caught this, switched off |
-| A retry loop with no limit or backoff | One slow service becomes your outage, and your bill |
-| A model call with no timeout and no cost ceiling | M09.14's token economics, unbounded |
+More than six files in Tier A is an unscoped brief: ask for a split.
 
 ### Where it lives
 
-This sits between M01.8 and M18. M01.8 was the small diff; this is the large one; M07.1 and M07.3 are the security content behind half the red-flag table; M06.10 is where the tests came from; M10.19's agent-ready repository exists so that linters and type checks catch the mechanical problems before a human spends attention on them. It feeds M11.7 directly: the technical demo at Checkpoint 4 asks you to trace one request through your own code and explain one thing you rejected in review.
+This sits between M01.8 and M18:
 
-**Each of you submits your own evidence.** In a group of three, the review you personally did is the clearest proof that you engaged with code you did not write.
+- M07.1 and M07.3 are the security behind the red-flag table
+- M10.19's linters catch the mechanical problems first
+- M11.7 asks you to explain one thing you rejected here
+
+**Each of you submits your own evidence** — your own review, on code you did not write.
 
 ### Words to own
 
@@ -133,25 +98,34 @@ This sits between M01.8 and M18. M01.8 was the small diff; this is the large one
 
 ### Tradeoffs and gotchas
 
-**Deciding not to read something is a decision you must record.** "I did not read the lockfile or the generated client" belongs in your review, not in your head. It names which risk was accepted and by whom, and it is honest in a way silent skimming is not.
+**Record what you decided not to read.** It names which risk was accepted, and by whom.
 
-**The agent is a biased reviewer of its own work.** Ask it to review what it just wrote and it will largely agree with itself. Two things do work: ask it to *explain* a change you do not understand, and ask a **fresh conversation**, given the brief and the diff but not the reasoning, to attack it. M11.3's handoff discipline applies — you want a reviewer without the author's memory.
+**The agent is a biased reviewer of its own work.** Give the brief and diff, not the reasoning, to a fresh conversation and ask it to attack.
 
-**Big diffs make reviewers polite.** The larger the change, the more a reviewer comments on names and formatting instead of behaviour, because surface detail is all a tired reader can still see. If your comments are all about naming, you have stopped reviewing.
+**Not every red flag is a defect.** The flag means *ask*, not *reject*. These nine recur across tools and models.
 
-**Not every red flag is a defect.** A new dependency may be the right call; a permissive default may be unreachable. The flag means *ask*, not *reject*. "Why is this id coming from the body?" beats "this is wrong", and sometimes the answer is good.
+| Red flag | Why it matters |
+|---|---|
+| A decision made only on the client | Prices, roles and totals must be re-decided on the server |
+| An id taken from the request instead of the session | The caller chooses whose data they read |
+| A caught error that logs nothing and returns success | The failure becomes invisible, and users see a false confirm |
+| A permissive default | `role = 'admin'` when unset opens the door quietly |
+| A new dependency you did not ask for | Unreviewed code, new licence, new supply chain |
+| A new required column with no backfill | Every existing row becomes invalid |
+| A disabled lint rule or a loosened type | The check that would have caught this, switched off |
+| A retry loop with no limit or backoff | One slow service becomes your outage, and your bill |
+| A model call with no timeout and no cost ceiling | M09.14's token economics, unbounded |
 
 ### Verify it
 
-Your review is finished when you can answer all five of these.
+Your review is finished when you can answer these.
 
-1. **Which files did I decide not to read, and why?** Write the list. If it includes anything in Tier A, you have not triaged; you have given up.
-2. **Did I break the feature and watch a test go red?** If not, you counted the tests instead of checking them.
-3. **For every Tier A file, can I say in one sentence what it now decides, and where that decision is enforced?** "The role is checked in the server middleware, from the session" is an answer. "There is a role check somewhere" is not.
-4. **Did I run it, including one failure state?** Pass four of M01.8 still catches what reading cannot.
-5. **Did I check the data-shape change against rows that already exist?** The one defect class that is cheap before merge and very expensive after.
+1. **Which files did I decide not to read, and why?** A Tier A file on that list means you gave up, not triaged.
+2. **Did I run the mutation check?** Invert the permission check, run the tests, see whether anything goes red. If nothing does, the suite is decorative.
+3. **Per Tier A file, what does it decide and where is that enforced?** "In the middleware, from the session" is an answer; "somewhere" is not.
+4. **Did I run it on one failure state, and check the data shape against existing rows?**
 
-The red flags in your own reviewing: comments only about naming; an approval given the same evening a 2,000-line diff arrived; "all tests pass" used as the reason; and a review where you cannot name a single thing you deliberately skipped. That last one means you read uniformly.
+Red flags: all-naming comments; approval the same evening a 2,000-line diff arrived; a review naming nothing you skipped.
 
 ## Walkthrough
 1. Produce a genuinely large change on a branch: brief the agent for a whole feature from M11.3, but this time let it run the full plan without stopping. You want something you did not watch being written.

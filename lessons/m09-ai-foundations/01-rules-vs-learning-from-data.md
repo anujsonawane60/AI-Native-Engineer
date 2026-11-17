@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: rules-vs-learning-from-data
 title: "Rules vs Learning From Data: Features, Labels, Training, Inference"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,31 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your group adds a feature to the canteen app: tell the kitchen which dishes will sell out before 1 pm, so they cook more of those. Someone writes the rule. If it is Monday and the dish is biryani, it will sell out. Then: unless it rains, because half the campus stays in the hostel. Then: unless exams are on, because people eat at odd hours. Then: unless there is a cricket match, because everyone leaves campus by noon.
-
-Four weeks later there are forty-one rules in one file, two of them contradict each other, and nobody can say which rule produced any particular prediction. The kitchen has stopped trusting it. Every new rule fixes last Tuesday and quietly breaks a Thursday nobody checked.
-
-The team did not write bad rules. The team attempted something that cannot be done: writing down, by hand, a rule with thirty interacting inputs that also changes every semester. The forty-one rules are not a failure of effort. They are the symptom that tells you which kind of problem you have.
+Your group wants the canteen app to tell the kitchen which dishes will sell out before 1 pm. Someone writes the rule — Monday biryani sells out — then adds "unless it rains", "unless exams are on", "unless there is a match". Four weeks later there are forty-one rules in one file, two of them contradict each other, and the kitchen has stopped trusting it. Nobody wrote bad rules; they attempted what nobody can do by hand — state a rule with thirty interacting inputs that changes every semester.
 
 ### The idea
 
 **Instead of writing the rule, you show a program thousands of past examples and let it find the rule itself.**
 
-You hand it the things it is allowed to look at — day of the week, dish, weather, how many portions were cooked, whether exams are on — and the answer you already know for each of those past days: sold out, or not sold out. A procedure called **training** searches for a setting of numbers that reproduces those known answers as closely as it can. What comes out is a **model**: a file of numbers, plus a small amount of code that knows how to use them. Running that file on a day you have never seen is **inference**.
-
-Everything else in this module — deep learning, transformers, the model behind your chat assistant — is this same shape, at a scale that makes it feel like something else. It is not something else.
+You hand it the things it may look at — day, dish, weather, portions cooked, exams on or off — and the answer you already know for each past day. **Training** searches for a setting of numbers that reproduces those answers. What comes out is a **model**: a file of numbers plus a little code that uses them. Running it on a day you have never seen is **inference**. Everything later in this module is this same shape at a larger scale.
 
 ### The analogy
 
-There are two ways to train a new cashier at the canteen counter.
+Two ways to train a new cashier. One is a laminated price sheet: thali ₹60, extra curd ₹10, green card 10% off — short, readable, and when a price looks wrong you can point at the line that produced it. The other is two weeks beside the old cashier, absorbing six thousand transactions including the parts nobody wrote down. The choice turns on one question: is the rule short enough for a human to write down? Pricing is. "Will biryani sell out today" is not.
 
-The first is a laminated sheet. Thali is ₹60. Extra curd adds ₹10. Green-card students get 10% off; staff do not. The sheet is short, anyone can read it, and when a price looks wrong you can point at the exact line that produced it. That is a rule-based system, and for pricing it is clearly correct.
-
-The second is two weeks of standing beside the old cashier. Nobody writes anything down. The new cashier watches six thousand transactions and absorbs the pattern — including the parts nobody ever wrote on a sheet, like the fact that the chemistry department settles monthly, or that the Friday crowd wants change counted out before they ask. After a fortnight they are faster and better than the sheet.
-
-Which approach is right depends on one question: is the rule short enough for a human to write down? Pricing is. "Will biryani sell out today" is not.
-
-**Where the analogy breaks:** the shadowing cashier can say "I am not sure about the green card, let me ask". A trained model cannot. It has no idea which situations were absent from those two weeks, and when a customer type it never saw walks up, it produces a confident price anyway. This is the same property you met in M00 as the first AI failure mode, and it starts here, at the very bottom of the stack.
+**Where the analogy breaks:** the shadowing cashier can say "I am not sure, let me ask". A trained model cannot. It has no idea which situations were absent from those two weeks, and produces a confident price for a customer type it never saw.
 
 ### Picture it
 
@@ -74,9 +62,7 @@ LEARNING FROM DATA: a program finds the logic
 
 In the rules path a person writes the logic and the computer applies it; in the learning path the computer finds the logic once during training and then applies it on every request.
 
-### The four words, on a real table
-
-Here are six rows of the canteen's own history. This is a **dataset**.
+Six rows of the canteen's own history — this is a **dataset**.
 
 | Day | Dish | Rain | Exams | Portions cooked | Sold out by 1 pm? |
 |---|---|---|---|---|---|
@@ -87,19 +73,13 @@ Here are six rows of the canteen's own history. This is a **dataset**.
 | Fri | Biryani | No | No | 160 | Yes |
 | Sat | Pongal | No | No | 60 | Yes |
 
-The first five columns are **features**: what the model is allowed to see. The last column is the **label**: the answer you already know, because it already happened. One row is one **example**. Training is the search for numbers that turn those five features into that last column. Inference is handing it next Monday's five features and reading what comes out.
-
-Notice two things about this table, because they are the two things that actually decide whether your feature works. First, somebody had to record that last column, honestly, for hundreds of days. That is unglamorous human work and it is the expensive part of every machine-learning project. Second, "portions cooked" matters enormously — 60 portions of pongal sold out and 90 did not — and if you had forgotten to record it, no amount of clever modelling would have recovered it. The features you chose are a bigger lever than the algorithm you chose.
+The first five columns are **features**: what the model may see. The last is the **label**: the answer you already know, because it already happened. One row is one **example**. Somebody had to record that label honestly for hundreds of days — the expensive part of every machine-learning project. And note "portions cooked": 60 portions of pongal sold out, 90 did not. Features are a bigger lever than algorithms.
 
 ### Where it lives
 
-Put this on the architecture map from M00 chapter 1, because it sits in two different places and people confuse them.
-
-**Training lives outside your app.** It runs on a free Colab or Kaggle notebook, on their GPU, for minutes or hours, once. It reads a file of past examples and writes out a model file. No user ever waits for it. Nothing about it is in your deployed product.
-
-**Inference lives inside your app**, as a hop. Either the model file is loaded by your own server and the prediction is an ordinary function call, or you call somebody else's model over the network — which, exactly as M00 chapter 2 showed, means a second or two of latency and a cost per call. From your server's point of view a model is just another dependency that can be slow or down.
-
-**And the practice of training is M14.** This module is the concepts half. Actual training loops you run and debug, fine-tuning a model on your own data, and shrinking a model to fit a small GPU are the Rank-2 practicum in M14. Here you learn what the words mean and where the costs are, so that when you direct an AI you can tell a sound plan from a confident one.
+- **Training lives outside your app** — a free Colab or Kaggle notebook, on their GPU, once. It reads past examples and writes a model file. No user waits for it.
+- **Inference lives inside your app**, as a hop: your server loads the model file and predicts in a function call, or you call somebody else's model over the network, paying the latency and per-call cost M00 chapter 2 showed.
+- **Training as a practice is M14.** M09 is concepts; training loops, fine-tuning and shrinking a model to fit a small GPU are the Rank-2 practicum.
 
 ### Words to own
 
@@ -118,29 +98,19 @@ Put this on the architecture map from M00 chapter 1, because it sits in two diff
 
 ### Tradeoffs and gotchas
 
-**Rules are better than you think, and they are free.** If the logic fits on an index card, write it on an index card. A rule is readable, testable, instant, costs nothing per request, and when it is wrong you can see why in four seconds. Reach for learning from data when the rule has many interacting inputs, when it changes over time, or when nobody can state it out loud. "We could use AI for this" is not a reason; "nobody can write this rule down" is.
-
-**Labels are the expensive part, and nobody budgets for them.** A model that predicts sell-outs needs somebody to have written down, for three hundred days, whether each dish sold out. If that record does not exist, your project is not a modelling project this month — it is a data-collection project. Teams discover this in week three, every time.
-
-**Garbage in, confident garbage out.** If the kitchen recorded "sold out" loosely — sometimes meaning finished, sometimes meaning nearly finished — the model learns that inconsistency faithfully and reports it with the same confidence as everything else.
-
-**A model is a photograph of the past.** The canteen raises prices, a new hostel opens, a food stall opens across the road, and a model trained on last year's pattern keeps answering as if none of that happened. This is **drift**, and the only defence is measuring the model against reality on a schedule rather than trusting the number you got on launch day.
-
-**You are now operating two systems.** Code and data. The data pipeline, the retraining, the monitoring and the question "which version of the model produced this answer" are all real work that did not exist when you had forty-one rules. Sometimes forty-one rules were the right answer.
+- **Rules are free and better than you think.** If the logic fits on an index card, write it on an index card. Reach for learning from data only when the rule has many interacting inputs, changes over time, or nobody can state it aloud.
+- **Labels are the expensive part, and nobody budgets for them.** With no record of which dishes sold out, this is a data-collection project this month.
+- **Garbage in, confident garbage out.** If the kitchen recorded "sold out" loosely, the model learns that inconsistency and reports it just as confidently.
+- **A model is a photograph of the past.** A stall opens across the road and the model answers as if last year were still true. That is **drift**; the defence is measuring against reality on a schedule.
+- **You now operate two systems**, code and data. Pipelines, retraining and model versioning are work forty-one rules never needed.
 
 ### Verify it
 
-When you ask an AI to help with a prediction feature, four red flags tell you to stop and push back.
-
-**It proposes machine learning for a three-rule problem.** Ask it to write the rule-based version first and tell you specifically why that version is inadequate. If it cannot name a case the rule gets wrong, you do not have a modelling problem.
-
-**It never mentions where the labels come from.** A plan that goes straight to the choice of algorithm has skipped the only genuinely hard part. Ask directly: which column is the label, who recorded it, how many rows exist, and over what period.
-
-**It reports how well the model did on the examples it trained on.** That number is meaningless and always flattering. Chapter 3 is entirely about this, and it is the single most common dishonest metric in generated machine-learning code.
-
-**It proposes "fine-tune a model" for a problem that is really about fresh facts.** Needing today's menu in an answer is a data-retrieval problem, not a training problem. This distinction returns in chapter 11 and again in M10, and it is the most expensive confusion in the whole subject.
-
-And one check for yourself rather than for the AI: say out loud which columns are features and which is the label. If you cannot, nobody can build this yet, including you.
+- **It proposes machine learning for a three-rule problem.** Ask for the rule-based version first; if it cannot name a case that rule gets wrong, you have no modelling problem.
+- **It never mentions where the labels come from.** Ask which column is the label, who records it, how many rows, over what period.
+- **It reports accuracy on the examples it trained on.** That number is meaningless and always flattering — chapter 3 is about this.
+- **It proposes "fine-tune a model" for a problem about fresh facts.** Needing today's menu is retrieval, not training.
+- **Check yourself:** say out loud which columns are features and which is the label. If you cannot, nobody can build this yet.
 
 ## Walkthrough
 1. Take the canteen sell-out problem and write the rule-based version by hand. Give yourself exactly five rules, no more, and write them as plain if-then sentences.

@@ -4,7 +4,7 @@ module: m02-the-web
 slug: css-cascade-box-model
 title: "CSS: Selectors, the Cascade and the Box Model"
 order: 4
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-"Make the Order button green."
+"Make the Order button green." The AI adds a rule; the button stays blue. You say "it is still blue"; the AI adds `!important`. Now the Cancel button is green too, because the selector was too broad. Three weeks later the stylesheet has forty `!important` declarations and every instruction produces a new override instead of a correction.
 
-The AI adds a rule. You reload. The button is still blue. You say "it is still blue". The AI adds `!important`. Now it is green — and so is the Cancel button, because the selector was too broad. You ask it to fix that. It adds a more specific selector with another `!important`. Three weeks later the stylesheet has forty `!important` declarations, nobody can change anything without breaking something else, and every instruction you give produces a new override instead of a correction.
-
-The original problem took four seconds to diagnose and nobody looked. Another rule, written later in the file by a different component, was setting the colour. The browser was not ignoring your rule; it was obeying a rule you did not know existed.
+The original problem took four seconds to diagnose and nobody looked: another rule, written later by a different component, was setting the colour. The browser was not ignoring your rule; it was obeying one you did not know existed.
 
 ### The idea
 
 **CSS is a pile of rules that frequently disagree, and the browser resolves every disagreement with a fixed, mechanical ranking — so "my rule is not working" almost always means "another rule outranked it".**
 
-The ranking, simplified to what you actually need: inline styles beat ID selectors, which beat class selectors, which beat element selectors. Within the same rank, the rule written last wins. `!important` jumps the whole queue, which is why it is both tempting and poisonous.
+The ranking, simplified: inline styles beat IDs, which beat classes, which beat element selectors. Within a rank, the rule written last wins. `!important` jumps the queue, which is why it is tempting and poisonous.
 
 ### The analogy
 
-The canteen's pricing notices, pinned to the board in layers.
+Pricing notices pinned to the canteen board in layers: "all items ₹20", then "South Indian items ₹30", then "Today only: thali ₹60" taped over both. Staff serving a thali apply the most specific one; a student asking for a vada pays ₹30. Then someone writes "₹25 — FINAL, DO NOT CHANGE" in red marker across the board. That is `!important`: it works today, and everyone who changes a price afterwards must write in bigger marker.
 
-A notice at the top says "all items ₹20". Below it, a second says "South Indian items ₹30". Taped over both, a third says "Today only: thali ₹60". A staff member serving a thali reads all three and applies the most specific one. A student asking for a vada reads the first two and pays ₹30.
-
-Now someone writes "₹25 — FINAL, DO NOT CHANGE" in red marker across the whole board. That is `!important`. It works today. It also means the next three people who need to change a price have to write in bigger red marker, and within a month the board is unreadable and nobody knows the real price of anything.
-
-**Where the analogy breaks:** canteen staff use judgement — they can tell that "thali ₹60" obviously means the thali and not the plate it comes on. The browser has no judgement at all. It computes a specificity score, compares numbers, and applies the winner even when the result is visibly absurd. There is no step where anything notices that the outcome is silly.
+**Where the analogy breaks:** canteen staff use judgement — they know "thali ₹60" means the thali, not the plate. The browser has none. It scores specificity, compares numbers and applies the winner even when the result is visibly absurd.
 
 ### Picture it
 
@@ -63,19 +57,15 @@ Now someone writes "₹25 — FINAL, DO NOT CHANGE" in red marker across the who
 
 Every element is four nested rectangles: the content, padding around it on the inside, a border, and margin pushing other elements away on the outside.
 
-### Why that diagram matters more than it looks
-
-Two of the most common "the layout is slightly wrong" bugs live in it.
-
-**Padding versus margin.** Padding is inside the element and is painted with its background colour; margin is outside and is always transparent. So a card with a white background and 16px of padding has a comfortable white gap inside its edge, while the same card with 16px of margin has a gap *between* cards. Confuse them and the fix looks right in one place and wrong in three others.
-
-**Where the width goes.** By default, a declared width of 300px means the *content* is 300px, and padding and border are added on top — so a 300px card with 16px padding and a 1px border actually occupies 334px. On a 360px phone, two of those will not fit where you expected. Setting `box-sizing: border-box` makes a declared width mean the whole box, which is what almost everyone intends. This is why almost every real project sets it once globally.
+Two common layout bugs live in that picture. Padding is a gap inside the card's edge, painted with its background; margin is a transparent gap *between* cards. And `width: 300px` sizes only the content, so that card plus 16px padding and a 1px border occupies 334px — two will not fit on a 360px phone. `box-sizing: border-box` makes width mean the whole box, which is why most projects set it globally.
 
 ### Where it lives
 
-CSS lives in the client box from M00, alongside the HTML it styles. It arrives as its own file (or files), which means it is one more thing to download before anything looks right — a cost chapter 16 will measure.
+CSS lives in the client box from M00, as its own file — one more download before anything looks right, a cost chapter 16 measures. It does nothing alone; it selects elements that HTML named, which is why chapter 1's markup pays off here: `main > section > ul > li` is only writable if those elements exist.
 
-CSS does nothing on its own. It selects elements that HTML named (chapter 1), which is why chapter 1's semantic markup pays off here: `main > section > ul > li` is only writable if those elements exist. Layout, built on the box model, is chapter 5. Making values changeable in one place rather than forty is chapter 7. And M03 covers what you should be choosing in the first place — this chapter is only the mechanism.
+- Layout built on the box model is chapter 5
+- Making a value changeable in one place rather than forty is chapter 7
+- What you *should* choose is M03; this chapter is only the mechanism
 
 ### Words to own
 
@@ -95,32 +85,28 @@ CSS does nothing on its own. It selects elements that HTML named (chapter 1), wh
 
 ### Tradeoffs and gotchas
 
-**`!important` is a debt, not a fix.** It wins today and it removes your ability to win tomorrow by normal means. The only honest uses are overriding a third-party stylesheet you cannot edit, and utility classes designed for it. If an AI reaches for `!important`, the correct instruction is: "remove it and tell me which rule was actually overriding mine."
+**`!important` is a debt, not a fix.** It wins today and removes your ability to win tomorrow by normal means. When an AI reaches for it, say: "remove it and tell me which rule was actually overriding mine."
 
-**Vertical margins collapse and horizontal ones do not.** Two stacked elements with 16px bottom and 24px top margin end up 24px apart, not 40px. Beginners add more margin, get no change, and add more again. The honest fix is usually `gap` on the parent (chapter 5), which never collapses.
+**Vertical margins collapse and horizontal ones do not.** Stacked elements with 16px bottom and 24px top margin end up 24px apart, not 40px. Beginners add more margin, see no change, add more again; the fix is usually `gap` on the parent (chapter 5).
 
-**Specificity wars make a codebase un-directable.** Once selectors are three and four levels deep, every change needs a still-more-specific selector, and the instruction "make this heading smaller" stops having a small answer. Flat, class-based selectors keep the stylesheet something you can still direct in week ten.
+**Specificity wars make a codebase un-directable.** Once selectors are four levels deep, every change needs a still-more-specific selector and "make this heading smaller" stops having a small answer.
 
-**Inline styles beat your stylesheet.** An AI that writes `style="color: blue"` directly on the element has put that value beyond the reach of every stylesheet rule except `!important`. Watch for it, especially in generated components.
+**Inline styles beat your stylesheet.** `style="color: blue"` on the element puts that value beyond every stylesheet rule except `!important`.
 
-**Inheritance is not universal.** `color` and `font-family` pass down to children; `border` and `padding` do not. Expecting the wrong one wastes a lot of time.
-
-**The cascade is not the only ranking.** Where two rules tie on specificity, the later one wins — and "later" includes the order your stylesheets are linked in. A rule that works locally and fails in production is sometimes just a changed file order.
+**Inheritance is not universal.** `color` and `font-family` pass down to children; `border` and `padding` do not. And where two rules tie, the later one wins — "later" includes the order your stylesheets are linked in, which is how a rule works locally and fails in production.
 
 ### Verify it
 
-The Computed panel is the whole verification story for this chapter, and almost nobody new uses it.
+1. **Which rule won?** Inspect the element; a struck-through declaration lost, and the winner shows its file and line.
+2. **Read the Computed tab.** Styles lists everything considered; Computed shows the value in force.
+3. **Count the `!important` declarations.** Zero on new work; above three in a young project means the cascade is being fought.
+4. **Hover the box model diagram in DevTools.** Mystery space is margin you forgot or padding you assumed.
+5. **Search the markup for `style="`.** Each hit is a value no stylesheet can later change.
+6. **Change one spacing value, then check two other screens.** Margin changes travel further than people expect.
 
-1. **Ask the browser which rule won.** Inspect the element, open the Styles panel, and look for your declaration. If it is shown struck through, it lost. Directly next to the winner is the file and line it came from — that is your real answer, in four seconds.
-2. **Read the Computed tab for the final value.** Styles shows every rule that was considered; Computed shows the single value in force. When the two disagree with your expectation, Computed is the truth.
-3. **Count the `!important` declarations.** Search the stylesheet. Zero is the target on new work. Any number above three in a young project means the cascade is already being fought rather than used.
-4. **Hover the box model diagram in DevTools.** It shows content, padding, border and margin as measured numbers. Mystery space is almost always margin you forgot or padding you assumed.
-5. **Check for inline styles in generated markup.** Search for `style="`. Each one is a value no stylesheet can later change.
-6. **Change one thing and count what moved.** After any spacing change, look at two other screens. Margin changes travel further than people expect.
+Red flags: new `!important` · selectors more than three levels deep · inline `style` attributes · a fix that adds a rule instead of correcting the wrong one · `position: absolute` used to nudge something into place · fixed pixel heights on text, which break when the text grows or the user zooms.
 
-Red flags to name in AI output: new `!important` declarations; selectors more than three levels deep; inline `style` attributes; a fix that adds a rule rather than correcting the rule that was wrong; `position: absolute` used to nudge something into place; and fixed pixel heights on anything containing text, which breaks the moment the text is longer or the user zooms.
-
-The brief line that prevents most of this, under CONSTRAINTS: "do not use `!important`, inline styles, or selectors deeper than two levels; if my rule is being overridden, tell me which rule is overriding it instead of adding a stronger one."
+Put it in CONSTRAINTS: "no `!important`, no inline styles, no selectors deeper than two levels; if my rule is overridden, name the rule overriding it."
 
 ## Walkthrough
 1. Open a page of your own, or any page, and inspect a button. In the Styles panel, find the `color` declaration that is in force.

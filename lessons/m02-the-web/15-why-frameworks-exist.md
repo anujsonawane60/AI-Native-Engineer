@@ -4,7 +4,7 @@ module: m02-the-web
 slug: why-frameworks-exist
 title: "Why Frameworks Exist: Components, Props, State and the Landscape"
 order: 15
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,33 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team's canteen app has nine pages, each with its own copy of the header: logo, cart count, profile link.
+A team's canteen app has nine pages, each with its own copy of the header. They change the logo and ask the agent to "update the header everywhere": it edits four files, misses three, and creates a fifth variant in a page it tidied up. Nobody notices the three logos for a week.
 
-They change the logo. The agent is asked to "update the header everywhere". It edits four files, misses three, and creates a fifth variant in a page it decided to tidy up. Now the app has three logos. Nobody notices for a week because nobody opens all nine pages in one sitting.
-
-The same app has the cart problem from chapter 8, in its grown-up form. The cart count appears in the header, on the cart page and on the checkout summary. Each place reads it from somewhere slightly different. After a fast sequence of taps the three disagree, and which one is right depends on which page you came from.
-
-Two failures, one root cause: there is no single definition of anything. Every piece of UI and every piece of data exists in several copies, and copies drift.
+The same app has chapter 8's cart problem grown up: the count appears in the header, the cart page and the checkout summary, each reading from somewhere different, so after fast taps the three disagree. One root cause — no single definition of anything, and copies drift.
 
 ### The idea
 
 **A component is a piece of UI defined once, used many times, with holes for the parts that vary — and the framework rebuilds the screen for you whenever the data changes, so the picture can never fall out of step with the data.**
 
-That is the entire pitch, and it is two things. **Define once, use everywhere** kills the three-logos problem. **Automatic re-render from state** kills chapter 8's two-sources-of-truth problem by making it structurally hard to express.
-
-What you pass *into* a component is **props**. What a component remembers for itself is **state**.
+**Define once, use everywhere** kills the three-logos problem; **automatic re-render from state** kills chapter 8's two-sources-of-truth problem. What you pass *into* a component is **props**; what it remembers for itself is **state**.
 
 ### The analogy
 
-The canteen's thali tray.
+The **thali tray** is the component: one standard layout, defined once by whoever bought the trays. What goes in the compartments today — rice, bhindi, dal, pickle — is **props**, passed in from outside and different for every tray. Which compartments the student has emptied is **state**: it belongs to this tray, now.
 
-The **tray** is the component: one standard layout with a big compartment, two medium ones and a small round one. Defined once, by whoever bought the trays. Every tray in the building is that tray.
-
-What goes in the compartments today — rice, bhindi, dal, pickle — is **props**. Passed in from outside, different for every tray, and the tray itself has no opinion about it.
-
-Which compartments are currently empty because the student has eaten them is **state**. That belongs to this particular tray, right now, and nothing outside needs to know.
-
-**Where the analogy breaks:** a tray is stamped out once in a factory and never thinks again. A component is re-evaluated constantly, every time its props or its state change, which means "where does this piece of data live" is a real and consequential decision. A tray never has to answer "should the cart count belong to the header, or to something above the header that both the header and the checkout page can see?" — and that question is most of the skill in this chapter.
+**Where the analogy breaks:** a tray is stamped out once and never thinks again. A component is re-evaluated every time its props or state change, which makes "where does this data live" consequential — should the cart count belong to the header, or above it where checkout can see it too? That question is most of the skill here.
 
 ### Picture it
 
@@ -72,37 +60,21 @@ Which compartments are currently empty because the student has eaten them is **s
 
 Data flows down as props from whoever owns it, and events travel back up to that owner, which updates the state once and lets every reader re-render from it.
 
-### Where state should live
-
-The rule is short: **state belongs to the lowest component that contains everyone who needs it.**
-
-A dish card's "is the description expanded" flag belongs to that card. Nothing else cares, and putting it higher means the parent re-renders for no reason.
-
-The cart is needed by the header, the dish list and the checkout page, so it belongs above all three. That is called **lifting state up**, and it is the move that fixes the three-disagreeing-counts bug: there is now one cart, and the three places are all reading the same thing rather than keeping copies.
-
-Getting it wrong in either direction has a cost. Too low and you get duplicates that drift. Too high and every small interaction re-renders half the app, which on a budget Android is measurable.
-
-And one case that catches everybody: **data the server owns should usually not be copied into component state at all.** If the list of dishes lives in the database, keeping a second copy in the page means answering "which one is right?" forever. Fetch it, cache it, and treat the server as the owner — M04 and M05 go into this.
+The rule: **state belongs to the lowest component that contains everyone who needs it.** A card's "is the description expanded" flag belongs to the card; the cart is read by header, list and checkout, so it belongs above all three — **lifting state up**, which fixes the three-disagreeing-counts bug.
 
 ### Where it lives
 
-Components live in the client box from M00 — but a modern framework blurs that line deliberately, and knowing where the blur is matters. A component can be rendered on the server into plain markup and shipped with no script attached, or it can be shipped as code that runs in the browser. Same concept, two places, very different cost on a budget Android. Chapter 16 is entirely about that choice and how to measure it.
+Components live in the client box from M00, but a framework blurs that line: the same component can be rendered on the server into plain markup, or shipped as code that runs in the browser. One concept, two places, very different cost on a budget Android (chapter 16). Data the server owns should not be copied into component state at all (M04).
 
-Everything below the component is the rest of this module: the markup it produces is chapter 1, the styling it carries is chapters 4 to 7, the state loop it automates is chapter 8, and the data it fetches is chapters 9, 10 and 13. Everything above it is your product: M01's PRD describes the screens, M03 designs them, and M11's checkpoints ask you to explain why each piece of data lives where it does.
+Framework names change faster than this course can be revised, so judge candidates on five questions:
 
-### The landscape, in the only terms that matter
-
-Specific framework names change faster than this course can be revised, and the concepts above do not change at all. So judge any candidate on five questions rather than on popularity:
-
-**Does it do components and state the way everyone else does?** Almost all of them do, so most of this chapter transfers.
-
-**Does it render on the server as well as the client?** Chapter 16's subject, and it decides what a student on slow 4G sees first.
-
-**Is there a free tier that deploys it in one step?** For this programme, this is a real constraint, not a preference.
-
-**Can your AI agent work in it well?** This is a genuinely new criterion. Tools with large, stable public documentation and a long history produce better AI output than a framework released last quarter, because the model has seen far more correct examples of it. That is an uncomfortable reason to pick technology and it is a true one.
-
-**Can three beginners read it in week two?** A framework your team cannot read is a framework you cannot direct.
+| Judge a framework by | Why |
+|---|---|
+| Components and state done the usual way | Almost all do, so this chapter transfers |
+| Renders on the server as well as the client | Decides what a slow-4G student sees first |
+| A free tier that deploys in one step | A real constraint here, not a preference |
+| Your AI agent works well in it | Stable documentation beats last quarter's release: the model saw more correct examples |
+| Three beginners can read it in week two | A framework you cannot read is one you cannot direct |
 
 ### Words to own
 
@@ -122,31 +94,25 @@ Specific framework names change faster than this course can be revised, and the 
 
 ### Tradeoffs and gotchas
 
-**A framework is not free.** It is extra bytes to download, an extra build step, a new set of concepts and a new set of error messages. For a genuinely static page — a landing page, a menu nobody interacts with — plain HTML and CSS are faster to build, faster to load and easier to direct. Reach for a framework when there is real interaction and real reuse, which for your product there will be.
+**A framework is not free:** extra bytes, an extra build step, new concepts and new error messages. For a genuinely static page, plain HTML and CSS are faster to build and easier to direct. Reach for a framework when there is real interaction and real reuse.
 
-**Copying a component is the mistake frameworks exist to prevent, and AI does it constantly.** Asked for a slightly different card, an agent will frequently produce `DishCard2` rather than adding a prop to `DishCard`. The instruction that prevents it: "extend the existing component with a prop; do not create a second one, and tell me if you think a second one is genuinely justified."
+**Copying a component is the mistake frameworks exist to prevent, and AI does it constantly.** Asked for a slightly different card, an agent produces `DishCard2` instead of adding a prop. Say: "extend the existing component with a prop unless you can justify a second one."
 
-**Prop drilling through five layers is a signal, not a crime.** It usually means the state is owned too high, or that a layer in between should not exist. Fix the ownership before reaching for a state-management library.
+**Prop drilling through five layers is a signal, not a crime.** It usually means state is owned too high, or a layer should not exist. Fix ownership before reaching for a state library.
 
-**Everything-is-a-client-component is the common AI default**, because it always works. It also means shipping script for parts of the page that never change, which chapter 16 measures in seconds on 4G. Ask explicitly which parts need to be interactive.
-
-**Server state copied into component state is the subtlest version of two sources of truth.** The symptom is a list that is stale after someone else changes something, and a "refresh" button appearing in your UI to paper over it.
-
-**Re-render cost is real on a ₹8,000 phone.** State at the top of the tree that changes on every keystroke re-renders everything below it. On a laptop this is invisible; on a budget Android the typing lags.
+**Everything-is-a-client-component is the common AI default,** because it always works — and it ships script for parts of the page that never change, which chapter 16 measures in seconds on 4G.
 
 ### Verify it
 
-Component verification is about ownership and reuse, and both are checkable without reading much.
+1. **For every value on screen, ask who owns it.** One answer, and it must be one component or the server.
+2. **Count the files a one-line visual change touches.** One is correct; four means the header was copied.
+3. **Search for numbered component names.** `Card2`, `ButtonNew`, `HeaderCopy` — each is a prop that was not added.
+4. **Ask which components are interactive,** then check the others ship no script.
+5. **Look for data fetched in two places.** Two requests mean two copies and two chances to disagree.
+6. **Type into a text field with 4x CPU throttling.** Lag means state owned too high: a keystroke at the top re-renders everything below.
+7. **Read the props a component takes.** More than about seven means it is doing several jobs.
 
-1. **For every value on screen, ask: who owns this?** There must be exactly one answer, and it should be a single component or the server. Two answers is chapter 8's bug with a framework on top.
-2. **Count the files a one-line visual change touches.** Change the header's logo and read the diff. One file is correct. Four files means the header was copied, which is the thing you adopted a framework to avoid.
-3. **Search for numbered component names.** `Card2`, `ButtonNew`, `HeaderCopy`. Each one is a duplication the AI chose instead of a prop.
-4. **Ask which components are interactive and which are not.** Then check that the non-interactive ones are not shipping script. Chapter 16's Network panel check settles it: look at the JavaScript transferred for a page that only displays text.
-5. **Look for data fetched in two places.** The same dish list fetched by the list and again by the header count means two requests, two copies and two chances to disagree.
-6. **Type into any text field on a throttled CPU.** 4x CPU throttling in DevTools and a long input is how you find state that is owned too high up.
-7. **Read the props a component takes.** More than about seven is usually a component doing several jobs, and it will be hard to direct changes to precisely.
-
-Red flags in AI output: a second component where a prop belonged; the same header or footer defined in more than one place; server data copied into local state with no stated reason; everything marked as interactive; props passed through four or more layers that do not use them; a state-management library introduced to solve a problem that was really wrong ownership; and a "refresh" button added to the UI, which is almost always a stale-copy confession.
+Red flags: a second component where a prop belonged · the same header defined twice · server data copied into local state · everything marked interactive · props passed through four layers that do not use them · a state library brought in to solve wrong ownership · a "refresh" button, usually a stale-copy confession.
 
 ## Walkthrough
 1. Open any modern web app and look at its header. Navigate between three different pages and watch whether the header flickers, reloads or stays steady. Note what that suggests about whether it is one component or several.

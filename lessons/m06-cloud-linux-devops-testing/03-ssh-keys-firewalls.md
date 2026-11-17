@@ -4,7 +4,7 @@ module: m06-cloud-linux-devops-testing
 slug: ssh-keys-firewalls
 title: "SSH, Key Pairs and Firewalls"
 order: 3
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team spins up a free-tier VM to run their canteen app's database. They set the root password to something they will remember, open the database port to the whole internet so they can connect from their laptops, and get on with building.
-
-Nine hours later the VM is at 100% CPU, the free tier's monthly compute allowance is nearly spent, and the database contains a table called `README_TO_RECOVER_YOUR_DATA`. They have been found by an automated scanner, logged into with a guessed password, and their data has been copied and deleted.
-
-Nothing about this is unusual. A public IP address receives login attempts within minutes of existing — not because anyone targeted these students, but because the entire address space is swept continuously by bots. The team did three things wrong, and each of them is a one-line decision made in ten seconds.
+A team spins up a free-tier VM for their canteen database, sets the root password to something memorable, and opens the database port to the whole internet so they can connect from their laptops. Nine hours later the VM is at 100% CPU, the compute allowance is spent, and the database holds one table named `README_TO_RECOVER_YOUR_DATA`. A public IP receives login attempts within minutes of existing: bots sweep the entire address space continuously. Nobody targeted these students.
 
 ### The idea
 
 **Prove who you are with a key pair instead of a password, and open the smallest number of ports you can get away with.**
 
-A key pair is two matching files generated together. The private key stays on your laptop forever. The public key is copied onto any server you want to reach. The server challenges you, your laptop answers using the private key, and the server checks the answer against the public key. Your secret is never sent anywhere, so there is nothing to intercept and nothing to guess.
-
-A firewall is a list of rules about which ports accept connections from where. Everything not on the list is refused before your application ever sees it.
+A key pair is two matching files generated together. The private key stays on your laptop; the public key is copied onto any server you want to reach. The server challenges you, your laptop signs with the private key, and the server checks the signature. Your secret never travels. A firewall lists which ports accept connections from where; everything not listed is refused before your app sees it.
 
 ### The analogy
 
-The canteen's back door has a lock that a specific key opens. The manager keeps the key on their person; a copy of the *lock* is fitted to the door. Anyone who wants in must physically hold the key. Shouting the right word through the door does not work, however many words you try.
+The canteen's back door has a lock that one specific key opens; shouting the right word through it never works. The front has one opening, the serving window, and the store room has no external door at all — there is no path from the street to the rice sacks. That is a firewall: not a guard who inspects people, but an absence of doors.
 
-The front of the building has exactly one opening: the serving window. Students queue there. The store room has no external door at all — deliveries come through the kitchen, which is reached through the staff door, which has the lock. Nobody can reach the rice sacks from the street, because there is no path from the street to the rice sacks.
-
-That is a firewall: not a guard who inspects people, but an absence of doors.
-
-**Where the analogy breaks:** a physical key can be copied by a locksmith who holds it for a minute, and a lock can be picked. A private key cannot be derived from the public key by any amount of effort available today. But a private key *can* be copied in one second by anything that can read the file — which is why a leaked private key is a far worse event than a stolen physical key, and why it must never be committed to git, pasted into a chat, or left in a shared folder.
+**Where the analogy breaks:** no effort available today derives a private key from a public one, but a private key *can* be copied in one second by anything that can read it. That is why it must never be committed to git, pasted into a chat, or left in a shared folder.
 
 ### Picture it
 
@@ -68,11 +58,11 @@ That is a firewall: not a guard who inspects people, but an absence of doors.
    └────────────────────────────────────────────┘
 ```
 
-Your laptop proves its identity by signing a challenge with a private key that never travels, while the firewall decides, before any of that happens, whether the connection is even allowed to reach the server.
+Your laptop signs a challenge with a private key that never travels, while the firewall decides first whether the connection may reach the server at all.
 
-### Ports, and the three that matter
+### Where it lives
 
-A port is a numbered door on an IP address. One machine, many ports, each one potentially a different service listening. M02 covered this from the browser's side; here is the server's side.
+A port is a numbered door on an IP address: one machine, many ports, each with a service listening.
 
 | Port | What usually listens | Who should reach it |
 |---|---|---|
@@ -83,25 +73,7 @@ A port is a numbered door on an IP address. One machine, many ports, each one po
 | 6379 | Redis | Only your app, never the internet |
 | 3000 | A dev server | Nobody, in production |
 
-The pattern is simple and the students who get breached broke it: ports your *users* need are open to everyone; ports your *application* needs internally are open to the application only; ports *you* need are open to you only. A database port open to the world is the single most expensive mistake on this list, because the database is the part nobody can rebuild.
-
-### SSH in practice, without memorising anything
-
-SSH stands for Secure Shell. It gives you a terminal on a remote machine over an encrypted connection. In this program you will use it rarely — most of your work happens on platforms with a web terminal — but it underpins three things you use constantly.
-
-When you push to GitHub over SSH, that is a key pair. The public key is on your account; the private key is on your laptop; nothing is typed.
-
-When a deploy platform pulls your repository, it uses a key or a token the same way, on your behalf.
-
-When you connect to a free-tier VM, the provider asks for your public key at creation time and installs it for you, which is why a correctly created VM has no password login at all.
-
-Two practical rules. **Generate a key once per machine, not once per project** — one key on your laptop, its public half copied wherever needed. And **protect the private key with a passphrase**, so that a stolen laptop is not also a stolen server.
-
-### Where it lives
-
-SSH and firewalls sit at the boundary of everything else in this module. Chapter 7's billing trap often starts with a compromised VM mining cryptocurrency on your free tier. Chapter 8's containers get their own network, which is a firewall by another name — a container only reaches what you connect it to. Chapter 9's Kubernetes adds network policies, the same idea again with more vocabulary. Chapter 12's CI needs a credential to deploy, and that credential is a secret stored by the platform rather than a key sitting in your repo.
-
-M07 takes this further into the OWASP material and secret handling. M00's lesson about agent permissions is the same instinct applied to a different actor: give the minimum access that works, and no more.
+Your users' ports open to everyone, your app's ports to the app only, yours to you only. A database port open to the world is the most expensive mistake here: the database is the part nobody can rebuild. The same key pair underpins pushing to a git host, a deploy platform pulling your repository, and a VM with no password login; chapter 8's containers get their own network, a firewall by another name.
 
 ### Words to own
 
@@ -121,26 +93,22 @@ M07 takes this further into the OWASP material and secret handling. M00's lesson
 
 ### Tradeoffs and gotchas
 
-**Disabling password login is the single highest-value change you can make.** Key-only authentication removes the entire category of guessing attacks, which is what almost all of that background noise is. Most cloud images now default to it, and a tutorial that tells you to re-enable passwords is telling you to undo the protection.
-
-**Opening a port to `0.0.0.0/0` is a decision, not a default.** It means "anyone on the internet". For 443 that is the point. For a database port it is the breach. Read every firewall rule as a sentence: "allow anyone, anywhere, to connect to my database" is a sentence you would never say out loud, yet it is the same rule.
-
-**A private key in a repository is the worst leak available to you.** Worse than an API key, because it often unlocks the machine rather than one service. M01's rule applies with no exceptions: it goes in `.gitignore` before the first commit, and if it ever reached a commit, you generate a new pair and remove the old public key from every server today, not next week.
-
-**Firewalls do not protect you from your own application.** An open 443 with a vulnerable app behind it is wide open. This is what M07's OWASP chapter is about, and it is why "we have a firewall" is not an answer to "is it secure".
-
-**Your home IP changes.** Locking port 22 to your current address is good practice and will lock you out when your 4G connection moves you to a different address. Know how to reach the provider's web console before you need it.
+- **Disabling password login is the highest-value change available.** It removes the whole category of guessing attacks; a tutorial that re-enables passwords is undoing the protection.
+- **`0.0.0.0/0` is a decision, not a default.** Read every rule back as a sentence: "allow anyone, anywhere, to connect to my database" is one you would never say out loud, yet it is the same rule.
+- **A private key in a repository is the worst leak available to you,** because it often unlocks the machine rather than one service. It goes in `.gitignore` before the first commit; if it reached one, generate a new pair and remove the old public key from every server today. One key per machine, with a passphrase.
+- **A firewall does not protect you from your own application.** An open 443 with a vulnerable app behind it is wide open; "we have a firewall" does not answer "is it secure".
+- **Your home IP changes.** Locking port 22 to your address will lock you out when 4G moves you; know how to reach the provider's web console.
 
 ### Verify it
 
-Agents are confident about infrastructure and frequently generous with access. Four checks.
+Agents are generous with access.
 
-1. **Read every firewall rule back as an English sentence.** Port, protocol, source. If the sentence contains "anyone on the internet" and a port that is not 80 or 443, stop and ask why.
-2. **Ask where each secret is stored.** The acceptable answers are: the platform's secret store, or an untracked local file. Unacceptable: in the repository, in a Dockerfile, in a CI configuration file committed to git, or pasted in the chat.
-3. **Check whether it chose passwords or keys.** If a setup script sets a root password and enables password login, it has traded the main protection for convenience. Ask for the key-based version.
-4. **Ask what the recovery path is.** Before applying a firewall change to a machine you reach over SSH, the question "what do I do if this locks me out?" must have an answer. An agent that applies the rule without raising this has not thought about it.
+1. **Read every firewall rule back as an English sentence** — port, protocol, source. "Anyone on the internet" plus a port that is not 80 or 443 means stop and ask why.
+2. **Ask where each secret is stored.** Acceptable: the platform's secret store, an untracked local file. Unacceptable: the repository, a Dockerfile, a committed CI file, the chat.
+3. **Check whether it chose passwords or keys.** A script that sets a root password and enables password login traded protection for convenience; ask for the key version.
+4. **Ask what the recovery path is.** Before a firewall change on a machine you reach over SSH, "what if this locks me out?" needs an answer first.
 
-Red flags: a database port open to the world; `PermitRootLogin yes`; a private key pasted into a conversation or a config file; `chmod 777` on a `.ssh` directory — SSH will actually refuse a key whose permissions are too open, and the correct response is to narrow them, not to disable the check.
+Red flags: a database port open to the world; `PermitRootLogin yes`; a private key in a chat or config file; `chmod 777` on `.ssh` — SSH refuses a key whose permissions are too open, and the fix is to narrow them.
 
 ## Walkthrough
 1. On your own laptop, ask your AI assistant for the single command that generates a modern key pair with a passphrase, and have it explain which of the two resulting files must never move.

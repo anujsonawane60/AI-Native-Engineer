@@ -4,7 +4,7 @@ module: m02-the-web
 slug: flexbox-vs-grid
 title: "Layout: Flexbox vs Grid, and When to Use Each"
 order: 5
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team's menu page looks right on the laptop it was built on. On a ₹8,000 Android it falls apart in three separate ways.
+A team's menu page looks right on the laptop it was built on. On a ₹8,000 Android the absolutely positioned nav bar drops the logo onto the menu links, three cards at a fixed `width: 300px` overflow the 360px screen, and one long dish name pushes its card taller than its neighbours, turning the row of Add buttons into a staircase.
 
-The navigation bar, built with absolute positioning, has the logo sitting on top of the menu links. The dish cards, given a fixed `width: 300px` each in a row, overflow the 360px screen so the page scrolls sideways and the price column is off-screen. And one dish has a long name — "Mysore Masala Dosa with Extra Chutney" — which pushes its card taller than the others, so the row of "Add" buttons is now a ragged staircase and the cheapest dish's button is below the fold.
-
-Each of these is a layout tool used for a job it was not built for. None of them would have survived four minutes of testing at 360px.
+Each is a layout tool used for a job it was not built for, and none would have survived four minutes of testing at 360px.
 
 ### The idea
 
 **Flexbox lays things out along one direction; grid lays things out along two. Pick by the shape of the problem and most layout bugs never happen.**
 
-A navigation bar is one direction: things in a row, with space distributed between them. A photo gallery where items must line up in both rows *and* columns is two directions. If you find yourself fighting a layout, the usual cause is that the problem has two directions and the tool has one, or the reverse.
+A navigation bar is one direction: things in a row with space between them. A gallery where items must line up in rows *and* columns is two. Fighting a layout usually means the tool has one direction and the problem has two.
 
 ### The analogy
 
-The canteen at lunchtime, in two parts.
+The queue at the counter is flexbox: one line, where you choose whether people bunch at the front, spread evenly or keep a standard gap. Too many people and it squashes or wraps around the corner. The thali tray is grid: rice here, two sabzis there, a small compartment for pickle. Rows and columns both matter, and every slot exists whether or not anything is in it.
 
-The queue at the counter is flexbox. It is one line. You can decide whether people bunch at the front, spread evenly, or leave a standard gap between them, and whether short and tall people are aligned by their heads or their feet. But it is still, fundamentally, a line — and when there are too many people the line either gets squashed or wraps around the corner.
-
-The thali tray is grid. It has fixed compartments: rice here, two sabzis there, a small round one for pickle. Rows and columns both matter, and every item has a slot that exists whether or not anything is in it. You can also say "the rice compartment gets twice the space of the pickle one" and have that hold true regardless of what you put in them.
-
-**Where the analogy breaks:** a steel tray's compartments are a fixed size forever. Grid tracks can be fractions that recompute — "three equal columns" means equal at 360px and equal at 1440px, and "as many columns of at least 160px as will fit" means two on a phone and six on a laptop, with no breakpoint written anywhere. A tray cannot do that, and that flexibility is most of why grid is worth learning.
+**Where the analogy breaks:** a steel tray's compartments are one size forever. Grid tracks are fractions that recompute — "as many columns of at least 160px as will fit" means two on a phone and six on a laptop, with no breakpoint anywhere. That is most of why grid is worth learning.
 
 ### Picture it
 
@@ -61,25 +55,24 @@ The thali tray is grid. It has fixed compartments: rice here, two sabzis there, 
 
 Flexbox arranges items along a single line and aligns them across it; grid declares rows and columns in advance, and items can be placed in or across those tracks.
 
-### How to choose, in one question
+One question decides it: **do the items need to line up with anything in the other direction?**
 
-Ask: **do the items need to line up with anything in the other direction?**
+| Problem | Lines up in the other direction? | Tool |
+|---|---|---|
+| Row of nav links | No | Flexbox |
+| Inside a card: photo left, name and price right | No | Flexbox |
+| Sidebar, header and content sharing edges | Yes | Grid |
+| Dish cards whose Add buttons must sit at one height | Yes | Grid, or flex that stretches items |
 
-A row of nav links does not — nothing below them has to align with link number two. Flexbox.
-
-A card's internal layout — photo on the left, name and price stacked on the right — does not need cross-alignment either. Flexbox.
-
-A page where the sidebar, the header and the content area must all share consistent edges does. Grid.
-
-A responsive set of dish cards where every card's "Add" button should sit at the same height as its neighbours' does. Grid, or flexbox plus a rule that stretches the items.
-
-In real projects you use both, nested: grid for the page skeleton, flexbox inside each region. That is not indecision; it is the two tools doing their own jobs.
+Real projects use both, nested: grid for the page skeleton, flexbox inside each region.
 
 ### Where it lives
 
-Layout is pure client-box work from M00 — the server sends the same HTML and CSS regardless of screen size, and the browser does all the arranging. That is a genuinely important point: a layout that adapts needs no server involvement and no extra request, which is why CSS layout is cheaper than any JavaScript solution to the same problem.
+Layout is pure client-box work from M00: the server sends the same CSS whatever the screen size and the browser arranges it. An adaptive layout needs no server involvement and no extra request, which is why CSS layout beats any JavaScript answer.
 
-This chapter builds directly on chapter 4's box model, because `gap`, padding and margin are what produce the spacing inside any layout. Chapter 6 adds the screen-size dimension: the same grid with different track counts at different widths. M03 covers what good spacing and hierarchy actually look like — here we only cover the mechanism for achieving them.
+- Chapter 4's box model supplies the spacing — `gap`, padding, margin
+- Chapter 6 adds screen size: the same grid with different track counts
+- M03 covers what good spacing looks like; this is only the mechanism
 
 ### Words to own
 
@@ -99,31 +92,29 @@ This chapter builds directly on chapter 4's box model, because `gap`, padding an
 
 ### Tradeoffs and gotchas
 
-**Absolute positioning is not a layout tool.** It takes an element out of the flow and pins it to coordinates, which means nothing else knows it exists. It is correct for a dropdown panel, a tooltip or a badge on a corner. It is wrong for a nav bar, a card row or anything whose size depends on its content — and it is the single most common reason an AI-generated layout collapses at 360px.
+**Absolute positioning is not a layout tool.** It pins an element to coordinates and out of the flow, so nothing else knows it exists. Correct for a dropdown, tooltip or corner badge; wrong for a nav bar or card row, and the most common reason an AI layout collapses at 360px.
 
-**Fixed pixel widths inside a flex row will overflow.** `width: 300px` on three cards needs 900px plus gaps. On a 360px phone the row either overflows or squashes. Use `flex: 1` or a grid with `minmax()` so the items negotiate rather than demand.
+**Fixed pixel widths in a flex row will overflow.** Three cards at `width: 300px` need 900px plus gaps. Use `flex: 1` or a grid with `minmax()` so items negotiate rather than demand.
 
-**Grid for a nav bar is overkill; flexbox for a page skeleton is a fight.** Both work. Both produce more CSS than needed and more confusion for whoever changes it next.
+**Deeply nested flex containers become undebuggable.** Six levels, each with its own `justify-content`, and nobody can say why something is 3px off. Say "flatten this; the card gets at most two layout containers".
 
-**Deeply nested flex containers become undebuggable.** Six levels of flex, each with its own `justify-content`, and nobody can say why something is 3px off. If the AI gives you five nested flex wrappers for a card, the honest instruction is "flatten this; the card has at most two layout containers".
+**Prefer `gap` to margins on children.** `gap` applies only *between* items and never collapses; margins produce edge gaps you then have to cancel.
 
-**`gap` versus margins.** `gap` applies only *between* items, never outside the first or last, and never collapses. Margins on children produce edge gaps you then have to cancel. Prefer `gap`.
-
-**Height is harder than width.** `height: 100%` and `height: 100vh` behave differently from their width counterparts, and `100vh` on mobile browsers includes space the browser toolbar covers — so a "full screen" section is taller than the screen and the page scrolls by 60px for no visible reason. Chapter 6 revisits this.
+**Height is harder than width.** `100vh` on mobile includes space the toolbar covers, so a "full screen" section scrolls 60px for no visible reason. Chapter 6 revisits this.
 
 ### Verify it
 
-Layout verification is almost entirely about stress, not inspection. A layout that looks right with the AI's sample content tells you very little.
+Layout verification is stress, not inspection.
 
-1. **Turn on the layout overlay.** In DevTools, elements that are flex or grid containers show a small badge next to them in the Elements panel. Click it to see the tracks and gaps drawn on the page. This instantly tells you which tool the AI actually used, which is often not the one it said it used.
-2. **Shrink to 320px and look for a horizontal scrollbar.** Any horizontal scroll on a content page is a bug. 320px is the narrowest you should support; 360px is where most of your users are.
-3. **Stress test one: the long item.** Replace one dish name with "Mysore Masala Dosa with Extra Chutney and Sambar". Does the card grow gracefully, does the text clip, or does the row break?
-4. **Stress test two: the count.** The AI built it with six cards. Try one card. Try twelve. Try one with an empty list. A grid with `auto-fit` handles all four; a hand-placed layout usually handles exactly six.
-5. **Stress test three: the missing image.** Block images in DevTools and reload. Layouts that depend on an image's intrinsic size collapse here.
-6. **Stress test four: zoom to 200%.** Browser zoom is how a lot of people with low vision read. A layout built from fixed pixels in absolute positions falls apart; a flexible one simply reflows.
-7. **Count the layout containers.** Inspect one card and count how many nested flex or grid parents it has. More than three is a smell worth asking about.
+1. **Turn on the layout overlay.** Flex and grid containers carry a badge in Elements; clicking it draws the tracks and shows which tool was actually used.
+2. **Shrink to 320px.** Any sideways scroll on a content page is a bug.
+3. **Stress the length.** Make one dish name three times longer: does the card grow, clip, or break the row?
+4. **Stress the count.** One card, twelve cards, an empty list. `auto-fit` handles all three; a hand-placed layout handles exactly six.
+5. **Stress the missing image.** Block images and reload; layouts leaning on an image's size collapse.
+6. **Stress the zoom.** At 200%, fixed pixels in absolute positions fall apart; a flexible layout reflows.
+7. **Count layout containers on one card.** More than three nested flex or grid parents is a smell.
 
-Red flags in AI layout output: `position: absolute` on anything structural; fixed pixel widths on items in a row; `height` in pixels on anything containing text; five or more nested wrapper `<div>` elements for one card; a media query at every 50px; and `overflow: hidden` added to make an overflow problem invisible rather than fixing it. That last one is the layout equivalent of `!important`.
+Red flags: `position: absolute` on anything structural · fixed pixel widths on items in a row · `height` in pixels on text · five or more wrapper `<div>` elements per card · a media query every 50px · `overflow: hidden` hiding an overflow instead of fixing it, the layout equivalent of `!important`.
 
 ## Walkthrough
 1. Open any shopping or food-delivery site on a laptop and inspect its main product grid. In the Elements panel, look for the grid or flex badge on the container and click it.

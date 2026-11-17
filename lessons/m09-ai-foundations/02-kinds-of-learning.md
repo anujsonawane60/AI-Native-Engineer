@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: kinds-of-learning
 title: "Supervised, Unsupervised, Self-Supervised and Reinforcement Learning"
 order: 2
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,37 +22,27 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A group pitches three AI features for their canteen app in the same meeting.
-
-"We will predict which dishes sell out." Fine — but somebody has to have recorded, for hundreds of days, whether each dish sold out. Nobody did.
-
-"We will group our customers into types so we can market to each." Also fine, and this one needs no recorded answers at all, because there are no correct answers to record. The team does not notice that these two features have completely different data requirements and spends two weeks looking for labels they do not need.
-
-"We will build a chatbot that answers questions about the menu." Fine again, and here the team assumes somebody must have hand-written thousands of question-and-answer pairs, because that is what the first feature taught them. Nobody did, and nobody needed to. The model behind that chatbot learned from raw text that was never labelled by anyone.
-
-Three features, three different kinds of learning, and the team is applying the data requirements of the first one to all three. That mistake costs weeks.
+A group pitches three AI features in one meeting: predict which dishes sell out, group customers into types, and a chatbot that answers menu questions. The first needs hundreds of days of recorded answers, which nobody kept; the second needs none at all; the third was built from raw text nobody labelled. The team applies the first feature's data requirements to all three and spends two weeks hunting labels it does not need.
 
 ### The idea
 
 **There are four kinds of learning, and they differ in exactly one thing: what the program is given as feedback.**
 
-Given the right answer for each example, it is **supervised**. Given no answers and asked to find structure, it is **unsupervised**. Given raw data from which an answer can be manufactured automatically — hide part of it and predict the hidden part — it is **self-supervised**. Given only a score after acting, it is **reinforcement learning**.
-
-That is the whole taxonomy. The reason it matters to you is practical: each kind demands a different thing from you before you can start, and the thing it demands is usually the project's real cost.
+Given the right answer for each example, it is **supervised**. Given no answers and asked to find structure, it is **unsupervised**. Given raw data from which an answer can be manufactured — hide part of it, predict the hidden part — it is **self-supervised**. Given only a score after acting, it is **reinforcement learning**. Each kind demands something different from you first, and that thing is usually the project's real cost.
 
 ### The analogy
 
 Four ways people learn at the canteen.
 
-**Supervised.** A new cashier gets a price list with every dish and its correct price, and is corrected each time they charge wrongly. Clear right answers, supplied by someone who already knows. Most useful, most expensive to set up, because the price list has to exist.
+**Supervised.** The new cashier gets a price list with every correct price and is corrected on every mistake — most useful, most expensive, because the list has to exist.
 
-**Unsupervised.** The manager watches the lunch queue for a month and notices, without anyone telling her anything, that customers fall into roughly three kinds: the 12:15 crowd who want speed, the 1:30 crowd who want to sit and talk, and the staff who order the same thing daily. Nobody told her those groups existed. She found them. She also cannot be "wrong", which is both the appeal and the catch.
+**Unsupervised.** The manager watches the queue for a month and notices three kinds of customer. Nobody told her those groups existed, and she cannot be "wrong" either.
 
-**Self-supervised.** A trainee is handed the canteen's recipe book with random words blanked out, and has to guess each missing word. "Add two spoons of ______ and simmer." Nobody wrote an answer key — the answer key was the original page, so the exercise generates its own labels, infinitely, from text that already existed. Do this for ten million recipes and the trainee ends up knowing a great deal about cooking without a teacher ever having graded anything. **This is how every large language model is built**, which is why they could be trained on the internet rather than on a hand-labelled dataset nobody could afford to make.
+**Self-supervised.** A trainee gets the recipe book with words blanked out: "add two spoons of ______ and simmer." The answer key was the original page, so the exercise manufactures its own labels, infinitely, from text that already existed. **This is how every large language model is built.**
 
-**Reinforcement learning.** A new waiter is told nothing about good service. He is simply given the tips at the end of each shift. Over months he works out which behaviours earn more, by trying things and watching the number.
+**Reinforcement learning.** A waiter is told nothing about good service, just handed the tips each shift, and works out which behaviours earn more.
 
-**Where the analogy breaks:** the waiter understands that a tip means a happy customer. A reinforcement-learning system understands nothing of the sort. It optimises the number it is scored on, and if standing near the door happens to correlate with tips, it will stand near the door forever. The gap between the number you chose and the thing you actually wanted is where these systems go wrong, and it has a name you will meet in chapter 16: reward hacking.
+**Where the analogy breaks:** the waiter knows a tip means a happy customer. A reinforcement-learning system does not — it optimises the number it is scored on, so if standing near the door correlates with tips, it stands near the door forever. That gap between your number and the thing you wanted is reward hacking, in chapter 16.
 
 ### Picture it
 
@@ -76,25 +66,16 @@ Four ways people learn at the canteen.
                    │ gives: behaviour, strategy, policies
 ```
 
-The four kinds differ only in what feedback arrives, and that difference decides what you must prepare before any training can start.
+The four kinds differ only in what feedback arrives, and that decides what you must prepare before training can start.
 
-### Supervised learning, and the two shapes it takes
-
-Supervised is the workhorse and almost everything a student startup needs is one of its two shapes.
-
-**Classification** puts an example into one of a fixed set of buckets. Is this review positive or negative? Is this support ticket about delivery, payment or food quality? Is this dish veg, non-veg or egg? The answer is a category.
-
-**Regression** produces a number on a continuous scale. How many thalis will we sell on Thursday? How many minutes until this order is ready? What should this dish be priced at?
-
-Telling them apart matters because the metrics differ. A classifier is judged on how often it picks the right bucket, with all the subtlety chapter 3 covers. A regressor is judged on how far off its number was, on average. Mixing those up is a common and confusing error in generated code.
+Supervised comes in two shapes: **classification** picks one of a fixed set of buckets (veg, non-veg, egg), **regression** produces a number on a scale (140 thalis on Thursday). The metrics differ, so mixing them up is a common error in generated code.
 
 ### Where it lives
 
-Supervised learning is where your own small models live, if you build any — a ticket classifier trained in a free Colab notebook on four hundred of your own tickets. Unsupervised learning usually lives in analytics rather than in your product: the customer segments you will build in M16 are clustering, and the anomaly alerts in M07 are outlier detection.
-
-Self-supervised learning lives somewhere you will never touch. It is the enormous pretraining run that produced the model you call over the network — months of compute on thousands of GPUs, costing more than your whole college. You consume the result. Chapters 8 to 11 take that process apart.
-
-Reinforcement learning appears in your world in exactly one place, and it is an important one: it is the stage that turned a raw text-predictor into an assistant that follows instructions and declines harmful requests. That is chapter 11. Running actual reinforcement learning yourself is M14.
+- **Supervised** is where your own small models live — a ticket classifier trained in a free Colab notebook on four hundred of your own tickets.
+- **Unsupervised** lives in analytics, not the product: the segments in M16 are clustering, the anomaly alerts in M07 are outlier detection.
+- **Self-supervised** lives where you will never touch it — the pretraining run that produced the model you call over the network. Chapters 8 to 11 take it apart.
+- **Reinforcement learning** reaches you once: the stage that turned a raw text-predictor into an assistant that follows instructions and refuses harmful requests, in chapter 11. Running it yourself is M14.
 
 ### Words to own
 
@@ -115,27 +96,19 @@ Reinforcement learning appears in your world in exactly one place, and it is an 
 
 ### Tradeoffs and gotchas
 
-**You cannot predict from unlabelled data, and this is the single most common confusion in the subject.** "We have 10,000 orders, let's use unsupervised learning to predict churn" is not a plan. Churn is a label. Either somebody records who churned, or you derive the label from the data you have — "no order in 60 days counts as churned" — and then it is supervised. Deriving the label is often the right move and takes an afternoon. Pretending you do not need one takes a month.
-
-**Clustering cannot be wrong, which makes it dangerous.** Ask for three customer segments and you get three. Ask for seven and you get seven. Both will look convincing on a chart. There is no ground truth to check against, so the only honest validation is whether the groups mean something to a human who knows the business, and whether acting differently towards each group changes an outcome you can measure. Treat clusters as a hypothesis, never as a finding.
-
-**Self-supervised learning is not available to you at the scale that matters.** The reason it works is the mountain of data and the months of GPU time. You will never pretrain a model, and you do not need to. What you need is to know that this is where the model's knowledge came from, which is also why it carries the internet's biases and why it has a knowledge cutoff — the two M00 failure modes, explained at their source.
-
-**Reinforcement learning needs a cheap place to be wrong thousands of times.** Games have that. Simulations have that. Your payment flow does not. If someone proposes reinforcement learning for a system that touches real money or real users, the first question is where the failed attempts happen, and the honest answer is usually "to your customers".
-
-**The labels you can derive are usually better than the labels you can collect.** Did the user click? Did the order get cancelled? Did the ticket get reopened within a week? Your product already records behaviour, and behaviour is a label that nobody has to be paid to write down. This habit is worth more to a student startup than any modelling technique in this module.
+- **You cannot predict from unlabelled data** — the commonest confusion in the subject. "Use unsupervised learning to predict churn" is not a plan: churn is a label. Either somebody records it, or you derive it ("no order in 60 days counts as churned") and it is supervised.
+- **Clustering cannot be wrong, which makes it dangerous.** Ask for three segments and you get three; ask for seven and you get seven, and both look convincing. With no ground truth, a cluster is a hypothesis.
+- **Self-supervised learning is out of reach at the scale that matters.** You will never pretrain a model — but this is where the model's knowledge, its biases and its cutoff came from.
+- **Reinforcement learning needs a cheap place to be wrong thousands of times.** Games have one; your payment flow does not, and the failed attempts land on your customers.
+- **Derived labels beat collected labels.** Did the user click, cancel, reopen the ticket? Your product already records behaviour, and nobody is paid to write it down.
 
 ### Verify it
 
-**Red flag: prediction promised from unlabelled data.** If a plan says "unsupervised" and the output is a prediction of something specific, it is wrong. Ask: what is the label, where does it come from, and how many examples of it exist? Either an answer appears or the plan collapses, and both outcomes are useful in the first ten minutes.
-
-**Red flag: clusters presented as facts.** "Your users fall into four segments" is a result of the number you asked for. Make the AI tell you what happens with three and with six, and what observable behaviour distinguishes the groups. If nothing distinguishes them that you could act on, you have a chart rather than a finding.
-
-**Red flag: reinforcement learning proposed for anything you are building this semester.** It is almost always the wrong tool at your scale. Ask where the thousands of failed attempts take place. If the answer involves real users, real money or real food, say no.
-
-**Red flag: an invented reward.** When an AI proposes a reward signal, ask what behaviour would maximise that number while making the product worse. There is always one, and naming it out loud is the only cheap defence.
-
-**Check the shape before the method.** Say out loud whether you want a bucket, a number, a group or a behaviour. Those four words map to classification, regression, clustering and reinforcement learning. Getting the shape right takes one sentence and prevents the two-week detour from the top of this chapter.
+- **Prediction promised from unlabelled data.** If the plan says "unsupervised" and the output is a specific prediction, it is wrong. Ask what the label is and where it comes from.
+- **Clusters presented as facts.** "Your users fall into four segments" is a result of the number you asked for. Make it show three and six, and name the behaviour that separates them.
+- **Reinforcement learning proposed for anything you ship this semester.** Ask where the thousands of failed attempts take place; if real users or money are involved, say no.
+- **An invented reward.** Ask what behaviour would maximise that number while making the product worse. There is always one.
+- **Check the shape before the method.** Bucket, number, group or behaviour — those four words map to classification, regression, clustering and reinforcement learning.
 
 ## Walkthrough
 1. Write down three features your own startup could plausibly want from AI. Keep them concrete enough that you can name what comes out of each.

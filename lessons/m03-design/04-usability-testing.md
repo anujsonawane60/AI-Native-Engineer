@@ -4,7 +4,7 @@ module: m03-design
 slug: usability-testing
 title: "Usability Testing With Three Friends"
 order: 4
-duration_min: 30
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,25 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team shows their canteen app to eight friends and asks "what do you think?" Everyone says it looks nice. Two people suggest adding dark mode. The team spends the next week building dark mode.
-
-At demo day, a stranger is handed the phone and asked to order a vada pav. They tap the dish photo. Nothing happens — the photo is not the tap target, the small "Add" text below it is. They tap the photo again, harder. Then they say "is it loading?" Forty seconds pass. They never order anything.
-
-Eight friends looked at that app and none of them hit this, for one reason: nobody was ever given a task. They were given a tour. A tour tells you whether people are polite. A task tells you whether your product works.
+A team shows their canteen app to eight friends and asks "what do you think?" Everyone says it looks nice; two suggest dark mode, so the team builds dark mode. At demo day a stranger is asked to order a vada pav. They tap the dish photo — not a tap target, the "Add" text below it is — tap harder, ask "is it loading?", and never order. Eight friends missed it because nobody was given a task. A tour tells you whether people are polite; a task tells you whether the product works.
 
 ### The idea
 
 **Give three people a real task, say nothing, and write down exactly what they do — not what they say about it.**
 
-Three is enough. Nielsen's research shows five users find roughly 85% of usability problems, and the first three find most of those. You are not measuring anything; you are discovering problems you are blind to. Your fourth tester will mostly confirm the first three, and your time is better spent fixing what you already found and testing again.
+Three is enough: five users find roughly 85% of usability problems and the first three find most of those. You are discovering what you are blind to, so time beyond the third tester is better spent fixing and testing again.
 
 ### The analogy
 
-Imagine standing behind the canteen counter and watching sixty students order, without saying anything. You would learn things no survey could tell you. That three people in a row point at the second dish on the board and it is the one that keeps running out. That everybody holds the plate in their left hand and then cannot reach the water jug on the left. That the new students hesitate at the token window because the sign faces the wrong way.
+Stand behind the canteen counter and watch sixty students order without saying anything. Three in a row point at the second dish on the board, the one that keeps running out. Everybody holds the plate left-handed and cannot reach the water jug. Nobody *told* you that.
 
-Nobody *told* you any of that. You watched, and the room told you.
-
-**Where the analogy breaks:** behind the counter you can fix confusion on the spot — "water's on the other side, bhai". In a usability test that same helpful instinct destroys the data. The moment you say "just tap the Add button", you have answered the only question you were trying to ask. The hardest skill in this chapter is keeping your mouth shut while someone you know struggles in front of you.
+**Where the analogy breaks:** behind the counter you fix confusion on the spot, "water's on the other side, bhai". In a test that helpful instinct destroys the data: the moment you say "just tap Add", you have answered the only question you were asking.
 
 ### Picture it
 
@@ -61,11 +55,9 @@ Nobody *told* you any of that. You watched, and the room told you.
                                   (your inference)
 ```
 
-A ten-minute session spends six of those minutes with you silent, and the notes you take are split into what happened and what you think it means — kept separate, because the first is evidence and the second is a guess.
+A ten-minute session spends six minutes with you silent, and your notes split into what happened and what you think it means — separate, because the first is evidence and the second is a guess.
 
-### Writing tasks, not questions
-
-A task has an outcome the person can reach or fail to reach. A question has an opinion as its answer. Compare:
+A task has an outcome the person can reach or fail; a question has an opinion as its answer.
 
 | Bad — a question | Good — a task |
 |---|---|
@@ -74,39 +66,17 @@ A task has an outcome the person can reach or fail to reach. A question has an o
 | Would you use this daily? | Order exactly what you ordered yesterday. |
 | Is the sold-out marking clear? | Tell me what I cannot buy right now. |
 
-Three rules for writing them. Give a situation, not an instruction — "you have ₹40 and 15 minutes" rather than "use the reorder feature", because the second one names the feature and so the test is over. Never use your own UI words; if your button says "Reorder", the task must say "order the same thing again". And make the task have a definite end, so you can record reached or not reached rather than a vibe.
-
-Four tasks in six minutes is about right. Put the most important flow first, while they are still fresh.
-
-### Running it without coaching
-
-Four ways student teams accidentally coach their own testers, all of them well-meant:
-
-**Explaining first.** A thirty-second "so this is the menu, and down here is the cart" tour means you have just taught them the thing you needed to see them discover. Hand over the phone with no explanation at all.
-
-**Rescuing.** They are stuck, it is painful, they are your friend. Count to ten in your head. If you must speak, say only "what are you trying to do?" or "what do you expect would happen if you tapped that?" Never "try the button at the bottom".
-
-**Asking leading questions.** "Was that confusing?" plants the idea. Ask "what just happened there?" instead and let them characterise it.
-
-**Testing friends who know your product.** Your teammates cannot be testers. They know where everything is. Find people who have never seen it — a hostel neighbour, someone from another branch, the canteen staff themselves for the staff flow.
-
-One more thing that costs nothing and changes everything: ask them to think aloud. "Say what you are thinking as you go, even if it sounds silly." You will hear "I'll just... hmm, where's the price?" which is worth more than any answer they could give you afterwards.
-
-### Observation versus conclusion
-
-The single most common error in a student test report is writing conclusions and calling them observations. Keep two columns.
-
-An observation is something a camera would have captured. "Tapped the dish photo three times." "Paused 8 seconds on the payment screen." "Said 'is this the total?'" "Scrolled past the reorder block twice without stopping."
-
-A conclusion is your interpretation. "The photo looks tappable but is not." "The total is ambiguous." "The reorder block does not read as interactive."
-
-Why it matters: conclusions are where your bias enters, and you need to be able to re-examine them later when a different conclusion fits the same observation better. Also, when two testers produce the same observation and you had two different conclusions, that is the signal to look harder rather than to pick one.
-
-A finding earns a fix when two of three testers hit it. One tester hitting something strange is interesting; two is a pattern. The exception: if one tester hits something that loses money or data — a double order, a payment that charges twice — fix it regardless of count.
+Three rules: give a situation, not an instruction; never use your own UI words, so "Reorder" becomes "order the same thing again"; give the task a definite end. Four tasks in six minutes, most important first, and ask them to think aloud.
 
 ### Where it lives
 
-Usability testing is the cheapest quality tool you will ever have and the one most teams skip because it feels awkward rather than because it is hard. It sits directly after the heuristic review in chapter 3 — you run the checklist yourself first so your testers are not wasted on problems you could have found alone. It runs on wireframes, which is why chapter 2 told you to keep them lo-fi. In M07 you will see the same drop-offs in analytics as numbers; testing is how you learn *why* the number is what it is, which no dashboard can tell you. M11's checkpoints will ask what you changed because of a user, and this is where that evidence comes from. M12 adds a version of this with assistive technology.
+Testing is the cheapest quality tool you have, and the one teams skip because it is awkward.
+
+- **Chapter 3** — run the heuristic checklist first, so testers are not spent on what you could find alone
+- **Chapter 2** — it runs on the lo-fi wireframes
+- **M07** — analytics show the drop-off; testing tells you why
+- **M11** — the checkpoint asks what you changed because of a user
+- **M12** — the same session with assistive technology
 
 ### Words to own
 
@@ -125,25 +95,28 @@ Usability testing is the cheapest quality tool you will ever have and the one mo
 
 ### Tradeoffs and gotchas
 
-**Three testers tell you what is broken, not how many people it affects.** You cannot say "25% of users have this problem" from three people. That is what M07's analytics are for. Qualitative testing finds problems; quantitative measurement sizes them. Confusing the two produces confident nonsense.
+**Four well-meant ways teams coach their own testers.** *Explaining first* — a tour teaches them what you needed to watch them discover. *Rescuing* — if you speak at all, only "what are you trying to do?" *Leading questions* — "was that confusing?" plants the idea; ask "what just happened there?" *Testing people who know the product* — teammates cannot be testers.
 
-**Testing too late makes the findings unaffordable.** If you test the week before demo day, every finding becomes a reason not to fix it. Test the lo-fi wireframes, then test again after the build.
+**A finding earns a fix when two of three testers hit it.** One is interesting, two is a pattern. The exception: anything losing money or data gets fixed at one.
 
-**Your friends will be kind, which is the problem.** Expect the debrief to be gentler than the observations. Trust the observations. If someone struggled for forty seconds and then said "yeah it was fine", the forty seconds is the data.
+**Three testers tell you what is broken, not how many it affects.** "25% of users" needs M07's analytics, not three people.
 
-**Do not test everything.** Pick the one flow that matters most. A session that tries to cover the whole app covers nothing properly and exhausts the tester.
+**Your friends will be kind, which is the problem.** If someone struggled for forty seconds then said "yeah, fine", the forty seconds is the data.
 
-**Record whatever you can, with permission.** Screen recording on the phone plus audio is plenty. You will miss things in the moment; three people and no notes is an afternoon wasted. Ask first, and in India be explicit that you are recording the screen and voice, not their face.
+**Test one flow, early.** A session covering the whole app covers nothing, and findings the week before demo day become reasons not to fix anything.
 
 ### Verify it
 
-Two verification jobs here: checking your own test, and checking what AI does with your findings.
+Check your own test first.
 
-Checking your test: **Did you talk?** Count your own interventions. More than two or three in six minutes and you coached. **Were your tasks free of your own UI words?** If a task named a button, that task is void. **Can you separate observations from conclusions?** If your notes have no "tapped", "paused", "said" or "scrolled" in them, you recorded opinions. **Did at least one tester fail at something?** Three clean successes on a first test almost always means the tasks were too easy or you helped.
+1. **Did you talk?** More than two or three interventions in six minutes and you coached.
+2. **Were the tasks free of your UI words?** A task that named a button is void.
+3. **Are observations separable from conclusions?** Notes with no "tapped", "paused" or "said" are opinions.
+4. **Did at least one tester fail?** Three clean successes means the tasks were too easy, or you helped.
 
-Checking AI's fix: give it one observation, not a redesign request. "Two of three testers tapped the dish photo expecting it to add the item; it is not a tap target" is a brief. "Make the menu better" is not. Then confirm three things: the specific behaviour changed, the tap target is actually big enough on a real phone rather than in theory, and nothing else on the screen moved. Ask for the diff in plain words — "list exactly what you changed and why" — and compare against what you asked for.
+Then check AI's fix. Brief it with one observation, not a redesign request: "two of three testers tapped the dish photo expecting it to add the item; it is not a tap target". Confirm the behaviour changed, the target is big enough on a real phone, and nothing else moved.
 
-Red flags: AI responding to a usability finding with a visual redesign; a fix that adds a tooltip or help text instead of fixing the thing (help text is heuristic 10, and it is the last resort, not the first); a claim that the tap target is "now 44px" without you checking it on a device; and any fix that quietly changes a second screen you did not mention.
+Red flags: a usability finding answered with a visual redesign; help text instead of a fix; a "now 44px" claim you did not check on a device; a fix that quietly changes a second screen.
 
 ## Walkthrough
 1. Pick exactly one flow to test — the single most important path in your product. Write its outcome as one sentence you can mark reached or not reached.

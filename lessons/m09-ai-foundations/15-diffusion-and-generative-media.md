@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: diffusion-and-generative-media
 title: "Diffusion and Generative Media: From Noise to Image"
 order: 15
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,33 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team needs forty photographs for their canteen app: one per dish, consistent lighting, appetising. The real canteen's dishes photographed on a phone under tube lights look grey and unappealing. Stock photos are either watermarked, wrong — North Indian thalis for a South Indian menu — or cost more than the team has.
-
-So they generate them. Within an hour they have forty beautiful images, and three problems they did not anticipate.
-
-The signboard in one image reads "CANTEFN SPECAIL". A hand reaching for a dosa has six fingers. And the biryani image is gorgeous, photorealistic, and shows a dish the canteen does not sell, plated in a way it will never be served — which a student will notice at the counter when the ₹80 they paid produces something else.
-
-The first two are mechanical consequences of how diffusion works. The third is not a technical problem at all; it is a question about whether the image is honest, and it is the one that could actually get the team in trouble.
+A team needs forty appetising photographs for their canteen app. Real dishes shot under tube lights look grey, and stock photos are watermarked, wrong, or unaffordable — so they generate them, and within an hour have forty beautiful images and three problems. One signboard reads "CANTEFN SPECAIL". A hand has six fingers. And the gorgeous biryani shows a dish the canteen does not sell. The first two are mechanical consequences of how diffusion works; the third is a question about whether the image is honest, and it is the one that gets teams in trouble.
 
 ### The idea
 
 **A diffusion model is trained to remove a small amount of noise from a noisy image. Run it on pure noise, repeatedly, each step guided by your text, and an image appears.**
 
-The training trick is clever and simple. Take millions of real images, add noise to each in measured amounts, and train a model to predict what the noise was so it can be subtracted. Do that enough times and you have something that can take any noisy image and make it slightly less noisy — slightly more like a real photograph.
+The training trick is simple: take millions of real images, add measured amounts of noise, and train a model to predict the noise so it can be subtracted. Now start from pure noise and ask for one step of removal: the result is still noise, but slightly structured, and repeating fifty times compounds that structure into an image, with your prompt steering every step.
 
-Now start from an image that is *entirely* noise. Ask for one step of noise removal. The result is still noise, but very slightly structured. Repeat twenty or fifty times, and the structure compounds into an image. Your text prompt steers every step, nudging the removal towards "a plate of pongal on a steel thali under warm light".
-
-This is a fundamentally different process from the next-token prediction of chapter 8. Text is generated left to right, one token committed at a time. An image is generated all at once, everywhere, getting progressively sharper — which is why you cannot stream half an image usefully and why an image has a fixed cost rather than a per-token one.
+Unlike next-token prediction, an image is produced everywhere at once and gets progressively sharper — which is why it has a fixed cost rather than a per-token one.
 
 ### The analogy
 
-The canteen's wall has a photograph of a thali, taken in 1998, now almost completely faded and stained.
+The canteen's wall holds a faded photograph of a thali from 1998. A restorer sees a grey smudge where the rice should be and knows, from ten thousand thalis, what belongs there. She paints in a little, steps back, and paints in more, guided by what she just added; twenty passes later there is a convincing thali. She was not recovering the original but constructing a plausible thali consistent with the smudges — and handed blank noise, she would do the same thing.
 
-A skilled restorer looks at it, sees a faint grey smudge where the rice should be, and knows from having seen ten thousand thalis what belongs there. She paints in a little. Then she steps back, looks again, and paints in a little more, now guided by what she just added. Twenty passes later there is a crisp, convincing thali on the wall.
-
-And here is the thing: she was not recovering the original. She was constructing a plausible thali, consistent with the smudges and with everything she knows about thalis. If you handed her a blank sheet of grey noise and said "thali", she would do the same thing and produce something equally convincing.
-
-**Where the analogy breaks:** the restorer knows she is inventing, and would tell you which parts she made up. The model does not distinguish between recovering and inventing — it produces a plausible image either way, with no record of which parts correspond to anything real. And the restorer knows what rice is. The model knows what rice *looks like next to* other things, which is why it can render a perfect grain of rice and a hand with six fingers in the same picture.
+**Where the analogy breaks:** the restorer knows she is inventing and would tell you which parts she made up. The model does not distinguish recovering from inventing. She also knows what rice is; the model knows what rice *looks like next to* other things, which is why it renders a perfect grain of rice and a six-fingered hand in one picture.
 
 ### Picture it
 
@@ -71,29 +59,16 @@ And here is the thing: she was not recovering the original. She was constructing
 
 Training teaches the model to subtract noise; generating starts from pure noise and subtracts repeatedly, with your prompt steering each step.
 
-### Why hands, text and counting go wrong
+Three failure modes follow from one fact: the model learned what things look like next to each other, not what they are. **Text** comes out as letter-like shapes in rows, because nothing spells — overlay real text in your layout instead. **Hands** need five fingers in a plausible arrangement, which requires counting, and nothing counts. **Quantities** likewise: "four samosas" may give three. So **generated images are good for mood, texture and illustration, and unreliable for anything that must be exactly right.**
 
-Three failure modes, all explained by the same fact: the model learned what things look like in relation to each other, not what they are.
-
-**Text inside images.** Letters are shapes that happen to carry meaning. The model has learned that signboards contain letter-like shapes in rows, so it produces letter-like shapes in rows. There is no spelling check anywhere in the process. Newer models are much better at this than older ones and still not reliable, so never generate an image that must contain exact words — put real text over the image in your own layout instead.
-
-**Hands and fingers.** Hands are small, appear in a vast number of configurations, and are frequently partly hidden in training photos. Getting "five, in a plausible arrangement" right requires counting, and nothing in the process counts.
-
-**Quantities generally.** "Four samosas on a plate" may give three or five. There is no counter — only a sense of what a plate of samosas looks like.
-
-The practical rule that follows: **generated images are good for mood, texture, background and illustration, and unreliable for anything that must be exactly right.** If accuracy matters, photograph the real thing.
-
-Two settings you will meet. **Steps** is how many noise-removal passes to run: more steps means slower and usually slightly better, with diminishing returns quickly. **Guidance** is how strictly to follow your prompt: too low and it ignores you, too high and the image looks over-saturated and strange. Both are dials to try, not values to get right in theory.
+Two settings you will meet: **steps**, how many removal passes run, with fast diminishing returns; and **guidance**, how strictly the prompt is followed — too low and it ignores you, too high and the image looks over-saturated.
 
 ### Where it lives
 
-Three practical facts place this on your map.
-
-**Cost and latency are completely different from text.** A paragraph of text is fractions of a paisa and arrives in a second or two. An image is typically a few rupees and several seconds. Video is dramatically more again — a few seconds of video can cost more than a thousand text requests and take minutes. So generated media is almost never something you do live in a user request. You generate it ahead of time, store the file in object storage as M04 taught, and serve it like any other image. Generating on demand per user is a cost mistake you will only make once.
-
-**Free tiers are tight and the landscape moves fast.** Image and video model line-ups, prices and free allowances change constantly. Read the provider's own page, as chapters 13 and 14 insisted, and expect any number you were told to be stale.
-
-**Doing this properly is M14.** Running diffusion models yourself, fine-tuning one on your own product's look, controlling composition precisely and generating consistent characters across images are M14 chapter 9. Here you need the mechanism, the costs and the judgement.
+- **Cost and latency are nothing like text.** A paragraph is fractions of a paisa; an image is a few rupees and several seconds; a few seconds of video can cost more than a thousand text requests.
+- **So generate ahead of time**, store the file in object storage, and serve it like any other image. Generating per user request is a cost mistake you make once.
+- **Free tiers are tight and the landscape moves fast**, so read the provider's own page and expect any number you were told to be stale.
+- **Doing this properly is M14** — running diffusion yourself, fine-tuning for your product's look, controlling composition.
 
 ### Words to own
 
@@ -114,29 +89,20 @@ Three practical facts place this on your map.
 
 ### Tradeoffs and gotchas
 
-**Licensing and training data are genuinely unsettled.** Image models were trained on enormous scrapes of the web, much of it copyrighted, and the law differs by country and is actively being litigated. Different providers offer different commercial terms and some offer indemnities. Before you put a generated image on anything commercial, read your provider's terms yourself. "An AI said it was fine" is not a defence.
-
-**Never generate a likeness of a real person without their consent.** Your classmate, a cricketer, a politician, a local shopkeeper. This is not a style question; it is impersonation, it is covered by India's IT rules and by basic decency, and M07 is where the consequences live. Deepfakes of real people are the clearest ethical line in this module.
-
-**A generated image of your product is a claim about your product.** A beautiful AI thali on your menu page, presented as what the student will receive, is a misrepresentation whether or not you intended one. Use generated images for illustration, background and mood; photograph what you actually sell. The honest test is simple: would a user feel misled if they knew?
-
-**Consistency across images is hard.** Forty dishes in forty separate generations will have forty slightly different lighting setups, plate styles and angles, and a menu page made of them looks subtly wrong. Fixing this properly is the fine-tuning and control work in M14.
-
-**Disclose it.** Marking generated images as generated costs nothing, protects you, and is increasingly expected or required. Provenance standards such as C2PA exist for exactly this. M07's ethics work and chapter 16's governance section both land here.
+- **Licensing and training data are genuinely unsettled.** Image models were trained on web scrapes, much of it copyrighted, and the law differs by country. Read your provider's terms yourself.
+- **Never generate a likeness of a real person without their consent.** That is impersonation, covered by India's IT rules, and the clearest ethical line in this module.
+- **A generated image of your product is a claim about your product.** An AI thali presented as what the student will receive is a misrepresentation whether you intended one or not. Would a user feel misled if they knew?
+- **Consistency across images is hard.** Forty dishes in forty generations means forty lighting setups, and a menu page made of them looks subtly wrong.
+- **Disclose it.** Marking generated images as generated costs nothing and is increasingly expected; C2PA exists for this.
 
 ### Verify it
 
-**Red flag: a generated image presented as a photograph of something real.** The question to ask of any image in your own product is "does this depict something that exists?" If not, it must not be positioned as though it does.
-
-**Red flag: text in the image.** Read every letter. "CANTEFN SPECAIL" is the default outcome, not an unlucky one. If words must be exact, overlay real text in your layout.
-
-**Red flag: hands, fingers, counts and symmetry.** Count the fingers. Count the samosas. Check that both earrings match and that the fork has four tines. These are the mechanical weak points and they are quick to check.
-
-**Red flag: a cost estimate that treats images like text.** Ask for cost per image and per second of video, from the provider's current page, and ask whether generation happens per user request or once ahead of time. If it is per request, that is a design error.
-
-**Red flag: silence on licensing and consent.** Ask directly whether the provider's terms permit commercial use of the output, whether any real person's likeness appears, and whether the image will be labelled as generated. An AI that recommends generated imagery without raising any of this has skipped the part that matters.
-
-And the check to run yourself on every image before it ships: look at it for ten full seconds at full size, on a phone screen, specifically hunting for letters, fingers, counts and repeated patterns. You will find something in roughly one image in three, and that ten seconds is the entire quality process.
+- **A generated image presented as a photograph of something real.** Ask of every image: does this depict something that exists?
+- **Text in the image.** Read every letter. "CANTEFN SPECAIL" is the default outcome, not an unlucky one.
+- **Hands, fingers, counts and symmetry.** Count the fingers and the samosas; check both earrings match.
+- **A cost estimate that treats images like text.** Ask cost per image and per second of video, and whether generation happens per request or ahead of time.
+- **Silence on licensing and consent.** Ask whether the terms permit commercial use, whether a real likeness appears, and whether the image will be labelled.
+- **Check yourself:** study each image for ten seconds at full size on a phone, hunting for letters, fingers and counts. One in three has something.
 
 ## Walkthrough
 1. Open any free image generation playground and generate one image of a dish from your own product, with a plain prompt. Keep it.

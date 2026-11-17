@@ -4,7 +4,7 @@ module: m12-ship-apps-for-real
 slug: mobile-accessibility-localisation
 title: "Accessibility and Localisation on Mobile"
 order: 10
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,35 +22,29 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Three real users, three failures you will never see on your own phone.
+Three users, three failures you will never see on your own phone.
 
-The first has low vision and keeps her Android font size at the largest setting. Your app's buttons have fixed heights, so the labels are cut in half. Your price row is a fixed-width box, so "₹1,250" becomes "₹1,2". Two screens are unusable and she cannot tell you why, because the error is invisible to anyone with default settings.
+The first has low vision and keeps her Android font size at the largest setting. Your buttons have fixed heights, so labels are cut in half, and your fixed-width price row turns "₹1,250" into "₹1,2". The bug is invisible to anyone with default settings.
 
-The second is blind and uses TalkBack. He swipes through your order screen and hears: "button. button. button. image. button." Your icon-only buttons have no labels, so the screen reader has nothing to read. The app is not slow or broken for him — it is simply unusable, and he will not be writing a review explaining that.
+The second is blind and uses TalkBack. He swipes through your order screen and hears "button. button. button. image. button." Your icon-only buttons have no labels, so the app is unusable — and he will not write a review explaining that.
 
-The third is a vegetable seller in Nashik who speaks Marathi, reads Hindi with effort and English barely at all. Your app is English-only. She asks her nephew to operate it for her. Your product has acquired a user who cannot use it alone, and your team counts her as an active user.
-
-Then your team tries to fix the third one by running every string through machine translation. Nobody who speaks Hindi reads the output before it ships. One of your buttons now says something that is grammatically correct and means roughly "cancel the government", and a reviewer screenshots it.
+The third is a vegetable seller in Nashik who speaks Marathi and reads English barely at all. Your app is English-only, so she asks her nephew to operate it, and your team counts her as an active user. Then you machine-translate every string and nobody who speaks Hindi reads the output. One button now means roughly "cancel the government", and a reviewer screenshots it.
 
 ### The idea
 
 **Accessible and multilingual are properties of how you build your screens, not features you add at the end.**
 
-Two commitments make almost all of it work.
+**Nothing has a fixed size, and everything has a name.** Containers grow with their text, so a 200% font scale pushes layout rather than clipping it. Every control a user can tap has a label a screen reader can read, even when the visible content is only an icon.
 
-**Nothing has a fixed size, and everything has a name.** Containers grow with their text so a 200% font scale pushes layout rather than clipping it. Every control a user can tap has a label a screen reader can read, even when the visible content is only an icon.
+**No string is typed into a screen.** Every piece of visible text lives in a catalogue with a key, and the screen asks the catalogue for the current language. Adding Hindi is then one more file instead of a rewrite.
 
-**No string is typed into a screen.** Every piece of visible text lives in a catalogue with a key, and the screen asks the catalogue for the current language. Adding Hindi then becomes one more file instead of a rewrite — and you get a complete list of your own user-facing copy for free, which is worth having anyway.
-
-Both of these are cheap on day one and painful on day two hundred. That is the whole argument for doing them now.
+Both are cheap on day one and painful on day two hundred.
 
 ### The analogy
 
-The canteen's board is in Marathi and English, with a photograph of each dish. Someone who reads neither language can still point at a picture. The prices are large enough to read from the back of the queue. And when a student who cannot read the board at all arrives, the person at the counter reads it aloud.
+The canteen's board is in Marathi and English, with a photograph of each dish, and prices large enough to read from the back of the queue. When a student who cannot read the board arrives, the person at the counter reads it aloud. The counter staff are the screen reader — and notice what they need: every dish must have a *name*. A blank square with a price forces them to say "something, forty rupees", which is precisely what TalkBack says about your unlabelled icon button.
 
-The counter staff are the screen reader. Notice what they need in order to do the job: every dish has to have a *name*. If one item on the board were just a blank square with a price, the staff could only say "something, forty rupees" — which is precisely what TalkBack says about your unlabelled icon button.
-
-**Where the analogy breaks:** the staff can improvise. They can describe a dish they have never been told the name of, by looking at it. A screen reader cannot look. It reads only what you wrote, so a missing label is total and silent — the app simply does not exist for that user, and nothing in your analytics will tell you.
+**Where the analogy breaks:** the staff can improvise and describe a dish by looking at it. A screen reader cannot look. It reads only what you wrote, so a missing label is total and silent, and nothing in your analytics will tell you.
 
 ### Picture it
 
@@ -79,13 +73,13 @@ The same three screen decisions — a label, a flexible height, a string key —
 
 ### Where it lives
 
-M03 taught accessibility and design systems for the web: contrast, touch targets, not relying on colour alone, respecting reduced motion. All of it still applies. What changes on mobile is the tooling and two specific pressures.
+M03 taught accessibility for the web — contrast, touch targets, not relying on colour alone — and all of it still applies. What changes on mobile is the tooling and two pressures.
 
-The screen readers are **TalkBack** on Android and **VoiceOver** on iOS, and they are driven by accessibility properties you set on each element: a label, a role, a state. React Native exposes these directly. Your design system components from M03 are the right place to put them, so that a button is accessible once rather than in forty places.
+The screen readers are **TalkBack** on Android and **VoiceOver** on iOS, driven by accessibility properties you set on each element: a label, a role, a state. Put them in your M03 design system components, so a button is accessible once rather than in forty places.
 
-**Font scaling is a system setting on every phone**, and a substantial number of your users have moved it. Android also has a separate display-size setting that scales everything. Both are far more commonly used than web zoom, which is why clipping is the single most common accessibility bug in mobile apps.
+**Font scaling is a system setting on every phone**, and many of your users have moved it. Android also has a separate display-size setting. Both are used far more than web zoom, which is why clipping is the most common accessibility bug in mobile apps.
 
-For language, the catalogue lives in your app as one file per locale and the app reads the device's language setting. Chapter 11's store listing can be localised too, which matters: a Marathi-speaking user searching the Play Store in Marathi will not find an English-only listing.
+For language, the catalogue is one file per locale and the app reads the device's language setting. Chapter 11's listing can be localised too: a Marathi-speaking user searching the Play Store in Marathi will not find an English-only listing.
 
 ### Words to own
 
@@ -105,35 +99,29 @@ For language, the catalogue lives in your app as one file per locale and the app
 
 ### Tradeoffs and gotchas
 
-**Devanagari needs more vertical space than Latin.** Hindi and Marathi text has marks above and below the line, so a line height tuned for English clips them. Test every screen with real Hindi strings, not placeholder text, and give text rows room to breathe.
+**Devanagari needs more space than Latin, in both directions.** Hindi and Marathi have marks above and below the line, so a line height tuned for English clips them, and a button saying "Pay" may need three times the width. This is the same bug as font scaling, which is why fixing one usually fixes the other. Test with real Hindi strings, not placeholder text.
 
-**Translated strings are longer, and sometimes much longer.** A button that says "Pay" in English may need three times the width in another language. This is the same bug as font scaling, which is why fixing one usually fixes the other.
+**Machine translation needs a human reader, every time.** Useful as a first draft, unsafe as a final answer — especially for short strings with no context, where "Clear" could mean empty, transparent or understood. A Hindi speaker in your cohort reading the file aloud catches what no tool will.
 
-**Machine translation needs a human reader, every time.** It is genuinely useful as a first draft and genuinely unsafe as a final answer, especially for short strings with no context where "Clear" could mean empty, transparent or understood. You have Hindi and Marathi speakers in your cohort. One hour of someone reading the file aloud catches what no tool will.
+**Do not translate everything.** Your product name, units and most proper nouns stay. And numbers need localising rather than translating: Indian digit grouping writes 12,50,000 where English writes 1,250,000.
 
-**Do not translate everything.** Your product name usually stays. So do units and most proper nouns. And numbers need localising rather than translating: Indian digit grouping writes 12,50,000 where English writes 1,250,000, and a user reading "1,250,000" will do a double-take.
+**Never bake text into an image.** It cannot be translated, read by a screen reader, or scaled. This also applies to chapter 11's store screenshots.
 
-**Never bake text into an image.** A graphic with English words in it cannot be translated, cannot be read by a screen reader, and cannot scale with the font setting. This also applies to your store screenshots in chapter 11.
-
-**Colour alone is not a state.** A red border meaning "invalid" is invisible to a colour-blind user and to a screen reader. Pair it with text or an icon — the same rule as M03, and store reviewers do notice.
-
-**Respect reduce-motion.** Both platforms expose a system setting for users who get motion sickness or find animation distracting. Honour it. On budget phones it also helps performance, which is chapter 9's benefit for free.
-
-**Accessibility is also commercially useful.** A user who can operate your app alone is a user who comes back. The vegetable seller who needs her nephew is not a retained user, and M16 will show you exactly that in the retention curve.
+**Colour alone is not a state.** A red border meaning "invalid" is invisible to a colour-blind user and to a screen reader. Pair it with text or an icon — the same rule as M03, and store reviewers notice.
 
 ### Verify it
 
-**Red flag: an icon button with no accessibility label.** Scan the diff for every tappable element whose visible content is an icon, an image or an emoji. Each one needs a label. Then verify the real way: turn TalkBack on, swipe through the screen with your eyes closed, and write down what you hear. If you hear "button" with no name, you found it.
+**Red flag: an icon button with no accessibility label.** Scan the diff for every tappable element whose visible content is an icon or an image. Then verify the real way: turn TalkBack on, swipe through the screen with your eyes closed, and write down what you hear.
 
-**Red flag: fixed heights and widths around text.** Search the styles for fixed height and width values on anything containing text. Then set your phone's font size to maximum and open every screen. Screenshot anything that clips, overlaps or scrolls off.
+**Red flag: fixed heights and widths around text.** Search the styles for fixed height and width on anything containing text, then set the font size to maximum and screenshot anything that clips.
 
-**Red flag: a string typed directly into a screen.** Grep your screens for quoted user-facing text. Each one is a string that will never be translated, because nobody will find it later. Ask AI to list every hardcoded string it can find rather than to fix them — then check the list is complete yourself.
+**Red flag: a string typed directly into a screen.** Each one will never be translated, because nobody will find it later. Ask AI to *list* every hardcoded string rather than fix them, then check the list yourself.
 
-**Red flag: machine-translated Hindi that nobody read.** The test is not technical. Hand the Hindi file to a classmate who speaks Hindi and have them read every string aloud, in order. Mark the ones that make them pause or laugh. Those are your bugs, and no automated check would have found them.
+**Red flag: machine-translated Hindi that nobody read.** Have a classmate who speaks Hindi read every string aloud, in order. The ones that make them pause or laugh are your bugs.
 
-**Red flag: an accessibility "fix" that only adds labels.** Labels are necessary and not sufficient. Also check: can you reach every control by swiping, in a sensible order? Do form errors get announced when they appear? Is the focus sensible after a modal closes? Ask AI to verify the navigation order, not just the naming.
+**Red flag: a "fix" that only adds labels.** Also check that every control is reachable by swiping in a sensible order, that form errors are announced, and that focus is sensible after a modal closes.
 
-**Verify on the actual device settings.** Four settings, one pass: font size at maximum, display size at large, TalkBack on, and the system language set to Hindi. Open every screen in each state. It takes twenty minutes, and it finds more real defects per minute than anything else in this module.
+**Verify on the actual device settings.** Four settings, one pass: font size at maximum, display size at large, TalkBack on, system language Hindi. Twenty minutes, and it finds more real defects per minute than anything else in this module.
 
 ## Walkthrough
 1. On a real Android phone, set the font size and display size to their largest settings. Open every screen in your app and screenshot everything that clips, overlaps or disappears.

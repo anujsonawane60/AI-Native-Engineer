@@ -4,7 +4,7 @@ module: m11-ship-your-mvp
 slug: checkpoint-4-ten-users
 title: "Checkpoint 4 · Ten Users, an Eval Set, a Decision Log and a Technical Demo"
 order: 7
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -24,35 +24,19 @@ last_reviewed: 2026-11-16
 
 **Checkpoint 4 is due in the final week of the Sprint, and it is the terminal gate.** Checkpoint 1 was the PRD and the diagram in week one, Checkpoint 2 the deployed skeleton in week two, Checkpoint 3 auth, data and the AI feature in week three. M11.6 put the product on a name people can type at the start of this week.
 
-This gate is also the hinge into the Company tier. M18's demo day asks each student to present and defend their product individually, with live debugging and an operational handover. Everything you assemble here is what you walk into that room with — which is why this gate is individual in a way the others only hinted at.
-
 ### The pain
 
-Four groups present on the last day.
-
-The first demos beautifully and admits, when asked, that the only people who have ever used it are the three of them. Their product has never met someone who did not already know where to tap.
-
-The second has an impressive eval set: forty cases, every one passing. They wrote it on the last evening by looking at what their feature already produced and writing down that that was correct. It is a photograph of current behaviour labelled "good".
-
-The third has a decision log of twelve entries, all written that morning. Every decision in it turned out well, because the entries were written by people who already knew the ending.
-
-The fourth has eleven users, nineteen eval cases of which five fail, eight dated log entries including two that record mistakes, and a demo slower and uglier than the first group's. They are the only one of the four with a product.
+Four groups present on the last day. The first demos beautifully; its only users are the three of them. The second has forty eval cases, all passing, written last evening from the feature's own output. The third has twelve log entries written that morning, every decision a good one, because the writers knew the ending. The fourth has eleven users, nineteen eval cases of which five fail, eight dated entries including two mistakes, and an uglier demo — and is the only one with a product.
 
 ### The idea
 
-**The final gate does not ask whether your product impresses. It asks whether it has survived contact with people who are not you, and whether you can prove what you learned.**
-
-Four artefacts, each only convincing with a timestamp: users who used it, a rubric written before the output existed, decisions recorded while still uncertain, and a demo where the person speaking understands what they built.
+**The final gate does not ask whether your product impresses. It asks whether it survived contact with people who are not you, and whether you can prove what you learned.**
 
 ### The analogy
 
-The stall has been running a month. Judging day is not the owner tasting their own poha. It is two things at once.
+Ten strangers paid real money at the stall this week and some came back. That evidence cannot be produced on judging day. Separately, the tasting panel works from a **scorecard written before anyone tasted anything**: is it salted, is it the right portion for ₹20.
 
-Ten strangers paid real money this week, and some came back. That is the only evidence that matters about the product, and it cannot be produced on judging day — it accumulated or it did not.
-
-Separately, a tasting panel works from a **scorecard written before anyone tasted anything**: is it hot, is it salted, is it the right portion for ₹20, is it ready in two minutes. It exists in advance so the owner cannot taste their own cooking and conclude, sincerely, that this is how poha should be.
-
-**Where the analogy breaks:** a taster says "needs salt" in one second with no written rubric, because taste is immediate and shared. Model output is not. It is fluent and plausible whatever it says, and a fluent wrong answer reads better than a terse right one. Without a rubric you will rationalise whatever appeared — which is why the eval set must be written first.
+**Where the analogy breaks:** model output is fluent and plausible whatever it says, so without a rubric written first you rationalise whatever appeared.
 
 ### Picture it
 
@@ -78,37 +62,29 @@ Four artefacts, each answering a different question a sceptic asks, none of whic
 
 ### What must exist in the final week
 
-**1. Ten real users from outside your group.** Ten people who are not the three of you, who opened the product on their own device and completed the core action. Record who they are, when they used it, what they did, and what went wrong. Your own accounts do not count. Your mentor does not count. A group chat saying "looks nice" does not count — using it does.
+**1. Ten real users from outside your group**, each on their own device, completing the core action. Record who, when, what they did and what went wrong; your own accounts and your mentor do not count. Record the **drop-offs** too: if fourteen opened and ten finished, those four are what you most need to know.
 
-Record the **drop-offs** too. If fourteen opened it and ten finished, the four who stopped are the most valuable thing you learned all month, and your funnel from M11.6 tells you where.
+**2. An eval set for your AI feature: at least twenty cases, written before you look at the output.** A case is an input, what a good answer **must** contain, and what it **must not**. Write all twenty from your PRD and your users' real requests, then report the pass rate: **at least five should fail**, because real quality here sits between sixty and eighty-five per cent. Include awkward cases on purpose — empty input, Hinglish, out of scope, injection, a number the answer must respect. M10.12.
 
-**2. An eval set for your AI feature: at least twenty cases, written before you look at the output.** The hard requirement of this gate, and the one most groups get wrong.
+**3. A decision log of at least eight entries, dated across the four weeks** — two per week, as the earlier checkpoints asked, each naming what you chose and what you rejected. At least one must record a decision that turned out wrong; a log where everything worked was written in hindsight.
 
-An eval case is three things: an input, what a good answer **must** contain, and what it **must not** contain. Write all twenty from your PRD and your users' real requests, then run them and report the pass rate honestly. **At least five should fail**; if none does, your rubric is too lenient — real quality at this stage sits between sixty and eighty-five per cent, not a hundred.
+**4. A ten-minute technical demo, presented by you** — not the group. Three students, three demos, from their own laptops on the live URL.
 
-Include the awkward cases deliberately: empty input, Hinglish or Marathi if your users write that way, a request that is out of scope, an injection attempt, and a request with a number your feature must respect — "under ₹50" means under ₹50. M10.12 is the full treatment; this gate asks for the smallest honest version.
+- the problem, with a number, in thirty seconds
+- the Checkpoint 1 diagram, and what changed since
+- one request traced tap-to-database through your own named files
+- one failure shown live — the wrong user refused, or a model timeout
+- your north star number, and last week's
+- one thing you rejected in review (M11.4)
+- one thing you would rebuild, and its cost
 
-**3. A decision log with at least eight entries, dated across the four weeks.** Two per week, which is what Checkpoints 1, 2 and 3 asked for. Each entry: what you chose, what you rejected, why, and what you would need to see to change your mind.
-
-At least one entry must record a decision that turned out wrong, and what you did about it. A log where everything worked is a log written with hindsight, and it is obvious from outside.
-
-**4. A ten-minute technical demo, presented by you.** Not the group: you. Three students, three demos, each from their own laptop:
-
-- The problem, with a number in it, in thirty seconds.
-- The architecture diagram from Checkpoint 1, and what changed since week one.
-- One request traced from a tap to the database and back, through your actual code, naming the files — the M00.2 exercise on your own product.
-- One failure demonstrated live: the wrong user refused, or the model timing out. Shown, not described.
-- Your north star number, and what it was last week.
-- One thing you rejected in review, from M11.4, and why.
-- One thing you would rebuild, and its cost.
-
-From your own machine, on the live URL. If any part needs a specific laptop, it is not finished.
+If any part needs a specific laptop, it is not finished.
 
 ### Where it lives
 
-This is the end of the Sprint and the entrance to everything after it. At the Build tier, M12 takes this product to app stores and M13 makes it survive load. At the Company tier, M16 turns your north star into retention cohorts, M17 puts a price on it, and **M18 is this demo again, longer, with live debugging and an operational handover, defended individually**. The eval set you write this week is the baseline every later improvement is measured against.
+The Sprint ends here. App stores in M12, load in M13, retention cohorts in M16 — and **M18 is this demo again, defended individually**.
 
-**Each of you submits your own evidence, and here that is not a formality.** The users are shared; the demo, the trace and the reflection are yours. Three identical submissions is the clearest signal that a group contained one engineer and two passengers.
+**Each of you submits your own evidence:** the users are shared, but the demo, the trace and the reflection are yours.
 
 ### Words to own
 
@@ -126,31 +102,23 @@ This is the end of the Sprint and the entrance to everything after it. At the Bu
 
 ### Tradeoffs and gotchas
 
-**An eval set written after seeing the output is not an eval set.** The order matters more than the size: twelve cases written first beat forty written afterwards. If you have already seen the output, write cases from your users' requests and your PRD rather than from your feature's answers, and say so in your submission.
+**If you have already seen the output**, write cases from your PRD and your users' requests, and say so.
 
-**A hundred per cent pass rate is a red flag, not a result.** The rubric must be specific enough to fail: "mentions a dish on today's menu costing under ₹50" can fail; "gives a helpful suggestion" cannot.
+**Recruiting ten humans takes two days.** Over-recruit, and watch three use it without helping — their confusion is information you cannot get otherwise (M03.4).
 
-**Ten users means ten humans, and recruiting them takes longer than you think.** Budget two days. People say yes and do not follow through; your link arrives during an exam. Over-recruit, and watch at least three of them use it in person without helping. You will want to tap for them. Do not — every second of their confusion is information you cannot get any other way, as in M03.4.
-
-**Do not improve the product during the demo.** Note it, finish, fix it afterwards. The demo is a measurement, and changing the thing while measuring it loses both.
-
-**If you cannot explain a part of your product, say so in the demo.** "This file was generated and I do not fully understand it" is far stronger than a confident invention, and it is the honest position M01.8 asked you to take in review. Inventing an explanation is the one thing an M18 panel reliably catches.
+**Do not improve the product during the demo** — it is a measurement. And if you cannot explain a part of it, say so: a confident invention is what an M18 panel catches.
 
 ### Verify it
 
-Nine checks on your own evidence. Be harsh — this is the last gate before someone else checks.
+Be harsh; this is the last gate before someone else checks.
 
-1. **Count your users by name.** Which ten? On whose device? On what day? If you cannot name them, you do not have ten.
-2. **Check your analytics against your list.** Ten completions from ten distinct people. If the numbers disagree with your list, trust the tool.
-3. **Check the date on your eval file against the date your feature first worked.** If the eval set is newer, say so honestly and add cases from user requests rather than from output.
-4. **Count your eval failures.** Zero means the rubric is too lenient. Rewrite it until something fails.
-5. **Re-run the whole set today.** The pass rate must be reproducible, and anything that used to pass is now a regression worth a log entry.
-6. **Look at the commit dates on your decision log.** Eight entries, four weeks, one recording something that went wrong.
-7. **Do the whole demo once from a machine that is not yours**, on the live URL, with nothing installed.
-8. **Have someone outside the team question you afterwards** — "what happens if the model is down?" is a good one — and answer without notes.
-9. **Trace one request out loud, naming the files.** If you cannot, that is this week's work, and it matters more than any remaining feature.
+1. **Count your users by name**: which ten, on whose device, on what day?
+2. **Check your eval file's date against the date the feature first worked, then count the failures.** Zero means a lenient rubric. Re-run the set today; what used to pass is a regression.
+3. **Look at the commit dates on your decision log.** Eight entries, four weeks, one that went wrong.
+4. **Do the whole demo from a machine that is not yours**, nothing installed, tracing one request aloud by filename.
+5. **Have someone outside the team question you** and answer without notes.
 
-The red flags that end a Sprint badly: a product nobody outside the team has used; an eval set written after seeing the output; a decision log written in one sitting; a demo that only works on one laptop; a feature with no failure state; three identical submissions from one group; and a student who can describe their product but cannot trace a request through it. All are visible from outside, and all are fixable this week if you look today rather than on Friday.
+Red flags: a product nobody outside has used; an eval set written after the output; a log written in one sitting; three identical submissions.
 
 ## Walkthrough
 1. Open `SCOPE.md` and write your north star metric at the top of a fresh page, with the number it currently stands at and the date. Everything below is aimed at moving it.

@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: embeddings-as-coordinates
 title: "Embeddings: Meaning as Coordinates"
 order: 9
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student types "cheap veg lunch" into the canteen app's search box. Nothing comes back.
-
-The canteen sells pongal at ₹40, which is cheap, vegetarian, and served at lunch. But the word "cheap" is not in the dish's name, "veg" is not in its description, and "lunch" is not written anywhere. The search box compares letters, and no letters match. The dish the student wanted is item three on the menu.
-
-The team's first fix is a synonym list. "Veg" matches vegetarian, vegan, no-onion-no-garlic. Then "cheap" needs to mean under fifty rupees. Then a student types "something light after gym" and the whole approach collapses, because that is not a synonym problem. It is a meaning problem, and letters do not carry meaning.
+A student types "cheap veg lunch" into the canteen app's search box and nothing comes back. The canteen sells pongal at ₹40 — cheap, vegetarian, served at lunch — but none of those words appear in its name, and the search box compares letters. A synonym list survives until a student types "something light after gym". That is a meaning problem, and letters do not carry meaning.
 
 ### The idea
 
 **An embedding turns a piece of text into a long list of numbers that works as a position in space, arranged so that things with similar meanings end up near each other.**
 
-Feed "cheap veg lunch" to an embedding model and you get back a few hundred to a few thousand numbers. Feed "pongal, ₹40, rice and lentils" and you get another list. The two lists are close together, even though they share not a single word. Searching by distance instead of by letters is called **semantic search**, and it is one of the highest-value, lowest-effort features a student product can add.
-
-The same trick works on anything that can be embedded: product descriptions, support tickets, images, audio. Similar things sit near each other, and "near" is something a computer can compute in microseconds.
+Feed "cheap veg lunch" to an embedding model and you get a few hundred to a few thousand numbers; feed "pongal, ₹40, rice and lentils" and you get another list. The two land close together despite sharing no words. Searching by distance instead of letters is **semantic search**, and it works on anything embeddable: descriptions, tickets, images, audio.
 
 ### The analogy
 
-Imagine the canteen rearranged its seating so that where you sit encodes what you came for.
+Imagine the canteen rearranged its seating so that where you sit encodes what you came for: far-left for people in a hurry, front rows cheap, back rows expensive, spicy upstairs, mild downstairs. Nobody wrote these rules — the manager learned over years where each kind of customer belongs. A student says "something light after gym" and he matches no keywords; he walks them to front-left-lower, where light, quick, mild and inexpensive lives, and whoever sits nearby is eating roughly what this student wants. That position is an **embedding**, and "look at who is sitting nearby" is **nearest-neighbour search**.
 
-The far-left tables are for people in a hurry; the far-right for people who will sit for an hour. The front rows are cheap food, the back rows expensive. Spicy on the upper tables, mild on the lower. Nobody is told these rules — the manager just learned, over years, where each kind of customer belongs, and seats them accordingly.
-
-Now a new student walks in and says "something light after gym". The manager does not match keywords. He walks them to a spot: front-left-lower, because that is where light, quick, mild, inexpensive lives. And whoever is already sitting nearby is eating roughly what this student wants. That seating position is an **embedding**, and "look at who is sitting nearby" is **nearest-neighbour search**.
-
-**Where the analogy breaks:** the canteen has two dimensions and you can name both axes. A real embedding has hundreds or thousands of dimensions and **not one of them has a name**. There is no "spiciness" axis to inspect. Meaning is spread across all of them in a way no human can read, which is why you cannot debug an embedding by looking at it — you can only test it with queries. And the seating plan was learned from the model's training data, not from your menu, so it reflects the world's general sense of similarity rather than your canteen's.
+**Where the analogy breaks:** the canteen has two dimensions and you can name both axes. A real embedding has thousands and **not one of them has a name**, so you cannot debug an embedding by looking at it, only test it with queries. And the seating plan came from the model's training data, not your menu.
 
 ### Picture it
 
@@ -70,25 +60,14 @@ Now a new student walks in and says "something light after gym". The manager doe
 
 Text becomes a position, similar meanings land near each other, and a query is answered by returning whatever sits closest to it.
 
-### How "near" is measured, and what it does not mean
-
-Distance between two embeddings is usually measured as the angle between them rather than the straight-line gap — **cosine similarity**, which comes out as a number near 1 for "pointing the same way" and near 0 for unrelated. You will see these numbers constantly and you need one habit about them: **a similarity score is a ranking signal, not a truth value.**
-
-A score of 0.83 does not mean 83% correct. It means "closer than the thing scoring 0.79". Nearest-neighbour search always returns something — ask for the top five and you get five results whether or not any of them are relevant. If your canteen has no light vegetarian dish at all, the search will confidently hand you the five least-wrong things on the menu, with respectable-looking scores.
-
-This is the single most common failure in retrieval systems built by beginners, and it is the reason M10 spends a whole chapter on retrieval failure modes. A threshold below which you say "nothing matched" has to be chosen by testing on your own queries, not copied from a tutorial.
+Distance is usually the angle between two embeddings — **cosine similarity**, near 1 for "pointing the same way" and near 0 for unrelated. One habit matters: **a similarity score is a ranking signal, not a truth value.** 0.83 does not mean 83% correct, only "closer than the thing scoring 0.79". Nearest-neighbour search always returns something, so with no light vegetarian dish on the menu it hands you the five least-wrong items at respectable-looking scores. The threshold below which you say "nothing matched" must be chosen by testing your own queries.
 
 ### Where it lives
 
-This is the chapter where several earlier modules join up, so place it carefully.
-
-**Who makes the embedding.** An embedding model, which is a different and much smaller model than a chat model. You call it over the network, or run a small one locally, and you get numbers back. It is cheap — typically far cheaper per token than a chat model — and fast.
-
-**When you make it.** Your documents are embedded once, when they are added or changed. The user's query is embedded at request time, on every search, which means a semantic search costs you one embedding call plus a database lookup.
-
-**Where it is stored.** In a vector column or a vector database, which is M04's territory — a Postgres table with a vector column using pgvector is the standard free-tier answer, and a dedicated vector service is the alternative. The thing stored alongside each vector is the text it came from and an id, because the vector itself is unreadable.
-
-**What it enables.** Retrieval-augmented generation, which is M10 chapters 8 to 12. Embeddings are the "how do I find the right three paragraphs" half of RAG, and this chapter is the foundation under it. Everything in M10 about chunking, hybrid search and reranking assumes you understand that similarity is geometric and approximate.
+- **Who makes it.** An embedding model — far smaller and cheaper than a chat model, and fast.
+- **When.** Documents are embedded once, when added or changed; the query is embedded on every search, so one search costs one embedding call plus a database lookup.
+- **Where it is stored.** A vector column or vector database — pgvector in Postgres is the standard free-tier answer. Store the original text and an id beside each vector, because the vector itself is unreadable.
+- **What it enables.** Retrieval-augmented generation in M10, whose chunking, hybrid search and reranking all assume this geometry.
 
 ### Words to own
 
@@ -109,29 +88,20 @@ This is the chapter where several earlier modules join up, so place it carefully
 
 ### Tradeoffs and gotchas
 
-**The query and the documents must be embedded by the same model.** This is the rule that breaks the most projects. Two embedding models place meaning in completely different, incompatible spaces, so a query embedded by model A and documents embedded by model B produce results that look plausible and are nonsense. If you change embedding models, you must re-embed every document you have — which costs money and time, and is why the choice is worth five minutes of thought rather than none.
-
-**Semantic search is worse than keyword search at some things, and they are things your users do.** Exact product codes, order ids, specific names, phone numbers, prices. "Order 4471" is a letters problem, and embeddings are vague about it. The honest answer in production is almost always hybrid: run both and combine, which is M10.
-
-**Dimensions cost storage and speed.** A 3,072-dimension embedding is four times the storage of a 768 one and slower to search. On a free-tier Postgres with a few hundred megabytes, that difference decides how many documents you can hold. Bigger is not automatically better here either.
-
-**Embeddings inherit every bias in their training data.** The geometry of meaning was learned from text written by people, with all of that text's assumptions baked in. Associations between names, places, castes, genders and professions sit in the space whether you want them or not, and a recommendation built on nearness will reproduce them quietly. This is M07's concern and chapter 16's, and it starts here rather than in the chat model.
-
-**Chunk size changes everything downstream.** Embedding a whole 40-page document into one vector averages its meaning into mush. Embedding each sentence separately loses the context around it. Getting this right is most of what makes a retrieval system good, and it is M10's work — but the reason it matters is this chapter's geometry.
+- **The query and the documents must be embedded by the same model** — the rule that breaks the most projects. Two models place meaning in incompatible spaces, so mixing them gives plausible nonsense, and switching means re-embedding everything you have.
+- **Semantic search is worse than keyword search at things your users do**: order ids, product codes, prices. "Order 4471" is a letters problem, so the production answer is usually hybrid.
+- **Dimensions cost storage and speed.** A 3,072-dimension embedding is four times the storage of a 768 one, which on a free-tier database decides how many documents you can hold.
+- **Embeddings inherit every bias in their training data.** Associations between names, places, castes, genders and professions sit in the space whether you want them or not.
+- **Chunk size changes everything downstream.** One vector for a 40-page document averages its meaning into mush; one per sentence loses the surrounding context.
 
 ### Verify it
 
-**Red flag: a similarity score treated as a confidence or a correctness percentage.** Ask what score your known-irrelevant queries get. If a nonsense query scores 0.74 against your best document, then 0.74 means nothing and your threshold is fiction.
-
-**Red flag: no threshold and no "nothing found" path.** Ask the direct question: what does this return when the answer genuinely is not in my data? If the answer is "the top five anyway", you have a system that cannot say "I do not have that", and it will mislead users in exactly the situation where being honest mattered most.
-
-**Red flag: different models for query and documents.** Ask explicitly which embedding model embeds the documents and which embeds the query, by exact name. They must match. Also ask what happens if you later switch — the honest answer involves re-embedding everything.
-
-**Red flag: an invented embedding model name or dimension count.** Same red flag as chapters 5 and 7, in a new place. Check the exact name and its dimension count on the provider's own page.
-
-**Red flag: no mention of keyword search anywhere.** If a plan proposes pure semantic search for a product where users type order numbers and dish names, it has an obvious gap. Ask how "order 4471" is handled.
-
-And the test you run yourself, which takes fifteen minutes and is worth more than any amount of reading: write down twenty real queries your users would actually type, including three in your users' own language, three with spelling mistakes, three asking for something you genuinely do not have, and two containing an exact code or number. Run all twenty. Record, for each, whether the right thing came back in the top three. That table is your honest measurement — chapter 3's discipline applied to retrieval — and it is the only thing that tells you whether this feature works.
+- **A similarity score treated as a confidence or a percentage.** Ask what your known-irrelevant queries score; if nonsense scores 0.74, then 0.74 means nothing.
+- **No threshold and no "nothing found" path.** Ask what this returns when the answer is genuinely not in your data. "The top five anyway" means a system that cannot say "I do not have that".
+- **Different models for query and documents.** Ask by exact name which model embeds each; they must match.
+- **An invented embedding model name or dimension count.** Check both on the provider's own page.
+- **No mention of keyword search anywhere.** Ask how "order 4471" is handled.
+- **Check yourself:** run twenty real queries — three in your users' language, three misspelled, three with no answer in your data, two with an exact code — and record whether the right item came back in the top three.
 
 ## Walkthrough
 1. Write down five real search queries your users would type in their own words. Then write the exact text of the items in your data that should match them.

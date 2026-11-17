@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: wifi-ble-lora-mqtt
 title: "Wi-Fi, BLE, LoRa and MQTT"
 order: 11
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,25 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Three nodes, three different outcomes. The one on the canteen counter works perfectly on the canteen Wi-Fi. The one in the cold store, 300 metres away through two brick walls, connects for an hour and then drops for the rest of the day. And the one the agriculture department wanted in a grape field four kilometres out has no Wi-Fi within reach at all, no mains, and a battery that the Wi-Fi radio flattens in two days of trying to reconnect.
+Three nodes, three outcomes. The one on the canteen counter works perfectly on the canteen Wi-Fi. The one in the cold store, 300 metres away through two brick walls, connects for an hour and drops for the day. And the one in a grape field four kilometres out has no Wi-Fi in reach, no mains, and a battery the Wi-Fi radio flattens in two days of trying to reconnect.
 
-Then the server side goes wrong in a quieter way. The nodes that do report sometimes send the same reading twice, because the node was not sure its message got through and tried again. Sometimes a reading from 2:10 pm arrives after the one from 2:11 pm. Sometimes a node is silent for four hours and then dumps everything it buffered. The dashboard shows a tidy line chart, which is a lie.
+The server side goes wrong more quietly. Nodes send the same reading twice, because the node was unsure its message got through. A reading from 2:10 pm arrives after the one from 2:11. A node goes silent for four hours and then dumps everything it buffered. The dashboard shows a tidy line chart, which is a lie.
 
-Radios and messaging are two separate choices, both easy to get wrong, and both of them wrong in ways that look like software bugs.
+Radios and messaging are two separate choices, both easy to get wrong in ways that look like software bugs rather than physics.
 
 ### The idea
 
 **Pick the radio from range, power and payload size; then pick the messaging pattern, which for devices is almost always publish and subscribe through a broker.**
 
-Four radios cover nearly everything a student will meet. Wi-Fi: tens of metres, high data rate, power-hungry, needs credentials for each site. Bluetooth Low Energy: ten metres or so, very low power, but it needs a phone or a gateway nearby to be useful. LoRa: kilometres, extremely low power, and payloads of tens of bytes sent a few times an hour. Cellular, including the low-power variants, works wherever a SIM works and costs money per node per month.
+Four radios cover nearly everything a student will meet — Wi-Fi, Bluetooth Low Energy, LoRa and cellular — and the first diagram below places each on range against power. Read it in bytes rather than adjectives: LoRa's tens of bytes a few times an hour rule out designs Wi-Fi would carry without noticing.
 
-Then MQTT. A device publishes a short message to a named topic on a broker, and anything interested subscribes to that topic. This is exactly M05's publish and subscribe, shrunk to fit a device with half a megabyte of memory, and the mental model transfers completely.
+Then MQTT. A device publishes a short message to a named topic on a broker, and anything interested subscribes to that topic — exactly M05's publish and subscribe, shrunk to fit half a megabyte of memory.
 
 ### The analogy
 
-Canteen communications. Shouting across the table reaches the next person and nobody else — that is BLE. The kitchen intercom reaches every room in the building and runs off the mains — that is Wi-Fi. The notice board at the main gate can be read by the whole campus, but it holds one short line and gets rewritten twice a day — that is LoRa. And the order spike where each cook watches only the slips for their own station, while the biller clips slips on without knowing who will read them, is MQTT: topics, publishers and subscribers.
+Canteen communications. Shouting across the table reaches the next person and nobody else — BLE. The kitchen intercom reaches every room and runs off the mains — Wi-Fi. The notice board at the gate can be read by the whole campus, but holds one short line and is rewritten twice a day — LoRa. And the order spike, where each cook watches only their own station's slips while the biller clips slips on without knowing who reads them, is MQTT.
 
-**Where the analogy breaks**, and this is the break that costs student projects the most: the intercom does not flatten its own battery. A radio is often the largest single consumer in a battery node, and connecting is more expensive than transmitting — a Wi-Fi node that wakes, scans, associates, gets an address and does a TLS handshake has spent most of its energy before it sends a single byte. Second, the notice board holds one line because somebody chose that; LoRa holds tens of bytes because of physics and regulation, and no amount of wanting will make it carry a firmware update.
+**Where the analogy breaks**, and this costs student projects the most: the intercom does not flatten its own battery. A radio is often the largest consumer in a battery node. And the notice board holds one line by choice, while LoRa holds tens of bytes because of physics and regulation — no amount of wanting will make it carry a firmware update.
 
 ### Picture it
 
@@ -92,11 +92,9 @@ Duplicates, gaps, reordering and bursts are ordinary behaviour for devices rathe
 
 ### Where it lives
 
-This is M05 with a radio attached. The queue and pub/sub chapter gave you the pattern, the delivery guarantees and the reason at-least-once delivery means duplicates. MQTT's quality-of-service levels are the same three options you already met: fire and forget, at least once, and exactly once at the cost of extra round trips. Most device fleets use at-least-once and make every write idempotent, which is the same conclusion M05 reached.
+This is M05 with a radio attached. MQTT's quality-of-service levels are the three options you already met: fire and forget, at least once, and exactly once at the cost of extra round trips. Most fleets use at-least-once and make every write idempotent, which is the conclusion M05 reached. M02 is the other half: MQTT runs over TLS only when you configure it, and on the default port credentials cross the network in the clear.
 
-M02 is the other half. MQTT normally runs over TCP, and over TLS when you configure it to — on the default unencrypted port everything including credentials crosses the network in the clear. That is chapter 12's subject and it starts here.
-
-Indian specifics worth knowing. The 865 to 867 MHz band is available licence-free for low-power devices, which is why LoRa deployments for agriculture and cold chain are practical here; a single gateway on a tall building or a solar pole can cover a cluster of villages. Cellular low-power coverage depends entirely on the operator in that district, so it is a thing to verify on the ground rather than from a coverage map. And for a cold-chain truck moving between districts, cellular is usually the only honest answer, with buffering for the stretches with no signal.
+The 865 to 867 MHz band is licence-free in India for low-power devices, which is why LoRa deployments for agriculture and cold chain are practical here; one gateway on a tall building or solar pole covers a cluster of villages. Cellular coverage depends on the district's operator, so verify it on the ground. Everything in this chapter is free: an in-browser simulator plus a hosted test broker.
 
 ### Words to own
 
@@ -119,29 +117,25 @@ Indian specifics worth knowing. The 865 to 867 MHz band is available licence-fre
 
 ### Tradeoffs and gotchas
 
-**Connecting costs more than sending.** On Wi-Fi, scan plus association plus address plus TLS handshake can dominate a node's energy use. A node that reports every ten seconds and one that reports once an hour may have nearly the same battery life if the second one reconnects each time.
+**Connecting costs more than sending.** On Wi-Fi, scan plus association plus address plus TLS handshake can dominate a node's energy use. A node reporting every ten seconds and one reporting hourly may have nearly the same battery life if the second reconnects each time.
 
-**LoRa cannot carry what people assume.** Tens of bytes, a few messages an hour, with duty-cycle limits. No JSON blobs, no images, no firmware updates. Designs that reach for LoRa for range and then send structured text are the most common failure in this chapter.
+**LoRa cannot carry what people assume.** Tens of bytes, a few messages an hour, with duty-cycle limits. No JSON blobs, no images, no firmware updates. Reaching for LoRa for range and then sending structured text is the commonest failure here.
 
-**BLE always needs something nearby.** It is a superb link between a sensor and a phone in the same room and a non-answer for an unattended node, unless you are also deploying a gateway.
+**At-least-once means duplicates, always.** Plan for them with an identifier per reading and writes that tolerate repetition. Exactly-once costs more round trips and still does not save you from a node that resends after a reboot.
 
-**At-least-once means duplicates, always.** Plan for them with an identifier per reading and writes that tolerate repetition. The alternative — exactly-once delivery — costs more round trips and more battery, and still does not save you from a node that resends after a reboot.
+**Nodes boot with no clock at all.** A microcontroller with no network time thinks it is 1 January 1970, so timestamp at the server as well as the device and keep both.
 
-**Clocks drift and nodes boot with no clock at all.** A microcontroller with no network time thinks it is 1 January 1970. Timestamp at the server as well as the device, and keep both.
-
-**Per-site Wi-Fi credentials do not scale.** Nine fridges in one canteen is fine. Two hundred nodes across forty villages, each with a different access point and a password that changes, is an operational problem that pushes you to cellular or LoRa for reasons that have nothing to do with radio physics.
+**Per-site Wi-Fi credentials do not scale.** Nine fridges in one canteen is fine; two hundred nodes across forty villages pushes you to cellular or LoRa for non-radio reasons.
 
 ### Verify it
 
-**Red flag: LoRa plus a large payload.** The diagnostic test of this chapter. If a design chooses LoRa for range and then sends anything longer than a few dozen bytes, or proposes firmware updates over it, the author does not know what LoRa is. Ask for the payload size in bytes and the messages per hour, and check them against the duty-cycle limit.
+**Red flag: LoRa plus a large payload.** The diagnostic test of this chapter. A design that chooses LoRa for range and then sends more than a few dozen bytes, or proposes firmware updates over it, does not know what LoRa is. Ask for payload size in bytes and messages per hour, against the duty-cycle limit.
 
 **Red flag: MQTT on the default unencrypted port.** Ask whether TLS is used, which port, and how the device authenticates. "Username and password over port 1883" means the credentials are readable by anyone on the path.
 
-**Red flag: one shared credential for the whole fleet.** Ask whether each device has its own identity. One shared password means one compromised device compromises every device, and you cannot revoke a single node.
+**Red flag: one shared credential for the whole fleet.** Ask whether each device has its own identity. One shared password means one compromised device compromises all of them.
 
-**Red flag: no handling for duplicates, gaps or reordering.** Ask what the server does with the same reading arriving twice, and what the dashboard shows when a node is silent for four hours. If the answer is "it won't happen", the design has not met a real device.
-
-**Red flag: permanent connectivity assumed.** Ask what the node does while offline: buffer how many readings, in what memory, and what it discards when full. A node with no offline story loses exactly the data from the incident you cared about.
+**Red flag: permanent connectivity assumed.** Ask what the node does while offline: buffer how many readings, where, and what it discards when full. A node with no offline story loses exactly the data from the incident you cared about.
 
 ## Walkthrough
 1. Open a free hosted MQTT test broker's web client. Subscribe to a topic under a prefix you invent for yourself, so you are not reading other people's traffic.

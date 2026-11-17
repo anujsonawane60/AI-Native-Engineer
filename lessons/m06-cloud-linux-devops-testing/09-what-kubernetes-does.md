@@ -4,7 +4,7 @@ module: m06-cloud-linux-devops-testing
 slug: what-kubernetes-does
 title: "Orchestration: What Kubernetes Does, and When You Do Not Need It"
 order: 9
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team watches a conference talk and decides their canteen app needs Kubernetes. Three weeks later they have a cluster, four YAML files nobody fully understands, an ingress controller that intermittently returns 502, and a monthly bill because a managed control plane is usually not free. The app itself has not changed since week one and has eleven users.
+A team watches a conference talk and decides their canteen app needs Kubernetes. Three weeks later they have a cluster, four YAML files nobody fully understands, an ingress returning 502s, and a monthly bill, because a managed control plane is rarely free. The app has eleven users.
 
-A different team on the other side of the room has forty containers of a real product across twelve machines, deployed by hand. They cannot say which machine is running what. When one machine dies at 2 a.m. nobody notices, because the only person who knows which containers were on it is asleep. Rolling out a new version means visiting twelve machines in order and remembering where you got to.
-
-The first team has a solution with no problem. The second has a problem with no solution. Orchestration is the answer to the second team's situation and an expensive mistake in the first's — and the only skill that matters in this chapter is telling which situation you are in.
+A different team has forty containers across twelve machines, deployed by hand. Nobody can say which machine runs what, and when one dies at 2 a.m. nobody notices. The first team has a solution with no problem; the second has a problem with no solution. The only skill in this chapter is telling which one you are in.
 
 ### The idea
 
 **Orchestration is what you need when you have more containers than you can keep in your head, running across more machines than you want to visit by hand.**
 
-You stop issuing instructions and start declaring an outcome: "three copies of this image, reachable on this address, restarted if they die, replaced one at a time when the image changes." Something then works continuously to make reality match that declaration. Kubernetes is the dominant implementation of that idea, which is why it is worth understanding — and not the same question as whether you should run one.
+You stop issuing instructions and start declaring an outcome: "three copies of this image, on this address, restarted if they die, replaced one at a time when the image changes." Something then works continuously to make reality match it. Kubernetes is the dominant implementation, which is worth understanding — a different question from whether you should run one.
 
 ### The analogy
 
-A single canteen counter needs no management system. The cook knows what is cooking.
+A single counter needs no management system; the cook knows what is cooking. A caterer running twelve counters for a festival cannot hold it in their head, so they write a plan: two servers per counter, a replacement pulled from the pool if someone misses a shift, counters switched to the new menu one at a time so the queue never stops, a runner reporting anyone missing. The plan is the desired state; the runner checking and fixing is the control loop. Writing that plan for one counter would be absurd: the plan costs a planner.
 
-A caterer running twelve counters across a campus for a festival cannot hold it in their head. So they write a plan: every counter has two servers; if someone does not turn up, pull a replacement from the pool; when the menu changes, switch counters over one at a time so the queue never stops; a runner checks each counter every few minutes and reports anyone missing.
-
-The plan is the desired state. The runner checking and fixing is the control loop. The caterer no longer tells individuals what to do; they maintain the plan and the system makes reality match it.
-
-And writing that plan for a single counter would be absurd. The plan costs a planner. For twelve counters the planner is cheaper than the chaos; for one counter the planner is pure overhead.
-
-**Where the analogy breaks:** the caterer's runner uses judgement — they can tell a sulking server from an absent one. A control loop compares a number to a number. If you declare three copies and one is wedged but still answering its health check, the loop sees three and is satisfied. Orchestration keeps the *count* right, not the *product* working, which is why the monitoring in M07 is a separate job and not a free consequence.
+**Where the analogy breaks:** the runner uses judgement; a control loop compares a number to a number. Declare three copies, and if one is wedged but still answering its health check, the loop sees three and is satisfied. Orchestration keeps the *count* right, not the *product* working.
 
 ### Picture it
 
@@ -70,43 +62,20 @@ And writing that plan for a single counter would be absurd. The plan costs a pla
 
 You declare the outcome you want, and a loop repeatedly compares reality to that declaration and takes the smallest action that closes the gap.
 
-### What it actually does for you
-
-Six jobs, and it is worth knowing them because your platform does most of them for you already and you should know what you are getting.
-
-**Scheduling.** Deciding which machine has room for a new container, so you never choose.
-
-**Self-healing.** Restarting a dead container and replacing one on a dead machine. Chapter 2's systemd, at cluster scale.
-
-**Scaling.** Adding or removing copies, by a rule or by hand. M05's horizontal scaling, automated.
-
-**Service discovery.** Giving a stable internal name to a set of copies whose addresses keep changing, so your app can find the database without knowing which container it is today.
-
-**Rolling updates.** Replacing v7 with v8 one copy at a time, stopping if the new ones fail — and rolling back. Chapter 12's deployment, done carefully.
-
-**Configuration and secrets.** A defined place for environment values and credentials, injected at run time rather than baked in, which is chapter 8's rule enforced by the system.
-
-Read that list and notice: your zero-config platform from chapter 6 already gives you all six. That is the point. Orchestration is not optional in any serious system — but a managed platform is orchestration, operated by someone else.
-
-### When you actually need to run one
-
-Four honest signals. You need roughly two of them before a cluster earns its cost.
-
-**More than a handful of distinct services.** Not copies of one app — genuinely different components with their own lifecycles.
-
-**Real traffic with a shape.** Predictable peaks that make automated scaling worth more than a bigger fixed instance.
-
-**A dedicated person.** Someone whose job includes the cluster. A cluster with no owner degrades into a cluster nobody can safely change.
-
-**A constraint the platform cannot meet.** A specific region, a hardware requirement, a compliance rule, a workload the platform rejects.
-
-What is *not* a signal: wanting it on your CV, a conference talk, a blog post about scale you do not have, or a plan to be ready for a million users you do not have. M13 covers Kubernetes properly, for the students who get to the point of needing it, and by then the four signals will have decided it rather than enthusiasm.
-
 ### Where it lives
 
-Orchestration sits one level above chapter 8's containers and one level below the platforms in chapter 6. Chapter 2's service manager keeps one process alive on one machine; a container runtime keeps one container alive; orchestration keeps many containers alive across many machines. Same idea, three scales.
+Orchestration sits above chapter 8's containers and below chapter 6's platforms: chapter 2's service manager keeps one process alive on one machine, a container runtime keeps one container alive, orchestration keeps many alive across machines.
 
-M05's load balancers, replicas and health checks are what orchestration automates. M07's logs and metrics become essential rather than nice, because with containers starting and stopping constantly there is no machine to log into. Chapter 13's infrastructure-as-code is how clusters are actually created once you have one.
+| The six jobs it does | What that means |
+|---|---|
+| Scheduling | Which machine has room for a new container |
+| Self-healing | Restart a dead container; replace one on a dead machine |
+| Scaling | Add or remove copies |
+| Service discovery | A stable name for copies whose addresses change |
+| Rolling updates | Replace v7 with v8 one copy at a time, with rollback |
+| Config and secrets | Values injected at run time, not baked in |
+
+Your zero-config platform already gives you all six: orchestration is not optional in a serious system, but a managed platform is orchestration run by someone else.
 
 ### Words to own
 
@@ -127,26 +96,21 @@ M05's load balancers, replicas and health checks are what orchestration automate
 
 ### Tradeoffs and gotchas
 
-**Kubernetes is a solution to a coordination problem, and it costs you a coordination problem of its own.** Networking, storage classes, ingress, permissions, YAML. The complexity does not vanish; it moves from "which machine was that on" to "why is the ingress returning 502". For a team with the first problem that is a good trade. For a team without it, it is pure cost.
-
-**A managed control plane is usually not free, and the cheap cluster is not cheap.** Chapter 7's lesson applies directly: a cluster is several metered resources at once, several of which run whether or not anyone uses your app. This is one of the easiest ways for a student team to produce a monthly bill.
-
-**Health checks are the part everyone gets wrong, and they matter most.** A check that only proves the process is alive will keep a wedged copy in rotation forever. A check that queries the database will take your whole app down when the database hiccups. The distinction between "am I alive" and "am I ready for traffic" is the single most useful detail in the whole system.
-
-**The count being right is not the product working.** Three healthy pods serving a 500 to every user is a perfectly satisfied control loop. Monitoring is a separate job.
-
-**Choosing it for your CV is visible and costs you marks.** In M18's defence you will be asked why you chose your architecture. "Three containers across two machines, because our product is one web app and a database, and the platform does rolling deploys for us" is a strong answer. A cluster you cannot explain is the weakest answer available, and it is immediately obvious.
+- **You need about two of four signals before a cluster earns its cost:** more than a handful of genuinely distinct services, traffic with a predictable shape, a dedicated person whose job includes the cluster, a constraint the platform cannot meet.
+- **Kubernetes solves a coordination problem and costs you one of its own** — networking, storage classes, ingress, permissions, YAML. The complexity moves from "which machine was that on" to "why is the ingress returning 502".
+- **A managed control plane is usually not free.** A cluster is several metered resources at once, most running whether or not anyone uses your app.
+- **Health checks are the part everyone gets wrong.** A check that only proves the process is alive keeps a wedged copy in rotation forever; a check that queries the database takes your app down when the database hiccups. "Am I alive" versus "am I ready for traffic" is the system's most useful distinction.
 
 ### Verify it
 
-AI over-recommends orchestration more reliably than almost anything else, because the training data is full of writing by people who needed it. Four checks.
+AI over-recommends orchestration more reliably than almost anything else.
 
-1. **Make it answer "what breaks today without this?"** Not at a million users. Today, with your actual traffic. If the answer is nothing, you have a solution looking for a problem.
-2. **Make it compare against doing nothing.** Ask for a second option: staying on your current platform, and what specifically you would hit first. An agent that cannot argue the simple case has not evaluated it.
-3. **Make it price the control plane and the nodes, per chapter 7's rules.** Numbers, meters, and a page to check. "Managed Kubernetes is affordable" is not a cost estimate.
-4. **Ask who operates it and what happens when they are in an exam.** A three-person team with two hours a day does not have an on-call rota. Name the person or do not build it.
+1. **Make it answer "what breaks today without this?"** Not at a million users — today, with your traffic. If the answer is nothing, it is a solution looking for a problem.
+2. **Make it compare against doing nothing.** Ask what you would hit first by staying put; an agent that cannot argue the simple case has not evaluated it.
+3. **Make it price the control plane and the nodes,** per chapter 7: numbers, meters, a page.
+4. **Ask who operates it, and what happens when they are in an exam.** Name a person or do not build it.
 
-Red flags: Kubernetes recommended for a project with no users; YAML generated without the health checks explained; an answer that treats scaling as the main benefit when your traffic is flat; a cost claim with no numbers or no date; and an architecture whose stated justification is future scale rather than a present problem.
+Red flags: Kubernetes for a project with no users; YAML with health checks unexplained; scaling as the main benefit when traffic is flat; a cost claim with no numbers; an architecture justified by future scale or by a CV rather than a present problem.
 
 ## Walkthrough
 1. Write down, honestly, how many distinct services your product has — not copies, distinct components — and how many machines they run across. Most teams write "one" and "zero, the platform handles it".

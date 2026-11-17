@@ -176,7 +176,8 @@ platform sections:
 
 ### Writing rules
 
-- **Length:** 1,200–2,000 words in `## Lesson`. Orientation chapters run short (~1,100); system-design chapters run long.
+- **Length:** 700–1,100 words in `## Lesson`. This is a hard ceiling, not a target to fill. The platform carries the scaffolding — the mental model, the diagram, the vocabulary, the verification discipline. Depth is carried by the student's own AI tutor via the prompts, which is why every chapter ships three of them.
+- **Cut noise, keep signal.** Noise is: the same point restated, two paragraphs where one works, a second example after a good first one, throat-clearing transitions, hedging, and `###` sections that duplicate the eight-part skeleton. Signal is: the pain in 2–3 sentences, the one-sentence idea, the analogy and where it breaks, every ASCII diagram, every table, the tradeoffs, and the Verify-it checks with their red flags.
 - **Reading level:** plain English for a second-year student reading in their second language. Short sentences. One idea per paragraph.
 - **Define before use.** No term appears before its definition.
 - **Concrete first.** A story or number before the abstraction.

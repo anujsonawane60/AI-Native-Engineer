@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: transactions-migrations-backups
 title: "Transactions, ACID, Migrations and Backups"
 order: 11
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,37 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student pays ₹240 by UPI for a canteen order. The server does three writes: deduct ₹240 from the wallet, mark the order paid, reduce the stock of two samosas.
+A student pays ₹240 by UPI. The server does three writes: deduct ₹240 from the wallet, mark the order paid, reduce the stock of two samosas. The first two succeed; the third fails because the connection dropped. The student has been charged, the order says paid, and the stock still promises two sold samosas — and nobody is watching.
 
-The first write succeeds. The second write succeeds. The third fails, because the free-tier database connection dropped at exactly that moment. Nobody is watching.
-
-The student has been charged, the order says paid, and the stock says there are still two samosas that have already been promised. The next student orders those same samosas. The canteen is short, somebody is refunded by hand, and the team spends an hour reconstructing what happened from screenshots.
-
-A worse version of the same week: a migration. AI is asked to add a required `phone` column to `users`. It writes a migration that adds the column as `NOT NULL`. It runs on the developer's empty database perfectly. It runs on the deployed database, where 180 users already exist with no phone number, and fails halfway — leaving the schema in a state neither the old code nor the new code expects. The app is down during lunch.
-
-And the third version, the one that ends projects: somebody runs a cleanup script against the production database instead of the scratch one. There is a backup. Nobody has ever restored it, and it turns out to be of a different database.
+The same week has two more versions: a `NOT NULL` phone column that works on an empty dev database and fails on the deployed one with 180 phone-less users, and a cleanup script run against production where the never-tested backup turns out to be of a different database.
 
 ### The idea
 
 **A transaction makes several writes behave as one: all of them happen, or none of them do.**
 
-That is it. The three-write payment above, wrapped in a transaction, cannot end up half-done — if the stock update fails, the wallet deduction and the order status are undone automatically, as if nothing happened.
+Wrapped in a transaction, the payment above cannot end up half-done.
 
-**ACID** is the four-letter name for the guarantees a relational database gives you around that. **Atomic**: all or nothing. **Consistent**: constraints from chapter 6 hold at the end. **Isolated**: two transactions running at once do not see each other's half-finished work. **Durable**: once it says committed, it survives the server losing power.
-
-A **migration** is a recorded, reviewable change to your schema. A **backup** is a copy you have actually restored from at least once; anything else is a hope.
+**ACID** names the four guarantees. **Atomic**: all or nothing. **Consistent**: chapter 6's constraints hold at the end. **Isolated**: two transactions at once do not see each other's half-finished work. **Durable**: once committed, it survives a power cut. A **migration** is a recorded, reviewable schema change; a **backup** is a copy you have actually restored from.
 
 ### The analogy
 
-The canteen manager records a sale in three places: the cash register, the order register, and the stock register.
+The canteen manager records a sale in three places: the cash register, the order register and the stock register. A transaction is the rule that she makes all three entries or none — money recorded with stock not is her Sunday reconciliation. Isolation is why two staff cannot both sell the last plate of biryani. A migration is adding a column to a register that already has 180 filled rows.
 
-A transaction is the rule that she makes all three entries or none. If the stock register is missing when she gets to it, she scratches out the first two. The alternative — money recorded, stock not — is the state she spends her Sundays reconciling.
-
-Isolation is why two staff cannot both sell the last plate of biryani. The first one's half-finished sale is invisible to the second, and the register will not accept a second sale of the same plate.
-
-A migration is adding a new column to a register that already has 180 filled rows. You cannot just draw a line and declare the column compulsory — the 180 existing rows have nothing in it. You must decide what goes in them first.
-
-**Where the analogy breaks:** the manager can always see the whole register and notice a half-written line. A database with a half-finished write looks completely normal. Nothing is highlighted, no error appears anywhere, and you discover it when a student complains two days later. The absence of a visible symptom is exactly why the guarantee has to be built into the write rather than checked afterwards.
+**Where the analogy breaks:** she can spot a half-written line. A database with a half-finished write looks completely normal — no error anywhere, and you find out when a student complains two days later. That missing symptom is why the guarantee must be built into the write.
 
 ### Picture it
 
@@ -72,43 +58,17 @@ A migration is adding a new column to a register that already has 180 filled row
 
 Three writes left to themselves can stop halfway and leave the data inconsistent with no error anywhere; the same three inside a transaction either all take effect or are all undone.
 
+Migrations need the same care across three deploys, because old code keeps running while the new schema arrives.
+
+| Step | What you do |
+|---|---|
+| Expand | Add the column nullable or with a default — old code ignores it |
+| Migrate | Backfill existing rows, in batches if there are millions |
+| Contract | Only now make it `NOT NULL` and drop whatever it replaced |
+
 ### Where it lives
 
-Transactions live in your server code, wrapped around the database calls — the arrow between the server and data boxes from M00. The guarantee comes from the database, but deciding which writes belong together is a judgement your server makes.
-
-The rule of thumb: **any two writes that would embarrass you if only one happened belong in one transaction.** Money and status. An order and its line items. A user and their default settings. Deducting stock and creating a reservation.
-
-Chapter 17 is where this becomes unavoidable, because a payment plus an order status update is the canonical example, and a half-done one is a student charged for nothing. Chapter 16's background jobs are the other half: work that cannot be in the transaction — sending an email, resizing an image — goes into a queue, and the queue insert *is* part of the transaction.
-
-Migrations connect forward to M06, where they run as part of your deploy. Backups connect to M07, where losing data is an incident with a response procedure.
-
-### Migrations on a database that already has rows
-
-This is where AI output fails most often, because AI usually runs its migration against a database with no data, and your deployed one has 180 users.
-
-The pattern that works is **expand, migrate, contract** — three deploys instead of one.
-
-**Expand.** Add the new column as nullable, or with a default. Nothing breaks: old code ignores it, new code can write it.
-
-**Migrate.** Backfill the existing rows. For 180 rows one statement is fine; for 2 million, do it in batches so you do not lock the table for minutes.
-
-**Contract.** Only now, once every row has a value and the new code is deployed, make it `NOT NULL` and remove whatever old column it replaced.
-
-Four rules go with it. Every migration gets a plan for existing rows. Renaming a column is add, copy, switch readers, drop — never one step, because the old code is still running during the deploy. Every migration is a file in git, reviewed, run in order. And you never edit a migration that has already run; you write a new one.
-
-The question to ask any AI-written migration is blunt: **what happens to the 180 rows that are already there?** If the answer is "the migration fails", you have found the lunchtime outage before it happens.
-
-### Backups, honestly
-
-Your free-tier database probably takes automatic backups with a retention of a few days. That is genuinely useful and it is not a backup strategy, because of three things nobody checks.
-
-**Have you restored one?** An untested backup has an unknown success rate. Restore into a scratch database once, this month, and time how long it takes. That number is your recovery time, and you will want to know it before you need it.
-
-**How much data would you lose?** If backups are daily at 2 a.m. and the database dies at 1 p.m., you have lost eleven hours. For a student project that may be acceptable — but it should be a decision, not a discovery.
-
-**What is not in it?** Files in object storage from chapter 15 are usually not in a database backup. Nor are your environment variables or your deploy platform's configuration. A restore that brings back rows pointing at images that no longer exist is a partial recovery.
-
-One habit prevents most disasters and costs nothing: **separate your scratch database from your real one, with visibly different connection strings, and never give an agent the production one.** M00's permission model exists for exactly this.
+Transactions live in your server code, around the database calls — the arrow between M00's server and data boxes. The guarantee comes from the database, but **any two writes that would embarrass you if only one happened belong in one transaction.** Chapter 17 makes this unavoidable, chapter 16 takes the slow work out, M06 runs migrations in your deploy, M07 treats lost data as an incident.
 
 ### Words to own
 
@@ -127,30 +87,26 @@ One habit prevents most disasters and costs nothing: **separate your scratch dat
 
 ### Tradeoffs and gotchas
 
-**Do not put slow or external work inside a transaction.** Sending an email, calling a payment API, resizing an image — each holds locks open while it waits, and if it takes eight seconds your other writers queue behind it. Write the row, queue the job, commit. Chapter 16 exists partly for this reason.
+**Do not put slow or external work inside a transaction.** An email, a payment API call, an image resize — each holds locks open while it waits, and other writers queue behind it. Write the row, queue the job, commit.
 
-**Transactions do not span services.** This is chapter 5's cost made concrete: two writes in two services cannot be made atomic, and the repair patterns are genuinely hard. One database, one transaction, is a feature of a monolith.
+**Isolation is not absolute.** The default level prevents the obvious disasters and still permits surprising interleavings. The guard for "two students bought the last samosa" is a constraint or a conditional update that fails the second writer.
 
-**Isolation is not absolute.** The default level prevents the obvious disasters and still permits some surprising interleavings. The practical guard for "two students bought the last samosa" is a constraint or a conditional update that fails the second writer, not an assumption that reading-then-writing is safe.
+**AI writes migrations against an empty database.** Say so in every brief: "the deployed table has N rows; tell me what happens to them." `NOT NULL` with no default fails outright, with a default it can lock a large table, and dropping a column is irreversible.
 
-**A migration that cannot be rolled back needs a written plan.** Dropping a column is irreversible. Before a destructive migration, know what your backup covers, and prefer stopping reading a column for a week before you drop it.
-
-**AI writes migrations against an empty database.** Say so in your brief, every time: "the deployed database has N rows; tell me what happens to them." `NOT NULL` with no default will fail outright; `NOT NULL` with a default can lock a large table. The shape of the change depends on the data already there.
-
-**Never point an agent at production.** This is not a style preference. One careless cleanup script is the single most common way a student project loses a month.
+**Never point an agent at production.** Keep scratch and real visibly different. One careless cleanup script is the commonest way a student project loses a month.
 
 ### Verify it
 
-Six checks, and the fourth is the one almost nobody does.
+Six checks; the fourth is the one almost nobody does.
 
-1. **Find the writes that must go together and confirm they are in one transaction.** List every endpoint that writes to more than one table and read each one. Money endpoints first.
-2. **Force a failure in the middle.** Break the last write — a bad column name, a constraint violation — call the endpoint, then check the database. If the earlier writes survived, there is no transaction, whatever the AI said.
-3. **Ask every migration what happens to existing rows.** Count the rows in the deployed table, then ask directly. "The migration fails" and "every old row gets NULL" are both answers you need beforehand.
-4. **Restore a backup into a scratch database, once, this month.** Open it, check a table you care about has the rows you expect, and time the whole thing. This is the only way to know a backup works.
-5. **Check that nothing slow is inside a transaction.** Search for an email send, a third-party HTTP call, or a file operation between a begin and a commit. Each is a lock held open across the network.
-6. **Confirm your connection strings are visibly different** between scratch and real, and that the real one is nowhere an agent can read.
+1. **Confirm the writes that must go together are in one transaction.** List every endpoint writing to more than one table; money first.
+2. **Force a failure in the middle.** Break the last write, call the endpoint, check the database — surviving earlier writes mean there is no transaction.
+3. **Ask every migration what happens to existing rows.** Count them first. "It fails" and "old rows get NULL" are both answers you need beforehand.
+4. **Restore a backup into a scratch database, once, this month.** Check your rows are there and time it — that is your recovery time. Daily backups and a 1 p.m. failure means eleven hours lost; chapter 15's uploaded files are usually not in the backup.
+5. **Check nothing slow sits inside a transaction** — nothing external between a begin and a commit.
+6. **Confirm scratch and real connection strings are visibly different,** and that the real one is nowhere an agent can read.
 
-Red flags: three sequential writes in a payment handler with no transaction; a migration with `NOT NULL` and no default against an existing table; a migration file edited after it had already run somewhere; "the backup is automatic" offered as the answer to "have you restored one?"; a rename done as a single step while the old code is still deployed; an HTTP call to a payment provider inside a transaction; and any answer that treats a rollback plan as unnecessary because "we tested it locally".
+Red flags: three sequential writes in a payment handler with no transaction; `NOT NULL` with no default against an existing table; a migration file edited after it had already run; "the backup is automatic" as the answer to "have you restored one?"; a rename done in one step while the old code is still deployed; an HTTP call to a payment provider inside a transaction; a rollback plan dismissed because "we tested it locally".
 
 ## Walkthrough
 1. List every endpoint in your project that writes to more than one table. If you have none yet, list the ones you will have — a signup, a payment, an order.

@@ -4,7 +4,7 @@ module: m16-users-analytics-growth
 slug: session-replays
 title: "Session Replays and Heatmaps: Watching People Struggle"
 order: 5
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,29 +22,29 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team has done chapter three properly. The leak is at the address step: 29 points, concentrated on budget Android phones. They know where. They have no idea why, and they have argued about it for four days — the field order, the label wording, whether people distrust giving an address.
+A team has done chapter three properly: the leak is at the address step, 29 points, concentrated on budget Android phones. They know where, and they have argued for four days about why.
 
-Then they watch six recordings of real sessions at that step. In five of them the same thing happens. The user taps the pincode field, the Android keyboard opens and covers the Continue button, the user scrolls to find it, the scroll dismisses the keyboard and clears the field, and on the third attempt they leave. Two of the five tap the same dead area six times in a row before giving up.
-
-Thirty seconds of watching answered a question four days of charts could not. Nobody's theory had been close, and the fix — moving one button and keeping the keyboard from covering it — took an afternoon.
+Then they watch six recordings at that step. Five show the same thing: the user taps the pincode field, the Android keyboard covers Continue, they scroll to find it, the scroll dismisses the keyboard and clears the field, and on the third attempt they leave. Thirty seconds of watching answered what four days of charts could not, and nobody's theory had been close.
 
 ### What M07 covered, and what is new here
 
-M07 did not cover this at all. Its chapters eight and nine are entirely about counting: events, funnels, cohorts, significance, consent. Nothing in M07 shows you a single human being.
-
-That is the gap this chapter fills. Every instrument so far aggregates people into a percentage. A session replay is the opposite instrument: one person, one visit, in order, with their taps and scrolls visible. It is the only tool in the module that can tell you *why*, and it is the only one with a quota small enough that you must plan how to spend it.
+M07's analytics chapters are entirely about counting; nothing in them shows you a single human being. A replay is the opposite instrument — one person, one visit, in order — with a quota small enough that you must plan how to spend it.
 
 ### The idea
 
 **A number tells you where people stop. A replay shows you one person's hands, which is the only way to find out why.**
 
-Replays are not a dashboard you browse. They are an instrument you point at a question you already have. Teams that open a replay tool without a question watch nine pleasant sessions, learn nothing, and burn a month's quota.
+Replays are not a dashboard you browse; they are an instrument you point at a question you already have.
+
+Two derived signals point you at the sessions worth watching. A **rage click** is several rapid clicks on one spot — a person telling you they expected something to happen. A **dead click** is a click on something not interactive, usually where your design implied a button. A **heatmap** of clicks or scroll depth answers one question — is the important thing below the fold? — and nothing about cause.
+
+So the order is: the funnel locates the step, rage and dead clicks locate the element, replays explain the behaviour.
 
 ### The analogy
 
-The canteen has a camera above the till. The register tells the manager thirty-eight students left without buying; the camera shows her that they all left while the second till was shut.
+The canteen has a camera above the till. The register says thirty-eight students left without buying; the camera shows the manager they all left while the second till was shut.
 
-**Where the analogy breaks, in two ways that matter.** The camera shows faces, and the manager can walk over and ask the student what happened. A replay shows a cursor and a scroll position; there is nobody to ask, no expression, and no follow-up question — so you must watch enough sessions that the pattern speaks for itself. And the student in the canteen can see the camera on the wall. Your user cannot see the recorder, which is exactly why consent and masking are not optional, and why chapter eleven treats a replay as personal data rather than as a diagnostic.
+**Where the analogy breaks, twice.** The camera shows faces and the manager can walk over and ask. A replay shows a cursor and a scroll position, with nobody to ask, so you must watch enough sessions that the pattern speaks. And the student can see the camera; your user cannot see the recorder, which is why consent and masking are not optional.
 
 ### Picture it
 
@@ -70,43 +70,13 @@ The canteen has a camera above the till. The register tells the manager thirty-e
 
 A replay quota is spent on sessions that reached the step you are investigating, watched in full, with the pattern counted rather than remembered.
 
-### Spending a small quota
-
-Free replay tiers are small — typically a few thousand recordings a month, and sometimes a few hundred. That is the constraint that shapes everything about how you use this instrument.
-
-**Record conditionally, not continuously.** Trigger recording only for sessions that reach the step you are investigating, or for users in a particular cohort. A product with three hundred users and unconditional recording can exhaust a month's quota in four days, and it will exhaust it on the happy path, because most sessions are uneventful.
-
-**Sample when you must.** If conditional recording is not available, record a fixed percentage of sessions. A consistent 10% is far more useful than 100% for three days and nothing for the rest of the month.
-
-**Turn it off between investigations.** Recording is not free for your user either: the recorder adds weight to every page and sends data continuously, which on a metered prepaid connection is your user paying for your diagnostics. Leaving it on permanently is both a quota problem and a courtesy problem.
-
-**Keep the recordings you learned from.** Export or annotate the three sessions that showed you something, because retention on a free tier is short and the evidence you will want in M18 will have expired by then.
-
-### Heatmaps, rage clicks and dead clicks
-
-A **heatmap** aggregates where people clicked, how far they scrolled, or where they lingered. Click maps and scroll maps are genuinely useful for one narrow question: is the important thing below the fold on a small screen? Beyond that they are decorative, because a warm patch tells you people clicked there and nothing about whether it helped them.
-
-The derived signals are worth far more than the picture.
-
-A **rage click** is several rapid clicks on the same spot — a person telling you, as clearly as data can, that they expected something to happen. A **dead click** is a click on something that is not interactive, which usually means your design implied a button where there is none. An **error click** is a click immediately followed by a thrown error. These three are searchable, countable, and they point you straight at sessions worth watching.
-
-So the order is: funnel locates the step, rage and dead clicks locate the element, replays explain the behaviour.
-
-### Privacy, which is not optional here
-
-A replay captures the screen. By default that can include whatever the user typed, which on your product may be a phone number, an address, an OTP or a password. **Masking** replaces the contents of sensitive fields with blocks before the recording leaves the device, and every replay tool has it.
-
-Three rules. Mask every input by default and unmask deliberately, rather than the reverse. Never record password, OTP or payment fields at all, not even masked. And verify masking by recording yourself typing a fake phone number and then watching your own replay — a configuration you have not watched is a configuration you do not have.
-
-Under the DPDP Act a replay is personal data about an identifiable person, so it needs notice and consent like any other processing, it needs a retention period, and it must be deletable when someone asks. Chapter eleven makes that concrete. A replay also catches other people's data: a user typing a friend's phone number into a notes field has handed you a third party's information that nobody consented to, which is a reason to mask free-text fields even when they feel harmless.
-
 ### Where it lives
 
-This chapter sits between chapter three and chapter six: the funnel says where, the replay says why, and activation work fixes it. It is the qualitative instrument in a quantitative module, and the module needs exactly one.
+The funnel says where, the replay says why, chapter six fixes it. M03's usability testing is this instrument's moderated version.
 
-M03's chapter four taught usability testing with three friends in a room. A replay is unmoderated usability testing at scale, with one crucial loss: you cannot ask a follow-up question. So the two are complementary — replays find the pattern across many strangers, a moderated session explains the pattern in one person's words. Chapter one's concierge onboarding is the same observation done in person, and it is better when you can get it. M07's chapter five's never-log list is the same principle applied to logs.
+A replay is also personal data. **Masking** replaces sensitive field contents with blocks before the recording leaves the device: mask every input by default, unmask deliberately, and never record password, OTP or payment fields at all. Under India's DPDP Act a recording of an identifiable person needs notice and consent, a retention period and deletion on request — chapter eleven's territory. It also catches third parties: a friend's phone number typed into a notes field was never consented to by that friend.
 
-**Tools today.** Free replay quotas, masking defaults and whether conditional recording is available on a free tier all change often. Check the current limits before you plan your sampling, and treat anything written here about quota sizes as an order of magnitude rather than a number.
+**Tools today.** Free quotas and masking defaults change often; check current limits before planning.
 
 ### Words to own
 
@@ -125,30 +95,27 @@ M03's chapter four taught usability testing with three friends in a room. A repl
 
 ### Tradeoffs and gotchas
 
-**One replay is a story.** Watching a single session and acting on it is the commonest misuse of this tool, because a single session is vivid and memorable. Watch six to ten, write one line each, and count. Five of six is a finding; one of six is a lead.
+**One replay is a story.** A single session is vivid and not evidence. Watch six to ten, one line of notes each, and count: five of six is a finding, one of six is a lead.
 
-**Do not watch at 4x and do not skip the pauses.** The pauses are the data. A nine-second gap where nothing happens is a person reading, or confused, or on a screen that has not finished loading.
+**Record conditionally, not continuously.** Three hundred users with unconditional recording can exhaust a month's quota in four days, spent on the happy path. Without such triggers, use a steady 10% sample. Turn recording off between investigations — it adds weight to every page, which on metered prepaid data is your user paying for your diagnostics.
 
-**Replays of your own team are worthless and will dominate your sample.** You use the product more than anyone. Exclude your team's user ids from recording before you start.
+**Do not watch at 4x, and do not skip the pauses: they are the data.** A nine-second gap is a person reading, confused, or waiting.
 
-**A heatmap is not a cause.** "The button is cold" does not mean the button is bad; it may be that nobody got that far. Heatmaps answer layout questions and should not be used to settle behavioural ones.
+**Exclude your own team**, who use the product more than anyone, and export the sessions you learned from before free-tier retention expires.
 
-**Shared devices make a replay ambiguous.** One recording may contain two different people using one phone. If a session's behaviour switches character halfway through, consider that explanation before inventing a psychological one.
-
-**Watching people struggle is uncomfortable and that is the point.** Teams stop using replays because the sessions are unflattering. The discomfort is the signal that the instrument is working.
+**Shared devices make a replay ambiguous.** One recording may contain two people using one phone. If a session switches character halfway through, consider that before inventing a psychological one.
 
 ### Verify it
 
 AI will set up a replay tool quickly and get the privacy configuration wrong in predictable ways.
 
-1. **Record yourself typing a fake phone number, a fake address and a fake OTP, then watch your own replay and read every frame.** **A replay that captures a password, OTP or payment field** is the red flag here, and a setting you have not watched is not a guarantee.
-2. **Check the consent order in the network tab.** If the recorder starts before the user accepts, the banner is decoration and chapter eleven's problem has already happened.
-3. **Ask what the sampling or trigger rule is, in one sentence.** "Record everything" means your quota dies before your investigation starts.
-4. **Confirm your own team is excluded.** Then look at the session list and check for sessions that are obviously yours.
-5. **Ask what the retention period on recordings is**, and whether you can delete one person's sessions on request. "Until the quota rolls over" is not a policy.
-6. **Count the pattern before accepting the conclusion.** Ask how many of how many sessions showed the behaviour. An AI summary of replays that says "users appear confused" without a count is a sentence, not evidence.
+1. **Record yourself typing a fake phone number, address and OTP, then watch your own replay frame by frame.** A captured password, OTP or payment field is the red flag, and a setting you have not watched is not a guarantee.
+2. **Check the consent order in the network tab.** If the recorder starts before the user accepts, the banner is decoration.
+3. **Ask what the trigger or sampling rule is, in one sentence.** "Record everything" means your quota dies before your investigation.
+4. **Ask what the retention period is** and whether you can delete one person's sessions on request.
+5. **Count the pattern before accepting the conclusion.** "Users appear confused" with no fraction attached is a sentence, not evidence.
 
-Red flags: recording on by default across the whole product; masking left to the tool's defaults; a conclusion drawn from one session; a heatmap used to explain a drop-off; a quota exhausted on uneventful sessions; and a replay library in which half the sessions are your own team.
+Red flags: recording on by default; masking left to the tool's defaults; a conclusion from one session; a heatmap used to explain a drop-off.
 
 ## Walkthrough
 1. Write the question first, in one sentence, naming the step and the segment: "why do budget Android users on slow connections abandon the address step?" Without this, do not open the tool.

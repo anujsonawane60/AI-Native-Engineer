@@ -4,7 +4,7 @@ module: m13-production-engineering
 slug: event-driven-at-scale
 title: "Event-Driven Architecture at Scale: Kafka, Streams, Idempotent Consumers"
 order: 2
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-M04 chapter 16 taught you queues properly: a handler does the smallest work that makes the user's action true and hands the rest to a worker. You learned enqueue, worker, acknowledge, retry with backoff, dead-letter queue, cron, and the rule that every job must be idempotent because jobs run twice as normal behaviour. It closed by saying M13 is where event-driven architecture and Kafka become a real conversation at a scale where they earn their complexity. That scale is now.
+M04 chapter 16 taught you queues properly: enqueue, worker, acknowledge, retry, dead-letter queue, and idempotent jobs. It said M13 is where event-driven architecture becomes a real conversation. That scale is now.
 
-Here is what the queue does not solve. Your canteen app publishes "order paid". Three different things need to know: the kitchen display, the loyalty-points counter, and the nightly revenue report. With a queue, one worker takes the job and destroys it. So you add three queues and three enqueues, and now the payment handler knows about all three consumers. Next month someone wants a fourth thing — a WhatsApp notification. You edit the payment handler again. Six months in, the payment handler is the most dangerous file in the repository because every new feature touches it.
-
-Then the real incident. The loyalty worker credits 50 points per order. A deploy restarts the worker mid-batch. It had already credited forty students but had not acknowledged the messages, so the broker redelivers them. Forty students get 100 points. Nobody notices for nine days, because the only evidence is a number being slightly too large. Your actual payment data was never wrong; your derived data is, permanently, and you cannot tell which forty.
+Here is what a queue does not solve. Your app publishes "order paid" and three things need to know: the kitchen display, the loyalty counter, the nightly revenue report. One worker takes the job and destroys it, so you add three queues and three enqueues, and the payment handler now knows all three consumers. Worse: a deploy restarts the loyalty worker after it credited forty students but before it acknowledged, so the broker redelivers and forty students silently hold double points.
 
 ### The idea
 
 **A queue delivers each message to one worker and then forgets it. A log keeps every message in order and lets any number of independent readers move through it at their own pace.**
 
-That one difference changes the architecture. The publisher stops knowing who consumes. A new consumer is added without touching the publisher, and it can start from the beginning of the log rather than only from now. The cost is that you now own the three hardest problems in this chapter: ordering is only guaranteed within a partition, delivery is at-least-once so every consumer must be idempotent, and lag is a thing that can grow without anything looking broken.
+The publisher stops knowing who consumes, and a new consumer can be added without touching it, starting from the beginning rather than only from now. The cost is three problems you now own: ordering holds only within a partition, delivery is at-least-once so every consumer must be idempotent, and lag can grow without anything looking broken.
 
 ### The analogy
 
-M04 gave you the spike by the kitchen where order slips are impaled, cooks take them, and a completed slip is thrown away.
+M04 gave you the spike where order slips are impaled and a finished slip is thrown away. A log is the canteen's bound register instead: every order goes on the next line and no line is erased. Each reader keeps a paper strip at the last line they handled — the **offset**. The register is split into books by hostel block so three clerks work at once: within a book lines are ordered, across books not at all. That is **partitioning**, and which book an order goes in is the **partition key**.
 
-A log is the canteen's bound register instead. Every order is written on the next line, in order, and no line is ever erased. Three people read it for three different reasons: the cook reads it to cook, the accounts clerk reads it to total the day, and the manager reads last month's lines to decide what to stock. Each keeps their own bookmark — a thin paper strip marking the last line they dealt with. That bookmark is the **offset**. The cook can be four lines behind at 1 p.m. and catch up by 1:30; the clerk can be a whole day behind and still be correct.
-
-And the register is split into several books by hostel block, so three clerks can work at once. Within one book, lines are in order. Across books, there is no order at all. That is **partitioning**, and the choice of which book an order goes in is the **partition key**.
-
-**Where the analogy breaks:** a bound register is kept forever and a clerk who is a week behind can still catch up. A real log has **retention** — after a configured number of days the oldest lines are physically deleted. A consumer that falls behind retention does not get a late answer; it gets a gap it can never fill, with no error at the moment the data was lost. The clerk's register waits for them. The log does not.
+**Where the analogy breaks:** a register is kept forever. A real log has **retention** — the oldest lines are deleted after some days, so a consumer that falls behind gets a gap it can never fill, and no error fires when the data is lost.
 
 ### Picture it
 
@@ -63,9 +57,13 @@ One topic is split into partitions; each consumer group keeps its own offset per
 
 ### Where it lives
 
-This extends M04 chapter 16 in one direction and leans on three other chapters. The transactional outbox pattern below is M04's "enqueue inside the same transaction" rule, rebuilt for a broker that cannot join your database transaction. The dedupe store is M05 chapter 2's shared cache with a deliberate TTL from M05 chapter 3. The schema of an event is chapter 1's contract problem exactly: a published event is an API, and removing a field from it breaks a consumer you forgot exists. Consumer lag is an M07 metric and belongs on the same dashboard as p95.
+This extends M04 chapter 16 and leans on three chapters.
 
-Honest scoping: your startup almost certainly does not need Kafka. A Postgres table with a status column is a respectable queue, as M04 said, and remains so. What you need from this chapter is the *vocabulary and the failure modes*, because the moment you have two consumers of one event you have inherited all of them regardless of the technology. Run it locally on a laptop with a single-broker container, or use a free serverless tier with a small monthly message allowance. A managed multi-broker cluster is the single most expensive thing in this module and you must not provision one.
+- The dedupe store is M05 chapter 2's shared cache, with a TTL from M05 chapter 3.
+- An event's schema is chapter 1's contract problem: a published event is an API.
+- Consumer lag is an M07 metric, and belongs beside p95.
+
+**Honest scoping: your startup almost certainly does not need Kafka.** A Postgres table with a status column is a respectable queue. Take the vocabulary and the failure modes: two consumers of one event inherit all of them whatever the technology. Run a single-broker container locally, or a free serverless tier — never a managed multi-broker cluster.
 
 ### Words to own
 
@@ -89,30 +87,26 @@ Honest scoping: your startup almost certainly does not need Kafka. A Postgres ta
 
 ### Tradeoffs and gotchas
 
-**Commit the offset after the work, never before.** This is the one-line version of the whole chapter. Commit first and a crash loses the message silently. Commit after and a crash redelivers it, which is survivable *if* the consumer is idempotent. At-least-once plus idempotency is the only combination that is both safe and achievable. "Exactly-once" exists in marketing and in narrow, same-system cases; treat any answer that promises it across your database and a broker as wrong.
+**Commit the offset after the work, never before.** Commit first and a crash loses the message silently; commit after and it is redelivered, which is safe only if the consumer is idempotent. "Exactly-once" across a database and a broker does not exist.
 
-**Idempotency needs durable storage, not a variable.** The dedupe record must survive a restart, so an in-memory set is not idempotency. Store the event id with a TTL comfortably longer than your maximum retry window, and make the check and the write happen together with the business change — otherwise you crash between them and you are back where you started.
+**Idempotency needs durable storage.** Store the event id with a TTL longer than your longest retry window, written with the business change.
 
-**Ordering is per partition, and the partition key is a design decision with consequences.** Key by order id and all events for one order stay in order, which is usually what you want. Key by something low-cardinality — a city, a status — and one partition gets all the traffic. That is a **hot partition**, and it means you have the cost of three partitions and the throughput of one.
+**Ordering is per partition, and the key has consequences.** Key by order id and one order's events stay in order; key by a city and one **hot partition** takes all the traffic — the cost of three, the throughput of one.
 
-**The outbox pattern exists because a broker cannot join your database transaction.** If you write the order and then publish, a crash between the two loses the event. If you publish and then write, a crash loses the order. The fix: write the order and the event into the same database transaction, into an `outbox` table, and let a separate small process read that table and publish. The event cannot be lost because it is committed with the thing that caused it.
+**The outbox exists because a broker cannot join your database transaction.** Write the row and the event in one transaction into an `outbox` table, and publish from there.
 
-**Lag is the health metric and it looks fine right up until it does not.** Nothing errors while a consumer falls behind. Alert on lag as a *duration* — "the loyalty consumer is forty minutes behind" — not as a message count, because a count means nothing without a rate. And know your retention, because lag approaching retention is data loss approaching, not slowness.
+**Lag is the health metric and nothing errors while it grows.** Alert on it as a duration, not a count: lag approaching retention is data loss approaching.
 
-**Event-driven makes debugging harder, permanently.** M07's traces become the only way to follow a single order across four consumers. A synchronous call stack tells you what happened; an event flow tells you what happened in four separate places at four separate times. Do not go event-driven early, exactly as M04 said. Go when you have a real second consumer.
-
-**Replay is the superpower and the foot-gun.** Resetting an offset to rebuild a loyalty table from the beginning is wonderful. Doing it on a consumer that sends WhatsApp messages means sending nine thousand notifications about orders from March. Separate consumers that compute from consumers that notify, so you can replay one and never the other.
+**Replay is the superpower and the foot-gun.** Rebuilding a table from offset zero is wonderful; replaying a consumer that sends WhatsApp messages is nine thousand notifications about March.
 
 ### Verify it
 
-1. **Find the offset commit and read what comes before it.** If the commit happens before the work completes, you have silent message loss. This is the first thing to look for in any generated consumer.
-2. **Ask for the dedupe key by name, and ask where it is stored.** If the answer is a variable, a set, or "the broker handles it", it is not idempotency. Then test it: deliver the same event twice on purpose and check the result is identical.
-3. **Ask what the partition key is and what ordering it gives you.** An answer that claims global ordering across a partitioned topic is wrong. An answer that cannot name the key has not thought about ordering at all.
-4. **Ask what happens to an event whose publish succeeds but whose database write fails, and the reverse.** If there is no outbox or equivalent, one of those two cases loses data.
-5. **Ask which consumers are safe to replay.** If the answer is "all of them" and one of them sends messages to users, you have a notification disaster waiting for your first replay.
-6. **Confirm lag is monitored as a duration with an alert.** A pipeline with no lag alert is a pipeline whose failure mode is silence.
+1. **Find the offset commit and read what comes before it.** A commit before the work completes is silent message loss.
+2. **Ask for the dedupe key by name and where it is stored.** A variable is not idempotency. Then deliver the same event twice and check the result is identical.
+3. **Ask what happens when the publish succeeds but the database write fails, and the reverse.** Without an outbox, one case loses data.
+4. **Ask which consumers are safe to replay,** and confirm lag is alerted as a duration, not a count.
 
-Red flags: an offset committed before processing; idempotency described but implemented in memory; no dead-letter topic, so a single bad message blocks a partition forever; retention never mentioned; a partition key with a handful of possible values; a consumer that both computes and notifies; Kafka recommended for a product with one consumer; and "exactly-once delivery" offered as a solved problem.
+Red flags: an offset committed before processing; no dead-letter topic, so one bad message blocks a partition forever; retention never mentioned; a partition key with a handful of values.
 
 ## Walkthrough
 1. Write down one event your product already produces, in past tense, and list every thing that needs to know about it today. If the list has one item, write down the second one you expect within three months.

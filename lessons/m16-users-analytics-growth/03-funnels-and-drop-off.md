@@ -4,7 +4,7 @@ module: m16-users-analytics-growth
 slug: funnels-and-drop-off
 title: "Funnels, Drop-Off and Finding the Real Leak"
 order: 3
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,31 +22,30 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team has a funnel at last. It shows 48% reaching the cart and 23% placing an order, and that 25-point gap is obviously the problem. They spend two weeks redesigning the checkout: fewer fields, bigger buttons, a progress bar, a reassuring message about refunds. It is genuinely better work.
+A team has a funnel at last: 48% reach the cart and 23% place an order. The 25-point gap is obviously the problem, so they spend two weeks on the checkout — fewer fields, bigger buttons, a progress bar. They re-measure and get 24%: two weeks for one point, which is four people.
 
-They re-measure. The number is 24%. Two weeks for one point, which is four people.
-
-Then somebody splits the same funnel by device and network. On wifi the drop is small. On a budget Android phone on a 3G connection, 91% of people who reach the payment screen never place the order, because a 600 KB payment script times out before it renders and the screen simply sits blank. Nothing was wrong with the design. The leak was a timeout, and the average had hidden it perfectly, because the average contained both groups and told them about neither.
+Then somebody splits the funnel by network: on wifi the drop is small. On a budget Android phone on 3G, 91% of people who reach the payment screen never order, because a 600 KB payment script times out and the screen sits blank. Nothing was wrong with the design; the average contained both groups and described neither.
 
 ### What M07 covered, and what is new here
 
-M07's chapter eight taught what a funnel is and the three honest requirements: the steps must be genuinely ordered, it must count people rather than events, and it needs a time window. It also taught how to read drops in percentage points, and why a small late drop is usually more alarming than a big early one. All of that still holds and is not repeated here.
-
-What is new is the hunt. An honest funnel over real users gives you a location, never a cause. This chapter is about turning a location into a cause: segmenting, separating filters from leaks, overlaying errors, instrumenting the step you forgot, and then re-measuring honestly enough that you would believe a disappointing answer.
+M07 taught what a funnel is and its three requirements: ordered steps, distinct people, a stated window. New here is the hunt: turning a location into a cause, then re-measuring honestly enough to believe a disappointing answer.
 
 ### The idea
 
 **A funnel tells you where people stop. It never tells you why. The work is to segment until the drop stops being an average, then go and watch one of those people.**
 
-Averages are where leaks hide. A 25-point drop made of two groups — one at 5% and one at 91% — looks exactly like a uniform 25-point drop, and the fix for the first group does nothing for the second. Splitting is not optional polish; it is the method.
+A 25-point drop made of one group at 5% and another at 91% looks exactly like a uniform one, and the fix for the first group does nothing for the second. Split by one dimension at a time. The splits that pay in India:
+
+- **Connection quality.** The most productive split for a student product: slow 3G and metered prepaid data turn a heavy screen into a dead screen.
+- **Device class and Android version.** A 2 GB phone drops a tab under memory pressure; one WebView version breaks one input field.
+- **Acquisition channel.** Chapter one's log becomes a funnel dimension: classroom recruits convert differently from midnight WhatsApp taps.
+- **New versus returning, and app version.** Blending newcomers with regulars hides onboarding problems; a leak that starts on one build is a release, not a behaviour.
 
 ### The analogy
 
-At 1:15 p.m. the canteen manager counts 180 students entering and 142 plates sold. Thirty-eight people left without buying. The register gives her that number and nothing else.
+At 1:15 the canteen manager counts 180 students in and 142 plates sold. The register gives her the thirty-eight and nothing else. So she stands by the counter and sees one till open during the rush, a queue to the door, and leavers whose next lecture starts at 1:30. The number told her where; standing there told her why, and the answer was staffing.
 
-So she stands by the counter for twenty minutes. She sees that one till is open during the rush, that the queue for it reaches the door, and that the students who leave are the ones whose next lecture starts at 1:30 — they arrive, see the length, and walk out. The number told her where; standing there told her why, and the answer was staffing rather than food.
-
-**Where the analogy breaks:** she can see the whole queue at once, and the people leaving are still in the room. Your funnel is a summary of people who already left, whom you cannot see and cannot ask. Segmentation is your substitute for standing at the counter — it is how you work out which kind of person left, so you can go and find a live one who looks like them.
+**Where the analogy breaks:** your funnel summarises people who already left and cannot be asked. Segmentation is the substitute for standing at the counter: it tells you which kind of person left, so you can find a live one like them.
 
 ### Picture it
 
@@ -65,39 +64,11 @@ So she stands by the counter for twenty minutes. She sees that one till is open 
 
 The combined column shows an 18-point drop that looks like a design problem; split by connection, the same data shows a 9-point drop on fast connections and a 29-point collapse on slow ones, which is a loading problem.
 
-### The segments that actually pay in India
-
-Split by one dimension at a time and stop when a split stops surprising you.
-
-- **Connection quality.** The single most productive split for an Indian student product. Slow 3G and metered prepaid data turn a heavy screen into a dead screen.
-- **Device class and Android version.** An old mid-range phone with 2 GB of RAM will drop a tab under memory pressure. One WebView version can break one input field.
-- **Acquisition channel.** Chapter one's log becomes a funnel dimension. Users recruited in a classroom convert differently from users who tapped a WhatsApp link at midnight, and mixing them hides both.
-- **New versus returning.** A first-timer and someone on their fifth visit meet different obstacles. Blending them averages away onboarding problems entirely.
-- **Logged in versus anonymous.** If stitching from chapter two is imperfect, this split will show it.
-- **Time of day and day of week.** A canteen product has a 1 p.m. spike; a drop that exists only in the spike is a capacity problem, which is M05's territory.
-- **App or build version.** A leak that begins on one date and only on one version is a release, not a behaviour.
-
-### Leak or filter
-
-Not every drop is a problem, and treating filters as leaks is how teams waste the two weeks in the opening story.
-
-A **filter** removes people who were never going to continue. Students browsing a menu out of curiosity, people who opened a shared link to see what their friend was talking about. A large early drop is usually a filter, and narrowing it mostly recruits people who will leave later anyway.
-
-A **leak** loses people who had decided to continue. The evidence for a leak is in what happened just before the exit, and your events can show it: unusually long time on the step, a retried action, a back navigation, a tap that produced nothing, an error event, a form resubmitted twice. Someone who spent ninety seconds on a payment screen and then left did not change their mind; something stopped them.
-
-So before redesigning anything, ask of the drop: did these people show effort? Effort followed by exit is a leak. No effort followed by exit is a filter.
-
-### Overlay the boring data first
-
-Your funnel step is also a page and an API call, and M07's chapters four to six gave you the instruments for those. Before you accept any behavioural explanation, check three numbers for the step where people vanish: its error rate, its p95 load time, and its failure rate on the slowest tenth of connections.
-
-A step with a 4% server error rate does not have a copywriting problem. A step whose p95 is eleven seconds does not have a trust problem. Teams skip this because behavioural explanations are more interesting, and they pay for it in redesigns that move nothing. Check the plumbing, then the psychology.
-
 ### Where it lives
 
-Chapter two's taxonomy is what makes this chapter possible, and this chapter is what exposes the taxonomy's gaps — the leak is very often between two steps you never instrumented, which costs you a week of waiting to add one event. Chapter five's replays answer the "why" for a leak you have already located, and chapter six turns the earliest part of this funnel into activation work.
+Your funnel step is also a page and an API call. Before accepting any behavioural explanation, check three numbers for the step where people vanish: error rate, p95 load time, and failure rate on the slowest tenth of connections. A step with a 4% server error rate has no copywriting problem. Check the plumbing, then the psychology.
 
-Sideways, M03's usability testing is the qualitative half of this chapter: the funnel finds the step, three friends in a room tell you what the step feels like. M05 explains the slow-connection failures you will find. Chapter nine is where a fix becomes an experiment once you have the traffic, and M18 is where someone will ask you which drop you chose to fix and why.
+Around it: chapter two's taxonomy makes this possible and this chapter exposes its gaps; chapter five's replays answer "why" once you have a location; M03's usability testing is the qualitative half; chapter nine turns a fix into an experiment.
 
 ### Words to own
 
@@ -116,30 +87,26 @@ Sideways, M03's usability testing is the qualitative half of this chapter: the f
 
 ### Tradeoffs and gotchas
 
-**Segmenting shrinks your base size fast.** Split 412 users three ways and you have segments of forty, where one person is two and a half percentage points. Split by one dimension at a time, state the base size beside every percentage, and stop splitting when a segment drops below about fifty people. Below that you have a lead to investigate, not a finding to act on.
+**Treating a filter as a leak costs the two weeks in the opening story.** A filter removes people who were never going to continue — curious browsers, someone who opened a friend's link. A leak loses people who had decided to, and the evidence is effort before the exit: ninety seconds on the step, a retry, an error. Effort then exit is a leak; no effort then exit is a filter.
 
-**You will find the leak in the step you did not instrument.** This is normal and it costs a week. Add the one event, wait, and resist the urge to guess in the meantime.
+**Segmenting shrinks your base size fast.** In a segment of forty, one person is two and a half points. State the base size beside every percentage and stop splitting below about fifty people.
 
-**Fix one thing.** Change three things at once and the number moves, and you have learned nothing about which change did it — so you cannot repeat it. One change, re-measure, record.
+**You will find the leak in a step you never instrumented.** Add the one event and wait a week.
 
-**Re-measure the identical definition.** Same steps, same window, same people-not-events rule, same segment. A fix that "worked" against a quietly different funnel is the most common false victory in this chapter, and it is usually accidental rather than dishonest.
+**Fix one thing, then re-measure the identical definition** — same steps, window and segment. Three changes at once teach you nothing you can repeat.
 
-**Seasonality will fool you.** Exam week, a long weekend, a festival, a campus event. If your before-and-after windows sit either side of one of those, the thing you measured is the calendar.
-
-**Not every leak is worth plugging.** A 29-point leak on a segment that is 4% of your users is worth less than a 6-point leak on half of them. Multiply the gap by the number of people behind it before you choose.
+**Seasonality will fool you.** If your before-and-after windows sit either side of exam week or a festival, you measured the calendar.
 
 ### Verify it
 
-AI will produce a funnel and a confident diagnosis in one reply. The diagnosis is the part to distrust.
+AI will produce a funnel and a confident diagnosis in one reply. Distrust the diagnosis.
 
-1. **Ask whether the steps are genuinely sequential for one individual.** If somebody can reach step four without step three, it is a bar chart wearing a funnel's name.
-2. **Ask whether each step counts people or events, and whether a window is stated.** One enthusiastic tester adding six items can inflate a step on their own.
-3. **Demand the base size beside every percentage.** A 29-point drop on eleven people is three people. A percentage with no n is decoration.
-4. **Check the first step's firing condition.** A funnel whose top step fires on page load counts bounced loads as participants and understates every rate below it.
-5. **Ask for the error rate and p95 of the leaking step before accepting any behavioural cause.** If AI explains your drop with user psychology and has not looked at the plumbing, send it back.
-6. **Check that any claimed fix was re-measured against the same definition and a comparable period.** Ask explicitly what the window was, both times.
+1. **Are the steps genuinely sequential for one individual?** Otherwise it is a bar chart wearing a funnel's name.
+2. **Demand the base size beside every percentage.** A 29-point drop on eleven people is three people.
+3. **Check the first step's firing condition.** A top step firing on page load counts bounced loads as participants.
+4. **Ask for the error rate and p95 of the leaking step first.** If AI explains a drop with psychology and never looked at the plumbing, send it back.
 
-Red flags: a diagnosis offered before any segmentation; percentages without base sizes; a funnel whose steps were reordered to look smoother; a drop attributed to "users not understanding the value" with no evidence of effort; a fix declared successful after two days; and three changes shipped together.
+Red flags: a diagnosis before any segmentation; percentages without base sizes; a fix declared successful after two days.
 
 ## Walkthrough
 1. Write your funnel definition in one place: the ordered steps, the time window, and the statement that it counts distinct people. Four to six steps, ending at the action your product exists for.

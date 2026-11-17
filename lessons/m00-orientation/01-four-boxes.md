@@ -4,7 +4,7 @@ module: m00-orientation
 slug: four-boxes
 title: "The Four Boxes: Client, Server, Network, Data"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: true
 mission: false
 volatility: low
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student opens the canteen app at 1:10 pm to order a thali. The menu takes eight seconds to appear. She taps "Order". A spinner turns for a while, then the screen says "Something went wrong." She taps again. Now she has two orders and one of them has taken her money.
+A student opens the canteen app at 1:10 pm and taps "Order". A spinner turns, then the screen says "Something went wrong." She taps again — and now she has two orders, both of which have taken her money.
 
-Somebody has to find out what happened. There are only four places it could have happened — but if you do not know the four places, every bug feels like one enormous unknowable mess. That is the fear this chapter removes.
+There are only four places this could have gone wrong. If you do not know the four, every bug feels like one unknowable mess.
 
 ### The idea
 
 **Every app, no matter how big, is made of four parts: a client, a server, a network between them, and data that outlives both.**
 
-The client is the part you touch. The server is the part that decides. The network is the gap they shout across. The data is what remains when everyone goes home. Instagram has these four parts. UPI has these four parts. The canteen app has these four parts. The difference between a college project and Swiggy is not the number of boxes; it is how much traffic each box survives.
+The client is the part you touch. The server decides. The network is the gap they shout across. The data is what remains when everyone goes home. Instagram, UPI and the canteen app all have exactly these four parts; the difference between a college project and Swiggy is not the number of boxes but how much traffic each box survives.
 
 ### The analogy
 
-Think about ordering food at the campus canteen counter.
+Ordering at the campus canteen counter. **You** are the client: you read the menu, you decide, you say what you want, and you cannot cook. **The kitchen** is the server: it takes your order, checks whether it is possible ("paneer is finished"), hands something back. **The order window** is the network: narrow, noisy, crowded at 1:10 pm, the only channel between you. **The register** is the data: it remembers you paid ₹80 today even after you leave.
 
-**You** are the client. You read the menu board, you decide, you say what you want. You cannot cook.
-
-**The kitchen** is the server. It receives your order, checks whether it is possible ("paneer is finished"), prepares it, and hands something back. The kitchen does not care who you are personally — it cares whether your order is valid and paid for.
-
-**The order window** is the network. It is the only way you and the kitchen can communicate. It is narrow, it is noisy, and at 1:10 pm there is a crowd in front of it. Everything you want to say to the kitchen must fit through that window.
-
-**The storeroom and the register** are the data. The register remembers that you paid ₹80 today, even after you leave, even after that cook's shift ends, even if the kitchen catches fire and is rebuilt. Data is the part with memory.
-
-**Where the analogy breaks:** in a real canteen you can lean through the window and shout "make it fast". On a network you cannot. Once your order leaves, you have no idea whether the kitchen received it, is working on it, or burned down — until something comes back. Almost every confusing bug in software comes from that one difference, and you will meet it again in every phase of this program.
+**Where the analogy breaks:** in a real canteen you can lean through the window and shout "make it fast". On a network you cannot. Once your order leaves you have no idea whether the kitchen got it, is working on it, or burned down — until something comes back.
 
 ### Picture it
 
@@ -66,13 +58,13 @@ Think about ordering food at the campus canteen counter.
                                            └──────────────┘
 ```
 
-The client sends a request across the network; the server decides what to do with it and reads or writes data; a response travels back the same way. The client never touches the data directly — that is the single most important line in this diagram.
+The client sends a request across the network; the server decides and reads or writes data; a response travels back the same way. The client never touches the data directly — the most important line in this diagram.
+
+Her double order fits on this diagram. The server saved it and wrote the row; the response never made it back across the network. She saw failure, the server saw success, and the next chapter follows that tap through every hop to show exactly where it was lost.
 
 ### Where it lives
 
-For the rest of this program, every new thing you learn will be an addition to this diagram. A cache goes between the server and the data. A load balancer goes in front of the server. A CDN goes close to the client. An AI model sits beside the server as something it calls. Authentication guards the door into the server.
-
-So when you meet a new term — and you will meet roughly two hundred — your first question is always the same: **which box does this live in, or which gap does it sit in?** If you can answer that, you understand the term well enough to use it in a conversation. If you cannot, you have not learned it yet.
+Every new thing you learn in this program is an addition to this diagram: a cache between server and data, a load balancer in front of the server, a CDN close to the client, an AI model beside the server as something it calls, authentication guarding the door in. So when you meet a new term, ask the same question first: **which box does this live in, or which gap does it sit in?**
 
 ### Words to own
 
@@ -90,13 +82,13 @@ So when you meet a new term — and you will meet roughly two hundred — your f
 
 ### Tradeoffs and gotchas
 
-**The client cannot be trusted.** This is the rule beginners break most often, and AI will happily help you break it. Anything running on the user's phone can be read and changed by the user. If the client decides the price, someone will change the price to ₹1. The server must re-decide everything that matters. You will see this again properly in M07 when we do security, but start suspecting it now.
+**The client cannot be trusted.** Anything on the user's phone can be read and changed by the user. If the client decides the price, someone will change it to ₹1, so the server must re-decide everything that matters. AI will happily help you break this rule.
 
-**The network is the slow, unreliable part.** A server reads data in milliseconds. A request crossing a crowded campus Wi-Fi might take two seconds, or vanish. Most "make it faster" work is really "cross the network less often, or carry less when you do".
+**The network is the slow, unreliable part.** A server reads data in milliseconds; a request crossing crowded campus Wi-Fi might take two seconds, or vanish. Most "make it faster" work is really "cross it less often, carry less".
 
-**"Something went wrong" is not a bug report.** Our student's double order is a four-box story: her first request probably did reach the kitchen and did create an order, but the response got lost on the way back. She saw failure; the server saw success. They disagreed. Knowing that this gap exists is what lets you ask the right question instead of guessing.
+**Client and server can disagree.** She saw failure; the server saw success. Knowing that gap exists is what lets you ask the right question.
 
-**Which box is broken?** A quick triage you can use from today:
+**Which box is broken?** A triage you can use from today:
 
 | What you see | Usually which box |
 |---|---|
@@ -108,23 +100,13 @@ So when you meet a new term — and you will meet roughly two hundred — your f
 
 ### Verify it
 
-When you ask AI to build or change something, it will often hand you code without saying which box it belongs to. Before you accept it, ask yourself three questions:
+AI hands you code without saying which box it belongs to. Three checks before you accept it:
 
-1. **Which box did it change?** If you cannot tell, ask it: "Which part of this runs on the user's device, and which part runs on my server?"
-2. **Did it put a decision in the client that belongs on the server?** Prices, permissions, discounts and "is this user an admin" are server decisions. Always.
-3. **Did it touch the data directly from the client?** If the phone talks straight to the database with a key embedded in the app, that key is public. This is a genuinely common AI mistake, not a rare one.
+1. **Which box did it change?** If you cannot tell, ask: "which part of this runs on the user's device, and which on my server?"
+2. **Is a decision in the client that belongs on the server?** Prices, permissions, discounts and "is this user an admin" are server decisions, always.
+3. **Does the client touch the data directly?** A database key embedded in a phone app is a public key — a common AI mistake.
 
-A red flag phrase to watch for in AI answers: "for simplicity, we'll handle this on the frontend." Sometimes that is fine. For anything involving money, identity or permissions, it is not.
-
-## Walkthrough
-1. A student taps "Order" in the canteen app. Nothing has left her phone yet — the client has only gathered what she chose.
-2. The client packages the order into a short message: which items, how many, and who is ordering. This is the request.
-3. The request crosses the network. At 1:10 pm it is competing with two hundred other phones on the same Wi-Fi, so this step may be the slowest part of the whole story.
-4. The server receives it and starts deciding: is this a real user, is paneer still in stock, is the price she sent the price we actually charge (it recalculates rather than trusting her number).
-5. The server writes to the data: a new order row, and a reduction in the paneer count. Now the order exists even if everything else crashes.
-6. The server builds a response — "order #412 confirmed, ready in 10 minutes" — and sends it back across the network.
-7. The client receives the response and redraws the screen. Only now does the student see anything.
-8. Trace where the double-order bug fits: step 5 succeeded, step 6 or 7 failed. The order existed; she just never heard about it.
+Red flag: "for simplicity, we'll handle this on the frontend." Sometimes fine; never for money, identity or permissions.
 
 ## Talk to AI
 ```prompt

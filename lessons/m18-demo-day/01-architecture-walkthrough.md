@@ -4,7 +4,7 @@ module: m18-demo-day
 slug: architecture-walkthrough
 title: "The Architecture Walkthrough Document"
 order: 1
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -20,33 +20,27 @@ last_reviewed: 2026-11-16
 
 ## Lesson
 
-### Where this sits in the module
-
-**This is the first of six chapters that make up your individual defence, and it is the document everything else is read against.** Chapter 2's what-if questions are asked about boxes on this map. Chapter 3's live debugging follows the trace inside it. Chapter 5's handover is this document plus money, keys and known issues. Chapter 6 is the room where all of it is questioned.
-
-Three things about this module before you start. It is **individual**: the product is built by three of you, the defence is not shared, and each of you submits your own evidence against your own account. It is **terminal**: there is nothing after it. And it builds directly on **M11.7**, the Sprint's Checkpoint 4 — your ten users, your eval set, your decision log and your ten-minute technical demo. That pack is your starting material, not your deliverable. Four months of M12 to M17 have happened since, and almost everything in it is now out of date.
-
 ### The pain
 
 Three students present a system diagram in month six.
 
-The first opens the diagram committed at M11.1, in week one. It shows three boxes and a model API. Since then the product acquired a payment webhook, a cache, a scheduled job that recomputes a leaderboard at 2 am, a second database for analytics events, and a queue that was briefed, half-built and abandoned. The panel asks where a UPI webhook lands. There is no box for it. The diagram is not wrong because the student is careless; it is wrong because it was never updated, and nobody noticed for four months.
+The first opens the diagram committed at M11.1, in week one: three boxes and a model API. Since then the product acquired a payment webhook, a cache, a 2 am leaderboard job, an analytics database, and a queue briefed, half-built and abandoned. The panel asks where a UPI webhook lands. There is no box for it — not because the student is careless, but because nobody updated the diagram for four months and nothing broke to tell them.
 
-The second asked an AI to draw their architecture from a paragraph of description. What came back is beautiful, symmetrical, and contains a load balancer, a Redis cache and a message broker — none of which exist. Asked which box holds the model key, the student points at the broker.
+The second asked an AI to draw their architecture from a paragraph, and got something symmetrical containing a load balancer, a Redis cache and a message broker, none of which exist. Asked which box holds the model key, they point at the broker.
 
-The third has a document with seven tables listed by name, an arrow labelled `signed payment event`, and a line that says: *the leaderboard job is the one thing I did not direct; my teammate built it, I reviewed the diff and I can explain what it reads but not why it runs at 2 am.* That last sentence is the strongest line in all three submissions.
+The third has seven tables listed by name, an arrow labelled `signed payment event`, and the line: *the leaderboard job is the one thing I did not direct; my teammate built it, I reviewed the diff and I can explain what it reads but not why it runs at 2 am.* That is the strongest sentence in all three submissions.
 
 ### The idea
 
 **An architecture walkthrough is a written document, not a slide, whose only virtue is that it is true of what is deployed right now — and which says plainly who directed each part of it.**
 
-A diagram drawn in week one was a decision, and M11.1 was right to ask for it. A diagram drawn in month six is a **claim about reality**, and reality can be checked. The document is what makes the next five chapters answerable instead of improvised.
+A diagram drawn in week one was a decision. A diagram drawn in month six is a **claim about reality**, and reality can be checked. This module is also individual and terminal: the product is built by three of you, the defence is not, and each submits their own evidence under their own account.
 
 ### The analogy
 
-The canteen has a laminated floor plan taped beside the till: where the gas cylinder sits, which burner runs off which regulator, where the water line enters, which exit stays clear, and the supplier's number. An inspector reads it and then walks the kitchen to confirm it. Both halves matter — the plan, and the walk.
+The canteen has a laminated floor plan taped beside the till: where the gas cylinder sits, which burner runs off which regulator, which exit stays clear. An inspector reads it, then walks the kitchen to confirm it. Both halves matter.
 
-**Where the analogy breaks:** a kitchen can be verified by standing in it. Your system has no room to stand in. Every box on your map is invisible, which means a plan can be wrong for four months without a single symptom, and nobody — including you — will find out by looking. The walk has to be replaced by something deliberate: reading your hosting console, your environment variable list and your database table list beside your own picture, one line at a time.
+**Where the analogy breaks:** a kitchen can be verified by standing in it. Every box on your map is invisible, so a plan can be wrong for four months without a single symptom. The walk has to be replaced by something deliberate: reading your hosting console, your environment variable list and your database table list beside your own picture, one line at a time.
 
 ### Picture it
 
@@ -71,9 +65,7 @@ The canteen has a laminated floor plan taped beside the till: where the gas cyli
 
 Everything to the left of the app server is untrusted input — a phone and a payment gateway — and the server is the only box that decides a role or a price, holds the model key, or speaks to the database.
 
-### What the document contains
-
-Seven sections. Short ones.
+The document itself:
 
 ```
   ARCHITECTURE.md
@@ -86,17 +78,13 @@ Seven sections. Short ones.
   7 ATTRIBUTION    who directed each box, and what I cannot explain yet
 ```
 
-The seven sections of the walkthrough document, in the order a stranger reads them.
+Seven short sections, in the order a stranger reads them.
 
-Section 4 is the one that separates students. One tap, named files, in order: the page the user touched, the route that received it, the function that checked the role, the query that ran, and the response. This is M00.1's four-boxes exercise and M11.7's trace, now on a system with four more months of growth in it.
-
-Section 7 is why this module exists. For every box, one of three labels: **I directed this** — I wrote the brief, reviewed the diff, verified it. **I reviewed this** — a teammate directed it, I read the change and tested it. **I inherited this** — it exists, I can say what it does, I did not verify it. Three honest labels beat one dishonest claim, and an empty section 7 is the clearest possible signal that one person did the engineering.
+Section 4 separates students: one tap, named files, in order — the page the user touched, the route that received it, the function that checked the role, the query that ran, the response. Section 7 is why this module exists. For every box, one of three labels: **I directed this** — I wrote the brief, reviewed the diff, verified it. **I reviewed this** — a teammate directed it, I read the change and tested it. **I inherited this** — it exists, I can say what it does, I did not verify it. Three honest labels beat one dishonest claim, and an empty section 7 is the clearest possible signal that one person did the engineering.
 
 ### Where it lives
 
-The underlying material is all behind you. M00.1 gave you the four boxes and M00.3 the first diagram. M11.1 asked for the week-one version. M04.7 is your schema, M05.3 your cache, M07.4 to M07.7 your monitoring, M12 your mobile surface, M13 your production architecture. M16 and M17 added analytics tables and billing.
-
-Forward, it feeds every remaining chapter of this module: the ten what-if questions in M18.2 are asked about the boxes on this map; the live debugging in M18.3 travels along section 4's trace; M18.5 extends sections 5 and 6 into costs, access and known issues; and M18.6 is the twenty minutes in which you present it.
+Everything behind you feeds in: M00.1's four boxes, M11.1's week-one diagram, M04.7's schema, M05.3's cache, M07's monitoring, M13's production architecture, M16–M17's analytics and billing tables. Your starting material is M11.7's Checkpoint 4 pack, four months out of date. Forward, every chapter reads against this document, and M18.6 is the room.
 
 ### Words to own
 
@@ -114,28 +102,26 @@ Forward, it feeds every remaining chapter of this module: the ten what-if questi
 
 ### Tradeoffs and gotchas
 
-**Do not let AI draw the map from your description.** It will produce the average of ten thousand tutorials: a load balancer you do not have, a Redis you never provisioned, a broker nobody briefed. This is M00.7's generic-output failure, and on a diagram it is worse than useless because it is persuasive. Draw the boxes yourself from the console, then ask AI to attack what you drew.
+**Do not let AI draw the map from your description.** It produces the average of ten thousand tutorials. This is M00.7's generic-output failure, and on a diagram it is worse than useless because it is persuasive. Draw the boxes yourself from the console, then ask AI to attack what you drew.
 
-**A box per service is not a map of your system.** The value is in the arrows. "App server to Postgres" tells a reader nothing; "order rows, written inside one transaction with the payment row" tells them where your money lives.
+**The value is in the arrows.** "App server to Postgres" tells a reader nothing; "order rows, written inside one transaction with the payment row" tells them where your money lives. And nine true boxes beat thirty nobody can hold in their head.
 
-**Detail is not accuracy.** A map with thirty boxes that nobody can hold in their head is worse than nine boxes that are all true. If something can be deleted without the reader misunderstanding the system, delete it.
+**Things your host provides still belong on the map, marked as such.** TLS termination, the CDN, the connection pooler your database platform runs. They are in your blast radius. Saying "we have a load balancer" about something you never configured is the exact overclaim a panel probes.
 
-**Things your host provides still belong on the map, marked as such.** TLS termination, the CDN in front of your pages, the connection pooler your database platform runs. You did not build them; you depend on them; they are in your blast radius. Saying "we have a load balancer" when your host has one and you have never configured it is the exact overclaim a panel probes.
-
-**Section 7 is uncomfortable and that is its purpose.** Writing "I inherited this" next to three boxes feels like admitting weakness. It is the opposite: it is the only version of the document a reviewer can trust, and it tells you precisely what to study in the days before the defence.
+**Section 7 is uncomfortable and that is its purpose.** Writing "I inherited this" next to three boxes also tells you precisely what to study in the days before the defence.
 
 ### Verify it
 
-Six checks, and five of them are done with a second window open.
+Six checks, five of them with a second window open.
 
-1. **Open your hosting dashboard beside your map.** Every deployed service, cron job and environment appears on the map or is deliberately absent. Count them.
-2. **Open your environment variable list.** Every variable implies a dependency. Any key whose service is not on the map is a missing box — and quite possibly a service nobody remembers signing up for.
-3. **Open your database table list.** Every table appears in section 3 by name, with one line on what it holds. A table you cannot describe is a finding.
-4. **Point at every arrow and say the payload out loud.** An arrow you can only describe with a verb is an undecided design, exactly as it was in M11.1.
-5. **Read section 4 aloud while clicking through the live product.** The file names must come in the order the request actually travels. If you have to say "and then something happens", that is this week's study.
-6. **Hand the document to someone outside your group and leave the room.** Ask them afterwards: what does the server decide, where does money live, what breaks if the model API is down. Three wrong answers mean the document, not the reader, is wrong.
+1. **Hosting dashboard beside your map.** Every deployed service, cron job and environment is on the map or deliberately absent.
+2. **Environment variable list.** A key whose service is not on the map is a missing box.
+3. **Database table list.** Every table is in section 3 by name; one you cannot describe is a finding.
+4. **Point at every arrow and say the payload out loud.** An arrow you can only describe with a verb is an undecided design.
+5. **Read section 4 aloud while clicking through the live product.** If you have to say "and then something happens", that is this week's study.
+6. **Hand it to an outsider and leave the room.** Ask them afterwards: what does the server decide, where does money live, what breaks if the model API is down. Three wrong answers mean the document is wrong, not the reader.
 
-The red flags a panel finds in seconds: a diagram that does not match what is deployed; a box the student cannot name a file for; an arrow labelled "data"; a cache or queue on the map that was abandoned half-built; no trust boundary at all; personal data in a box nobody has thought about; and an attribution section that claims all nine boxes for one student in a group of three.
+The red flags a panel finds in seconds: a diagram that does not match what is deployed; a box the student cannot name a file for; an arrow labelled "data"; a cache abandoned half-built; no trust boundary; personal data nobody has thought about; and an attribution section claiming all nine boxes for one student in a group of three.
 
 ## Walkthrough
 1. Create `ARCHITECTURE.md` with the seven section headings and nothing under them. Commit it empty, so the file's history shows when the work started.

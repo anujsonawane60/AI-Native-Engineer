@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: entanglement-and-bloch-sphere
 title: "Entanglement, Interference and the Bloch Sphere"
 order: 6
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,27 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-"Entangled particles stay linked across any distance, so quantum networks will give us instant communication." You will meet this sentence in a pitch deck, a YouTube thumbnail and, with depressing regularity, in an AI's first draft of an explanation.
+"Entangled particles stay linked across any distance, so quantum networks will give us instant communication." You will meet this sentence in a pitch deck, a YouTube thumbnail and, with depressing regularity, in an AI's first draft.
 
-It is wrong in a specific and checkable way, and the error matters because the correct version is more interesting. Two entangled qubits do produce correlated results no classical pre-arrangement can fully reproduce — that part is real, it is experimentally settled, and the 2022 physics Nobel went to the people who nailed it down. But neither holder can *choose* what their own result will be, so neither can send anything to the other. The correlation is only visible after both sides compare notes over an ordinary channel, at ordinary speed.
+It is wrong in a specific, checkable way, and the correct version is more interesting. Two entangled qubits do produce correlated results no classical pre-arrangement can reproduce — that part is real, experimentally settled, and the 2022 physics Nobel went to the people who nailed it down. But neither holder can *choose* their own result, so neither can send anything to the other.
 
-The previous chapter left a bigger hole, though. If you cannot read a qubit's blend, and you only get one random bit per shot, where does any advantage come from? That is interference, and it is the single most important idea in this block.
+The previous chapter left a bigger hole. If you cannot read a qubit's blend, and you get one random bit per shot, where does any advantage come from? That is interference, the most important idea in this block.
 
 ### The idea
 
 **Interference is the engine: a quantum circuit is arranged so the weights on wrong answers cancel each other out before you measure. Entanglement is the wiring that lets many qubits participate in one such arrangement.**
 
-Weights can be positive or negative in effect. If two routes lead to the same outcome with opposite effect, they cancel and that outcome becomes impossible. If they reinforce, the outcome becomes much more likely. A quantum algorithm is a choreography of cancellation and reinforcement, with measurement at the end picking an answer that has been made overwhelmingly likely.
+Weights can be positive or negative in effect. If two routes lead to the same outcome with opposite effect they cancel and that outcome becomes impossible; if they reinforce, it becomes much more likely. A quantum algorithm is a choreography of cancellation and reinforcement, with measurement at the end picking an answer made overwhelmingly likely.
 
-Entanglement is what happens when two or more qubits can no longer be described separately. There is one joint description, not two individual ones, and that joint description is what allows cancellation to be arranged across many qubits at once.
+Entanglement is what happens when two or more qubits can no longer be described separately. There is one joint description, not two, and that is what allows cancellation to be arranged across many qubits at once.
 
 ### The analogy
 
 The canteen's coupon book prints tokens in pairs on one perforated slip: tear it, keep half, post half to the hostel. Whichever half anyone looks at, they immediately know what the other says. That is correlation, and it is the picture most people have of entanglement.
 
-**Where the analogy breaks**, twice, and both breaks are the lesson. First, the perforated slip was decided at the printing press: both halves carried a fixed answer all along, and looking merely revealed it. Experiments show entangled qubits produce correlation patterns stronger than any pre-printed scheme can produce — there was no answer written down in advance. Second, and this is the one that kills the pitch deck: you cannot write on your half. You have no control over what your measurement gives you, so you cannot encode a message in it. Comparing halves requires a phone call, and the phone call travels at normal speed.
+**Where the analogy breaks**, twice, and both breaks are the lesson. First, the slip was decided at the printing press: both halves carried a fixed answer all along and looking merely revealed it. Experiments show entangled qubits produce correlations stronger than any pre-printed scheme can manage — there was no answer written down in advance. Second, and this kills the pitch deck: you cannot write on your half. You have no control over what your measurement gives you, so you cannot encode a message in it.
 
-For interference, a better canteen image is the serving hatch with two queues feeding one counter. Arrange the timing so that two students arriving by different routes always collide and neither gets served, and that outcome never happens; arrange it so they arrive in step, and that outcome happens twice as often. Nothing travels faster; the *paths* were combined.
+For interference, a better image is a serving hatch with two queues feeding one counter. Arrange the timing so two students arriving by different routes always collide and neither gets served, and that outcome never happens; arrange it so they arrive in step, and it happens twice as often. The *paths* were combined.
 
 ### Picture it
 
@@ -82,11 +82,9 @@ A two-qubit entangled pair gives results that always agree, yet each qubit alone
 
 ### Where it lives
 
-Keep two separate drawers in your head. In M05 you learned that correlated replicas are not the same as communicating replicas; entanglement is the physics version of that distinction, and the no-communication rule is as firm as any result in the subject. In M02 you learned that a channel carries bytes; entanglement does not give you a channel, which is why every protocol built on it — including quantum key distribution and the thing confusingly called teleportation — still needs an ordinary classical channel alongside.
+Keep two drawers in your head. M05 taught that correlated replicas are not communicating replicas; entanglement is the physics version of that distinction. M02 taught that a channel carries bytes; entanglement is not a channel, which is why every protocol built on it — including quantum key distribution and the thing confusingly called teleportation — needs an ordinary classical channel alongside.
 
-Where entanglement is genuinely used today: quantum key distribution over fibre and satellite links, which is a real deployed technology for exchanging encryption keys and is not a general-purpose computer. Where it is used tomorrow: as the scaffolding of error correction, in chapter 8, where many physical qubits are entangled into one reliable logical qubit.
-
-Your access stays free. An in-browser composer builds a two-qubit entangled pair in two gates, and the simulator shows you the histogram above in seconds. Twenty qubits of simulation on a laptop is more than enough to see every effect in this chapter.
+Entanglement is genuinely used today in quantum key distribution over fibre and satellite links: a deployed technology for exchanging encryption keys, not a general-purpose computer. Tomorrow it is the scaffolding of error correction in chapter 8. Your access stays free — an in-browser composer builds an entangled pair in two gates and shows you the histogram above in seconds.
 
 ### Words to own
 
@@ -105,27 +103,27 @@ Your access stays free. An in-browser composer builds a two-qubit entangled pair
 
 ### Tradeoffs and gotchas
 
-**Entanglement sends nothing.** Say it plainly whenever you hear otherwise. No message, no bit, no signal, ever, under any arrangement. The correlation becomes visible only when both parties compare results over a normal channel.
+**Entanglement sends nothing.** No message, no bit, no signal, ever. The correlation becomes visible only when both parties compare results over a normal channel.
 
-**Teleportation is a terrible name.** It transfers a qubit's state from one place to another, destroys the original, and requires two classical bits to be sent by ordinary means. Nothing arrives before the phone call does.
+**Teleportation is a terrible name.** It transfers a qubit's state, destroys the original, and requires two classical bits sent by ordinary means. Nothing arrives before the phone call does.
 
-**Phase is invisible until paths meet.** A qubit sitting at a different point on the equator gives exactly the same measurement odds. Phase only shows up when two routes recombine, which is why almost every interesting circuit has gates after the phase change rather than measurement.
+**Phase is invisible until paths meet.** A qubit at a different point on the equator gives exactly the same measurement odds, which is why almost every interesting circuit has gates after the phase change rather than measurement.
 
-**The Bloch sphere describes one qubit and only one.** There is no two-qubit Bloch sphere, and for entangled qubits neither partner has a direction of its own. Diagrams showing two spheres linked by a lightning bolt are decoration.
+**The Bloch sphere describes one qubit and only one.** There is no two-qubit version, and for entangled qubits neither partner has a direction of its own. Diagrams showing two spheres linked by a lightning bolt are decoration.
 
-**More entanglement is harder, not easier.** Every additional entangled qubit multiplies the state you are trying to hold still, and any stray interaction with the environment leaks it. Entangling fifty qubits reliably for a long circuit is the central engineering problem of the field.
+**More entanglement is harder, not easier.** Every additional entangled qubit multiplies the state you are holding still, and any stray interaction leaks it. Entangling fifty qubits reliably for a long circuit is the central engineering problem of the field.
 
 ### Verify it
 
-**Red flag: entanglement described as carrying information.** Phrases to catch: "instant communication", "linked so a change here appears there", "faster-than-light signalling". Ask one question — can the sender choose what their own measurement will show? The answer is no, and that is the whole argument.
+**Red flag: entanglement described as carrying information.** Catch "instant communication", "linked so a change here appears there", "faster-than-light signalling". Ask one question — can the sender choose what their own measurement will show? No, and that is the whole argument.
 
-**Red flag: a speedup explained without mentioning cancellation.** This is the diagnostic test of the chapter. If an explanation of any quantum algorithm says only that superposition lets you explore many answers, it has skipped the mechanism. Ask which outcomes cancel and why.
+**Red flag: a speedup explained without mentioning cancellation.** The diagnostic test of the chapter. An explanation saying only that superposition lets you explore many answers has skipped the mechanism. Ask which outcomes cancel and why.
 
-**Red flag: a Bloch sphere used to show two qubits or an entangled pair.** It cannot. Ask what the sphere's poles mean and whose state the direction represents.
+**Red flag: a Bloch sphere used to show two qubits or an entangled pair.** It cannot. Ask what the poles mean and whose state the direction represents.
 
-**Red flag: the torn-coupon explanation presented as complete.** Pre-shared hidden labels are precisely what experiments ruled out. An answer that stops at "like two halves of a torn ticket" has given you a classical story for a non-classical effect; ask it what a Bell test measured and why it mattered.
+**Red flag: the torn-coupon explanation presented as complete.** Pre-shared hidden labels are precisely what experiments ruled out. Ask what a Bell test measured.
 
-**Red flag: fidelity and noise absent.** On real hardware, building an entangled pair succeeds a few hundred times in a thousand attempts rather than always. If an answer never mentions that, ask for the two-qubit gate error rate of the machine it is describing.
+**Red flag: fidelity and noise absent.** On real hardware, building an entangled pair succeeds a few hundred times in a thousand attempts rather than always. Ask for the two-qubit gate error rate.
 
 ## Walkthrough
 1. Open a free in-browser quantum composer. Build a two-qubit circuit with a blend gate on the first qubit, then a controlled-NOT with the first qubit controlling the second, then measure both.

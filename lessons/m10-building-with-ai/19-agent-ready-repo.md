@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: agent-ready-repo
 title: "Making a Repo Agent-Ready: Linters, Test Harnesses, Self-Verifying Diffs"
 order: 19
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student asks an agent to add the sold-out toggle. Twenty minutes later it presents a four-hundred-line diff across nine files and the sentence: "Done. I have implemented the feature and everything works."
+A student asks an agent to add the sold-out toggle. Twenty minutes later it presents a four-hundred-line diff across nine files and the sentence "Done. I have implemented the feature and everything works." Nothing works; the dev server will not start.
 
-Nothing works. The dev server does not even start.
-
-Ask why it said that and the answer is uncomfortable: nothing in that repository could have told it otherwise. There were no tests. There was no linter. There was no type checker. There was no command it could have run to find out it was wrong. Its only source of truth about whether the code worked was its own belief that it had written good code.
-
-So the student becomes the entire verification mechanism, and the student cannot read four hundred lines.
-
-The same agent, same model, on a different repository: one setup command, a type checker, a linter, forty tests and a seed script. It produces a hundred-and-twenty-line diff, having run the tests three times, fixed two failures itself, and the diff contains the test it wrote. The difference is not the model. It is the repository.
+Nothing in that repository could have told it otherwise: no tests, no linter, no type checker, no command it could have run to find out it was wrong. So the student becomes the verification mechanism, and cannot read four hundred lines. The same agent on a repository with one setup command, a type checker, a linter, forty tests and a seed script produces a hundred-and-twenty-line diff, having run the tests three times and fixed two failures itself. The difference is the repository.
 
 ### The idea
 
-**An agent-ready repository is one where the agent can find out it is wrong without you. Every check you can run, it can run — by one short command, quickly, deterministically. The measure of an agent-ready repository is how fast a wrong change becomes a failing command.**
+**An agent-ready repository is one where the agent can find out it is wrong without you. Every check you can run, it can run — one short command, quickly, deterministically.**
 
-This is the chapter that closes the loop on the whole programme. M00 taught you to direct. M01 made edits reversible and reviewable. M06 built the test suite. This chapter connects them so the machine checks the mechanical things and you spend your attention on what only a human can judge.
+The measure is how fast a wrong change becomes a failing command. This closes the loop: M00 taught you to direct, M01 made edits reversible, M06 built the test suite, and this chapter connects them so the machine checks the mechanical things and your attention goes where only a human can judge.
 
 ### The analogy
 
-A kitchen with a weighing scale, a thermometer, a tasting spoon and a written checklist lets a new cook catch their own mistakes before the plate leaves the counter. A kitchen with none of those makes the customer the quality check, and you find out about the salt from a complaint.
+A kitchen with a weighing scale, a thermometer, a tasting spoon and a checklist lets a new cook catch their own mistakes before the plate leaves the counter. A kitchen with none of those makes the customer the quality check, and you hear about the salt in a complaint.
 
-**Where the analogy breaks:** a cook tastes and *judges*. A test suite only knows what somebody told it to check. A green suite means "none of the things we thought of are broken" — never "it works". So the suite replaces your attention on the mechanical, and it does not replace your review. M01's six questions still get asked by you.
+**Where the analogy breaks:** a cook tastes and *judges*. A test suite only knows what somebody told it to check, so green means "nothing we thought of is broken", never "it works". The suite replaces your attention on the mechanical, not your review.
 
 ### Picture it
 
@@ -66,47 +60,26 @@ A kitchen with a weighing scale, a thermometer, a tasting spoon and a written ch
   and confirm the test FAILS. now the test is real.
 ```
 
-The loop on the left is the agent catching its own mistakes. The three artefacts on the right are what "done" means. The check at the bottom is yours and it takes thirty seconds.
+The loop on the left is the agent catching its own mistakes. The three artefacts on the right are what "done" means, and the check at the bottom is yours.
 
-### The six properties
+| Property | Why it matters |
+|---|---|
+| One command to set up | `make setup`, not prose in a README — prose gets subtly wrong, and sessions start with twenty minutes of guessing |
+| One command each for lint, typecheck, test, build, run | Short, identical for everyone, listed in your rules file |
+| Fast, deterministic tests | A thirty-second suite gets run constantly; a nine-minute one never does |
+| A type checker and a linter | The cheapest feedback in the loop — wrong type, unused import |
+| Seed data and a way to observe behaviour | Compiling is not working; the agent needs to see the thing running |
+| Verification that cannot be skipped | Chapter eighteen's hooks, plus M06's CI as the pull-request gate |
 
-**One command to set up.** `make setup`, or one script. If an agent cannot get the project running, every session begins with twenty minutes of flailing and guessing at package managers. Write it down as a command, not as prose in a README.
+**Done means three artefacts, together:** the change, a test proving it does what was asked, and the pasted output showing that test pass. A diff alone is a claim; a diff with a passing test the agent wrote is evidence.
 
-**One command each for lint, typecheck, test, build and run.** Short, memorable, identical for every teammate, and listed in your rules file from chapter eighteen. The agent should never have to work out how to run your tests.
-
-**Fast, deterministic tests.** An agent will run the suite ten times in a session. A nine-minute suite does not get run; a thirty-second suite gets run constantly. And **flaky tests are worse than no tests**, because they teach the agent — correctly — that a red result can be ignored. Fix or delete every flaky test before adding anything.
-
-**A type checker and a linter.** These catch the mechanical mistakes without any human or any test: the wrong type, the unused import, the missing case. They are the cheapest feedback in the whole loop and they run in seconds.
-
-**Seed data and a way to observe behaviour.** A command that fills the database with a realistic menu, a sold-out dish, a long dish name, an order with a remainder. Compiling is not working. The agent needs to be able to look at the thing running.
-
-**Verification that cannot be skipped.** Chapter eighteen's hooks: lint and format on every edit, the test suite before the agent may report completion. Plus M06's CI as the gate on the pull request, so a human who forgets is also covered.
-
-### The self-verifying diff
-
-This is the deliverable the chapter is named for, and it is a change in what you accept rather than a tool you install.
-
-**Done means three artefacts, together:** the change, a test that proves the change does what was asked, and the pasted output of the command showing that test passing. A diff on its own is a claim. A diff with a passing test the agent also wrote is evidence.
-
-With one caveat that matters enormously. An agent can write a test that passes for the wrong reason — asserting what the new code happens to do, or asserting nothing at all. So there is one check you perform, and it is the most valuable thirty seconds in this module:
-
-**Revert the change. Run the test. Confirm it fails.** If the test passes without the fix, the test is decoration and you have learnt nothing. If it fails, the test genuinely encodes the behaviour you asked for, and you can trust the green.
-
-Ask for this explicitly in your brief: "include a test that fails before your change and passes after, and show me both runs." A well-configured agent will do both runs for you, and you spot-check.
-
-### Keeping secrets out, and the diff small
-
-Two things from earlier chapters that belong in this setup.
-
-The working folder must contain no real credentials — chapter seven's first ingredient. Placeholders locally, real values in your deploy platform, and `.env` in `.gitignore` with a committed `.env.example` so the agent knows which variables exist without knowing their values.
-
-And the diff must stay small. M01's finding was that small pull requests get real reviews and large ones get rubber stamps, and that reviewability is the author's responsibility. With an agent you are the author. One concern per change, under roughly four hundred lines, with the non-goals in the brief.
+One caveat matters enormously, because an agent can write a test that passes for the wrong reason — asserting whatever the new code happens to do, or nothing at all. So you perform one check, the most valuable thirty seconds in this module. **Revert the change. Run the test. Confirm it fails.** If it passes without the fix, the test is decoration. Ask for it in the brief: "include a test that fails before your change and passes after, and show both runs."
 
 ### Where it lives
 
-Everything here is files in your repository: a setup script, a task runner, a test directory, a linter config, a type-checker config, a seed script, a rules file, hooks, and a CI workflow. All reviewable in pull requests, all shared by the team, all surviving a change of harness.
+Everything here is files in your repository: a setup script, a task runner, a test directory, linter and type-checker configs, a seed script, a rules file, hooks and a CI workflow — all reviewable in pull requests. M06 is the direct dependency: the suite built there makes chapter fourteen's success predicate real.
 
-M06 is the direct dependency — the test suite built there is the thing that makes a success predicate real in chapter fourteen, and CI is the gate. M00's permission split is what lets the agent run tests silently while never pushing. M01's pull-request review is where you still apply judgement. And M11's checkpoints will ask you to demonstrate exactly this.
+Two earlier rules belong here. The working folder must hold no real credentials — chapter seven's first ingredient — so placeholders locally and a committed `.env.example` naming the variables without their values. And the diff must stay small: small pull requests get real reviews, large ones get rubber stamps, and with an agent you are the author.
 
 ### Words to own
 
@@ -125,35 +98,26 @@ M06 is the direct dependency — the test suite built there is the thing that ma
 
 ### Tradeoffs and gotchas
 
-**Flaky tests are actively harmful.** One test that fails one run in five teaches both you and the agent to re-run until green. That habit then hides a real failure. Quarantine or delete them the day you notice.
+**Flaky tests are actively harmful.** One test that fails one run in five teaches you and the agent to re-run until green, and that habit hides a real failure.
 
-**A slow suite is an unrun suite.** Put the fast checks — lint, types, unit tests — on the inner loop, and the slow ones on CI. Thirty seconds is a target worth engineering for.
+**A slow suite is an unrun suite:** fast checks on the inner loop, slow ones on CI.
 
-**Tests the agent wrote can be vacuous.** `expect(true).toBe(true)`, or asserting the current output whatever it is. The revert check is the defence and it has to be a habit, not an intention.
+**Tests the agent wrote can be vacuous** — asserting whatever the current output is, or nothing. The revert check is the defence. Coverage is not correctness either: ninety percent with assertions that check nothing is worse than forty with real ones, because it looks finished.
 
-**Do not let the agent delete or weaken tests to go green.** Chapter fourteen's story. State it as a non-goal, and make it structural: a hook or a CI rule that fails a pull request which deletes test files without explanation.
+**Do not let the agent delete or weaken tests to go green.** Make it structural: a CI rule failing any pull request that deletes test files.
 
-**Coverage is not correctness.** Ninety percent coverage with assertions that check nothing is worse than forty percent with real assertions, because it looks finished.
-
-**Setup instructions in a README are not setup.** If the steps are prose, every agent and every new teammate will get them subtly wrong. A command either works or it does not.
-
-**This has a one-time cost and it is the best-value day in the module.** Half a day of setup changes every agent session afterwards, for everyone on the team, for the rest of the project.
+**The cost is one-time and it is the best-value day in the module.** Half a day changes every session after it, for everyone.
 
 ### Verify it
 
-**Run the fresh-clone test, which is the real exam.** Clone your repository into an empty folder. Start an agent there. Give it nothing but the repository and one small task. Watch whether it can set up, run the checks, make the change, discover its own mistake and fix it. Everything it needed that was not in the repository is your gap list.
+- **Run the fresh-clone test, the real exam.** Clone into an empty folder, start an agent there, and give it nothing but the repository and one small task. Everything missing that it needed is your gap list.
+- **Time your checks.** Over two minutes and the agent stops running them; so will you.
+- **Run the suite five times unchanged.** Five identical results, or fix the flakiness first.
+- **Do the revert check on the agent's own test.** Undo the change, run the test, confirm it fails — every time, until reflex.
+- **Ask for the output, not the summary.** "I ran the tests and they pass" is generated text; pasted terminal output with the test count and exit status is evidence.
+- **Check that a broken change is caught.** Divide a price by a hundred; something must go red.
 
-**Time your checks.** Write down the seconds for lint, typecheck and test. If the suite is over about two minutes, the agent will stop running it and so will you.
-
-**Run the suite five times without changing anything.** Five identical results, or you have flakiness to fix before anything else in this chapter matters.
-
-**Do the revert check on the agent's own test.** Undo the change, run the test, confirm it fails. Do this on every change until it is reflex.
-
-**Ask for the output, not the summary.** "I ran the tests and they pass" is generated text. The pasted terminal output with the test count and the exit status is evidence. Insist on the second one.
-
-**Check that a broken change is actually caught.** Deliberately introduce a bug — divide a price by a hundred — and confirm something goes red. If nothing does, your checks do not cover the thing you most care about.
-
-Red flags: "Done, everything works" with no command output; a repository with no tests, no linter and no type checker; a test suite over a few minutes; any flaky test; setup that only exists as prose; a test that passes with the change reverted; test files deleted inside a feature diff; a real `.env` in the working folder; and a four-hundred-line diff for a one-line fix.
+Red flags: "Done, everything works" with no command output; no tests, linter or type checker; a suite over a few minutes; any flaky test; setup that exists only as prose; a test that passes with the change reverted; test files deleted inside a feature diff; a real `.env` in the working folder; a four-hundred-line diff for a one-line fix.
 
 ## Walkthrough
 1. Clone your own repository into an empty folder and try to get it running using only what is committed. Write down every step you had to improvise — that list is the work.

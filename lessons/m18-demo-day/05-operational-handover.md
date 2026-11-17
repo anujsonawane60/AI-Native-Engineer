@@ -4,7 +4,7 @@ module: m18-demo-day
 slug: operational-handover
 title: "Operational Handover: Runbook, Costs, Access, Known Issues"
 order: 5
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,23 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-It is three weeks after demo day, and the product still has users.
+Three weeks after demo day, the product still has users.
 
-On a Tuesday evening the site stops saving orders. The only person who holds the database password is on a train to Pune with no signal. On the Thursday the domain lapses, because it was bought on somebody's father's card and the renewal notice went to an email address nobody checks. On the Friday a user writes asking for her data to be deleted, and three people spend two hours working out which tables hold rows belonging to one person. The following week a new member joins and loses an afternoon rediscovering the double-order bug that all three original members already knew about and nobody had written down.
+On Tuesday evening the site stops saving orders, and the only person holding the database password is on a train with no signal. On Thursday the domain lapses: bought on somebody's father's card, renewal notice to an email nobody checks. On Friday a user asks for her data to be deleted, and three people spend two hours working out which tables hold her rows. Next week a new member loses an afternoon rediscovering a double-order bug all three originals knew about and nobody wrote down.
 
-Nothing in that product was technically wrong. It had no owner who could act — which is a different failure, and it is the one that actually kills student projects after the course ends.
+Nothing in that product was technically wrong. It had no owner who could act — the failure that actually kills student projects after the course ends.
 
 ### The idea
 
 **An operational handover is the five documents that let somebody who is not you keep the product alive: a runbook that has been followed, costs reconciled against the real bill, an access inventory with no single holder, known issues with workarounds, and an ordered list of what breaks first as you grow.**
 
-All five are judged by the same test: **has anyone other than the author actually executed it?** A runbook nobody has followed is fiction. A cost figure nobody has checked against a bill is a guess.
+All five are judged by one test: **has anyone other than the author executed it?** A runbook nobody has followed is fiction; a cost figure never checked against a bill is a guess.
 
 ### The analogy
 
-You hand the stall to your cousin for a month. What they need is not your recipes. It is the gas supplier's number, which burner not to use, when the rent is due and to whom, where the spare shutter key is, and the fact that the mixer trips the fuse if the fridge is running. That last one is the known-issues list, and it is always the thing an owner forgets to say — not out of secrecy, but because they stopped noticing it years ago.
+You hand the stall to your cousin for a month. What they need is not your recipes. It is the gas supplier's number, which burner not to use, when the rent is due and to whom, and the fact that the mixer trips the fuse if the fridge is running. That last one is the known-issues list, and it is always what an owner forgets, because they stopped noticing it years ago.
 
-**Where the analogy breaks:** your cousin can phone you. Your handover gets used at 11 pm by someone who cannot reach you, and the thing you did not write down is precisely the thing that fails. So the handover is tested the way you tested the product in M11.2: hand it over, stay silent, and watch where they get stuck.
+**Where the analogy breaks:** your cousin can phone you. Your handover gets used at 11 pm by someone who cannot reach you, and what you did not write down is what fails. So test it as in M11.2: hand it over, stay silent, watch where they get stuck.
 
 ### Picture it
 
@@ -58,51 +58,21 @@ You hand the stall to your cousin for a month. What they need is not your recipe
   └──────────────────────────────────────────────────────┘
 ```
 
-Five artefacts, each with the specific proof that distinguishes it from a document written to look complete.
+Five artefacts, each with the proof that distinguishes it from a document written to look complete.
 
-### 1. The runbook
+**The runbook** is numbered steps naming the exact thing to click — not a forty-minute video, which nobody searches during an incident. Six procedures minimum: deploy, roll back, rotate a key, restore a backup, and first response for your two likeliest incidents. "Roll back the deployment" is not one. This is: *host dashboard, Deployments tab, the last deploy before the current one, Promote to Production, confirm, load `/health`.* Add who is on call, by name, with a date range, and where each secret lives — the location, never the value.
 
-Procedures, written as numbered steps with the exact thing to click, not the concept. Six of them, minimum: deploy; roll back; rotate a leaked or expiring key; restore a backup; and first response for your two or three most likely incidents — the site is down, the model API is failing, payments are not confirming.
+**The cost breakdown** is one line per service: plan, what you **actually paid** last month, what the free tier includes, what happens when you cross it. Then the line most students never compute: cost per model call times calls per month, read off your usage page. Then the same table at a hundred users and a thousand. Reliably missing: annual costs, and metered extras — bandwidth, build minutes, log retention.
 
-"Roll back the deployment" is not a procedure. This is: *open the host dashboard, Deployments tab, find the last deploy before the current one, Promote to Production, confirm, then load `/health` and check it returns ok.* Written that way because it is going to be followed by someone tired, on a phone, who did not build it.
+**The access inventory** is a table: service, holder, what the account can do, two-factor, recovery path. No account with exactly one holder — M18.2's bus factor. No credentials in chat. No account on a personal email only one person reads. Add a four-line offboarding checklist: revoke, rotate, transfer, confirm.
 
-Two more things belong here. **Who is on call, by name, with a date range** — M11.6 said one alert, one person, one condition, and "the group chat" is still not a person. And **where each secret lives**, which is the location, never the value. A runbook with a key in it is a key in a document that gets shared.
+**Known issues** is a table: the issue, severity, who it affects, how often, the workaround, and whether a non-author could follow it. Every team of three knows at least three — the double submit that creates two rows, the page that breaks on a long name, the suggestion blank in Marathi.
 
-### 2. The monthly cost breakdown
-
-One line per service: what it is, which plan, what you **actually paid** last month, what the free tier includes, and what happens when you cross it — does it stop, queue, or start charging.
-
-Then the line most students have never computed: model inference. Cost per call times calls per month, from M09.14 and M17.6, with the number of calls taken from your own usage page. Then the same table projected at a hundred users and a thousand, which is the arithmetic M11.5 asked for and M17.5 turned into unit economics.
-
-Two things reliably missing. **The annual costs** — the domain renewal, once a year, often on a personal card nobody else can see. And **the metered extras you forgot a free tier counts**: bandwidth, build minutes, function invocations, log retention, image transformations. M06.7's billing traps are exactly these.
-
-The pricing page is not your bill. Open the bill.
-
-### 3. The access inventory
-
-Every account, in a table: the service, who holds it, what that account can do, whether two-factor is on, and how you would recover it.
-
-Three rules. **No account with exactly one holder** — that is the bus factor from M18.2's ninth question, and it is the single most common reason a working student product dies. **No credentials in a chat message**, ever; a shared password manager or the host's own team feature instead. **No account owned by a personal email that only one person can read**, which is how domains lapse.
-
-Add a four-line offboarding checklist: what you revoke, what you rotate, what you transfer, and who confirms it. You will not need it during the course. You will need it within a year.
-
-### 4. Known issues and workarounds
-
-A table: the issue, its severity, who it affects, how often, the workaround, and whether somebody who did not build the product could follow that workaround.
-
-**An empty known-issues list is not a clean product. It is an unexamined one.** Every team of three knows at least three — the double submit that occasionally creates two rows, the page that breaks on a very long name, the suggestion that goes blank in Marathi. Writing them down costs you nothing in a defence and earns you a great deal, because the alternative is a reviewer finding one in M18.3 and discovering it was known and hidden.
-
-### 5. What breaks first under growth
-
-An ordered list, each entry with the number at which it hits. Typically: the free tier's row or storage cap; the database connection limit; the model provider's rate limit or your monthly token budget; the nightly job that reads every row and gets slower every week; the free tier's monthly request budget.
-
-Order them by which arrives first, not by which is scariest. Each needs a number — "at about four hundred users" — and that number comes from your load test in M13.7, your usage pages, and the second diagram you drew as M18.1's stretch.
+**The ceilings** are an ordered list, each with the number at which it hits: the free tier's row cap, the connection limit, the model rate limit, the nightly job that slows every week. Order by arrival, not scariness, with numbers from your load test.
 
 ### Where it lives
 
-M11.6 gave you the rehearsed rollback and the single alert. M06.7 is the billing traps, M07.2 the secrets, M13.5 release and rollback, M13.9 backups and disaster recovery, M13.10 on-call and postmortems, M17.5 and M17.6 the money, M17.9 the trust you lose overnight, and M01.9 the working agreements this formalises.
-
-Forward, three of M18.2's ten questions — the lost database, the leaked key and the departing co-founder — are answered directly out of this document. M18.6 closes with three minutes on it.
+M11.6 gave you the rehearsed rollback and the single alert; M06.7 the billing traps, M07.2 the secrets, M13.9 backups, M13.10 on-call, M17.5 the money. Forward, three of M18.2's ten questions — the lost database, the leaked key, the departing co-founder — are answered straight out of this document, and M18.6 closes with three minutes on it.
 
 ### Words to own
 
@@ -122,29 +92,25 @@ Forward, three of M18.2's ten questions — the lost database, the leaked key an
 
 ### Tradeoffs and gotchas
 
-**Write the click, not the concept.** Every sentence that assumes the reader knows where something is will be the sentence that fails at 11 pm.
+**The pricing page is not your bill.** Free tiers meter things you have forgotten, and the first real bill surprises you in the same two or three lines. Build the table from the bill (M06.7).
 
-**Never put a secret in the runbook.** Put where the secret lives. A document gets pasted into chat; a location does not leak anything.
+**Never put a secret in the runbook, only where the secret lives.** A document gets pasted into chat; a location leaks nothing.
 
-**Do not hand over knowledge as a video.** A forty-minute screen recording is not a runbook. Nobody watches it during an incident, and nothing in it is searchable.
+**An empty known-issues list is not a clean product. It is an unexamined one.** Writing the issues down costs nothing; the alternative is a reviewer finding one in M18.3 and discovering it was known and hidden.
 
-**A cost table built from pricing pages will be wrong.** Free tiers meter things you have forgotten about, and the first real bill is always a surprise in the same two or three lines.
-
-**The known-issues list is the most honest and the most tempting to shorten.** Resist. A reviewer who finds an issue that was known and unlisted stops believing the rest of the document.
-
-**This is the artefact that most rewards being written early.** Everything in it is a fact you already have — the bill exists, the accounts exist, the issues are known. The work is only in writing them down and then having someone else try them.
+**This artefact most rewards being written early.** Everything in it is a fact you already have — the bill, the accounts, the issues. The work is writing them down and having someone else try them.
 
 ### Verify it
 
 Five checks, four of which need another person.
 
-1. **Hand the runbook to a teammate and stay silent while they deploy and roll back.** Time it. Write down every point where they hesitated; each one is a missing step.
-2. **Open last month's bill beside your cost table.** Every line matches, or the table is wrong. Fix the table, not the bill.
-3. **For every account, have a second person actually log in today.** Not "they have the password" — watch them get in. Any account where this fails has exactly one holder.
-4. **Run one procedure you have never run** — restore the backup into a scratch database, or rotate the model key — and correct the steps as you go.
-5. **Ask both teammates to name three known issues from memory** and compare with your list. Anything they name that you did not list was known and unwritten, which is the exact failure this artefact exists to prevent.
+1. **Hand the runbook to a teammate and stay silent while they deploy and roll back.** Note every hesitation; each is a missing step.
+2. **Open last month's bill beside your cost table.** Every line matches, or the table is wrong.
+3. **For every account, have a second person log in today.** Not "they have the password" — watch them get in. Any failure means one holder.
+4. **Run one procedure you have never run** — restore the backup into a scratch database, or rotate the model key — correcting the steps as you go.
+5. **Ask both teammates to name three known issues from memory.** Anything they name that you did not list was known and unwritten.
 
-The red flags: a runbook nobody has followed; a cost figure nobody has checked against the bill; an access row with one holder; an empty known-issues list; a ceiling with no number; credentials pasted in a chat; an annual renewal on a personal card; and a handover written entirely by the one person who built everything, which tells a reviewer about the team rather than the document.
+The red flags: a runbook nobody has followed; a cost figure never checked against the bill; an access row with one holder; an empty known-issues list; a ceiling with no number; and a handover written entirely by the one person who built everything.
 
 ## Walkthrough
 1. Create `HANDOVER.md` with the five section headings and nothing under them, and commit it so the file has a start date.

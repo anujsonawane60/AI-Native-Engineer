@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: gpus-cnns-scaling-laws
 title: "Why GPUs Matter; CNNs, RNNs, Parameters and Scaling Laws"
 order: 7
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,31 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Two students run the same small image classifier on the same canteen photos. One leaves the Colab runtime on its default CPU setting and waits forty minutes for an epoch. The other changes one dropdown to a free GPU and finishes the same epoch in fifty seconds. Same code, same data, same notebook, same free account.
-
-The first student concludes that machine learning is impractical for a team with no money and drops the feature. The second runs twelve experiments that afternoon.
-
-A third student picks the largest model on the list and gets an out-of-memory crash. A fourth gets a 7-billion model running on the free GPU, is delighted, and then finds it emits about three words per second in their chat interface, which no user will tolerate.
-
-All four facts — the CPU-versus-GPU gap, the memory wall, the throughput wall, and the fact that none of these numbers stay true for long — decide what your team can actually build this semester.
+Two students run the same image classifier on the same photos. One leaves the Colab runtime on CPU, waits forty minutes for an epoch, and drops the feature as impractical without money. The other switches one dropdown to a free GPU, finishes in fifty seconds, and runs twelve experiments that afternoon. A third picks the largest model and crashes out of memory; a fourth gets a 7B model running at three words per second, which no user tolerates.
 
 ### The idea
 
 **Almost all the work in a neural network is the same tiny multiply-and-add, repeated billions of times, and every one of those is independent of the others. A CPU does a handful of things very fast; a GPU does thousands of things at once. That is the entire reason deep learning became possible.**
 
-The second half of the chapter is what happens as you make these models bigger: performance improves in a predictable, boring, measurable way as you add data, parameters and compute — and the improvement per rupee shrinks the whole time. Those two facts together explain both why the frontier models are enormous and why the right model for your canteen app is small.
+Then there are the **scaling laws**. Increase data, parameters and compute together and the loss falls along a smooth, predictable path. Two consequences matter: it justified enormous spending, because a hundred times the compute reliably buys a better model, which is why frontier models exist and why you rent them rather than build them; and the returns diminish steeply, so a cheap small model is often most of the way there on your own task.
 
 ### The analogy
 
-The canteen has to produce five hundred dosas for a function.
+Five hundred dosas are needed for a function. One option is the head cook: twenty years of skill, one dosa every twelve seconds. That is a **CPU** — a few capable cores handling any instruction in sequence. The other is two hundred first-years at two hundred tawas, each slow and able to do one thing, finishing in a fraction of the time. That is a **GPU**, and neural network arithmetic has the same shape, which is why the industry runs on hardware built for drawing triangles in games.
 
-One option is the head cook: twenty years of skill, works alone, superb at anything you hand him including the complicated orders. He makes a dosa every twelve seconds and never stops. That is a **CPU** — a few extremely capable cores that handle any kind of instruction, one sequence at a time, very fast.
-
-The other option is two hundred first-year volunteers at two hundred tawas. Each is slow, clumsy, and can do exactly one thing: pour batter, wait, flip, remove. If you need anything unusual they are useless. But for five hundred identical dosas they finish in a fraction of the head cook's time. That is a **GPU** — thousands of simple cores doing the identical operation on different data simultaneously.
-
-Dosas are the right job for the volunteers because every dosa is independent. Neural network arithmetic is the same shape, which is why the industry runs on graphics hardware that was originally designed for drawing triangles in games.
-
-**Where the analogy breaks:** the volunteers can each do their own thing if you let them, and they can wait for each other. GPU cores are far more rigid — they want to execute the same instruction in lockstep, and work that must happen in strict order gets almost no benefit. This is exactly why the RNN, coming up next, was such a problem: it insisted on going one word at a time.
+**Where the analogy breaks:** the volunteers could each do their own thing and wait for one another. GPU cores are rigid, executing the same instruction in lockstep, so strictly ordered work gets almost no benefit — which is exactly why the RNN was a problem.
 
 ### Picture it
 
@@ -69,39 +57,16 @@ Dosas are the right job for the volunteers because every dosa is independent. Ne
 
 A CPU has a few powerful general-purpose cores working in sequence; a GPU has thousands of simple cores applying the same operation to huge amounts of data simultaneously.
 
-### CNNs and RNNs, and why one of them is history
-
-Before transformers, two architectures mattered, and knowing what each was for explains why today's models look the way they do.
-
-A **CNN**, or convolutional neural network, slides a small window across an image looking for one pattern at a time — an edge here, a corner there — and stacks those findings into bigger ones: edges become textures, textures become wheels, wheels become cars. It rests on the observation that in a photograph what matters is local and repeats everywhere, so one small detector can be reused across the whole image. CNNs are not obsolete. For classifying canteen dish photos on a small dataset, a CNN is still an excellent, cheap, well-understood answer.
-
-An **RNN**, or recurrent neural network, reads a sequence one item at a time, carrying a running summary forward. It was the standard approach to language for years and had two crippling problems. The summary **forgets**: by word two hundred, word three has faded to nothing. And because word two cannot be processed until word one is done, it is **strictly sequential** — the one shape of work that gets no benefit from two hundred volunteers at two hundred tawas.
-
-The transformer, which is chapter 10, removed both problems at once: every token can look directly at every other token, and all of it computes in parallel. That is why RNNs were abandoned for language within a few years, and it is less a story about cleverness than about hardware. The architecture that won was the one the GPU could run.
-
-### Scaling laws
-
-Researchers measured something that turned out to be remarkably regular. If you increase three things together — the amount of training data, the number of parameters, and the compute spent — the model's loss falls along a smooth, predictable path. Not in jumps. Smoothly enough that you can forecast roughly how good a model will be before you train it.
-
-Two consequences, and both matter to you.
-
-**It justified spending enormous money.** If a hundred times the compute reliably produces a meaningfully better model, a company with a hundred times the budget gets a better model, and the race to build large models follows directly. This is why the frontier models exist and why you rent them rather than build them.
-
-**The returns diminish, steeply.** Each doubling of quality costs far more than the previous one. Going from weak to decent is cheap; going from very good to slightly better costs a fortune. For you this is the useful half: a cheap small model is often most of the way there on your actual task, and the gap you pay a premium to close may not be one your users can perceive. Chapter 13 makes you measure exactly that.
-
-There is also a balance point. Early large models were trained with far too little data for their size; the correction, associated with the Chinchilla results, was that for a given compute budget you should train a somewhat smaller model on substantially more data. The echo for you is that a newer small model routinely beats an older larger one, so parameter count ranks models badly.
+Two architectures mattered before transformers. A **CNN** slides a small window across an image looking for one pattern and stacks the findings: edges become textures, textures become wheels — still a cheap, excellent answer for dish photos. An **RNN** reads a sequence one item at a time carrying a running summary, and had two crippling problems: the summary forgets, and it is strictly sequential, the one shape of work two hundred tawas cannot speed up. The transformer removed both at once — less a story about cleverness than about hardware, because the architecture that won was the one the GPU could run.
 
 ### Where it lives
 
-For your team, all of this collapses into three questions you ask about any model before you commit.
+Three questions decide any model before you commit.
 
-**Does it fit?** Chapter 5's arithmetic: parameters, bytes per number, plus working space, against the GPU's memory. A free Colab or Kaggle GPU is in the region of fifteen gigabytes, but check it in the notebook rather than trusting any quoted figure — this is precisely the kind of free-tier detail M06 warns you goes stale.
-
-**Is it fast enough?** Tokens per second for text, images per second for vision. Fitting and being usable are separate gates, and the second kills chat features.
-
-**Can you avoid owning the hardware entirely?** Usually yes, and usually you should. Calling a hosted model means no GPU and no memory arithmetic, and a price per request instead — which moves the problem to chapter 14. A rented GPU costs money while idle; an API costs money only when used, which for spiky student traffic is decisive.
-
-Quantization, serving, batching and squeezing real throughput out of one GPU are M14.
+- **Does it fit?** Chapter 5's arithmetic — parameters, bytes per number, working space — against the GPU's memory, checked in the notebook rather than quoted.
+- **Is it fast enough?** Tokens per second for text, images per second for vision. Fitting and being usable are separate gates.
+- **Can you avoid owning hardware at all?** Usually yes: a hosted model trades memory arithmetic for a price per request. A rented GPU costs money while idle; an API costs only when used.
+- **Quantization, serving, batching and real throughput are M14.**
 
 ### Words to own
 
@@ -121,29 +86,20 @@ Quantization, serving, batching and squeezing real throughput out of one GPU are
 
 ### Tradeoffs and gotchas
 
-**Switch the runtime to a GPU before you conclude anything is too slow.** The most common wasted afternoon in this module is a student training on a CPU by accident. Print the device your code is using, every time, as the first line of output.
-
-**A GPU is useless for most of what your app does.** Serving a page, reading a database, running your API — all sequential, branching work, which is the head cook's job. Never let anyone tell you your web app needs a GPU.
-
-**Parameter count is not a quality ranking.** A well-trained small model from this year routinely beats a larger model from two years ago. Rank by measured performance on your own task, which is chapter 13.
-
-**Fitting and running are different walls.** "It loaded" is not "it works". Measure tokens per second before you design an interface around it.
-
-**Every number in this chapter is perishable except the ideas.** Free-tier GPU allowances, session limits, which GPU you are assigned, model line-ups and memory requirements all change without notice. The CPU-versus-GPU reasoning will still be true in five years; "about fifteen gigabytes" will not. Verify in the notebook, on the day.
+- **Switch the runtime to a GPU before concluding anything is too slow.** The commonest wasted afternoon here is training on a CPU by accident; print the device as the first line of output.
+- **A GPU is useless for most of what your app does.** Serving pages and reading databases is sequential work — the head cook's job.
+- **Parameter count is not a quality ranking.** A well-trained small model from this year beats a larger one from two years ago, so rank by measured performance on your task.
+- **Fitting and running are different walls.** "It loaded" is not "it works": measure tokens per second first.
+- **Every number here is perishable except the ideas.** Allowances, session limits and memory requirements change without notice, so verify in the notebook, on the day.
 
 ### Verify it
 
-**Red flag: a hardware claim with no measurement behind it.** "This will run on a free Colab GPU" must be backed by the GPU memory you printed yourself. Make the AI show its arithmetic, then check the inputs.
-
-**Red flag: an invented model name or size.** This recurs from chapter 5 because it is the most frequent fabrication in this subject. Model families are real; specific size-and-version combinations are often hallucinated. Find the exact string on the provider's own page.
-
-**Red flag: free-tier limits quoted as current.** Anything an AI tells you about free GPU hours, session length or memory predates its knowledge cutoff — M00's failure mode landing where it wastes your afternoon. The platform's own documentation is the only authority.
-
-**Red flag: "bigger will be better" with no task-level evidence.** Ask what measurable improvement the larger model gives on your examples, and what it costs per request. Scaling laws speak about averages across everything; they say nothing about your twenty canteen tickets.
-
-**Red flag: a GPU proposed for your web server.** Ask which operation needs parallel arithmetic. If the answer is vague, the GPU is a cost with no benefit.
-
-And the check to run yourself, in four minutes: print the device, print the GPU's name and memory, run one small batch on CPU and the same batch on GPU, and write down both timings. One measured ratio teaches more than any explanation.
+- **A hardware claim with no measurement behind it.** "This runs on a free Colab GPU" must be backed by memory you printed yourself.
+- **An invented model name or size.** Families are real; size-and-version combinations are often fabricated. Find the exact string on the provider's page.
+- **Free-tier limits quoted as current.** Anything about GPU hours, session length or memory predates the model's cutoff; the platform's own docs are the only authority.
+- **"Bigger will be better" with no task-level evidence.** Scaling laws describe averages, not your twenty canteen tickets. Ask for the measured gain and the cost per request.
+- **A GPU proposed for your web server.** Ask which operation needs parallel arithmetic; a vague answer means cost with no benefit.
+- **Check yourself:** print the device, GPU name and memory, then time one batch on CPU and the same on GPU.
 
 ## Walkthrough
 1. Open a free Colab or Kaggle notebook and print which device your code is running on. Write it down. Do this before anything else, always.

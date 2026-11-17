@@ -4,7 +4,7 @@ module: m15-content-social-automation
 slug: distribution-is-the-other-half
 title: "Distribution Is the Product's Other Half"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,31 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Two teams from the same batch demo in week eleven. Both products work. Both are deployed, fast on a cheap Android phone, and genuinely useful.
-
-The first team has 9 users. Seven are their own classmates, one is a cousin, one is a mentor who signed up to be kind. They spent eleven weeks on the product and the last Sunday night on "marketing", which meant one Instagram post from a brand-new account with 14 followers and a WhatsApp message to a family group.
-
-The second team has 340 users and 60 who came back last week. They did not build a better product. In week four they wrote eleven answers to the exact questions their users were already typing into Google, put each answer on its own page, and from week five posted one 40-second vertical video every weekday showing the product solving one small problem. By week eleven, four of those pages were bringing 20 to 30 visits a day without anybody touching them, and one video had been forwarded into roughly 200 WhatsApp groups.
-
-The first team believed the product was the work and distribution was a thing you do at the end. That belief is the single most expensive one in this course, and it is almost universal among engineers.
+Two teams from the same batch demo in week eleven, both with working, deployed products. The first has 9 users: seven classmates, a cousin, and a mentor who signed up to be kind. They spent eleven weeks on the product and the last Sunday night on "marketing" — one post from an account with 14 followers. The second has 340 users, because in week four they wrote eleven answers to the exact questions their users were typing into Google, and from week five posted one 40-second vertical video every weekday. By week eleven four of those pages brought 20 to 30 visits a day untouched. The first team believed distribution was a thing you do at the end.
 
 ### The idea
 
-**A product nobody can find does not exist. Distribution is a system with inputs, queues, failure modes and measurements — exactly like the systems you have been building for fourteen modules — and it has to be built in parallel with the product, not after it.**
+**A product nobody can find does not exist. Distribution is a system with inputs, queues, failure modes and measurements, and it has to be built in parallel with the product, not after it.**
 
-This module treats growth as engineering. You will build a sitemap that matches reality, a page template that turns a dataset into hundreds of honest pages, a posting queue that respects rate limits, and a measurement scheme that does not flatter you. None of it is vibes. All of it is checkable.
+This module treats growth as engineering: a sitemap that matches reality, a template that turns a dataset into hundreds of honest pages, a posting queue that respects rate limits, a measurement scheme that does not flatter you. All of it is checkable.
 
 ### The analogy
 
-Two stalls in a college canteen sell the same vada pav at the same price, made the same way.
+Two canteen stalls sell the same vada pav at the same price. One sits in the back corridor near the staff toilets, and its owner cannot understand why business is bad when all four people who tried it came back. The other is three metres from the main door, beside the water cooler everybody visits between classes, and sells 300 a day. Quality decided who came back; position decided who ever tried.
 
-The first is in the back corridor near the staff toilets. Nobody walks past it unless they already know it is there. The owner cannot understand why business is bad — the vada pav is excellent, and he can prove it, because the four people who have tried it all came back.
-
-The second is three metres from the main door, beside the water cooler everybody visits between classes, with the price painted in letters readable from the queue. It sells 300 a day.
-
-Quality decided who came back. Position decided who ever tried.
-
-**Where the analogy breaks**, in two ways that matter. First, the back-corridor stall cannot move; your product can appear on a dozen surfaces at once and you can change them any afternoon. Second, nobody can tell the canteen owner exactly how many people walked past and did not stop — but on the web you can measure impressions, clicks and visits precisely, which means you have no excuse for guessing. The canteen explains why position matters; it badly understates how much control and how much data you actually have.
+**Where the analogy breaks:** the back-corridor stall cannot move and cannot count who walked past. Your product can sit on a dozen surfaces at once and you can measure impressions, clicks and visits precisely — so you have no excuse for guessing.
 
 ### Picture it
 
@@ -62,15 +50,13 @@ Quality decided who came back. Position decided who ever tried.
                             │◀──────── M16 and M17 ──────────▶│
 ```
 
-Every user arrives through a surface that already has attention, and this module is about the first three boxes: being on a surface, earning the impression, and getting the visit. What happens after the visit — activation, retention, revenue — is M16 and M17.
+Every user arrives through a surface that already has attention, and this module owns the first three boxes while M16 and M17 own the rest.
 
 ### Where it lives
 
-M01 gave you a north star metric. Distribution is how the number in that metric gets bigger from outside your friend group. M11 got your MVP deployed and M12 got your app listed; both of those produced the pages and listings this module now tries to make findable.
+M01 gave you a north star metric; distribution is how that number grows from outside your friend group. M11 and M12 produced the pages this module makes findable, and three dependencies carry in: M02's vitals and redirect codes into chapter 3, M07's events and consent into chapter 10, M05's rate limiting into chapter 8.
 
-The boundary with M16 is worth stating precisely, because the two modules are easy to blur. **M15 ends at the visit.** Did a human see your surface, and did they click through to you? **M16 begins at the visit:** what did they do, did they activate, did they come back, which step leaks. If you find yourself arguing about onboarding screens here, you have crossed the line. If you find yourself arguing about whether anybody is arriving at all, you are in the right module.
-
-Three other dependencies carry straight in. M02's Core Web Vitals, rendering and redirect status codes are the raw material of chapter 3. M07's event and consent work is what makes chapter 10's measurement legal and real. M05's rate limiting is literally the constraint chapter 8 is built around, because social APIs reject you hard and fast.
+**M15 ends at the visit.** Did a human see your surface, and did they click through to you? **M16 begins at the visit:** what did they do, did they activate, did they come back, which step leaks. Arguing about onboarding screens here means you have crossed the line.
 
 ### Words to own
 
@@ -91,35 +77,27 @@ Three other dependencies carry straight in. M02's Core Web Vitals, rendering and
 
 ### Tradeoffs and gotchas
 
-**With ₹0 you cannot buy attention, so you must compound it.** Paid ads are a machine for turning money into visits, and that machine is closed to you this term. What is open: search pages that keep working, a video archive that keeps getting discovered, and things worth forwarding. All three are slow to start and hard to stop, which is the correct trade when you have time but no money.
+**With ₹0 you cannot buy attention, so you must compound it, and compounding has a warm-up measured in weeks.** Crawlers must find you; feeds must learn who to show you to. Starting that clock in week eleven guarantees it has not finished by demo day.
 
-**Two channels, not nine.** Every AI answer to "how do I get users" lists twelve platforms. Twelve channels done badly produce nothing, because none of them reaches the frequency where an algorithm or a crawler notices you. Pick two: one compounding (usually search or YouTube) and one with fast feedback (usually Instagram or WhatsApp). Run both for six weeks before you judge either.
+**Two channels, not nine.** Twelve channels done badly produce nothing, because none reaches the frequency where an algorithm or a crawler notices you. Pick one compounding (search or YouTube) and one with fast feedback (Instagram or WhatsApp), and run both six weeks before judging either.
 
-**Channel-market fit beats channel quality.** For a Nashik tuition-batch finder, the parents are on WhatsApp and the students are on Instagram, and nobody involved reads blogs or LinkedIn. For a tool sold to developers, the reverse. There is no good channel in the abstract — only a channel where your users already are. Go and ask five real users which app they opened most this morning. That answer outranks any article.
+**Channel-market fit beats channel quality.** For a Nashik tuition-batch finder the parents are on WhatsApp and the students on Instagram, and nobody involved reads blogs or LinkedIn. There is no good channel in the abstract, only a channel where your users already are.
 
-**Hindi, Marathi and Hinglish are not an afterthought.** Your users search `tuition near me nashik`, `नाशिक ट्यूशन फीस`, and `tution fees kitni hai` — three different queries with three different intents, and most teams write for only the first. Chapter 2 takes this seriously because it is where the uncontested traffic is.
-
-**YouTube beats blogging for a lot of Indian audiences.** If your user would rather watch two minutes than read 800 words, a blog post is a page nobody will finish. Search still matters, because YouTube is a search engine, and your page still matters, because it is where the signup lives — but the medium should follow your user, not your comfort.
-
-**The best distribution is a product feature.** A shareable receipt, a public profile, a result card worth screenshotting: these put a surface inside the product. That is M16's growth-loop material, and the reason this module is placed next to it.
-
-**Do not wait for "ready".** Distribution has a warm-up period measured in weeks — crawlers have to find you, feeds have to learn who to show you to. Starting that clock in week eleven guarantees it has not finished by demo day.
+**Hindi, Marathi and Hinglish are not an afterthought.** Your users search `tuition near me nashik`, `नाशिक ट्यूशन फीस`, and `tution fees kitni hai` — three queries, three intents, and most teams write only for the first. That is where the uncontested traffic is. Likewise, if your user would rather watch two minutes than read 800 words, the medium follows the user, not your comfort.
 
 ### Verify it
 
-Ask an AI for a distribution plan and you will get something confident and useless within three seconds. Here is how to tell whether it understood your situation.
+**Red flag: a list of every platform that exists.** "Instagram, Facebook, LinkedIn, X, Threads, YouTube, Reddit, Quora and a newsletter" has no decisions in it. Demand exactly two channels, each with a reason tied to your users.
 
-**Red flag: a list of every platform that exists.** "Post on Instagram, Facebook, LinkedIn, X, Threads, YouTube, Pinterest, Reddit, Quora and start a newsletter" is a plan with no decisions in it. Demand exactly two channels and a stated reason tied to your users.
+**Red flag: no reason from your users.** "Instagram has high engagement rates" describes the internet, not your startup. The right answer cites the humans — their language, their phone, their app habits.
 
-**Red flag: no reason from your users.** The right answer cites something about the humans — their language, their phone, their app habits, the time of day they are free. If the justification is "Instagram has high engagement rates", it is describing the internet, not your startup.
+**Red flag: a channel you cannot run at the required frequency.** A daily-video plan from three students with classes dies in nine days. Ask each channel's minimum viable frequency and check it against your timetable.
 
-**Red flag: a channel you cannot run at the required frequency.** A daily-video plan from a team of three with classes is a plan that dies in nine days. Ask what the minimum viable frequency of each channel is and whether you can actually sustain it for six weeks.
+**Red flag: no measurement attached.** "Brand awareness" is not a number; "visits from search per week, read in Search Console" is.
 
-**Red flag: no measurement attached.** Every proposed channel needs one number that would tell you in three weeks whether to keep going. "Brand awareness" is not that number. "Visits from search per week, measured in Search Console" is.
+**Red flag: paid ads in the plan.** You said ₹0 — M00's missing-context failure in a new costume.
 
-**Red flag: paid ads in the plan.** If you said ₹0 and the plan still assumes a budget, your constraint was ignored — exactly the failure M00 warned about when a brief's CONSTRAINTS section is missing or unread.
-
-Write your two chosen channels, the reason for each, the frequency you commit to, and the one number per channel into your decision log from M01. In week eleven, that entry is the difference between "we tried marketing" and "we ran two channels for six weeks and here is what each returned".
+Then write your two channels, the reason for each, the frequency, and the one number per channel into your M01 decision log.
 
 ## Walkthrough
 1. Open your product's analytics and write down how many people used it last week who are not in your team, your class or your family. Be strict. That number is your real starting point.

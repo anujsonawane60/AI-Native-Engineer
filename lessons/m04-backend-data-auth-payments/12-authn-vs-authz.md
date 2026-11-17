@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: authn-vs-authz
 title: "Authentication vs Authorization; Passwords, Hashing, Sessions and JWTs"
 order: 12
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,15 +22,7 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-This is the failure from M00, and it is the most common serious bug in AI-built applications. It deserves the whole chapter.
-
-The canteen team adds Google login. It works beautifully: tap the button, pick an account, land on the home screen with your name at the top. Everyone congratulates themselves.
-
-Two weeks later a student types `/admin` into the address bar out of curiosity. The admin dashboard loads. Every order, every student's phone number, the day's revenue, and a button to mark any dish sold out. She is logged in, so the app lets her in.
-
-The team's defence is that the admin link is only shown to admins. That is true. The link is hidden; the page is not protected. Hiding a door is not locking it, and the address bar does not care what your navigation menu renders.
-
-Then it gets worse. Even with the page protected, the *endpoints* are not. `GET /api/admin/orders` returns every order to any logged-in caller, because the only check anywhere is "is there a valid session?". A student with dev tools open — or just a guessed URL — reads the whole canteen's data from her phone.
+The canteen team adds Google login and it works beautifully. Two weeks later a student types `/admin` out of curiosity and the admin dashboard loads — every order, every phone number, the day's revenue. The admin link was hidden from students, but hiding a door is not locking it. Fix the page and `GET /api/admin/orders` still hands every order to any logged-in caller, because the only check anywhere is "is there a valid session?"
 
 **Login worked. Nothing was authorized. These are two different features and AI builds the first one by default.**
 
@@ -38,21 +30,13 @@ Then it gets worse. Even with the page protected, the *endpoints* are not. `GET 
 
 **Authentication is proving who you are. Authorization is deciding what you may do. They are separate systems, and only the second one protects your data.**
 
-Authentication answers: is this really Priya? Its tools are passwords, Google login, OTPs, passkeys.
-
-Authorization answers: may Priya read this particular order, change this dish, open this page? Its tools are roles, permissions and ownership checks — and every one of them must run **on the server, on every request, for every resource.**
-
-The shorthand to carry for the rest of your career: **authentication is the front door, authorization is every door inside.** AI reliably builds the front door. It frequently leaves every interior door open, and the app looks completely normal from the outside.
+Authentication answers "is this really Priya?" with passwords, Google login, OTPs or passkeys. Authorization answers "may Priya read *this* order, open *this* page?" with roles, permissions and ownership checks — every one of which must run **on the server, on every request, for every resource.** AI reliably builds the first, skips the second, and the app looks normal from outside.
 
 ### The analogy
 
-The canteen has a gate where a guard checks your college ID. That is authentication. Once inside, you are a verified student.
+Authentication is the canteen gate where a guard checks your college ID. Authorization is every door inside: the kitchen is staff only, the cash box is the manager's. Getting past the gate does not earn you the right to open the till; a canteen checking only at the gate is the broken Google login.
 
-Authorization is everything after the gate. The kitchen is staff only. The cash box is the manager's. The stock room needs a key. A student who got through the gate has not thereby earned the right to open the cash box.
-
-A canteen where the only check is at the gate — and anyone who entered can walk into the kitchen and take money from the till — is the broken Google login. The ID check worked perfectly. It was never the thing protecting the till.
-
-**Where the analogy breaks:** a physical kitchen has a door you must walk through, and a cook who will shout at you. An API endpoint has no walls and no witnesses. There is no equivalent of "looking suspicious while walking into the kitchen" — a request from a student's phone to an admin endpoint looks exactly like a request from the manager's. Only your own code, on every single request, can tell them apart.
+**Where the analogy breaks:** a kitchen has a door and a cook who will shout at you. An endpoint has no walls and no witnesses — a student's request looks identical to the manager's, and only your code can tell them apart.
 
 ### Picture it
 
@@ -81,39 +65,15 @@ Every request passes two independent gates: the first establishes identity and r
 
 ### Where it lives
 
-Both gates live on the server, in front of every endpoint. That placement is the entire lesson, and it is M00's "the client cannot be trusted" applied to permissions.
+Both gates live on the server, in front of every endpoint — M00's "the client cannot be trusted", applied to permissions. Hiding a menu item protects nothing; the attacker calls your endpoint, not your UI. Identity must also survive between requests, and two places can hold it.
 
-Anything on the phone is decoration. Hiding a menu item, disabling a button, redirecting away from a route — all improve the experience and protect nothing, because the attacker is not using your UI. They are calling your endpoint.
+| | Session | JWT |
+|---|---|---|
+| State lives | a row on your server | inside the token |
+| Revoking | instant, delete the row | impossible until it expires |
+| Gotcha | never in server memory | signed, not secret |
 
-Chapter 13 extends authentication: OAuth, SSO, passkeys, two-factor. Chapter 14 extends authorization, pushing the ownership check into the database itself so even a missed application check cannot leak rows. Chapter 15's signed URLs are authorization for files. M07 revisits all of it as OWASP's broken access control, consistently the most common serious vulnerability in real applications.
-
-### Passwords: never stored, always hashed
-
-If you store passwords, you will one day leak them, and your users reuse those passwords on their bank.
-
-So you never store the password. You store a **hash** — the output of a one-way function. Given the password you can compute the hash; given the hash you cannot recover the password. At login you hash what was typed and compare the two hashes.
-
-Three things make a hash safe for passwords, and all three are commonly missing from AI output.
-
-**A salt.** A random value stored with each hash and mixed in before hashing. Without it, two users with the same password get the same hash, so an attacker can precompute hashes of common passwords once and look them all up. A per-user salt forces that work to be redone for every user.
-
-**A slow algorithm, chosen for passwords.** `bcrypt`, `scrypt` or `argon2`. Deliberately slow — a few hundred milliseconds — so an attacker with your database tests a few thousand guesses a second instead of billions. `MD5` and `SHA-256` are fast general-purpose hashes and are *wrong* for passwords precisely because they are fast.
-
-**A login response that does not reveal whether the email exists.** "Invalid email or password" for both cases, always.
-
-The practical answer for your project: **do not build this.** Use your platform's authentication service. It gets salting, algorithm, rate limiting, reset and verification right, for free. You learn the mechanism so you can tell when something has got it wrong.
-
-### Sessions or tokens
-
-Once authenticated, the server must remember you across requests, because HTTP forgets everything between them. Two approaches.
-
-A **session** stores the state on the server — a row saying "session abc123 belongs to user 441" — and gives the browser an opaque cookie. Every request sends the cookie and the server looks it up. Logging out deletes the row, so revocation is instant. The cost is a lookup per request and somewhere to keep sessions that is not server memory, which chapter 5 explained will not survive scaling.
-
-A **JWT** is a signed token containing the claims themselves — user id, role, expiry — which the server verifies by checking the signature. No lookup required, which suits stateless hosting. The cost is that you cannot un-issue it: ban a user and their token works until it expires, because the server checks no list.
-
-Which leads to the one thing you must know: **a JWT is signed, not secret.** Anyone holding it can read its contents — the payload is encoded, not encrypted — so never put anything private in it. And the signature must be *verified*, with your secret, on every request. Decoding without verifying means trusting whatever the caller wrote, including `"role": "admin"`.
-
-Storage matters too. A token in `localStorage` is readable by any script on your page, so one bad dependency steals every login. An `httpOnly` cookie cannot be read by JavaScript at all, which makes it the better default for a web app.
+Next: 13 extends authentication · 14 pushes ownership into the database · 15 signs file URLs · M07 revisits it as OWASP broken access control.
 
 ### Words to own
 
@@ -132,28 +92,26 @@ Storage matters too. A token in `localStorage` is readable by any script on your
 
 ### Tradeoffs and gotchas
 
-**The signature failure, stated plainly: a check on the page is not a check on the endpoint.** Your React route guard runs on the attacker's machine. Your endpoint runs on yours. Only one of those is a security control. Every protected endpoint needs its own check, written on the server, with no exceptions for "it's only reachable from the admin page".
+**A check on the page is not a check on the endpoint.** Your route guard runs on the attacker's machine; your endpoint runs on yours. Every protected endpoint needs its own server-side check.
 
-**Role check and ownership check are two different checks.** `GET /api/orders/91` from a logged-in student is authenticated and role-appropriate — students may read orders — and still wrong if order 91 belongs to someone else. That bug has a name, Insecure Direct Object Reference, and it is found by changing a number in a URL. Every id-taking endpoint must verify the row belongs to the caller, or that the caller's role permits reading anyone's.
+**Role and ownership are two different checks.** `GET /api/orders/91` from a student passes the role check and is still wrong if order 91 is someone else's. That is Insecure Direct Object Reference, found by changing a number in a URL.
 
-**Identity comes from the session, never from the request.** An endpoint that accepts `user_id` to decide whose data to return lets anyone pass any id.
+**Identity comes from the session, never from the request.** An endpoint that reads `user_id` from the body lets anyone pass any id.
 
-**Never trust a decoded JWT.** Decoding is not verifying. A library call that reads claims without checking the signature against your secret will happily accept a token the attacker wrote in a text editor.
+**Decoding a JWT is not verifying it.** Reading claims without checking the signature accepts a token the attacker typed by hand, `"role": "admin"` included. Keep tokens in an `httpOnly` cookie, not `localStorage`.
 
-**Do not keep sessions in server memory.** Chapter 5's statelessness: when the platform runs a second instance, half your users are randomly logged out and nobody can reproduce it.
-
-**Do not build your own password handling.** The list of things to get right — salting, algorithm, single-use expiring reset tokens, rate limiting, lockout, enumeration — is longer than your timeline. And rate limit the login endpoint, or an attacker simply tries ten thousand passwords. M05 covers how; this chapter is why.
+**Never store a password — store a salted, slow hash, or let your platform's auth service do it.** A per-user salt stops one precomputed table unlocking every account, and `bcrypt`, `scrypt` and `argon2` are slow by design, which is why fast hashes like `MD5` and `SHA-256` are wrong here. Answer "invalid email or password" for both failures, and rate limit login.
 
 ### Verify it
 
-This is the most important Verify section in the module. Do all six, by hand, on your own project.
+The most important Verify section in the module. Run all six by hand.
 
-1. **Log in as a normal user. Type the admin URL into the address bar.** If the admin page renders, you have the signature failure. Do this before anything else.
-2. **Call the admin API endpoint directly as a normal user.** Not through the UI — use the browser dev tools or a request tool, with your student session. If it returns data instead of `403`, your page guard was the only protection and it protected nothing.
-3. **Change the id in the URL.** Open one of your own records, then change the id to a teammate's. You must get `403` or `404`, never their data. Repeat for every endpoint that takes an id.
-4. **Call every protected endpoint with no session at all.** Every one must answer `401`. Any that returns data is public, whatever your documentation claims.
-5. **Send a forged token.** Change a claim in your own JWT — flip `role` to `admin` — and send it. If it works, the signature is not verified and nothing in your app is protected.
-6. **Read the login handler's password path.** If it stores or compares a plain password, or uses `MD5` or `SHA-256`, replace it. Confirm a per-user salt and bcrypt, scrypt or argon2.
+1. **Log in as a normal user, then type the admin URL into the address bar.** If the admin page renders, you have the signature failure.
+2. **Call the admin endpoint directly as a normal user**, via dev tools, not the UI. Data instead of `403` means your page guard was the only protection.
+3. **Change the id in the URL.** Swap your own record's id for a teammate's: `403` or `404`, never their data. Repeat for every id-taking endpoint.
+4. **Call every protected endpoint with no session.** Every one must answer `401`; any that returns data is public.
+5. **Send a forged token.** Flip `role` to `admin` in your own JWT. If it works, the signature is not verified and nothing is protected.
+6. **Read the login handler's password path.** Plain passwords, `MD5` or `SHA-256` must be replaced; confirm a per-user salt and bcrypt, scrypt or argon2.
 
 Red flags: a frontend route guard offered as the answer to "is this protected?"; an endpoint accepting `user_id` from the caller; `jwt.decode` where `jwt.verify` belongs; a session in a module-level variable; `401` and `403` used interchangeably; a login response that says "no such email"; "we can add role checks later"; a `users` table with a column named `password`.
 

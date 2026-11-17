@@ -4,7 +4,7 @@ module: m01-team-startup-git
 slug: problem-worth-solving
 title: "Finding a Problem Worth Solving, and Who Has It"
 order: 2
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A group picks "an app for farmers to get better crop prices." It sounds important. It is important. They build for five weeks.
+A group picks "an app for farmers to get better crop prices." It sounds important, and it is. They build for five weeks.
 
-Then they try to find a farmer. None of them knows one. The nearest village is ninety minutes away. The farmers they eventually reach use WhatsApp voice notes and do not install apps from people they have not met. The group has a working product, a good demo, and zero users — and they will not get any, because the problem was real but the *users were unreachable*.
-
-A second group picks "a better note-taking app." They can reach users instantly: themselves and everyone around them. But nobody switches, because the problem is mild and the existing options are free and excellent.
-
-Both groups lost five weeks to a decision they made in forty minutes.
+Then they try to find a farmer. None of them knows one, the nearest village is ninety minutes away, and the farmers they eventually reach use WhatsApp voice notes and do not install apps from people they have not met. They have a working product, a good demo, and zero users — because the problem was real but the *users were unreachable*. Five weeks lost to a decision made in forty minutes.
 
 ### The idea
 
 **Pick a problem that happens often, hurts enough that people already work around it, and belongs to people you can physically reach this week.**
 
-Three filters. Most student project ideas fail at least one, and the one they fail most is the third — which is also the one nobody checks, because it is not about the idea at all.
+Three filters. Most student project ideas fail at least one, and the one they fail most is the third — also the one nobody checks, because it is not about the idea at all.
 
 ### The analogy
 
-Think about why a canteen exists, and why a *particular* canteen succeeds.
+Why does a *particular* canteen succeed? The problem is not "students need food" — that is a need, not a problem. The problem is that there are forty minutes between classes, the mess is closed, the nearest shop has a twenty-minute queue, and a student has ₹40. Specific, daily, painful at a predictable time, and the people who have it are standing right there.
 
-The problem is not "students need food." That is a need, not a problem. The problem is that there are forty minutes between classes, the mess is closed, the nearest shop has a twenty-minute queue, and a student has ₹40. That is specific, it recurs daily, it hurts at a predictable time, and the people who have it are standing right there.
-
-Notice that the problem statement contains no solution. It does not say "students need a canteen." Once you write "students need a canteen," you have stopped thinking — a vending machine, a pre-order window, a tiffin delivery to the classroom and a food truck are all answers to the same problem, and you have just excluded three of them.
+Notice the statement contains no solution. Write "students need a canteen" and you have stopped thinking — a vending machine, a pre-order window and a food truck all answer the same problem, and you just excluded two of them.
 
 **Where the analogy breaks:** a canteen's problem is visible from the queue. Most software problems are invisible until you ask, which is why the next chapter is about asking rather than guessing.
 
@@ -68,35 +62,13 @@ Notice that the problem statement contains no solution. It does not say "student
 
 All three bars need length. A long REACH bar cannot rescue a short PAIN bar, but a short REACH bar kills the idea outright no matter how good the other two look.
 
-### The reachability test nobody runs
-
-Here is the question that would have saved the farming group five weeks:
-
-**Can you get five of these people in a room, or on a call, within seven days — by name?**
-
-Not "can I find farmers". Names. If you cannot list five actual humans who have this problem and whose number you could get this week, you cannot validate, you cannot test, and you cannot get your first users. You will build in a vacuum and find out at demo day.
-
-This is why student products about students work, products about your parents' business work, and products about an industry none of you has met do not. Your unfair advantage at this stage is *access*, not insight. Spend it.
-
-### Four problem types that always disappoint
-
-Worth naming, because they are the four that get picked most often.
-
-**1. The solution with a problem bolted on.** "We want to use blockchain — what for?" The technology came first. You will recognise this when the problem statement changes every time somebody questions the technology.
-
-**2. The problem nobody has twice.** Wedding planning, choosing a college, buying a house. Enormous pain, almost no frequency. Hard to get feedback on, hard to retain anyone, and your users leave permanently the moment it works.
-
-**3. The mild problem with free competition.** Note-taking, to-do lists, habit trackers. Real but small pain, and the incumbents are free and polished. People will say they like your version and keep using theirs.
-
-**4. The problem that is actually a policy.** "Students should be able to get their marksheet online." The blocker is not software; it is an office that does not want to change. You will build the thing and discover you cannot get the data.
-
-None of these are impossible. They are just bad *first* products for a six-month program where you need real users by month three.
+The REACH bar is one question: **can you get five of these people on a call within seven days — by name?** Not "can I find farmers". Names. Without five actual humans you can reach this week you cannot validate, cannot test, and will not get first users. Your unfair advantage now is *access*, not insight.
 
 ### Where it lives
 
-This chapter is the input to everything else. The problem statement you write here becomes the first line of your PRD in chapter 4, which becomes the master brief you give AI for the rest of the program. A vague problem produces a vague PRD, which produces exactly the generic output you learned to avoid in M00.
+Your problem statement becomes the first line of your PRD in chapter 4, which becomes the master brief you give AI for the rest of the program. A vague problem produces a vague PRD, which produces the generic output you learned to avoid in M00.
 
-It also decides your architecture more than you would expect. "Daily, during a forty-minute window, for people on campus Wi-Fi" is already telling you about traffic spikes (M05), about mobile-first design (M03), and about whether you need push notifications (M08). A problem specified in time and place carries technical requirements inside it.
+It also decides your architecture. "Daily, during a forty-minute window, for people on campus Wi-Fi" already implies traffic spikes (M05), mobile-first design (M03) and push notifications (M08). A problem specified in time and place carries technical requirements inside it.
 
 ### Words to own
 
@@ -113,27 +85,27 @@ It also decides your architecture more than you would expect. "Daily, during a f
 
 ### Tradeoffs and gotchas
 
-**Small and specific beats big and vague, every time.** "Second-year students in one hostel who miss lunch because of lab timings" is a better starting point than "campus food." You can name them, reach them, and watch them use it. You can always widen later; you cannot narrow a product that was built for nobody in particular.
+**Small and specific beats big and vague.** "Second-year students in one hostel who miss lunch because of lab timings" beats "campus food." You can always widen later; you cannot narrow a product built for nobody in particular.
 
-**The existing workaround is your real competition, and it is usually not software.** It is a WhatsApp group, a phone call, a spreadsheet, or a person who does it manually. These are strong competitors because they already work and cost nothing to adopt. If your product is not clearly better than the WhatsApp group, you have not found the problem yet.
+**The existing workaround is your real competition, and it is usually not software.** A WhatsApp group, a phone call, a spreadsheet, a person who does it manually. They already work and cost nothing to adopt. If your product is not clearly better than the WhatsApp group, you have not found the problem yet.
+
+**Four problem types always disappoint as a *first* product.** The solution with a problem bolted on ("we want to use blockchain — what for?"); the problem nobody has twice (wedding planning — enormous pain, no frequency, users leave permanently once it works); the mild problem with free competition (note-taking, to-do lists — people say they like yours and keep using theirs); and the problem that is actually a policy ("marksheets online" — the blocker is an office, not software, and you will not get the data).
 
 **"Everyone has this problem" means you have not found the problem.** Products that serve everyone serve nobody specific enough to be chosen.
 
-**Beware the problem you have already solved for yourself.** If you personally stopped caring about it, you will lose interest in month three. Six months is a long time to work on something you find mildly interesting.
-
-**Do not fall in love with the problem statement either.** You will revise it after talking to five people in the next chapter, and if you do not revise it at all, that is a sign you were not listening rather than a sign you were right.
+**Do not fall in love with the statement.** You will revise it after talking to five people next chapter. If you revise nothing at all, that is a sign you were not listening, not a sign you were right.
 
 ### Verify it
 
-Before you commit the next six months, write your problem statement and run these five checks honestly.
+Write your problem statement, then run these five checks honestly.
 
-1. **Does it contain a solution?** If the sentence includes an app, a platform, or a technology, rewrite it. The statement should leave several solutions possible.
-2. **Can you name five people who have it?** Actual names. If not, this is not your first product, regardless of how good it is.
-3. **What do they do today?** If the honest answer is "nothing, they just accept it", the pain is too mild. If the answer is "something tedious", you have something.
-4. **How often?** Map it to daily, weekly, monthly or yearly. Below weekly, retention and feedback both become very hard in a six-month window.
-5. **Could you be wrong?** Name the one assumption that, if false, kills the idea. That assumption is exactly what you will test in the next chapter.
+1. **Does it contain a solution?** If the sentence names an app, a platform or a technology, rewrite it until several solutions stay possible.
+2. **Can you name five people who have it?** Actual names, or this is not your first product.
+3. **What do they do today?** "Nothing, they accept it" means the pain is too mild; "something tedious" means you have something.
+4. **How often?** Below weekly, retention and feedback both become very hard inside six months.
+5. **Could you be wrong?** Name the one assumption that kills the idea if false — that is what you test next chapter.
 
-A warning about using AI here: it will enthusiastically validate almost any idea you bring it, because agreement is its default posture — you saw this in M00. Asking "is this a good idea?" is nearly useless. Ask it to argue *against* the idea, to name who would not want it, and to tell you what would have to be true for it to fail. Then go and ask real people.
+Red flag: asking AI "is this a good idea?" It defaults to agreement and will validate almost anything, as you saw in M00. Ask it to argue *against* the idea instead, then go and ask real people.
 
 ## Walkthrough
 1. Each member of the team separately lists ten annoyances they have personally experienced in the last month. Not ideas — annoyances. Things that cost time, money or patience.

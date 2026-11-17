@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: bias-alignment-governance
 title: "Bias, Alignment, Jailbreaks, Red Teaming and AI Governance"
 order: 16
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,31 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team builds a dish recommender for their canteen app, trained on a year of real order history. Overall accuracy is 78%, the demo is smooth, and nobody complains for three weeks.
-
-Then a student points out that she has never once been shown a North Indian dish. Her name is Tamil, she lives in the south hostel, and most students matching that pattern in the training data ordered South Indian food — so the model learned the pattern and now enforces it. She had been curious about chole bhature for a month. Her accuracy as a user was far below 78%; it never appeared in the overall number.
-
-Nobody wrote a rule about region. The model found a correlation in historical behaviour and turned it into a constraint on the future, which is what these systems do by default.
-
-The same app's assistant has a system prompt saying "never discuss staff salaries". A student asks it to role-play as a manager writing a training document, and it discusses staff salaries at length.
-
-Two problems — one about fairness, one about control — and both are yours, because nobody else in the pipeline owns them.
+A team's dish recommender is 78% accurate and nobody complains for three weeks. Then a student points out she has never been shown a North Indian dish: students matching her name and hostel ordered South Indian food, so the model learned the pattern and now enforces it. Her accuracy as a user was far below 78% and never appeared in the overall number. Meanwhile the same assistant, told "never discuss staff salaries", does exactly that when asked to role-play a manager.
 
 ### The idea
 
 **A model reproduces the patterns in its training data, including the ones you would never have written down, and no instruction you give it is a guarantee. Fairness has to be measured per group, and control has to be enforced in code.**
 
-Bias is not carelessness. It is the faithful operation of a system that learns from history — and history encodes who had access, who was hired, who was approved and who was ignored. **Alignment** is the set of techniques aimed at making behaviour match intended values. It works statistically and therefore imperfectly, which is why **jailbreaks** exist and why your own guardrails have to be real.
+Bias is not carelessness. It is the faithful operation of a system that learns from history, and history encodes who had access, who was hired and who was ignored. **Alignment** — making behaviour match intended values — works statistically and therefore imperfectly, which is why your own guardrails have to be real.
 
 ### The analogy
 
-The canteen promotes its longest-serving server to decide who gets served first during the lunch rush.
+The canteen's longest-serving server decides who gets served first during the rush. He has no instructions and no prejudice he would admit to; he does what he has watched work for fifteen years. Staff before students. Final-years before first-years, because they complain. People he recognises first. Every one of those came from watching the queue and is now a rule the queue lives under — a first-year waits longest, and the server could not tell you why.
 
-He has no instructions and no prejudice he would admit to. He does what he has watched work for fifteen years. Staff before students, because staff have ten minutes. Final-years before first-years, because they complain. People he recognises before people he does not.
-
-Every one of those rules came from observing the queue, and every one is now a rule the queue lives under. A first-year on their first day waits longest, and the server could not tell you why. The canteen's overall service time looks excellent, carried by the people who were already served quickly.
-
-**Where the analogy breaks:** you can ask the server why, and he will think about it and perhaps change. A model cannot be asked. It will generate a fluent explanation that is not a record of what it did, as chapter 10 established. The only way to know whether your system is fair is to **measure it on the groups you care about** — the explanation tells you nothing.
+**Where the analogy breaks:** you can ask the server why, and he may change. A model cannot be asked; it generates a fluent explanation that is not a record of what it did. The only way to know whether your system is fair is to **measure it on the groups you care about**.
 
 ### Picture it
 
@@ -74,45 +62,14 @@ Every one of those rules came from observing the queue, and every one is now a r
 
 Bias enters through data, labels and proxy features, and a feedback loop makes each round more confident than the last.
 
-### Proxies and feedback loops, the two that catch everyone
-
-You will not put caste or religion in your features. You do not have to.
-
-A **proxy** is a feature standing in for a protected characteristic without naming it. A pin code carries region, income and often community. A hostel block carries the same. A name carries region and language. The brand of phone carries income, which M08 noted for performance reasons and which applies here too. Remove the obvious column and the model learns the same pattern from the proxy, invisibly.
-
-A **feedback loop** is worse, because it grows. If your recommender never shows North Indian dishes to a group, nobody in that group orders them, so next month's data shows even more clearly that they do not want them. The model becomes more confident in a pattern it created. The only thing that detects this is deliberately logging what you *showed* alongside what was *chosen*.
-
-### Alignment, jailbreaks and injection
-
-Three terms used interchangeably that must not be.
-
-**Alignment** is making behaviour match intended values — helpful, honest, not harmful — mostly through preference training. Being statistical, it fails in both directions: **over-refusal**, where a legitimate security, medical or legal question is declined, and under-refusal, which is the next item.
-
-**A jailbreak** is a user persuading the model to do something its training says it should not — role-play, hypotheticals, claimed authority. The target is the model's own safety behaviour.
-
-**Prompt injection** is the one that threatens *your* system. Text — from a user, or hidden inside a document your app reads — carries instructions your application then follows as though you had written them. The target is your app's behaviour and your data. M07 chapter 3 and M10 chapter 7 are the defences.
-
-The rule linking all three: **a refusal is not a security control.** It is trained behaviour that works most of the time. Anything that must not happen is prevented by your code — do not put the secret in the context, check authorisation server-side, validate output before acting on it. Chapter 12 made this point about system prompts; it is worth repeating as a law.
-
-### Red teaming, and governance you actually have to care about
-
-**Red teaming** is attacking your own feature before anyone else does. For a student team it is cheap: write twenty adversarial inputs, run them, record what happened. Instruction overrides, role-play, claimed authority, another language, a document with hidden instructions, requests for another user's data, and sensitive topics your product has no business answering. An hour finds most of what matters.
-
-On governance, four things are worth knowing by name.
-
-**India's DPDP Act, 2023** governs personal data: consent for a stated purpose, collecting only what you need, and users' rights over their data. If your feature sends student data to a model provider, this is the law you operate under, and chapter 13's privacy axis is where it bites.
-
-**The EU AI Act** classifies systems by risk, with the heaviest obligations on uses affecting access to education, employment, credit and essential services. You may never ship to the EU; the risk-tier way of thinking is worth adopting anyway.
-
-**Model cards** describe what a model was trained on, what it is for, and where it should not be used. Reading one before adopting a model is ten minutes well spent.
-
-**Human in the loop** matters most in practice. For any decision touching money, access, grades, employment or safety, the model recommends and a person decides, with the reasoning logged. Fine for suggesting a dish; not fine for refusing a refund.
+Two boxes catch everyone. A **proxy** stands in for a protected characteristic without naming it: a pin code or hostel block carries region, income and often community; a phone brand carries income. Remove the obvious column and the model learns the same pattern from the proxy. A **feedback loop** is worse because it grows: show a group no North Indian dishes, nobody orders them, and next month's data says even more clearly that they do not want them. Only logging what you *showed* beside what was *chosen* detects it.
 
 ### Where it lives
 
-M07 is the security, privacy and consent half of this, including prompt injection and the DPDP Act, and M16 is where analytics and growth loops become a place for bias to hide. This chapter is the model-level view underneath both.
-
-Three artefacts belong in your repository by the end of this module: your per-group accuracy table, your twenty red-team inputs with results, and a decision-log entry naming which decisions a human must make. M11 and M18 will ask about all three, and all are easier to produce now than in month five.
+- **Red teaming is cheap.** Write twenty adversarial inputs — instruction overrides, role-play, claimed authority, another language, instructions hidden in a document — and record what happened.
+- **Four governance names are worth knowing.** **India's DPDP Act, 2023** governs personal data by consent for a stated purpose, and binds you the moment student data reaches a provider. **The EU AI Act** classifies systems by risk, heaviest where education, employment or credit access is affected. **Model cards** state what a model was trained on and where it should not be used. **Human in the loop**: for money, access, grades or safety, the model recommends and a person decides.
+- **M07 owns the security and consent half**, and M16 is where growth analytics hide bias.
+- **Three artefacts belong in your repository:** the per-group accuracy table, the twenty red-team inputs with results, and a decision-log entry naming the decisions a human must make.
 
 ### Words to own
 
@@ -134,33 +91,22 @@ Three artefacts belong in your repository by the end of this module: your per-gr
 
 ### Tradeoffs and gotchas
 
-**There is no unbiased model, and "we checked for bias" is not a result.** What exists is a measurement, per group, on a metric you chose, at a date. The honest statement names the groups, the metric and the numbers.
-
-**Fairness definitions genuinely conflict.** Equal accuracy across groups, equal false-positive rates and equal selection rates are different goals, and improving one can worsen another. No formula resolves this. Someone has to decide which mistake your product must avoid and write it down — chapter 3's precision-versus-recall decision, in a context where it affects people.
-
-**Removing the sensitive column does not remove the bias.** Proxies carry it, and removing it also removes your ability to measure the problem — which is why a group attribute is often collected deliberately, with consent, for that purpose.
-
-**Over-refusal is a real product problem.** A model refusing legitimate questions about medication, security or law is useless to the people who needed it. Test for it alongside jailbreaks.
-
-**You cannot patch a jailbreak with a stronger instruction.** The attack surface is language itself. Reduce what the model may do, keep secrets out of the context, validate what comes back.
-
-**Governance moves fast.** AI Act obligations, DPDP rules and provider policies all change. Treat anything an AI tells you about current law as a starting point for reading the source.
+- **Three words must not be used interchangeably.** **Alignment** makes behaviour match intended values and fails both ways, including **over-refusal** of legitimate medical questions. **A jailbreak** talks the model past its own safety training. **Prompt injection** threatens *your* system: text from a user, or hidden in a document your app reads, carrying instructions your application then follows.
+- **A refusal is not a security control**, and no stronger instruction patches a jailbreak, because the attack surface is language itself. Anything that must not happen is prevented by code: secrets out of the context, authorisation server-side, output validated before you act.
+- **There is no unbiased model, and "we checked for bias" is not a result** — only a measurement, per group, on a metric you chose, at a date.
+- **Fairness definitions genuinely conflict.** Equal accuracy, equal false-positive rates and equal selection rates are different goals.
+- **Removing the sensitive column does not remove the bias.** Proxies carry it, and you lose the ability to measure the problem.
+- **Governance moves fast.** Treat what an AI says about current law as a pointer to the source.
 
 ### Verify it
 
-**Red flag, the headline one: an overall accuracy number with no per-group breakdown.** 78% overall can hide 41% for a group that is a tenth of your users. Ask for the table, split by every group you can identify, with counts beside the percentages.
-
-**Red flag: "the model is unbiased" or "we removed the sensitive fields".** Ask which proxies remain, what was measured, on which groups, when. Both claims usually mean nobody looked.
-
-**Red flag: a refusal or a system prompt described as preventing something.** Ask what enforces it when the model complies. If the answer is not code outside the model, the control does not exist.
-
-**Red flag: full automation on a consequential decision.** Ask who reviews it, what they see, and where it is logged. "Accurate enough" is not an answer.
-
-**Red flag: no adversarial testing at all.** Ask for the twenty inputs and their results. If they do not exist, your users are your red team and will find the problems in public.
-
-**Red flag: a confident statement about what the law requires.** Legal specifics sit behind every knowledge cutoff and vary by jurisdiction. Get the name of the act, then read the source.
-
-And the measurement to take yourself: pick the group most likely to be underserved, pull thirty of their real interactions, and score your feature on just those thirty. Compare against your overall number. That one comparison is the most useful fairness work a student team can do in an afternoon, and it is what the recommender's team never did.
+- **An overall accuracy number with no per-group breakdown** — the headline one. 78% can hide 41% for a tenth of your users. Ask for the table, with counts beside the percentages.
+- **"The model is unbiased" or "we removed the sensitive fields".** Ask which proxies remain, what was measured, on which groups, when.
+- **A refusal or system prompt described as preventing something.** Ask what enforces it when the model complies.
+- **Full automation on a consequential decision.** Ask who reviews it and where it is logged.
+- **No adversarial testing at all.** Ask for the twenty inputs and their results.
+- **A confident statement about what the law requires.** Get the name of the act, then read the source.
+- **Check yourself:** score your feature on thirty real interactions from the group most likely to be underserved, against your overall number.
 
 ## Walkthrough
 1. List every feature your AI feature or model sees. Next to each, write what it might be standing in for — region, income, caste, gender, age, language. Be uncomfortable about it.

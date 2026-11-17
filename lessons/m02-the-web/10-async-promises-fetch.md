@@ -4,7 +4,7 @@ module: m02-the-web
 slug: async-promises-fetch
 title: "Async, Promises and fetch: Why the Page Does Not Freeze"
 order: 10
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Demo day. A judge opens the canteen app on her phone, on the venue's crowded 4G.
+Demo day, crowded venue 4G. A judge taps "Pay ₹240", nothing happens, so she taps twice more. Four seconds later the screen says "Order placed" and the dashboard shows three orders from the same student.
 
-She taps "Pay ₹240". Nothing happens. She taps again. Then a third time. Four seconds later the screen shows "Order placed" — and the canteen's dashboard shows three orders for ₹240 from the same student.
-
-On the menu screen earlier, something else had gone wrong and nobody noticed. She had tapped "South Indian", then quickly "Chinese". The screen showed Chinese for a moment and then filled with South Indian dishes, because the first request — issued earlier, over a slower route — arrived last and overwrote the newer answer. The page was not broken. It was faithfully displaying the most recently *arrived* data rather than the most recently *requested* data.
-
-Both of these are invisible on a fast laptop. Both are guaranteed on Nashik 4G at 1pm.
+Earlier she had tapped "South Indian" then quickly "Chinese". Chinese appeared, then filled with South Indian dishes, because the first request took a slower route and arrived last: the page showed the most recently *arrived* data, not the most recently *requested*. Both bugs are invisible on a laptop and guaranteed on Nashik 4G at 1pm.
 
 ### The idea
 
 **Fetching data over a network takes an unknown amount of time, and the browser refuses to sit still while it happens — so you start the work, carry on, and handle the answer when it turns up.**
 
-That is all "asynchronous" means. The consequence for you as a director is not about code; it is about screens. Because the answer arrives later, there is a period where you have asked and do not yet know, and a possibility that the answer is "no". Every screen that loads data therefore has **four** states, not two: loading, empty, error, and success. An AI asked for a menu screen will build you one.
+That is all "asynchronous" means, and the consequence for a director is about screens, not code. The answer arrives later, so there is a period where you have asked and do not know — and a chance the answer is "no". Every data screen has **four** states, not two.
 
 ### The analogy
 
-The canteen token system.
+You order a dosa and pay. Rather than blocking the counter until it is cooked, you take a **token** and sit down; later your number is called, or the staff announce the dosa is finished and refund you. The token is a promise: something you hold now standing for an answer later, with three lives — waiting, fulfilled, rejected. There is no fourth outcome, and none where you never find out.
 
-You order a dosa and pay. You do not stand at the counter blocking everybody behind you until it is cooked — you get a **token** and sit down. The counter keeps serving. Later your number is called and you collect your dosa, or the staff announce that the dosa is finished and refund you.
-
-The token is a promise: a thing you hold now that stands for an answer later. It has exactly three possible lives. It is still waiting. It is fulfilled and you have your food. Or it is rejected and you have bad news. There is no fourth outcome, and crucially there is no outcome where you never find out.
-
-**Where the analogy breaks:** the canteen calls numbers roughly in order. The network does not. Two requests sent one second apart can come back in either order, because they may take different routes and hit different servers. That is why "the newest answer wins" has to be arranged deliberately, and why the filter bug above is not a rare freak event but a normal consequence of how networks behave.
+**Where the analogy breaks:** the canteen calls numbers roughly in order; the network does not. Two requests sent a second apart can return in either order, so "the newest answer wins" must be arranged deliberately. The filter bug is normal network behaviour.
 
 ### Picture it
 
@@ -63,23 +55,22 @@ The token is a promise: a thing you hold now that stands for an answer later. It
 
 If the browser waited, the whole page would be dead for four seconds; instead it starts the request, immediately shows a loading state, and draws either the result or an error when the answer arrives.
 
-### The four states, and the one everybody forgets
+The four states every data screen owes its users:
 
-**Loading.** Something changed within 100 milliseconds of the tap. A skeleton, a spinner, a disabled button — anything that says "received, working". This is what prevents the triple-tap.
+| State | What the user must see |
+|---|---|
+| Loading | A change within 100ms — skeleton, spinner, disabled button. This prevents the triple-tap |
+| Success | The data, drawn |
+| Empty | A sentence saying there are zero dishes, not a blank area that reads as a bug |
+| Error | Plain language and a retry: "Could not load the menu. Try again." |
 
-**Success.** The data arrived and is drawn.
-
-**Empty.** The data arrived and there is none. Zero dishes in this category. Chapter 9's point again: this is a legitimate answer and needs a sentence explaining it, not a blank area that looks like a bug.
-
-**Error.** The request failed, or timed out, or the server said no. This needs a plain-language message and, where it makes sense, a retry button. "Could not load the menu. Check your connection and try again."
-
-Empty and error are the two that get skipped, and they are the two your users on bad connections see most.
+Empty and error are the two that get skipped, and the two your users on bad connections see most.
 
 ### Where it lives
 
-`fetch` sits exactly on the line between M00's client box and server box: it is the browser asking the server for something. Everything about the request itself — the method, the status code, the headers — is chapter 13. What the server does with it is M04. How to stop a user hammering it is M05's rate limiting.
+`fetch` sits on the line between M00's client box and server box. The request itself — method, status, headers — is chapter 13; what the server does with it is M04; rate limiting is M05.
 
-The important thing to carry forward is that **the network is the least reliable part of your product and the only part you do not control.** Your code, your server and your database are all things you can fix. A student's 4G in a basement classroom is not. So every assumption that a request will succeed quickly is an assumption that will be false for some of your users, all of the time.
+Carry this forward: **the network is the least reliable part of your product and the only part you do not control.** Your code, server and database can be fixed. A student's 4G in a basement cannot.
 
 ### Words to own
 
@@ -100,35 +91,28 @@ The important thing to carry forward is that **the network is the least reliable
 
 ### Tradeoffs and gotchas
 
-**No timeout means waiting forever.** A `fetch` with no timeout on a connection that has silently died will sit in "loading" until the user gives up and reloads. Ten seconds is a reasonable ceiling for a list; a payment may need longer, but it still needs a number. "It will eventually fail" is not a design.
+**No timeout means waiting forever.** A `fetch` with no timeout on a dead connection sits in "loading" until the user reloads. Ten seconds is a reasonable ceiling for a list.
 
-**Retry is only safe if the action is.** Automatically retrying a "place order" request is how you get three orders. Retrying "load the menu" is free. The dividing line is whether repeating the action repeats its effect, and the server-side fix for actions that are not safe is M04's idempotency keys. Until that exists, do not auto-retry anything that writes.
+**Retry is only safe if the action is.** Auto-retrying "place order" is how you get three orders; retrying "load the menu" is free. The line is whether repeating the action repeats its effect; the server-side fix is M04's idempotency keys.
 
-**The newest request must win, not the newest answer.** Either cancel the previous request when a new one starts, or tag each request and ignore answers from a tag that is no longer current. An AI will almost never do this unless asked, because it never shows up in testing.
+**The newest request must win, not the newest answer.** Cancel the previous request, or tag requests and ignore stale answers. An AI will not do this unless asked.
 
-**Awaiting in a loop makes requests serial.** Fetching forty dish photos one after another, each waiting for the last, turns forty 200-millisecond requests into eight seconds. Requests that do not depend on each other should be started together.
+**A failed `fetch` and a failed *request* differ.** `fetch` only rejects when the network failed; a 404 or 500 is a *successful* fetch carrying bad news, and code that only handles rejection renders the 500 page as your menu. Chapter 13 covers the statuses.
 
-**A failed `fetch` and a failed *request* are different things.** `fetch` only rejects when the network itself failed. A 404 or a 500 from the server is a *successful* fetch carrying bad news, and code that only handles rejection will cheerfully render a 500 error page's text as if it were your menu. This trips up almost everybody once, and chapter 13 explains the status codes you must check.
-
-**Loading states that cause layout jumps are worse than none.** A spinner that is replaced by content of a different height shifts the page just as the user reaches for a button. Reserve the space — a skeleton the same shape as the content is the standard answer, and chapter 16 measures why.
-
-**Not every wait needs a spinner.** For something under about 200 milliseconds a spinner flashes and reads as a glitch. For a known, small, fast action, a pressed state on the button is better.
+**`await` in a loop turns forty 200ms requests into eight seconds.** Start independent requests together, and reserve the loading space so the layout does not jump.
 
 ### Verify it
 
-All of this chapter's verification happens with the network throttled. On an unthrottled laptop, every one of these bugs is invisible.
+Every check needs Slow 4G and 4x CPU throttling; on an unthrottled laptop these bugs are invisible.
 
-1. **Throttle to Slow 4G and add 4x CPU throttling, then use the app normally.** This is the baseline condition for the rest of the programme. Anything you cannot find here, your users will find for you.
-2. **Confirm all four states exist.** Ask the AI directly: show me loading, show me empty, show me error. If it cannot produce a screenshot of each, they do not exist. Then force each one yourself: throttle for loading, filter to nothing for empty, and go offline mid-request for error.
-3. **Go offline in the middle of a request.** DevTools has an Offline mode. The app must say something a student would understand. A blank screen, a spinner that never stops, or a raw error object are three different failures.
-4. **Triple-tap every action that writes.** Add, submit, pay. Then check the data. One intention must produce one record.
-5. **Switch filters fast, twice.** Tap one category then immediately another. If the first result ever appears after the second, you have found a race condition. Do it five times on Slow 4G — it is intermittent by nature.
-6. **Check the timeout exists.** Use DevTools to throttle to the slowest setting and watch whether the request eventually gives up with a message, or hangs indefinitely.
-7. **Count requests on a single page load.** Network panel, filter Fetch/XHR. Forty requests to draw one list usually means a loop that should have been one request — a problem M04 names and M05 caches around.
+1. **Confirm all four states exist.** Ask for a screenshot of each; what cannot be screenshotted does not exist.
+2. **Go offline mid-request.** The app must say something a student understands, not hang on a spinner.
+3. **Triple-tap every action that writes,** then check the data: one intention, one record.
+4. **Switch filters fast, five times over.** A first result landing after the second is a race condition.
+5. **Check the timeout exists.** The request must give up with a message rather than hang.
+6. **Count requests on one page load.** Forty requests for one list is a loop that should have been one request.
 
-Red flags in AI output: a screen with only a success state; `fetch` with no timeout; automatic retry on a write action; no cancellation when a new request supersedes an old one; `await` inside a loop over a list; error handling that only catches network rejection and ignores the status code; a `setTimeout` used to "wait until the data is there"; and an error message that shows the raw technical text to the user.
-
-The brief line that covers most of it, under ACCEPTANCE: "I can see and screenshot all four states — loading, empty, error, success — on Slow 4G, and triple-tapping the primary action creates exactly one record."
+Red flags: only a success state · `fetch` with no timeout · automatic retry on a write · no cancellation when a new request supersedes an old one · `await` inside a loop · error handling that ignores the status code · raw error text shown to the user. ACCEPTANCE: "I can screenshot all four states on Slow 4G."
 
 ## Walkthrough
 1. Open a data-heavy site — a food delivery app or a job board — with DevTools open on the Network panel, filtered to Fetch/XHR.

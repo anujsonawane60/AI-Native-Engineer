@@ -4,7 +4,7 @@ module: m03-design
 slug: motion-and-3d
 title: "Motion, Micro-Interactions and 3D on the Web"
 order: 10
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,25 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team adds animation to their canteen app the week before demo day. Every card fades and slides up on scroll, staggered by 100 ms. The cart badge bounces. The page transitions with a 600 ms cross-fade. The hero has a rotating 3D plate of food, which is 2.4 MB.
-
-On the mentor's iPhone it looks impressive. On a four-year-old budget Android on hostel 4G, three things happen. The page takes eleven seconds before anything is readable, because the 3D model loads before the menu. The scroll animations stutter at around fifteen frames per second, which reads as the app being broken rather than being animated. And a student with vestibular sensitivity gets a headache from the parallax and closes it.
-
-Measured honestly, the animation added 2.9 MB, cost about nine seconds on first load, and made the product feel slower than the plain version did. It did not make anything easier to understand. That is the entire failure: motion was added as decoration, and decoration on a constrained device is a tax.
+A team adds animation the week before demo day: cards fade and slide on scroll, pages cross-fade for 600 ms, and the hero holds a rotating 3D plate of food weighing 2.4 MB. On a budget Android on hostel 4G the page needs eleven seconds to become readable, the animations stutter at fifteen frames per second — which reads as broken, not animated — and a student with vestibular sensitivity closes it with a headache. Honestly measured: 2.9 MB added, nine seconds of load, nothing clearer.
 
 ### The idea
 
 **Motion earns its place only when it explains a change: where something came from, where it went, or that the system is working.**
 
-Everything else is cost — in milliseconds, in battery, in bytes, and in the small irritation of being made to wait for a transition you have already seen four hundred times.
+Everything else is cost: milliseconds, battery, bytes, and the irritation of waiting for a transition you have seen four hundred times.
 
 ### The analogy
 
-At the canteen counter, useful motion is everywhere and none of it is decorative. The server slides your plate forward: you see it arrive and you know it is yours. The token number flips on the board: you see which number changed and you look at the new one without hunting. Steam rises off the pot: you know it is hot without touching it. Each movement answers a question you actually had.
+At the canteen counter, useful motion is everywhere and none of it decorative. The server slides your plate forward, so you know it is yours. The token number flips, so you see which number changed without hunting. Now imagine the plate spinning twice first: funny once, then you are late.
 
-Now imagine a counter where the plate spun twice before reaching you, the board animated every number for half a second whether or not it changed, and the wall had a rotating sculpture of a samosa. The first time it is funny. The second time you are late for class.
-
-**Where the analogy breaks:** motion at the counter is free and instant because it is physical. Yours costs real resources — frames the phone may not be able to render, bytes over a metered connection, battery on a device that is already at 14%. A physical gesture has no download size. Yours does, and on the devices your users actually own, that is the deciding constraint.
+**Where the analogy breaks:** counter motion is physical, so it is free. Yours costs frames the phone may not render, bytes over a metered connection, and battery at 14%.
 
 ### Picture it
 
@@ -65,9 +59,7 @@ Now imagine a counter where the plate spun twice before reaching you, the board 
 
 Four questions in order: whether the motion explains a change, how long it is allowed to take, what it costs on a real device, and whether it respects the user's own setting — and a no at the last question is disqualifying regardless of the first three.
 
-### Durations and easing, in numbers
-
-Motion has a small set of working numbers, and they are much shorter than most people expect.
+The working numbers are much shorter than most people expect.
 
 | Purpose | Duration | Easing |
 |---|---|---|
@@ -78,37 +70,23 @@ Motion has a small set of working numbers, and they are much shorter than most p
 | Loading indicator | Loops, 1–1.5 s | Linear |
 | Anything over 400 ms | Almost never | — |
 
-Easing is the difference between a mechanical slide and something that feels physical. Ease-out for things arriving, because they should appear quickly and settle gently. Ease-in for things leaving, because once you have decided to dismiss it you do not want to watch it go. Linear only for loaders and spinners, where the whole point is a steady rhythm.
+Ease-out for arrivals, ease-in for exits, linear for loaders. Two rules on top: **animate only transform and opacity**, because the GPU handles those while width, height and margin force a layout recalculation every frame — the fifteen-fps stutter — and **exits are faster than entrances**.
 
-Two rules on top. **Animate only transform and opacity.** Moving, scaling and fading are cheap because the phone can hand them to the GPU; animating width, height, margin or colour forces the browser to recalculate layout every frame, and that is where the fifteen-frames-per-second stutter comes from. **Exits are faster than entrances.** The same duration in both directions makes dismissal feel sticky.
+Few animations genuinely improve a product: the pressed state; a progress indicator inside a submitting button, which prevents double orders; a skeleton showing the *shape* of what is loading; an item moving into the cart; a toast from a fixed position. Past eight, the extras are decoration.
 
-### Micro-interactions worth having
+Reduced motion is not optional: people turn it on for vestibular disorders, where parallax causes real nausea. Honouring it switches off large movement and auto-play while keeping essential feedback — "no animation" is not "no feedback". This is WCAG 2.3.3, and AI never adds it unless asked.
 
-Only a handful of animations genuinely improve a product, and they all map to something from earlier in this module.
-
-The pressed state on tap — chapter 6's active state, and chapter 3's heuristic 1. A spinner or progress bar inside a button during submission, which is the thing that prevents double orders. A skeleton while content loads, which shows the *shape* of what is arriving and makes the wait feel shorter than a centred spinner does. An item visibly moving into the cart, so the user knows where it went. A shake on a rejected input, paired with text, never alone. A toast sliding in from a fixed position so the eye knows where to look.
-
-That is six. If your product has more than about eight animations, the extras are decoration.
-
-### Reduced motion is not optional
-
-Operating systems let people say "I do not want animation", and they say it for real reasons: vestibular disorders, where parallax and large movement cause genuine nausea and dizziness; migraine triggers; attention and focus conditions; and plenty of people who simply find it faster without. On Android it is under accessibility settings; iOS has Reduce Motion.
-
-Honouring it means large movement, parallax and auto-playing video are off, while essential feedback — the pressed state, the progress indicator — stays, possibly as a simple cross-fade. "No animation" does not mean "no feedback". This is WCAG 2.3.3, and chapter 9 treated the same family of rules as hard requirements. AI will not add reduced-motion handling unless you ask for it, essentially ever.
-
-### 3D: when it earns the download
-
-3D on the web is genuinely accessible now, and it is almost always the wrong choice for a student product. The test is simple: **does the user need to understand a shape?**
-
-Yes for a product you must inspect from multiple angles, a floor plan, a molecule, a map with elevation. No for a rotating logo, a hero decoration, or a 3D plate of food on a menu — a photograph conveys more in 80 KB than a model does in 2 MB.
-
-If the answer is genuinely yes, the budget discipline is what matters. A 3D library is a large download before any model loads. It must never block the first readable content, so it loads only after the page is usable, and only when it scrolls into view. It needs a static image fallback for devices that cannot render it, and a stated fallback when the WebGL context fails rather than a blank rectangle. And it needs a non-visual equivalent, because a rotating model conveys nothing to a screen reader.
-
-A rule of thumb that will serve you for the whole program: on a budget Android on slow 4G, total page weight under about 500 KB keeps you in acceptable territory. A single 3D scene typically spends all of that and more before showing a word. M02's Core Web Vitals chapter and M08's mobile work are where this gets measured properly.
+3D is almost always wrong here. The test is **does the user need to understand a shape?** Yes for a floor plan; no for a rotating logo or a plate of food, where a photograph says more in 80 KB than a model in 2 MB. If it is genuinely yes, the library loads only after the page is readable and only in view, with a static fallback and a non-visual equivalent. Keep page weight under 500 KB on slow 4G.
 
 ### Where it lives
 
-Motion is the last layer, applied after chapters 5 to 8 are settled — animating a screen with broken hierarchy only draws attention to the break. Chapter 6's eight states are what most of your motion attaches to. Chapter 9's principles constrain it absolutely. M02 covered the rendering cost and Core Web Vitals; M07's analytics is where you find out whether a transition is making people abandon a flow; M08 is where you measure load on real devices rather than a laptop.
+Motion is the last layer, after chapters 5 to 8 are settled.
+
+- **Chapter 6** — the eight states are what most motion attaches to
+- **Chapter 9** — its principles constrain motion absolutely
+- **M02** — rendering cost and Core Web Vitals
+- **M07** — whether a transition makes people abandon a flow
+- **M08** — load measured on real devices
 
 ### Words to own
 
@@ -128,28 +106,26 @@ Motion is the last layer, applied after chapters 5 to 8 are settled — animatin
 
 ### Tradeoffs and gotchas
 
-**Scroll-triggered animation is the worst value in common use.** It delays content the user is actively trying to read, it stutters on cheap phones, and it has to replay every time they scroll back. For a product where people are in a hurry, it is pure cost.
+**Scroll-triggered animation is the worst value in common use.** It delays content people are reading, stutters on cheap phones, and replays on every scroll back.
 
-**Motion cannot fix slowness, and usually advertises it.** A 400 ms transition hiding a 2-second load makes the total 2.4 seconds. Users read a slow animation as a slow app.
+**Motion cannot fix slowness; it advertises it.** A 400 ms transition over a 2-second load makes 2.4 seconds.
 
-**Animating the wrong properties is how a smooth design becomes a stuttering one.** Transform and opacity are cheap; width, height, margin, padding and box-shadow are not. If AI gives you motion that stutters, this is the first thing to check.
+**A spinner with no content shape is weaker than a skeleton.**
 
-**A loading spinner with no content shape is weaker than a skeleton.** The skeleton tells the user what is coming and makes the same wait feel shorter.
+**Everything feels fine on your laptop.** Test on the cheapest Android your team owns, throttled.
 
-**Everything feels fine on your laptop.** Your development machine renders anything. Test motion on the cheapest Android phone your team owns, with the network throttled, or you have tested nothing.
-
-**This chapter's tooling moves fast; the numbers do not.** Animation libraries and 3D frameworks churn constantly. Durations, easing, transform-and-opacity, and reduced motion have not changed in a decade.
+**The tooling moves fast; the numbers do not.** Durations, easing, transform-and-opacity and reduced motion have not changed in a decade.
 
 ### Verify it
 
-1. **Ask "what change does this explain?" of every animation.** If you cannot answer in one sentence, delete it. Most teams delete half.
-2. **Time them.** Ask AI to list every animation with its duration in milliseconds. Anything over 400 ms that is not a loader is too slow. A list is checkable; "subtle animations" is not.
-3. **Test on the cheapest phone you have, with the network throttled.** Watch for stutter and measure how long until the first readable content. If motion delays reading, it is a defect.
-4. **Turn reduced motion on in your phone's accessibility settings and reload.** Large movement and parallax should stop; pressed states and progress indicators should remain. If nothing changes, it was never implemented.
-5. **Check which properties are animated.** Ask directly: "list every animated property". Anything other than transform and opacity needs a reason.
-6. **Measure the page weight before and after.** If motion or 3D added more than about 100 KB, decide explicitly whether the change it explains is worth it.
+1. **Ask "what change does this explain?" of every animation.** No one-sentence answer means delete it.
+2. **Time them.** Over 400 ms and not a loader is too slow. A duration list is checkable; "subtle animations" is not.
+3. **Test on the cheapest phone you have, throttled.** Motion that delays reading is a defect.
+4. **Turn reduced motion on and reload.** No change means it was never implemented.
+5. **Ask "list every animated property".** Anything but transform and opacity needs a reason.
+6. **Measure page weight before and after.** Over 100 KB needs a decision.
 
-Red flags: animation nobody asked for; staggered scroll reveals on content people need to read; any duration over 400 ms; width or margin being animated; no reduced-motion handling; 3D above the fold; auto-playing video; parallax on a mobile product; and AI calling motion "smooth and delightful" rather than listing durations.
+Red flags: animation nobody asked for; staggered scroll reveals on content people need to read; any duration over 400 ms; width or margin animated; no reduced-motion handling; 3D above the fold; parallax on mobile; AI calling motion "delightful" instead of listing durations.
 
 ## Walkthrough
 1. List every animation currently in your product. Include ones you did not ask for — AI adds them by default, so look rather than remember.

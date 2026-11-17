@@ -4,7 +4,7 @@ module: m02-the-web
 slug: http-methods-status-headers
 title: "HTTP: Methods, Status Codes and Headers"
 order: 13
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,31 +22,31 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team builds a "remove from cart" link. It is a link, so it is a GET request, and visiting it deletes the item. It works.
+A team builds "remove from cart" as a link, so it is a GET, and visiting it deletes the item. It works — until a browser prefetches links and empties a cart, and a crawler follows every link and deletes forty rows.
 
-Then two things happen. A student's browser pre-fetches links on the page to make navigation feel faster, and quietly empties their cart before they tap anything. And a search crawler finds the page, follows every link on it as crawlers do, and deletes forty rows.
-
-The same week, the order endpoint develops a different problem. When the database is unavailable it returns HTTP 200 with a body of `{"success": false, "error": "db timeout"}`. The page checks the status code, sees 200, shows "Order placed", and clears the cart. Thirty-one students believe they have ordered lunch. The canteen has no record of any of them.
-
-Nothing in either story is a hard bug. Both are HTTP used dishonestly, and both are visible in the Network panel in ten seconds.
+The same week the order endpoint, when the database is down, returns HTTP 200 with `{"success": false, "error": "db timeout"}`. The page sees 200, shows "Order placed" and clears the cart. Thirty-one students believe they ordered lunch; the canteen has no record. Both are HTTP used dishonestly, and both are visible in the Network panel.
 
 ### The idea
 
-**Every interaction on the web is one request and one response. The request carries a method saying what kind of thing it is; the response carries a status code saying how it went. Both carry headers, which are the small print.**
+**Every interaction on the web is one request and one response: the request carries a method saying what kind of thing it is, the response a status code saying how it went, and both carry headers — the small print.**
 
-The method is a promise about intent. The status code is the verdict. When either one lies — a GET that deletes, a 200 that failed — every piece of software in the chain that trusted it does the wrong thing, including browsers, crawlers, caches and your own page.
+When either lies, every piece of software that trusted it — browser, crawler, cache, your own page — does the wrong thing.
+
+| Method | Promise | Safe to repeat? |
+|---|---|---|
+| GET | Just give me this; change nothing | Yes |
+| POST | Create something, or do something | **No** |
+| PUT | Make it be exactly this | Yes |
+| PATCH | Change these fields of it | Usually |
+| DELETE | Remove it | Yes |
+
+**Safe** means it changes nothing, which is why crawlers fetch GETs unasked. **Idempotent** means twice has the same result as once: PUT is, POST is not.
 
 ### The analogy
 
-The canteen order slip, and what the counter writes back on it.
+The **method** is what kind of slip you hand over: "show me the menu" is not "place this order". Nobody minds you asking for the menu twice; everybody minds the same order twice. The **status** is the stamp coming back — SERVED, NO SUCH DISH, NOT YOUR ORDER, COUNTER CLOSED. The **headers** are the margin notes: who you are, what language you read, whether the reply may be pinned up for others.
 
-The **method** is what kind of slip you are handing over. "Show me the menu" is a different kind of request from "place this order", which is different again from "cancel order 412". The counter treats them differently and so does everybody watching: nobody minds you asking to see the menu twice, and everybody minds you placing the same order twice.
-
-The **status** is the stamp the counter puts on the slip when it hands it back. SERVED. NO SUCH DISH. NOT YOUR ORDER. COUNTER CLOSED. The stamp is how you know what happened without reading the whole reply.
-
-The **headers** are the margin notes on both: who you are, what language you read, whether this reply may be pinned up for others to read, how long it stays valid.
-
-**Where the analogy breaks:** the counter remembers you. If you place an order and come back a minute later, the same staff member knows who you are. HTTP does not — every request is a complete stranger arriving for the first time, with no memory of anything before it. That is what "stateless" means, and it is the reason cookies exist, which is chapter 14.
+**Where the analogy breaks:** the counter remembers you. HTTP does not — every request is a stranger arriving for the first time. That is "stateless", and it is why cookies exist (chapter 14).
 
 ### Picture it
 
@@ -65,39 +65,22 @@ The **headers** are the margin notes on both: who you are, what language you rea
     then the body
 ```
 
-A request is a method and a path plus headers and an optional body; a response is a status code plus headers and a body, and the status is what tells you how to read the rest.
+A request is a method and a path plus headers and an optional body; a response is a status code plus headers and a body, and the status tells you how to read the rest.
 
-### The methods, as promises
+The first digit of the status is the category:
 
-| Method | Promise | Safe to repeat? |
+| Family | Meaning | The ones you will meet |
 |---|---|---|
-| GET | Just give me this; change nothing | Yes |
-| POST | Create something, or do something | **No** |
-| PUT | Make it be exactly this | Yes |
-| PATCH | Change these fields of it | Usually |
-| DELETE | Remove it | Yes |
+| 2xx | It worked | 200 OK, 201 Created, 204 No Content |
+| 3xx | Look elsewhere | 301 permanent, 302 temporary (caches differ) |
+| 4xx | You got it wrong | 400 malformed, 401 unidentified, 403 refused, 404 missing, 409 conflict, 429 too many |
+| 5xx | We got it wrong | 500 broke, 502 and 503 unavailable |
 
-Two words in that table do the real work. **Safe** means it changes nothing — GET is safe, which is precisely why browsers and crawlers feel free to fetch GETs unasked. **Idempotent** means doing it twice has the same result as doing it once: PUT ("set quantity to 3") is idempotent, POST ("add one") is not. That distinction is the whole reason chapter 10 said never to auto-retry a write, and it is M04's idempotency chapter in one line.
-
-### The status families
-
-The first digit is the category, and knowing the five families is most of what you need.
-
-**2xx — it worked.** 200 OK, 201 Created for something new, 204 No Content when there is nothing to return.
-
-**3xx — look elsewhere.** 301 permanent redirect, 302 temporary. Caches and search engines treat these two very differently, so using 301 for something temporary is hard to undo.
-
-**4xx — you got it wrong.** 400 malformed request, 401 "I do not know who you are", 403 "I know who you are and you may not", 404 not found, 409 conflict, 422 understood but invalid, 429 too many requests.
-
-**5xx — we got it wrong.** 500 something broke, 502 and 503 the service is unavailable or overloaded.
-
-The 4xx/5xx line is the one that matters operationally: 4xx means the caller must change something, 5xx means the caller should possibly try again later and somebody on your team needs to look at a log. Reporting your own crash as a 400 sends your users hunting for a mistake they did not make.
+4xx means the caller must change something; 5xx means try later and somebody reads a log.
 
 ### Where it lives
 
-HTTP is the language spoken across the network box from M00, between every client and every server, for everything: the HTML document, each image, each API call. Chapter 10's `fetch` is how your page speaks it; chapter 3's Network panel is where you read it.
-
-M04 is where you design these contracts properly — which method, which status, what shape the error takes. M05 uses headers for caching and uses 429 for rate limiting. M07's observability is built on status codes: "the proportion of 5xx responses" is one of the first things you will ever put on a dashboard.
+HTTP is the language spoken across M00's network box, for everything: the HTML document, each image, each API call. Chapter 10's `fetch` is how your page speaks it; chapter 3's Network panel is where you read it. M04 designs these contracts, M05 uses headers for caching and 429 for rate limiting, and M07's observability is built on status codes.
 
 ### Words to own
 
@@ -119,33 +102,25 @@ M04 is where you design these contracts properly — which method, which status,
 
 ### Tradeoffs and gotchas
 
-**A GET that changes something will eventually be called by a machine.** Browser prefetch, link previews in WhatsApp, antivirus scanners, crawlers and your own monitoring will all fetch your GETs without a human deciding to. Anything that writes must be a POST, PUT, PATCH or DELETE, and this is not a style preference.
+**A GET that changes something will eventually be called by a machine.** Prefetch, WhatsApp link previews, scanners, crawlers and your own monitoring all fetch GETs with no human deciding to. Anything that writes must be POST, PUT, PATCH or DELETE.
 
-**A 200 with an error inside it is the most harmful pattern in this chapter.** It is also extremely common in AI-generated code, because it is easier to write and because it makes the happy path shorter. The cost is that every layer above — your page, a cache, a monitoring tool, your own dashboards — is told everything is fine. A failure must be a 4xx or a 5xx.
+**A 200 with an error inside it is the most harmful pattern here,** and the most common in AI-generated code because it shortens the happy path. Your page, caches and dashboards are all told everything is fine. A failure must be a 4xx or 5xx.
 
-**401 and 403 are not interchangeable.** 401 means you are not identified; the fix is to log in. 403 means you are identified and not allowed; logging in again changes nothing. Returning 401 for an authorisation failure sends users into a login loop, and it is exactly M00's broken-Google-login scenario wearing a different hat.
+**401 and 403 are not interchangeable.** 401 means unidentified, fixed by logging in; 403 means identified and not allowed, where logging in again changes nothing and users loop. Whether someone else's record returns 403 or 404 is a privacy decision (M07), but it is a decision.
 
-**Choose between 404 and 403 deliberately for things that exist but are not yours.** Returning 404 hides whether the record exists at all, which is sometimes the right privacy choice and sometimes an unhelpful lie. M07 covers this; the point here is that it is a decision.
-
-**429 needs a retry delay and a backoff.** Hammering a rate-limited endpoint harder is how a small problem becomes an outage. The `Retry-After` header exists for this, and M05 goes into it.
-
-**Headers are not secret.** They travel with every request, they are visible in the Network panel, and the user can read and change them. A token in a header is only as safe as HTTPS makes the connection — which is chapter 14 — and never as safe as a server-side check.
-
-**Status codes you invent are a trap.** 299 and 418 may be fun; no cache, proxy, browser or monitoring tool knows what to do with them.
+**429 needs a retry delay.** Hammering a rate-limited endpoint turns a small problem into an outage; `Retry-After` exists for this (M05).
 
 ### Verify it
 
-The Network panel is the whole verification surface, and the discipline is to read the status rather than the page.
+1. **For every action, read the method.** Anything that creates, changes or deletes must not be a GET.
+2. **Read the status code, not the screen.** "Order placed" is the page's opinion; the status is the fact.
+3. **Open the response body on every "success".** An `error` inside a 200 misleads every consumer downstream.
+4. **Force each failure and check its code.** A bad value gives 400 or 422, not 500; logged out gives 401; someone else's order gives 403 or 404, never 200.
+5. **Ask of every write: is this safe to repeat?** If not, it must be a POST with M04's protection.
+6. **Check `Content-Type` matches the body.** JSON announced as HTML looks like a network error.
+7. **Look at what is sent, not only what returns.** A missing `Authorization` header explains a 401 instantly.
 
-1. **For every action, read the method.** Network panel, click the request, read the method column. Anything that creates, changes or deletes must not be a GET. This single check prevents the crawler story.
-2. **Read the status code, not the screen.** The page saying "Order placed" is the page's opinion. The status code is the server's. Where they disagree, the status code is the fact.
-3. **Open the response body on every "success".** Look for `"success": false`, `"error"`, or an empty result inside a 200. If you find one, the endpoint is reporting failures as successes and every consumer downstream is being misled.
-4. **Force each failure and check its code.** Submit a bad value and confirm you get a 400 or 422, not a 500. Log out and retry and confirm 401. Try someone else's order and confirm 403 or 404, never 200. Chapter 3's techniques make all of these a two-minute exercise.
-5. **Ask, for every write: "is this safe to repeat?"** If no, it must be a POST and it needs M04's protection. If yes, say why — usually because it sets a value rather than adjusting one.
-6. **Check `Content-Type` matches the body.** JSON announced as HTML, or HTML announced as JSON, produces parse errors that look like network errors and waste a lot of time.
-7. **Look at what is sent, not only what comes back.** Expand the request headers and payload. An `Authorization` header that is absent explains a 401 instantly.
-
-Red flags in AI output: any GET with side effects; 200 responses carrying errors; 500 used for user mistakes or 400 used for server crashes; 401 where 403 belongs; invented status codes; no handling of 429; a response with no `Content-Type`; and error bodies that leak stack traces or database messages to the user, which is both a bad experience and an M07 security finding.
+Red flags: a GET with side effects · 200 responses carrying errors · 500 for user mistakes or 400 for server crashes · 401 where 403 belongs · invented status codes · no handling of 429 · no `Content-Type` · a header treated as private · error bodies leaking stack traces to the user.
 
 ## Walkthrough
 1. Open a site you use often with DevTools on the Network panel. Make sure the Method and Status columns are visible — right-click the column headers if they are not.

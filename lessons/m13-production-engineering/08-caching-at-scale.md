@@ -4,7 +4,7 @@ module: m13-production-engineering
 slug: caching-at-scale
 title: "Caching Strategy at Scale: Layers, Stampedes, Invalidation Graphs"
 order: 8
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-M05 chapter 2 taught you the five layers — browser, CDN, in-process, shared cache, database — and the rule that personalised data never goes in a shared layer. M05 chapter 3 taught TTL, eviction, invalidation, hit rate, the stampede, jitter and stale-while-revalidate, and it taught the paneer bug: the chef marks a dish sold out, the cache keeps saying available, eleven students pay for food that does not exist. You learned to delete the key in every write path. That was one cache and one key.
+M05 chapter 2 taught you the five layers — browser, CDN, in-process, shared cache, database — and the rule that personalised data never goes in a shared layer. M05 chapter 3 taught TTL, eviction, invalidation, hit rate, the stampede and jitter, plus the paneer bug: a dish is marked sold out, the cache keeps saying available, students pay for food that is gone. That was one cache, one key.
 
-Now the same bug, two layers out. The chef marks paneer sold out. Your write path deletes `dish:42` from the shared cache exactly as you were taught, and it works perfectly. The menu *page* is still wrong for eleven minutes, because the HTML is cached at the CDN with a ten-minute lifetime and then in each student's browser for five more. You did the invalidation you learned and it did not reach the layer the student actually reads from. This is not the same bug; it is a layer problem that the single-cache fix cannot touch.
-
-And the harder one. A dish's price changes. You delete `dish:42`. But five other things were derived from that price: the `menu:today` payload, the snacks-category summary with its "from ₹40" line, the search index entry, the homepage HTML, and the cached count of dishes under ₹50. All five are now wrong, none has the string `42` in its key, and nobody can list them from memory. A student sees ₹40 on the category page and ₹55 at checkout, and stops trusting you.
+Now the same bug two layers out. You delete `dish:42` from the shared cache as taught, and the menu *page* stays wrong for eleven minutes: the HTML is cached at the CDN for ten minutes and in each browser for five more. Worse, a price change also makes five derived things wrong — `menu:today`, the category summary, the search index, the homepage — none of them holding `42` in its key.
 
 ### The idea
 
 **At scale, caching stops being a per-key decision and becomes two artefacts: a written invalidation graph, and a TTL ladder with one decision per layer.**
 
-The **invalidation graph** answers: when this thing changes, which cached entries become wrong? Including derived ones, including ones at other layers, including the search index. It is a diagram you draw once per entity and keep in the repository.
+The **invalidation graph** answers: when this changes, which cached entries become wrong — including derived ones, other layers, the search index? Draw it once per entity and commit it.
 
-The **TTL ladder** answers: for each layer, how stale may this be, and can I purge it? Layers you can purge get long TTLs and event invalidation. Layers you cannot purge — the student's browser, an intermediate proxy — get a short TTL chosen before launch, because after launch you have no control over them at all.
+The **TTL ladder** answers: per layer, how stale may this be and can I purge it? Purgeable layers get long TTLs and event invalidation; unpurgeable ones get a short TTL chosen before launch.
 
 ### The analogy
 
-M05 gave you the canteen menu copied in five places: the student's phone photo, the sheet at the hostel gate, each cashier's apron note, the whiteboard behind the counter, and the kitchen's stock ledger.
+M05 gave you the canteen menu copied in five places: a phone photo, the gate sheet, each cashier's apron note, the whiteboard, the kitchen ledger.
 
-Watch what happens when the chef raises the paneer price. The whiteboard changes instantly. The cashiers must each be told — five people, and you will forget one. Someone has to physically walk to the hostel gate with a new sheet. And the student's photo cannot be reached at all; the only control you ever had over it was the "valid until 1 p.m." you printed on the sheet before they photographed it.
+Watch the chef raise the paneer price. The whiteboard changes instantly; the cashiers must each be told and you will forget one; someone must walk a new sheet to the gate. The student's photo cannot be reached at all — your only control was the "valid until 1 p.m." printed before they photographed it. And the "today's specials" poster was *copied from* last night's list, so changing the board does not change it.
 
-Then the part nobody thinks about. The "today's specials" poster by the entrance was *copied from* the price list last night. It is not a copy of the paneer price; it is a thing derived from it. Changing the board does not change the poster, and nobody remembers the poster exists until a student points at it.
-
-**Where the analogy breaks:** you can phone the hostel gate, and a sheet left up too long eventually looks obviously old — curled, dusty, last week's date. A stale cached response looks immaculate and has a plausible timestamp. And you cannot phone the student's browser, ever, which is why the only honest lever at that layer is a number you chose in advance and must now live with.
+**Where the analogy breaks:** an old sheet looks old, curled and dusty. A stale cached response looks immaculate, with a plausible timestamp.
 
 ### Picture it
 
@@ -65,9 +61,11 @@ One write makes six cached things wrong, four of them derived rather than named 
 
 ### Where it lives
 
-This is M05 chapters 2 and 3 taken from one cache to a system of caches. The stampede defences extend M05 chapter 3's jitter and stale-while-revalidate with **single-flight** locking: on a miss, one request takes a short lock and refills while the others wait briefly or get the stale copy, so forty misses become one database query rather than forty. The deploy interaction is chapter 5's: restarting every instance at once empties every in-process cache simultaneously, which is a stampede you caused yourself, and a staggered rollout plus a warm-up request is the fix.
+This is M05 chapters 2 and 3 taken from one cache to a system of caches:
 
-Chapter 7 is the honest check on all of it: a load test with varied data reveals your real hit rate per layer, and a load test with one id is how you fool yourself. And M05 chapter 2's security rule gets sharper here — a personalised response that reaches a shared CDN entry is not a performance bug, it is one student seeing another's name, which M07 chapter 1 would class as broken access control.
+- **Stampede defence** adds **single-flight** locking to M05 chapter 3's jitter: on a miss, one request refills while the rest wait.
+- **Chapter 7** is the honest check: varied data reveals your real hit rate, and one id is how you fool yourself.
+- **M05 chapter 2's** security rule sharpens: a personalised response in a shared CDN entry is broken access control under M07 chapter 1.
 
 ### Words to own
 
@@ -90,32 +88,24 @@ Chapter 7 is the honest check on all of it: a load test with varied data reveals
 
 ### Tradeoffs and gotchas
 
-**Draw the graph before you write the invalidation.** Pick an entity, list every cached thing that reads it directly, then everything computed from *those*, then the search index, then the pages at the edge. Fifteen minutes per entity, and it is the only way derived keys stop being surprises. Commit the diagram.
+**Draw the graph before you write the invalidation.** Per entity: everything reading it directly, everything computed from *those*, the search index, the edge pages.
 
-**Tag your edge responses so you can purge by meaning.** Purging by path requires you to know every URL a dish appears on, which you do not. Tagging a response with the ids it contains lets one purge call clear every page that mentions dish 42, including ones created after you wrote the invalidation code. Without tags, the only honest CDN strategy is a short TTL.
+**Tag your edge responses so you can purge by meaning.** Purging by path needs every URL a dish appears on, which you do not know. Without tags, use a short TTL.
 
-**Never purge everything to fix one thing.** M05 chapter 3 said this about `flushall`; a full CDN purge is the same mistake one layer bigger, because every page becomes a miss at once and your origin takes traffic that had been 90% absorbed.
+**Layers you cannot purge must be short, and that choice is permanent in practice.** A one-day browser lifetime is a day of wrongness you cannot shorten — the DNS TTL lesson from M06 chapter 13.
 
-**The layers you cannot purge must be short, and that decision is permanent in practice.** A browser cache lifetime of a day is a day of potential wrongness you cannot shorten later, because the copies already handed out carry the old number — exactly the DNS TTL lesson from M06 chapter 13. Sixty seconds on anything that can change, long lifetimes only on content whose URL changes when the content does.
+**Jitter and stale-while-revalidate are not enough at real volume.** They spread expiry; they do not stop a cold key being hit by four hundred users at once. Single-flight locking bounds that to one query.
 
-**Jitter and stale-while-revalidate are not enough on their own at real volume.** They spread expiry and hide refresh latency. They do not stop a genuinely cold key from being requested by four hundred users in the same second — a new dish going viral, or a cache that was just emptied. Single-flight locking is what bounds that to one origin request. Add a short lock timeout so a crashed holder cannot block the key forever.
-
-**A deploy is a cache event.** Restarting all instances together empties in-process caches together. On a small system this shows up as a thirty-second latency spike after every deploy that everyone has learned to ignore; on a bigger one it is an outage. Stagger the restart, and consider a warm-up that requests your top keys before an instance joins the load balancer.
-
-**Measure hit rate per layer, with a denominator, and watch key count beside it.** "95%" means nothing without knowing which layer and how many lookups. Each layer has a different job: the edge absorbs volume, the shared cache absorbs expensive computation, the in-process cache absorbs chatter, and a layer sitting at 20% is costing you a lookup and buying nothing. Rising key count with a falling hit rate is the signature of unbounded cardinality — a key containing a timestamp or a search string invents a new entry per request and fills your free-tier memory until eviction starts discarding the keys that were working.
+**Measure hit rate per layer, watching key count beside it.** Rising keys with a falling hit rate is unbounded cardinality: a key holding a timestamp invents an entry per request until eviction discards the working ones.
 
 ### Verify it
 
-The question from M05 chapter 3 — "list every code path that writes this data and show me the key deletion in each" — still applies and is no longer sufficient. The new question is about the graph and the layers.
+1. **Ask for the full invalidation set, derived keys included:** every entry that goes wrong, at every layer. Covering the shared cache but never the CDN or browser leaves the paneer bug live.
+2. **Measure staleness per layer with a stopwatch:** a direct API call, the rendered page, a hard reload, a normal reload — four numbers, each under its layer's TTL.
+3. **Force a cold cache and watch the origin** under chapter 7's load. If it falls over, the cache is a dependency, not an optimisation.
+4. **Request a page as two logged-in users through one edge.** The first user's name appearing is a security incident, not a cache bug.
 
-1. **Ask for the full invalidation set, derived keys included.** "When this price changes, list every cached entry that becomes wrong, at every layer, including anything computed from it and the search index." An answer naming only the entity's own key has not understood the problem.
-2. **Ask which layers the plan actually reaches.** If the answer covers the shared cache and never mentions the CDN or the browser, the paneer bug is still live two layers out.
-3. **Measure staleness per layer with a stopwatch.** Change the data, then time how long until it appears: in a direct API call, in the rendered page, in a hard-reloaded browser, and in a normal reload. Four different numbers, each of which must be at or under the TTL you chose for that layer.
-4. **Check the unpurgeable layer's number specifically.** Read the response headers and find the browser's lifetime. If it is longer than you can defend, change it today, because tomorrow's copies are already being handed out.
-5. **Force a cold cache and watch the origin.** Empty the cache deliberately while chapter 7's load runs. If the origin falls over, you have no single-flight protection and your cache has become a dependency rather than an optimisation.
-6. **Look for personalisation in a shared layer.** Request a page as one logged-in user and then as another, through the same edge. If you ever see the first user's name, stop everything — that is a security incident, not a cache bug.
-
-Red flags: an invalidation that handles only the obvious key; no mention of the CDN or browser layer; a full purge as the invalidation strategy; a browser cache lifetime over a minute on changeable data; stampede protection described as "we added jitter" at high request rates; a deploy process that restarts everything at once; a cache the app cannot run without; a key containing a timestamp or a free-text search string; and a hit rate quoted with no layer and no denominator.
+Red flags: an invalidation handling only the obvious key; a full purge as the strategy; a browser lifetime over a minute on changeable data; a key holding a timestamp; a hit rate with no layer.
 
 ## Walkthrough
 1. Pick the single entity in your product whose change matters most — a dish, a price, an availability flag. Write its name at the top of a page.

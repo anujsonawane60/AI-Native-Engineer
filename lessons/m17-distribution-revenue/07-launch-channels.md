@@ -4,7 +4,7 @@ module: m17-distribution-revenue
 slug: launch-channels
 title: "Launch Channels and Running a Real Launch"
 order: 7
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,29 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Two launches, on the same Thursday, in the same cohort.
+Two launches, same Thursday, same cohort. The first team posts one message in a hostel WhatsApp group at 11 pm: forty views, two signups, nothing. Asked how the launch went they say "nobody cared" — but with no plan, no second channel and no instrumentation, that is the absence of a finding rather than a finding.
 
-The first team posts one message in a hostel WhatsApp group at 11 pm. Forty views, two signups, nothing else. Asked how the launch went, they say "nobody cared". They had no plan, no second channel, no instrumentation and no follow-up, so "nobody cared" is not a finding — it is the absence of one.
-
-The second team does much better and loses more. A post lands well and sends nine hundred people to their site in four hours. The signup flow has a bug on a budget Android browser nobody tested. Somewhere between four and six hundred of those people hit a blank screen and leave. The team finds out on Saturday, because nobody was watching on Thursday evening. They also have no email list and no broadcast list — so of the three hundred who got through, there is no way to reach a single one again.
-
-The second team's product was ready. Their launch was not, and a launch you get one shot at is a strange thing to improvise.
+The second team does better and loses more. A post sends nine hundred people to their site in four hours. The signup flow has a bug on a budget Android browser nobody tested, and four to six hundred of them hit a blank screen and leave. The team finds out on Saturday, because nobody was watching on Thursday evening. They have no email list either, so of the three hundred who got through there is no way to reach a single one again. Their product was ready; their launch was not.
 
 ### The idea
 
 **A launch is a dated sequence against named channels, built to convert a 48-hour spike into something you own.**
 
-Three parts, and teams usually build only the middle one. The **sequence**: what happens on which day, who does it, in what order. The **channels**: named places with named owners, not "social media". The **capture**: a channel you own — phone numbers or emails you can reach again next month without anyone's permission.
+Three parts, and teams usually build only the middle one. The **sequence**: what happens on which day, who does it, in what order. The **channels**: named places with named owners. The **capture**: a channel you own — numbers or emails you can reach again next month without anyone's permission.
 
-Attention decays fast. Whatever a launch brings in forty-eight hours is nearly all you will get, and the only durable output is the list.
+Every channel is one of three kinds. **Owned** is your email list, your broadcast list, your users' numbers: reachable next month at zero cost with nobody's permission, and the only kind that accumulates. **Rented** is Instagram, Reddit, a group you do not administer: someone else's audience, free and revocable. **Earned** is someone else choosing to talk about you: highest trust, least control. So **spend rented and earned attention to build owned attention** — whatever a launch brings in forty-eight hours is nearly all you will get, and ten thousand impressions with no contact details has converted a scarce resource into nothing.
 
 ### The analogy
 
-The canteen's opening day.
+The canteen owner does not simply unlock the shutter on opening day. A week before, he talks to the hostel warden and the students who run the cultural committee. Two days before, a hand-painted board goes up at the gate. On the day, the first hundred plates come with a free samosa and he stands at the counter himself from noon to three, because the first day is when problems surface. He writes every regular's phone number in a notebook so he can tell them when the Sunday special starts.
 
-The owner does not simply unlock the shutter. A week before, he talks to the hostel warden and the three students who run the cultural committee. Two days before, a hand-painted board goes up at the gate. On the day, the first hundred plates come with a free samosa, and he stands at the counter himself from noon to three, because the first day is when problems surface. He writes every regular's phone number in a notebook so he can tell them when the Sunday special starts. And on day two he is still there, because the people who had a good time on day one bring four friends on day three.
-
-**Where the analogy breaks:** his channel is physical proximity, and it keeps working every day without being refreshed — a student walking to class passes the gate whether or not he posted anything. Your launch is a spike with a steep decay: day three is a fraction of day one, and day ten is nothing. The notebook of phone numbers is the only part of his setup you can copy, and it is the part teams skip.
+**Where the analogy breaks:** his channel is physical proximity, and it keeps working every day without being refreshed. Your launch is a spike with a steep decay: day three is a fraction of day one and day ten is nothing. The notebook of phone numbers is the only part of his setup you can copy, and it is the part teams skip.
 
 ### Picture it
 
@@ -70,42 +64,6 @@ The owner does not simply unlock the shutter. A week before, he talks to the hos
 
 A launch runs from a week before to a week after, with an owner and a time for every action, and its only durable output is a contact list.
 
-### Owned, rented, earned
-
-Every channel is one of three kinds, and the distinction decides where you invest.
-
-**Owned** — your email list, your WhatsApp broadcast list, your push permission, your users' phone numbers. You can reach these people next month at zero cost, with nobody's permission. The only kind that accumulates.
-
-**Rented** — Instagram, LinkedIn, Reddit, a Telegram group, a college WhatsApp group you do not administer. Someone else's audience, at their discretion and subject to their rules. Useful, free, revocable.
-
-**Earned** — someone else talks about you: a friend's recommendation, a club newsletter, a mention by a popular student account. Highest trust, least controllable.
-
-The rule: **spend rented and earned attention to build owned attention.** Every launch post should lead somewhere that asks for a way to reach the person again. Ten thousand impressions and no contact details has converted a scarce resource into nothing.
-
-### The channels that actually work for an Indian student startup
-
-Named specifically, because "social media" is not a channel.
-
-**WhatsApp groups** are the highest-conversion channel most student teams have, and the most easily wasted. A message from a known member of a group of two hundred converts far better than a post to two thousand strangers. One message per group, from a member, at a time people read — not 11 pm.
-
-**Talking to people one at a time** is not a channel, it is a superpower at your scale. Twenty personal messages beat one broadcast, and M16's unscalable-first-hundred chapter is the whole argument.
-
-**Campus institutions**: societies, clubs, noticeboards, a two-minute announcement before a lecture if a professor allows it, fests. These are earned channels with a gatekeeper, which chapter 8 covers.
-
-**Instagram** reaches students; **LinkedIn** reaches recruiters and founders. Different audiences, and the same post will not serve both.
-
-**Reddit and Telegram** have India-focused communities with strict self-promotion rules. Read the rules, participate first, and expect to be removed if you treat a community as an audience.
-
-**Product Hunt and Hacker News** are real channels for developer tools and almost useless for an Indian campus consumer product. Launching there because it is what startups do spends a day on the wrong audience.
-
-**App stores** are their own discipline, covered in M12 — the listing, the screenshots and the first-run experience are the conversion surface.
-
-**Paid** is testable at small budgets and is the only channel that gives you a clean CAC number. Spend ₹1,500, count paying customers, and you have chapter 5's arithmetic for that channel. Treat it as a measurement instrument first and a growth engine much later. **SEO and content** work and are slow; they belong in month four, not in your launch.
-
-### Measuring a launch without lying to yourself
-
-A launch produces several numbers per channel, and only the last two matter.
-
 ```
   ONE LAUNCH, BY CHANNEL
 
@@ -120,15 +78,11 @@ A launch produces several numbers per channel, and only the last two matter.
 
 One launch by channel: Instagram delivered the most visits and the fewest paying customers, and twenty personal messages delivered six.
 
-Impressions and visits feel good and decide nothing. **Activated** — M16's definition, the user who actually got value — and **paying** are the numbers that tell you which channel to repeat. The CAC column uses chapter 5's rule, so the personal messages carry the founders' time and are not free.
-
-To get this table you need the instrumentation before the launch, not after: a distinct link per channel, and M07's event tracking with consent, so a signup can be attributed. M16's attribution chapter is where the honest version lives, including why the numbers never quite add up.
+Impressions and visits feel good and decide nothing. **Activated** — M16's definition, the user who actually got value — and **paying** tell you which channel to repeat. The CAC column uses chapter 5's rule, so the personal messages carry the founders' time. To get this table you need the instrumentation before the launch, not after: a distinct link per channel plus M07's event tracking with consent.
 
 ### Where it lives
 
-Chapter 1's position is what you are distributing — a vague sentence launched loudly is still vague. Chapters 2 and 3 decide what the visitor is asked to buy. Chapter 6 decides whether a successful launch is good news or an expensive one, because nine hundred visitors arriving at an uncapped free AI feature is a bill.
-
-M16 owns activation, funnels and attribution; M07 owns the event tracking and consent that make attribution possible; M12 owns the store listing; M13 and chapter 9 own what happens when the spike breaks something. Chapter 8 is the slower, relationship-based distribution a launch cannot replace, and chapter 11 reviews the channel table weekly, which is how a one-off launch becomes a repeatable channel.
+Chapter 1's position is what you are distributing — a vague sentence launched loudly is still vague. Chapter 6 decides whether a successful launch is good news or an expensive one, because nine hundred visitors arriving at an uncapped free AI feature is a bill. M16 owns activation and attribution, M07 the event tracking that makes attribution possible, M12 the store listing, chapter 9 what happens when the spike breaks something. Chapter 8 is the slower, relationship-based distribution a launch cannot replace, and chapter 11 reviews the channel table weekly, which is how a one-off launch becomes a repeatable channel.
 
 ### Words to own
 
@@ -147,35 +101,43 @@ M16 owns activation, funnels and attribution; M07 owns the event tracking and co
 
 ### Tradeoffs and gotchas
 
-**Do not launch and build on the same day.** Freeze the code at T-1. A deploy during the spike is how a working signup flow becomes a blank screen for six hundred people.
+"Social media" is not a channel. These are, for an Indian student startup.
 
-**Somebody must be watching, live, for the first six hours.** Name them, and give them nothing else to do. The second team's bug was visible in their own funnel within twenty minutes and nobody was looking.
+| Channel | What to know about it |
+|---|---|
+| WhatsApp groups | Your highest-conversion channel and the most easily wasted: one message per group, from a member, at a time people read — not 11 pm |
+| People, one at a time | Not a channel but a superpower at your scale; twenty personal messages beat one broadcast |
+| Campus institutions | Societies, clubs, noticeboards, two minutes before a lecture — earned channels with a gatekeeper, which is chapter 8 |
+| Instagram vs LinkedIn | Students versus recruiters and founders; the same post will not serve both |
+| Reddit and Telegram | India-focused communities with strict self-promotion rules — participate first or expect removal |
+| Product Hunt, Hacker News | Real for developer tools, almost useless for an Indian campus consumer product |
+| App stores | Their own discipline in M12: the listing, screenshots and first run are the conversion surface |
+| Paid | Testable at ₹1,500 and the only clean CAC number — a measurement instrument first, a growth engine much later |
+| SEO and content | They work, slowly: month four, not launch week |
 
-**Test on a real budget Android phone on mobile data, not on your laptop.** This single check prevents the commonest launch disaster in an Indian student product.
+And the five rules that decide whether launch day survives contact with real users.
 
-**One channel is not a launch.** If a single post underperforms you learn nothing, because you cannot tell whether the message, the channel or the timing failed.
-
-**Do not burn a community you want to stay in.** A promotional post in a group where you have never participated gets you removed and remembered.
-
-**You can launch more than once.** Launch to twenty people, learn, fix, then launch to two hundred. Teams treat the first post as irreversible and spend six weeks polishing instead.
-
-**A successful launch costs money.** Check your chapter 6 caps and spend alerts before you invite a crowd, or your best day becomes your biggest bill.
+| Rule | Why |
+|---|---|
+| Do not launch and build on the same day | Freeze the code at T-1; a deploy during the spike is how a working signup flow becomes a blank screen for six hundred people |
+| Somebody watches live for the first six hours | Name them and give them nothing else to do — the second team's bug was visible in their own funnel within twenty minutes |
+| Test on a real budget Android phone on mobile data | The single check that prevents the commonest launch disaster in an Indian student product |
+| One channel is not a launch, and do not burn a community | With one post you cannot tell whether the message, the channel or the timing failed; a promotional post in a group you never participate in gets you removed and remembered |
+| You can launch more than once | Twenty people, learn, fix, then two hundred — and check your chapter 6 caps before you invite a crowd, or your best day becomes your biggest bill |
 
 ### Verify it
 
-**Red flag, the headline one: a launch plan with no owned channel.** Ask: when this is over, how do I contact the people who came? If the answer is "post again", the launch has no durable output and you start from zero next month.
+**Red flag, the headline one: a launch plan with no owned channel.** Ask how you contact the people who came, once it is over. If the answer is "post again", the launch has no durable output.
 
-**Red flag: no instrumentation, so attribution is a guess.** Ask for the distinct link per channel and the signup event, before launch day. Afterwards it cannot be reconstructed.
+**Red flag: no instrumentation, so attribution is a guess.** Ask for the distinct link per channel and the signup event before launch day; afterwards it cannot be reconstructed.
 
-**Red flag: nobody named as watching**, or **a single channel, or a list that says "social media".** A plan where "we" will monitor means nobody will, and channels have names, owners and times.
+**Red flag: nobody named as watching, a single channel, or a list that says "social media".** A plan where "we" will monitor means nobody will.
 
-**Red flag: a plan measured in impressions and visits.** Ask for the activated and paying columns. A channel sending five hundred visits and one paying customer is worse than one sending twenty and six.
+**Red flag: a plan measured in impressions and visits.** Ask for the activated and paying columns: five hundred visits and one paying customer is worse than twenty and six.
 
-**Red flag: a launch that assumes signup works.** The checklist is not optional: a real budget Android phone, mobile data, a fresh account, the payment flow in test mode, and the empty state a brand-new user actually sees.
+**Red flag: a launch that assumes signup works.** The checklist is not optional: a real budget Android phone, mobile data, a fresh account, the payment flow in test mode, and the empty state a new user actually sees.
 
-**Red flag: AI-generated launch copy that could be any product.** Run chapter 1's swap test on every post before it goes out. Fluent and interchangeable is the failure mode, and it is worst in the material you send to the most people.
-
-**Red flag: a plan with no uncapped-cost check.** If a successful launch would break your chapter 6 budget, the plan has a hole in it shaped like a bill.
+**Red flag: AI-generated launch copy that could be any product**, or a plan with no uncapped-cost check. Run chapter 1's swap test on every post; and if a successful launch would break your chapter 6 budget, the plan has a hole in it shaped like a bill.
 
 ## Walkthrough
 1. Write the one-sentence version of your position from chapter 1, as a single message you would send to one person. If it does not survive being sent to one person, it will not survive being posted to two hundred.

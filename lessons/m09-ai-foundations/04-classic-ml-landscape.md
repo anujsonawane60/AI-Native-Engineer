@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: classic-ml-landscape
 title: "Classic ML: Regression, Classification, Clustering and Trees"
 order: 4
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your group needs to forecast tomorrow's thali demand so the kitchen stops throwing away food. One member wires it to a large language model: send the last thirty days as text, ask for tomorrow's number. It works. It also costs money on every call, takes two seconds, gives a slightly different answer each time you ask, cannot tell you why it said 140, and when you check it against the obvious baseline of "same as last Thursday", the baseline wins.
-
-The data was three hundred rows in a spreadsheet. A method from the 1970s, running in half a second on a laptop with no GPU and no API key, would have beaten it, cost nothing per prediction, and printed out which factors mattered most.
-
-This is the most common waste of money in student AI projects right now. The newest tool is not the right tool, and the gap between them is measured in rupees per request.
+Your group needs to forecast tomorrow's thali demand so the kitchen stops throwing away food. One member wires it to a language model: send thirty days as text, ask for tomorrow's number. It works — and costs money per call, takes two seconds, answers differently each time, cannot say why it said 140, and loses to "same as last Thursday". The data was three hundred spreadsheet rows, where a method from the 1970s would have won in half a second on a laptop, free per prediction, and printed which factors mattered.
 
 ### The idea
 
 **Most prediction problems a small startup has are rows and columns, and rows and columns have had excellent, cheap, explainable solutions for decades.**
 
-Four tasks cover almost everything. Predict a number: **regression**. Pick a category: **classification**. Find groups nobody defined: **clustering**. Reduce many columns to a few: **dimensionality reduction**. Classic machine learning is a small toolbox of methods aimed at these four, and the whole toolbox runs free on a laptop.
-
-You will not implement any of them. You need to recognise them by name so that when an AI proposes one you can tell whether it fits, and when an AI proposes something enormous instead you can ask why.
+Four tasks cover almost everything. Predict a number: **regression**. Pick a category: **classification**. Find groups nobody defined: **clustering**. Reduce many columns to a few: **dimensionality reduction**. The whole toolbox runs free on a laptop. You will not implement any of it; you need the names, so that when an AI proposes one you can tell whether it fits.
 
 ### The analogy
 
-Walk into the canteen kitchen and look at the tools on the wall.
+Look at the tools on the kitchen wall: knife, peeler, pressure cooker, tawa, blender. Nobody argues about which is best, because the question is meaningless — the pressure cooker is magnificent and wrong for an omelette. A linear model is the knife: simple, sharp, you can see what it did. A decision tree is the peeler: crude, fast, readable. Gradient boosting is the pressure cooker professionals reach for on tabular data. A neural network is the industrial food processor that arrived last year — astonishing on photos and language, absurd for peeling one potato.
 
-There is a knife, a peeler, a pressure cooker, a tawa and a blender. Nobody argues about which is best, because the question is meaningless. You peel with the peeler. The pressure cooker is magnificent and completely wrong for an omelette.
-
-Classic machine learning is that wall. A linear model is the knife: simple, sharp, you can see exactly what it did. A decision tree is the peeler: crude, fast, and it tells you in plain language what it is doing. Gradient boosting is the pressure cooker: the thing professionals actually reach for on tabular data, powerful and slightly fussy. A neural network is an industrial food processor that arrived last year — astonishing on photos, audio and language, and absurd for peeling one potato.
-
-**Where the analogy breaks:** kitchen tools do not mislead you. A model that fits badly still returns a confident number with no indication that it was the wrong tool. There is no equivalent of a knife feeling wrong in your hand, so the judgement has to happen before you start, which is what this chapter is for.
+**Where the analogy breaks:** kitchen tools do not mislead you. A model that fits badly still returns a confident number, with no equivalent of a knife feeling wrong in your hand, so the judgement happens before you start.
 
 ### Picture it
 
@@ -70,33 +60,14 @@ Classic machine learning is that wall. A linear model is the knife: simple, shar
 
 The four classic tasks, with the handful of method names you will actually see proposed for each.
 
-### The four families, in one pass each
-
-**Linear and logistic models.** Fit a straight-line relationship between the inputs and the answer. Linear regression produces a number, logistic regression produces a probability of a category. Their enormous virtue is that you can read the result: "every extra 10 rupees of price reduces expected sales by 4 thalis" is a sentence a kitchen manager can argue with. Their limit is that real relationships are rarely straight.
-
-**Decision trees.** A tree of yes/no questions. "Is it raining? Is the dish biryani? Were more than 130 portions cooked?" Follow the branches and you reach a prediction. A single tree is wonderfully readable — you can print it and show the head cook — and prone to memorising its training data if you let it grow deep.
-
-**Ensembles: random forests and gradient boosting.** Build hundreds of mediocre trees and combine them. A **random forest** grows many trees on different random slices of the data and takes a vote. **Gradient boosting** grows trees one after another, each correcting the previous one's mistakes. Boosting is, as of now, the default serious answer for tabular prediction, and it is what you should expect a competent plan to propose for the thali forecast.
-
-**k-means clustering.** Pick a number of groups, place that many centres in the data, and repeatedly nudge each centre to the middle of the points nearest it. Fast, easy, and remember chapter 2's warning: it will cheerfully hand you however many groups you asked for.
-
-### Feature engineering: the part that actually matters
-
-Switching from a tree to boosting might buy you two percentage points. Adding the right column buys you twenty.
-
-For the thali forecast, the raw data has a date. A date is nearly useless. What matters is what you can build from it: day of the week, whether it is a holiday, whether exams are on, the rolling average of the last seven days, the same weekday last week, whether it rained. Every one of those is a human deciding what the model is allowed to notice.
-
-This is **feature engineering**, and it is where domain knowledge enters a model. You know things about your canteen that no algorithm can discover from a date column — that the hostel mess closes on Sundays, that first-years get paid on the fifth. The single most valuable thing you can do on any tabular problem is sit with someone who understands the business and write down twelve things they think matter.
-
-It is also the part an AI cannot do for you, because it does not know your canteen. It can suggest generic features competently. It cannot tell you that the chemistry department has a monthly account.
+Four families fill that map. **Linear and logistic models** fit a straight line you can read aloud: "every extra ₹10 of price costs 4 thalis". **Decision trees** are readable yes/no questions — print one for the head cook — and memorise their data if grown too deep. **Ensembles** combine hundreds of mediocre trees: a *random forest* votes across random slices, *gradient boosting* builds them in sequence, each fixing the last, and boosting is today's default for tabular prediction. **k-means** places the group centres you asked for and nudges them towards nearby points.
 
 ### Where it lives
 
-Classic machine learning lives in a notebook and produces a small file. A trained gradient-boosting model for your thali forecast is likely a few hundred kilobytes, loads in milliseconds, and predicts in microseconds on an ordinary server with no GPU — which means it costs nothing per request. Compare that against the LLM call from the top of this chapter, which is a network hop with a price attached, exactly as M00 chapter 2 described.
-
-That difference is the whole argument. On the architecture map, a classic model is a library inside your own server. A language model is a third party you depend on.
-
-Nothing here is deprecated by the rest of this module. Chapters 5 onward are about deep learning, which won decisively on images, audio and language — data where the useful features are impossible to write down by hand. On your orders table, it generally does not win. The deeper practice of classic ML, including real feature pipelines, is M14.
+- **A classic model is a library inside your own server** — a few hundred kilobytes, loading in milliseconds, predicting in microseconds with no GPU, free per request.
+- **A language model is a third party you depend on**, a network hop with a price attached. That difference is this chapter's whole argument.
+- **Nothing here is deprecated by chapters 5 onward.** Deep learning won on images, audio and language, where features cannot be written by hand. On your orders table it usually does not win.
+- **The deeper practice, including real feature pipelines, is M14.**
 
 ### Words to own
 
@@ -116,29 +87,20 @@ Nothing here is deprecated by the rest of this module. Chapters 5 onward are abo
 
 ### Tradeoffs and gotchas
 
-**On small tabular data, trees beat neural networks, and this is not a controversial claim.** A few hundred to a few hundred thousand rows of mixed numbers and categories is gradient boosting's home ground. Deep learning needs much more data to find structure that trees find immediately. If an AI proposes a neural network for your 400-row canteen table, it is pattern-matching on the word "AI", not reasoning about your problem.
-
-**Interpretability is a feature, not a consolation prize.** When the kitchen asks why the model says 140, "because boosting said so" ends the conversation badly. Classic models can usually tell you which features mattered and in which direction, and on a decision that affects real food and real money, that is often worth more than two points of accuracy. It also matters when anyone is affected by the decision — M07's fairness concerns and chapter 16's governance section both lean on being able to explain a model's reasoning.
-
-**A language model is a bad calculator and an expensive one.** It predicts plausible text. Asked for a number it produces a plausible-looking number, varying between calls, with no arithmetic underneath. For forecasting, scoring and ranking on your own tabular data, this is the wrong tool at the wrong price. The exception is when your input is genuinely unstructured — free-text reviews, support messages, photos — which is precisely when classic methods struggle.
-
-**Always check the baseline, again.** "Same as last Thursday" is a real forecasting method with a real score. Many commercial forecasting projects fail to beat it. Compute it in five minutes before you build anything.
-
-**Beware k-means on data with wildly different scales.** A column measured in rupees and a column measured in minutes are not comparable, and whichever has bigger numbers will dominate the grouping. The fix is standard and routinely forgotten in generated code; ask explicitly whether the features were scaled.
+- **Feature engineering beats method choice.** Boosting instead of a tree might buy two points; the right column buys twenty. A date is useless until a human turns it into day of week, holiday, exams on, rolling average — and an AI cannot do that for you, because it does not know the chemistry department has a monthly account.
+- **On small tabular data, trees beat neural networks.** A few hundred to a few hundred thousand mixed rows is boosting's home ground; a network proposed for your 400-row table is pattern-matching on the word "AI".
+- **Interpretability is a feature, not a consolation prize.** "Because boosting said so" ends the kitchen conversation badly.
+- **A language model is a bad calculator and an expensive one**, returning a plausible number that varies between calls with no arithmetic underneath. The exception is unstructured input, where classic methods struggle.
+- **Beware k-means on unscaled data.** Rupees and minutes are not comparable, and the bigger numbers dominate the grouping.
 
 ### Verify it
 
-**Red flag: a neural network proposed for a few hundred rows of tabular data.** Ask for the gradient-boosting version and the score it gets, side by side. Make it justify the neural network on evidence, not on principle.
-
-**Red flag: an LLM call in the middle of a numeric prediction.** Ask what it costs per request and what happens when you call it twice with identical input. If the answer is "a different number", it is unfit for a forecast. Ask for the classic version and compare both score and cost per prediction.
-
-**Red flag: no baseline in the comparison.** The same check as chapter 3, and still the one most often skipped. Demand "same as last week" or "always the average" in the results table.
-
-**Red flag: a feature list that is just the raw columns.** If the plan feeds a date straight in, nobody has done any feature engineering, and the easiest twenty points of improvement are sitting unclaimed. Ask it to propose fifteen engineered features and then cross out the ones that do not apply to your canteen — that editing is your domain knowledge entering the model.
-
-**Red flag: a cluster count presented as a discovery.** "We found four segments" after asking for four is not a finding, as chapter 2 warned.
-
-And the check to run yourself: ask which three features mattered most, and see whether the answer matches what a person who runs the canteen would say. When the model's top feature is something nobody in the kitchen believes matters, you have either learned something genuinely interesting or you have found leakage. Investigating which is the most productive hour you will spend on the model.
+- **A neural network proposed for a few hundred rows of tabular data.** Ask for the gradient-boosting version and its score, side by side.
+- **An LLM call inside a numeric prediction.** Ask its cost per request, and what happens on two identical calls. "A different number" means unfit for a forecast.
+- **No baseline in the comparison.** Demand "same as last week" or "always the average" in the results table.
+- **A feature list that is just the raw columns.** Ask for fifteen engineered features and cross out the ones that do not fit your canteen.
+- **A cluster count presented as a discovery.** "We found four segments" after asking for four is not a finding.
+- **Check yourself:** ask which three features mattered most and see whether someone who runs the canteen agrees. If not, you have found insight or leakage.
 
 ## Walkthrough
 1. Pick one numeric prediction your own startup would benefit from. Write it as a sentence that ends in a number with a unit — "thalis tomorrow", "minutes to ready", "orders this week".

@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: sql-vs-nosql
 title: "SQL vs NoSQL, and When to Use Each"
 order: 8
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,40 +22,28 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team picks a document database for the canteen app because a blog post said it is faster and more flexible. For three weeks it is lovely: no tables, no migrations, just save an object and move on.
-
-Then the product manager asks a reasonable question: "which dishes made the most money last month, and which students ordered them more than twice?"
-
-In a relational database that is one query with two joins. Here, orders are documents with the dish details copied inside each one. So they fetch every order of the month into the server, loop over them in code, group by dish, count per student, and sort. It works on 300 orders and takes nine seconds on 30,000. Then they notice that a dish renamed in week two appears under two names, because the name was copied into 4,000 documents and only new ones got the new spelling.
-
-The mirror-image failure also happens. Another team puts their chat messages in a relational table, one row per message, and at 2 million rows their "last 50 messages in this room" query is slow because the shape of the data fights the shape of the question.
-
-Neither database was wrong. Both teams chose before knowing what they would ask.
+A team picks a document database because a blog post called it faster and more flexible, and for three weeks it is lovely: no tables, no migrations, just save an object. Then the product manager asks which dishes made the most money last month. In a relational database that is one query with two joins; here it means fetching every order of the month and looping in code — nine seconds at 30,000 orders. Worse, a dish renamed in week two now appears under two names, its old name copied into 4,000 documents.
 
 ### The idea
 
 **Pick your database from the questions you need to answer and the rules you need enforced, not from the word on the front of it.**
 
-A **relational (SQL) database** stores rows in tables with a fixed, declared structure. It enforces relationships and constraints, and it can combine data from several tables in one query using joins. Postgres and MySQL are the names you will meet.
+A **relational (SQL) database** stores rows in tables with a declared structure, enforces constraints, and combines tables in one query using joins. **NoSQL** is four families that share only "not relational":
 
-**NoSQL** is not one thing. It is four different families that happen to share "not relational":
+| Family | Genuinely good at | Where it fits |
+|---|---|---|
+| Document store | One document = one screen's data | an order, read whole |
+| Key-value store | Dictionary lookup by key, very fast | sessions, counters |
+| Wide-column | Enormous write volumes across machines | event streams |
+| Graph | "Friends of friends of friends" cheaply | recommendations |
 
-- **Document stores** keep JSON-like documents. Good when one document is exactly one screen's worth of data.
-- **Key-value stores** are a giant dictionary: give a key, get a value, extremely fast. Good for caches, sessions and rate-limit counters.
-- **Wide-column stores** handle enormous write volumes across many machines. Good for event streams and time-series.
-- **Graph databases** make "friends of friends of friends" cheap. Good for networks and recommendations.
-
-For a product with users, orders, money and relationships, the honest default is relational — and the rest of this module assumes one.
+For a product with users, orders and money, the honest default is relational — Postgres — and this module assumes one.
 
 ### The analogy
 
-The canteen's ruled register is a relational database. Every line has the same columns in the same order. A student id that does not exist is refused by the clerk. At the end of the month the manager can total any column, cross-reference two registers, and get an answer.
+The canteen's ruled register is a relational database: every line has the same columns, a student id that does not exist is refused by the clerk, and the manager can total any column at month end. A document store is a shoebox of order slips — each slip complete, so reading one order is instant, but "which dish earned the most in September" means counting 4,000 slips by hand.
 
-A document store is a shoebox of order slips. Each slip is complete in itself — student name, dishes, prices, note — so finding one slip and reading everything about that order is instant. But "which dish earned the most in September" means pulling out 4,000 slips and counting by hand, and the dish names on them are whatever was written that day.
-
-A key-value store is the token board: number 41 maps to "ready". Lightning fast at that one question, useless for any other.
-
-**Where the analogy breaks:** real shoeboxes do not silently accept a slip with the quantity written in the price box. Document stores do. The flexibility that makes them pleasant in week one is the same property that lets three different shapes of order accumulate by week six, and you will not notice until a screen renders blank for one of them.
+**Where the analogy breaks:** real shoeboxes do not silently accept a slip with the quantity written in the price box. Document stores do, which is how three shapes of order accumulate by week six, unnoticed until a screen renders blank.
 
 ### Picture it
 
@@ -83,23 +71,10 @@ The same orders stored as linked rows versus self-contained documents: the first
 
 ### Where it lives
 
-Still the "data" box from M00, and the choice colours everything after it. Chapter 9's joins and query plans assume relational. Chapter 11's transactions and migrations assume relational. Chapter 14's row-level security is a relational feature. Chapter 17's payment reconciliation needs the guarantees of a relational transaction.
+Still the "data" box from M00, and the choice colours everything after it.
 
-That is not an accident of the syllabus — it is because a product with money and permissions needs enforcement, and enforcement is what relational databases sell.
-
-Where NoSQL legitimately appears in your project, it appears *alongside* Postgres rather than instead of it. In M05 you will put a key-value store in front of the database as a cache and use it for rate-limit counters. In M10, RAG needs vector storage, which is a specialised store for embeddings — and modern Postgres can do that too, which is often the right call for a team of three. In M13, event streams at scale meet wide-column stores and Kafka.
-
-### Choosing, by question shape
-
-Ask three questions about your product.
-
-**Do my queries cut across many records?** "Revenue per dish", "students who ordered twice", "orders awaiting payment older than ten minutes". Cross-cutting questions are what joins and indexes are for. If your product's value is in aggregates and reports, relational, without further debate.
-
-**Does one record equal one screen?** If the thing you read is always "this one order, complete" and you never ask across them, a document store fits. Note how rare this is in practice: the moment anyone asks for a dashboard, it stops being true.
-
-**Do I need the database to enforce rules?** Foreign keys that refuse orphans, unique constraints that refuse duplicate accounts, transactions that make two writes succeed or fail together. If the answer is yes — and for anything with money it is — relational.
-
-There is a fourth consideration that matters more than any of the three for a student team: **what will AI generate correctly?** There is far more good relational material in the training data than anything else, and every tutorial, every hosted free tier, and every tool in this program assumes it. That is a legitimate engineering reason, not a cop-out.
+- Chapters 9, 11, 14 and 17 — joins, transactions, migrations, row-level security, payments — all assume relational: a product with money and permissions needs enforcement, and enforcement is what relational databases sell.
+- Where NoSQL belongs, it sits *alongside* Postgres: a key-value cache in M05, vector storage for RAG in M10 (Postgres does that too), wide-column stores in M13.
 
 ### Words to own
 
@@ -118,29 +93,33 @@ There is a fourth consideration that matters more than any of the three for a st
 
 ### Tradeoffs and gotchas
 
-**"Schemaless" means the schema moved into your code, where nobody can see it.** The structure still exists — every screen depends on it — but it is now implicit, unenforced, and different in documents written in different weeks. You have not avoided migrations; you have replaced them with defensive checks scattered through the application and with rows nobody can explain.
+Three questions settle the choice. A fourth often decides it: **AI generates relational code far more reliably.**
 
-**Copying data into documents is a decision about history.** Embedding the dish name and price inside an order is correct if you mean "what was sold and at what price" — the same reasoning as chapter 6's `unit_price_paise`. It is wrong if you mean "the dish's current name", because you now have 4,000 copies to update and no way to do it atomically.
+| Ask | If yes |
+|---|---|
+| Do my queries cut across many records? | Relational, without further debate |
+| Does one record equal one screen, always? | A document store fits — one dashboard ends that |
+| Must the database enforce rules — keys, uniqueness, paired writes? | Relational |
 
-**Flexibility is not the same as speed.** Document stores are fast at the read they are shaped for and often slower than Postgres at everything else, because the work that a join would do moves into your application and over the network.
+**"Schemaless" means the schema moved into your code, where nobody can see it.** Every screen still depends on a structure, but it is now implicit, unenforced, and different in documents written in different weeks.
 
-**Postgres does JSON too, and this resolves most arguments.** A `jsonb` column holds genuinely variable data — a third-party webhook payload, a free-form set of preferences — inside a relational table with real constraints around it. You very rarely need a second database to store some flexible fields.
+**Copying data into a document is a decision about history.** Embedding the dish name and price is right if you mean "what was sold, at what price" (chapter 6's `unit_price_paise` reasoning) and wrong if you mean "its current name", because 4,000 copies cannot be fixed atomically.
 
-**Mixing two databases triples your operational work.** Two sets of credentials, two backups, two failure modes, and no transaction spanning both — so a write that must happen in both can half-fail. On a three-person team this is not a trade worth making before you have users.
+**Postgres does JSON too, which resolves most arguments.** A `jsonb` column holds genuinely variable data — a webhook payload, free-form preferences — inside a relational table with real constraints.
 
-**Beware the benchmark argument.** "Document stores handle a million writes a second" is true and irrelevant at 400 students. Choose for your actual scale; M05 and M13 are where scale becomes the question.
+**Two databases triple your operational work.** Two sets of credentials, two backups, two failure modes, and no transaction spanning both — a write that must land in both can half-fail.
 
 ### Verify it
 
 Five checks on a database recommendation.
 
-1. **Did it ask what questions you need to answer?** A recommendation made before anyone listed the reports and screens is a guess. Restate your top five queries and ask again.
-2. **Name your hardest cross-cutting query and ask how it is served.** "Revenue per dish last month, by student, excluding cancelled orders." If the answer involves fetching lots of records and looping in application code, you have found the cost.
-3. **Ask which rules the database will enforce.** Foreign keys, uniqueness, and two writes succeeding or failing together. If the answer is "the application handles that", understand that you have taken on the enforcement yourself, forever, on every path including the ones AI writes next month.
-4. **Ask what a schema change looks like.** In Postgres it is a migration you can review. In a document store it is "new documents have the field, old ones do not", which means defensive code in every reader until the end of time.
-5. **Count the databases in the design.** More than one needs a written justification per database, naming what cannot be done in the first one.
+1. **Did it ask what questions you need to answer?** Any recommendation made before someone listed the reports and screens is a guess.
+2. **Name your hardest cross-cutting query and ask how it is served.** If the answer loops over fetched records in application code, you have found the cost.
+3. **Ask which rules the database will enforce.** "The application handles that" means you own enforcement forever, including on the paths AI writes next month.
+4. **Ask what a schema change looks like.** In Postgres, a reviewable migration; in a document store, defensive code in every reader for documents lacking the field.
+5. **Count the databases.** More than one needs a written justification naming what the first cannot do.
 
-Red flags: a recommendation containing the words "scalable" and "flexible" and no query from your product; a document design that embeds the same mutable fact in thousands of documents; a proposal to use a key-value store as the system of record for orders; two databases in a design with no users yet; "we can always migrate later", which is true and costs a month; and any answer that never mentions what happens to your money data when two writes must succeed together.
+Red flags: "scalable" and "flexible" with no query from your product; the same mutable fact embedded in thousands of documents; a key-value store as the system of record for orders; two databases with no users yet; "we can always migrate later", true and a month expensive; silence on money when two writes must succeed together.
 
 ## Walkthrough
 1. Write down the five most important questions your product must be able to answer about its own data. Real sentences, like "how much did we take yesterday" or "which items has this user saved".

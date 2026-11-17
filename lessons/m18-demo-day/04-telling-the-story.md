@@ -4,7 +4,7 @@ module: m18-demo-day
 slug: telling-the-story
 title: "Telling the Story: Problem, Insight, Product, Traction"
 order: 4
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -20,35 +20,29 @@ last_reviewed: 2026-11-16
 
 ## Lesson
 
-### Where this sits in the module
-
-**This is the first six minutes of your defence, and it is the only part the room is willing to take on trust — briefly.** Everything after it is checked. M18.1 proves the system is real, M18.2 proves you know its limits, M18.3 proves you understand it, M18.5 proves it can survive you. This chapter decides whether anyone in the room cares.
-
-It is also where the numbers you earned in M16 and M17 finally get used. Your users, your retention curve, your pricing and your unit economics are not a separate section of your defence. They are the fourth beat of the story, and they are the only beat that cannot be constructed in a week.
-
 ### The pain
 
 Three students, six minutes each.
 
-The first gives a feature tour. Login, a menu, filters, a dark mode, an AI suggestion, a referral code, a profile page. Twelve features in six minutes, delivered competently, with no number in any of them. At the end the panel knows what the product contains and nothing about who uses it or why.
+The first gives a feature tour — login, a menu, filters, dark mode, an AI suggestion, a referral code, a profile page — twelve features with no number in any. The panel learns what the product contains and nothing about who uses it.
 
-The second opens with the market. India has tens of millions of college students; the campus food market is worth some number of thousands of crores. Two minutes of somebody else's numbers. Asked how many people used the product last week, the answer is "around fifty, I think" — and that one sentence undoes both minutes, because it reveals that the enormous numbers were decoration over an unexamined small one.
+The second spends two minutes on the market — tens of millions of college students, a food market worth thousands of crores. Then: how many people used the product last week? "Around fifty, I think." That undoes both minutes: the enormous numbers were decoration over an unexamined small one.
 
-The third says: *Between 1 and 1.40 pm, about a hundred and eighty students walk past our canteen. Sixty-two queue, and roughly twenty leave without buying, because from the back of the queue you cannot see what is left. We built one screen that shows what is available right now. Ninety-four of the two hundred and ten students we invited have used it, forty-one of those came back in week two, and the thing that changed the product is that price was never the blocker — not knowing what was left was.*
+The third says: *Between 1 and 1.40 pm about a hundred and eighty students walk past our canteen. Sixty-two queue, and roughly twenty leave without buying, because from the back you cannot see what is left. We built one screen showing what is available now. Ninety-four of the two hundred and ten students we invited have used it, forty-one came back in week two, and what changed the product is that price was never the blocker — not knowing what was left was.*
 
-Six sentences. A problem with a number, an insight, a product, and traction with its denominator.
+A problem with a number, an insight, a product, traction with its denominator.
 
 ### The idea
 
 **Four beats, in this order: the problem with a number in it, the insight an outsider would not guess, the product shown as one path, and traction with its denominator. Anything else is a feature tour.**
 
-The insight beat is the one usually missing and the only one that cannot be faked, because it comes from having watched real people use the thing. It is also the beat that makes the other three believable.
+The insight beat is usually missing and the only one that cannot be faked, because it comes from watching real people use the thing. It is also what makes the other three believable.
 
 ### The analogy
 
-The canteen owner is talking to someone who might rent them a bigger space. The weak version is "we serve fourteen dishes and the poha is very good". The strong version is: *a hundred and eighty students pass between one and two, we sell sixty plates, we run out of poha by 1:20 — and what I learned is that they come for speed rather than variety, so I cut the menu from fourteen dishes to six and sales went up.* Problem, insight, product, traction, in a sentence each.
+The canteen owner is talking to someone who might rent them a bigger space. The weak version: "we serve fourteen dishes and the poha is very good". The strong version: *a hundred and eighty students pass between one and two, we sell sixty plates, we run out of poha by 1:20 — and what I learned is they come for speed, not variety, so I cut the menu to six and sales went up.*
 
-**Where the analogy breaks:** the canteen's traction is visible. A queue is self-evident, and you cannot fake one in front of someone standing in the shop. Your product's traction is invisible. It lives in a dashboard only you can open, which means an inflated number costs nothing to say and can go unchallenged for months. That is exactly why the fourth beat is not spoken but **shown** — opened live, with its denominator, from the dashboard, in front of the room.
+**Where the analogy breaks:** a queue is self-evident, and you cannot fake one in front of someone standing in the shop. Your traction lives in a dashboard only you can open, so an inflated number costs nothing to say. That is why beat four is not spoken but **shown** — opened live, with its denominator, in front of the room.
 
 ### Picture it
 
@@ -64,23 +58,11 @@ The canteen owner is talking to someone who might rent them a bigger space. The 
   └──────────────────────────────────────────────────────┘
 ```
 
-Four beats with a time budget each, where the product beat is a single path performed live rather than a tour of screens.
+Four beats with a time budget each, where beat three is a path performed live rather than a tour of screens. Six minutes means six: overrunning steals the M18.3 debugging block.
 
-Beat three is the one students most want to stretch, and the one that must stay narrow. **One path, start to finish, the one your north star measures.** Open the product as a new user would, do the thing, see the result. Then one failure state, shown rather than described, because M11.5 was right that a feature without a failure state is not a feature and a panel checks this within seconds.
+Beat three is the one students most want to stretch and the one that must stay narrow. **One path, start to finish, the one your north star measures** — open the product as a new user would, do the thing, see the result. Then one failure state, shown rather than described.
 
-### The honest-numbers rules
-
-Five rules, and they cost you nothing except the temptation to sound bigger.
-
-**Always give the denominator.** Ninety-four users out of how many invited, how many who opened the link, how many who signed up? Without it the number means nothing, and a reviewer who has to ask has already discounted it.
-
-**State the window.** "Ninety-four users" over six months is a different product from ninety-four in three weeks.
-
-**Separate signups from activation.** A signup is someone who got through your form. An activation is someone who did the thing your product exists for. M16.6 is the chapter; confusing the two is the most common honest mistake in this room.
-
-**Give the trend, not only the total.** Totals only go up, which is why they are the favourite number of products that are not working. Last week against the week before is the number that carries information.
-
-**Name what you do not know.** "I cannot tell you our thirty-day retention, because the cohort that started in October is only twenty-two days old" is a strong sentence. It tells the room you understand your own measurement.
+Beat four has five rules. **Always give the denominator** — ninety-four users out of how many invited? A reviewer who has to ask has already discounted the number. **State the window**: ninety-four over six months is a different product from ninety-four in three weeks. **Separate signups from activation**, a form completed versus the thing the product exists for (M16.6). **Give the trend, not the total.** **Name what you cannot measure yet.**
 
 ```
   WEAK    "We have 94 users."
@@ -90,15 +72,11 @@ Five rules, and they cost you nothing except the temptation to sound bigger.
            week was 12 new and 29 returning."
 ```
 
-The same fact stated three ways; only the third one can be checked, and only the third one tells you whether the product is working.
-
-If you have revenue from M17, the same discipline applies and harder. Say the number of paying users, the amount, the period, and your cost to serve them from M17.5. Three paying users at ₹49 is a real and respectable number. Three paying users described as "early monetisation traction" is not.
+The same fact three ways; only the third can be checked, and only the third says whether the product is working. Revenue follows the same rule: three paying users at ₹49, with your cost to serve them, is respectable. "Early monetisation traction" is not.
 
 ### Where it lives
 
-Beat one comes from M01.2 and M01.3 — the problem statement and the five real conversations. Beat two comes from M16.3's funnel, M16.5's session replays and the people you sat with in silence at M11.7. Beat three is your live product and your north star from M01.5. Beat four is M16.1, M16.4 and M16.10 for users, retention and churn, and M17.2, M17.5 and M17.11 for price, unit economics and the numbers you review weekly.
-
-Forward, these six minutes open M18.6 — and every claim in them becomes a target. A traction number in beat four will be checked against your dashboard; an insight in beat two will be asked for its evidence.
+These are the first six minutes of your defence and the only part the room takes on trust; everything after is checked. Beat one comes from M01.2–M01.3, beat two from M16.3 and M16.5, beat three from your M01.5 north star, beat four from M16's users and retention and M17's price and unit economics — the one beat that cannot be built in a week. Forward, every claim here becomes a target in M18.6.
 
 ### Words to own
 
@@ -117,29 +95,25 @@ Forward, these six minutes open M18.6 — and every claim in them becomes a targ
 
 ### Tradeoffs and gotchas
 
-**Never open with market size.** It is someone else's number, it proves nothing about you, and it sets up the contrast that destroys the second student: enormous market, unknown usage.
+**Never open with market size.** It sets up the contrast that destroys the second student: enormous market, unknown usage.
 
-**A number without a denominator is marketing.** This room is not a pitch competition; it is a defence. The same number with its denominator and window is evidence, and it is just as impressive when it is small.
+**A number without a denominator is marketing.** This is a defence, not a pitch competition — the same number with its denominator and window is evidence, and just as impressive when small. Never round upward or invent: a figure that does not match the dashboard is the one unrecoverable error.
 
-**Do not round upward, and never invent.** You will be asked to open the dashboard. A figure that does not match what appears on screen is the end of the defence, and it is the one error that is genuinely unrecoverable.
+**An insight is not a feature.** "Users wanted a faster interface" is a feature request. "We assumed students wanted more choice; the interviews said they wanted to know what was left" is an insight: it names what you believed and what changed it.
 
-**An insight is not a feature.** "Our insight was that users wanted a faster interface" is a feature request. "We assumed students wanted more choice; the interviews said they wanted to know what was left" is an insight, because it names what you believed before and what changed it.
-
-**Keep to the slot.** Six minutes means six. The student who overruns loses time from the debugging block in M18.3, which is worth far more.
-
-**The story is shared; your part in it is not.** All three of you will tell roughly the same four beats, because it is the same product. What must differ is which user conversations you were personally in, which number you instrumented, and which part of the product you directed. Three identical stories from one group is exactly the signal this module exists to catch.
+**The story is shared; your part in it is not.** All three of you will tell the same four beats. What must differ is which user conversations you were in, which number you instrumented, which part you directed. Three identical stories from one group is the signal this module exists to catch.
 
 ### Verify it
 
 Five checks, the first two in front of another person.
 
-1. **Reproduce every number live, each in under sixty seconds.** Open the dashboard and get to it. A number you cannot reach in a minute is a number you will fumble in the room.
-2. **Have someone ask "how do you know?" after your insight.** If the answer is "it seemed obvious", you have a feature request. If it is "we watched eleven people and nine of them did this", you have an insight.
-3. **Time the whole thing, out loud, standing up.** Reading it silently always takes two-thirds as long as saying it.
-4. **Delete every adjective and read what is left.** Fast, simple, seamless and intuitive are M11.1's adjectives doing a fact's job. If removing them leaves nothing, there was nothing.
-5. **Tell it to someone outside your group and ask them to say the problem and the number back.** If they get either wrong, beat one is not working yet.
+1. **Reproduce every number live, each in under sixty seconds.** One you cannot reach in a minute you will fumble in the room.
+2. **Have someone ask "how do you know?" after your insight.** "It seemed obvious" is a feature request; "nine of the eleven people we watched did this" is an insight.
+3. **Time the whole thing, out loud, standing up.** Reading silently takes two-thirds as long.
+4. **Delete every adjective and read what is left.** If removing fast, simple and seamless leaves nothing, there was nothing.
+5. **Tell it to an outsider and ask for the problem and the number back.** If they get either wrong, beat one is not working.
 
-The red flags: traction numbers that cannot be reproduced from the dashboard; a signup count presented as usage; a total with no window; an insight that is really a feature; market size as beat one; a demo that tours features instead of completing one path; and three teammates telling the identical story with no individual contribution named in any of them.
+The red flags: traction numbers that cannot be reproduced from the dashboard; a signup count presented as usage; a total with no window; an insight that is really a feature; a feature tour instead of one completed path; and three identical stories with no contribution named.
 
 ## Walkthrough
 1. Create `STORY.md` with the four beats as headings and the time budget written beside each one.

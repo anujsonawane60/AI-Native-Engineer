@@ -4,7 +4,7 @@ module: m17-distribution-revenue
 slug: billing-for-real
 title: "Billing for Real: Plans, Upgrades, Dunning and Invoices"
 order: 4
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -22,13 +22,9 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team ships a ₹199 monthly plan with UPI autopay in test mode. Mandate created, first debit succeeds, everyone celebrates. Then month two arrives and about thirty per cent of debits fail: insufficient balance on the 1st because pocket money lands later, mandates created with a maximum amount of exactly ₹199 so adding GST pushed the charge over the limit, and some ordinary bank downtime.
+A team ships a ₹199 monthly plan with UPI autopay in test mode. The first debit succeeds and everyone celebrates. In month two about thirty per cent of debits fail: insufficient balance on the 1st because pocket money lands later, mandates created with a maximum amount of exactly ₹199 so adding GST pushed the charge over the limit, and ordinary bank downtime.
 
-None of that is the disaster. The disaster is what the system did about it: nothing. No retry, no email, no banner. The subscription row quietly moved to `expired`, premium features disappeared mid-week with no explanation, and the user concluded the product was broken and uninstalled it. The dashboard recorded thirty per cent churn and the team spent a fortnight redesigning onboarding.
-
-Separately, a user who upgraded from ₹199 to ₹499 mid-month was charged both amounts in full, asked for an invoice, and was told "we don't have invoices yet."
-
-Every one of these failures is in the billing layer, not the payment layer. The payments from M04 chapter 17 worked perfectly throughout.
+None of that is the disaster. The disaster is what the system did about it: nothing. No retry, no email, no banner. The subscription row quietly moved to `expired`, premium features vanished mid-week, and the user concluded the product was broken and uninstalled it. The dashboard called it thirty per cent churn, so the team spent a fortnight redesigning onboarding. Every one of those failures is in the billing layer; M04's payments worked throughout.
 
 ### The idea
 
@@ -36,17 +32,15 @@ Every one of these failures is in the billing layer, not the payment layer. The 
 
 `active` is easy. What separates a billing system from a payment integration is `trialing`, `past_due`, `suspended`, `cancel_at_period_end`, `cancelled` and `reactivated` — and the rule that **exactly one place in your system decides what a user can do, derived from that state.**
 
-M04 chapter 17 gave you the mechanics: the gateway holds the truth about money, webhooks are the primary path, every money operation is idempotent, amounts are integer paise. All of that still holds and none of it is repeated here. This chapter is the commercial layer on top: what the user bought, what they may use, what happens when the money does not arrive, and what piece of paper they get.
+That place is a single function: user plus feature name in, yes or no out, reading the subscription row's plan id and state. Feature code never reads the payments table, never trusts a boolean somebody set during a webhook, and never trusts the client. Two sources of truth give you both classic bugs at once — a cancelled user who keeps premium because an `is_premium` flag was never cleared, and a payer locked out because another code path cleared it. The check runs **on the server, always**; hiding a button is a courtesy, not a control.
+
+M04 chapter 17 gave you the mechanics and none of it is redesigned here. This is the commercial layer on top: what the user bought, what they may use, what happens when the money does not arrive.
 
 ### The analogy
 
-The canteen's monthly mess pass.
+A student pays ₹1,800 for the canteen's mess pass on the 1st and the clerk stamps the register. On the 5th another student has not paid. He does not throw her out; he reminds her, and again on the 8th. On the 12th her pass is marked unpaid and she pays per plate until she settles — but the register keeps her name and her history, so when she pays on the 15th she is back in one stroke of a pen. That is a billing system: a plan, a register, a reminder sequence, a grace period, a reversible suspension, and the receipt he writes when her father asks for proof.
 
-A student pays ₹1,800 on the 1st, the clerk stamps the register, and she eats. On the 5th, another student has not paid. The clerk does not throw her out; he reminds her at the counter, and again on the 8th. On the 12th the pass is marked unpaid and she pays per plate until she settles — but the register still has her name, her history and her seat, so when she pays on the 15th she is back in one stroke of a pen. And when her father asks for proof, he writes a receipt.
-
-That is a billing system: a plan, a register, a reminder sequence, a grace period, a reversible suspension, and a receipt.
-
-**Where the analogy breaks:** the clerk recognises the student and uses judgement. Your system has none. The grace period must be a number in a config file, the reminders must be scheduled jobs that run whether or not anyone is awake, and the suspension must be a state transition an automated check enforces. The one thing to copy exactly: he never lets an unpaid pass keep working silently, and he never destroys the register.
+**Where the analogy breaks:** the clerk uses judgement and your system has none. The grace period is a number in a config file, the reminders are scheduled jobs, the suspension is a transition an automated check enforces. Copy one thing exactly: he never lets an unpaid pass keep working silently, and he never destroys the register.
 
 ### Picture it
 
@@ -72,29 +66,7 @@ That is a billing system: a plan, a register, a reminder sequence, a grace perio
 
 Seven states, and every unhappy path has a named destination rather than silently disappearing.
 
-### Entitlements: one source of truth
-
-The bug that costs the most support time is having two answers to "is this user paid".
-
-One place must answer it, and everything else asks that place. The shape that works: the subscription row carries a plan id and a state, and a single function takes a user and a feature name and returns yes or no. The feature code never reads the payments table, never reads a boolean somebody set during a webhook, and never trusts the client.
-
-Two sources of truth produce both classic bugs at once: a cancelled user who keeps premium because an `is_premium` flag was never cleared, and a payer locked out because a different code path cleared it. And **entitlement checks live on the server, always** — hiding a button is a courtesy, not a control. M04 chapter 12's authentication-versus-authorization lesson is this same lesson wearing a price tag.
-
-### UPI autopay and mandates: what is different
-
-Recurring payment in India usually means a UPI autopay mandate, which behaves unlike a stored card in four ways. Gateway features change often, so **read your gateway's current recurring-payments documentation rather than this list or an AI's memory of it.**
-
-**A mandate has a maximum amount.** The user approves "up to ₹X per month", and if your charge ever exceeds ₹X — a price rise, GST, an overage from chapter 3 — the debit fails. Create the mandate with headroom and write down why.
-
-**The user is notified before the debit.** A pre-debit notification goes out ahead of the charge, so the user has a window in which to be surprised and cancel. Your own renewal message must not contradict it.
-
-**Mandates expire and can be revoked in the user's own UPI app**, without touching your product. You learn about it from a webhook, not from the user, so handle the revocation event explicitly or you will show someone as active forever.
-
-**Debit failures are routine, not exceptional.** Insufficient balance on the 1st is the commonest in a student market, so design the retry schedule around when money actually arrives.
-
-### Dunning: the sequence that recovers money
-
-**Dunning** is the structured sequence of retries and reminders after a failed payment. Involuntary churn — people who wanted to stay and lost access to a failed debit — is usually a large slice of total churn, and the cheapest to fix, because the user has already chosen your product.
+**Dunning** is the structured sequence of retries and reminders after a failed payment. Involuntary churn — users who wanted to stay and lost access to a failed debit — is the cheapest churn to fix, because the user already chose your product.
 
 ```
   DUNNING SEQUENCE, ₹199 PLAN
@@ -113,23 +85,11 @@ Recurring payment in India usually means a UPI autopay mandate, which behaves un
   42   cancelled   subscription closed           final email
 ```
 
-A ten-day sequence of retries and warnings before anything is switched off, with the user told at every step what happens next and when.
-
-Three design rules inside it: retry when money is likely to be there rather than on a fixed interval that keeps hitting the same empty account; never switch anything off without having given a date in advance; and make recovery one tap.
-
-### Invoices, GST and upgrades
-
-**Invoices are not optional for anyone who might be reimbursed** — a student claiming from a parent, a society claiming from a college, any business buyer. An invoice needs your legal name and address, the buyer's name, a number in an unbroken sequence, the date, line items, the amount, the tax treatment and a payment reference. A GST-registered buyer wants your GSTIN for input credit; if you have none, say so rather than leaving a blank.
-
-**Decide now whether your displayed price includes tax.** "₹199" and "₹199 + GST" are different products to a buyer, and changing your mind later means every mandate has the wrong maximum amount.
-
-**Upgrades need a proration rule you can explain in one sentence**, and the simplest is to credit the unused portion of the old plan against the new. Do not invent the arithmetic; let the gateway do it and verify what it actually did. What you must never do is charge both plans in full. **Downgrades and cancellations take effect at the end of the paid period**, so the user keeps what they paid for.
+A ten-day sequence of retries and warnings before anything is switched off, with the user told at every step what happens next and when. Two rules inside it: retry when money is likely to be there rather than on a fixed interval that keeps hitting the same empty account, and never switch anything off without having given a date in advance.
 
 ### Where it lives
 
-Directly on top of M04 chapter 17: the gateway is the source of truth, webhooks drive state changes, handlers are idempotent against the provider's event id, amounts are integer paise, and you stay in test mode.
-
-Chapter 3 chose the structure this implements. Chapter 5 reads MRR and churn out of these tables, chapter 6 is why plans need allowances, chapter 9 is what happens when billing breaks on a Sunday, and chapter 11 reviews the numbers weekly. M07's structured logs answer "why did this user lose access"; M12's store rules override some of this for in-app purchases.
+Directly on top of M04 chapter 17 — gateway as source of truth, webhooks driving state changes, idempotent handlers, integer paise, test mode throughout — and chapter 3 chose the structure this implements. Chapter 5 reads MRR and churn out of these tables, chapter 6 is why plans need allowances, chapter 9 is billing breaking on a Sunday. M07's structured logs answer "why did this user lose access"; M12's store rules override some of this for in-app purchases.
 
 ### Words to own
 
@@ -144,33 +104,39 @@ Chapter 3 chose the structure this implements. Chapter 5 reads MRR and churn out
 | Involuntary churn | Lost to a failed debit, not a decision | The cheapest to fix |
 | Suspended | Access off, data and history kept | Reversible in one tap |
 | Proration | Adjusting for a mid-period change | Credit the unused days |
-| Invoice | The document a buyer can claim with | Numbered, sequential |
+| Invoice | Legal name, buyer, sequential number, date, line items, amount, tax, reference | What a buyer claims with |
 
 ### Tradeoffs and gotchas
 
-**Do not build your own subscription engine.** Use the gateway's subscriptions, plans and mandates. Your job is the state machine *in your own database* that mirrors it, the entitlement function, and the dunning communication — the gateway will not write your emails or know what your features are.
+Recurring payment in India usually means a UPI autopay mandate, which behaves unlike a stored card in four ways. Gateway behaviour changes often, so **read your gateway's current recurring-payments documentation rather than this table or an AI's memory of it.**
 
-**Never delete data on cancellation.** Suspend, keep, and tell the user how long you keep it. Reactivation in one tap is worth real money; chapter 10 covers the erasure request, which is a different thing.
+| What is different about a mandate | What it means for your design |
+|---|---|
+| It has a maximum amount | The user approves "up to ₹X"; a price rise, GST or an overage above ₹X fails the debit, so create it with headroom and write down why |
+| The user is notified before the debit | They get a window in which to be surprised and cancel, so your own renewal message must not contradict it |
+| It expires, and can be revoked in the user's UPI app | You learn from a webhook, not from the user — handle revocation explicitly or show someone active forever |
+| Debit failures are routine, not exceptional | Insufficient balance on the 1st is commonest in a student market, so set retry days for when money actually arrives |
 
-**Test the unhappy paths or you have tested nothing.** Every gateway offers test-mode failure simulation, and a billing system verified only on the success path is the opening story.
-
-**Refunds need a written policy before your first refund request**, which most gateways require anyway. Decide the rule, publish it, apply it the same way every time.
+| Gotcha | What to do |
+|---|---|
+| Do not build your own subscription engine | Use the gateway's subscriptions, plans and mandates; your job is the mirrored state machine, the entitlement function and the dunning messages |
+| Invoices are not optional for anyone who might be reimbursed | From a student claiming off a parent to a business buyer: the fields are in the table above, and the number must sit in an unbroken sequence |
+| Decide now whether your displayed price includes tax | "₹199" and "₹199 + GST" are different products, and changing your mind later leaves every mandate with the wrong maximum |
+| Let the gateway prorate an upgrade, then verify what it charged | Credit the unused portion of the old plan against the new; charging both in full is the bug. Downgrades and cancellations take effect at period end |
+| Never delete data on cancellation | Suspend, keep, and say how long — one-tap reactivation is worth real money, and chapter 10's erasure request is a different thing |
+| Test the unhappy paths | Use your gateway's failure simulation, and write the refund policy before the first request |
 
 ### Verify it
 
-**Red flag, the headline one: a subscription with no dunning path.** If the design goes from "payment failed" straight to "no access", you are converting recoverable failures into permanent churn. Ask explicitly: what happens on day 0, day 3, day 7 and day 12, and what does the user see at each?
+**Red flag, the headline one: a subscription with no dunning path.** A design that goes from "payment failed" straight to "no access" converts recoverable failures into permanent churn. Ask what happens on day 0, day 3, day 7 and day 12, and what the user sees at each.
 
 **Red flag: two sources of truth for whether a user is paid.** Search the code for every place that decides access. If a boolean and a subscription state can disagree, they eventually will.
 
 **Red flag: an entitlement check only in the UI.** Call the paid endpoint directly as a free user; if it works, the hidden button changed nothing.
 
-**Red flag: proration arithmetic invented by the AI.** Read the gateway's own record of what it actually charged and compare. Do not accept a formula; accept a reconciliation.
+**Red flag: a mandate whose maximum amount equals today's price.** Ask what happens when you add GST or raise the price by ₹50. If the answer is "the debit fails", fix it now while you have four subscribers.
 
-**Red flag: a mandate created with a maximum amount equal to today's price.** Ask what happens when you add GST or raise the price by ₹50. If the answer is "the debit fails", fix it now while you have four subscribers.
-
-**Red flag: cancellation that deletes data immediately, or an invoice with a non-sequential number.** The first destroys the easiest revenue you will ever recover; the second gets asked about.
-
-**Red flag: no record of why access was revoked.** When a user says "I was paying and you cut me off", you need a logged, timestamped, caused state transition. M07's structured logs are where it lives.
+**Red flag: no record of why access was revoked.** When a user says "I was paying and you cut me off", you need a logged, timestamped, caused state transition. M07's structured logs hold it.
 
 ## Walkthrough
 1. Write your plan catalogue on paper: each plan's name, price in paise, billing period, what is included, and the allowance and cap from chapter 3.

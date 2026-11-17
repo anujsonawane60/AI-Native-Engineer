@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: search-and-ranking
 title: "Search and Ranking: Full-Text, Fuzzy and Relevance"
 order: 10
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,33 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student opens the canteen app at 1:10 p.m., hungry, on one bar of 4G, and types `panir`.
+A student opens the canteen app at 1:10 p.m., hungry, on one bar of 4G, and types `panir`. Zero results — the dish is spelled "Paneer Butter Masala" and the search box matches only the start of the name. The student concludes the canteen does not sell paneer and closes the app.
 
-Zero results. The dish is spelled "Paneer Butter Masala". The search box does an exact match on the start of the name, so `panir` matches nothing, `butter` matches nothing, and `paneer butter` matches because it happens to be a prefix. The student concludes the canteen does not sell paneer and closes the app.
-
-The team's second attempt searches anywhere in the name, case-insensitively. Now `rice` returns eleven dishes with fried rice at the bottom and "Curd Rice (small)" at the top, because the results come back in whatever order the database found them. The most popular dish in the canteen is the ninth result.
-
-The third attempt installs a dedicated search engine on a free tier, which takes two days, adds a service that must be kept in sync, and returns results in an order nobody chose either — just a different arbitrary order, now with a syncing bug where dishes deleted yesterday still appear.
-
-Nobody ever wrote down what a good result for `panir` looks like. That, not the technology, is why all three attempts failed.
+A second attempt matches anywhere in the name. Now `rice` returns eleven dishes in whatever order the database found them, with the canteen's most popular dish ninth. Nobody ever wrote down what a good result for `panir` looks like — that, not the technology, is why both attempts failed.
 
 ### The idea
 
 **Search is two separate problems — finding candidates, and ordering them — and the ordering is a product decision your team must make explicitly.**
 
-Finding has three levels of sophistication. **Exact and partial matching** looks for your letters inside a column. **Full-text search** understands words: it splits text into terms, reduces them to stems so "fried" matches "fries", ignores noise words, and can search several columns at once. **Fuzzy search** tolerates misspelling by measuring how different two strings are, so `panir` finds `paneer`.
+Finding has three levels. **Exact and partial matching** looks for your letters inside a column. **Full-text search** understands words: it tokenises and lowercases the text, stems each word to a root so `fries` matches `fried`, and drops stop words like `and` and `the`. The query runs through the same pipeline, which is why `butter masala paneer` finds the dish in any word order. **Fuzzy search** tolerates misspelling by measuring edit distance, the number of single-character changes between two strings, so `panir` finds `paneer` one edit away.
 
-Ordering is **ranking**, and the database cannot guess it. How much does a match in the name matter versus the description? Does availability beat relevance — should a sold-out exact match rank below an available near-match? Does popularity count? Does price? Those are questions for the whole founding team, and if nobody answers them the answer becomes "whatever order the rows came out in".
+Ordering is **ranking**, and the database cannot guess it. Does availability beat relevance? Does popularity count? If nobody on the team decides, the answer becomes "whatever order the rows came out in".
 
 ### The analogy
 
-A new student asks the canteen cashier for "something with paneer".
+A new student asks the cashier for "something with paneer". She works out what you meant, forgiving the pronunciation; she lists what fits; then she orders that list by what she judges useful — available now first, then popular. The third step is the valuable one, and it is entirely judgement.
 
-The cashier does three things in sequence without thinking about it. She works out what you meant, forgiving the pronunciation. She lists what exists that fits. Then she orders the list by what she judges useful: what is actually available right now first, then what is popular, then the rest — and she volunteers "the paneer roll is finished, but the butter masala is fresh".
-
-The third step is the valuable one, and it is entirely judgement. A new cashier who lists dishes in the order they appear on the laminated menu is technically correct and unhelpful.
-
-**Where the analogy breaks:** the cashier knows that a student asking at 1:10 p.m. wants something fast, and that "paneer" from a hostel student usually means the cheap roll rather than the ₹160 platter. She has context your search box does not have and cannot infer. Everything she knows implicitly, you have to write down as a rule and maintain.
+**Where the analogy breaks:** she knows a student asking at 1:10 p.m. wants something fast, and that "paneer" from a hostel student usually means the cheap roll rather than the ₹160 platter. That context your search box cannot infer, and everything she knows implicitly you must write down as a rule and maintain.
 
 ### Picture it
 
@@ -82,29 +72,7 @@ A query is normalised, then matched by one or more finding strategies, and only 
 
 ### Where it lives
 
-Search is a query, so it lives exactly where chapter 9 lived: between your server and your database. And the ordering is the same as chapter 9's ordering — **make the database do it before you add a service.**
-
-Modern Postgres ships full-text search and fuzzy matching, both usable from a free tier, both indexable, both transactionally consistent with your data because they *are* your data. A separate search service means a second system, a sync process, a sync bug, and results that can disagree with your database. For a three-person team, that is the wrong trade until you have a measured reason.
-
-Two forward links matter. In M05 you will cache popular queries, and ranking is exactly the kind of computation worth caching. In M10, retrieval for RAG is this chapter's problem again with embeddings instead of words — "find candidates, then rank them" is the same two-step, which is why vector search and full-text search are increasingly used together.
-
-### What full-text search actually does
-
-Four steps happen to your text before it is stored, and the same four happen to the query.
-
-**Tokenise.** "Paneer Butter Masala (small)" becomes `paneer`, `butter`, `masala`, `small`.
-
-**Normalise.** Lowercase, strip punctuation and accents.
-
-**Stem.** Reduce words to a root so `fries`, `fried` and `frying` all match. This is why full-text search finds "fried rice" when you type "fries" and exact matching never will.
-
-**Remove stop words.** `and`, `the`, `with` carry almost no signal and are dropped.
-
-The result is stored in a searchable index, and a query runs through the same pipeline so the two can be compared. This is what makes `butter masala paneer` find the dish despite the wrong word order — something no `LIKE '%...%'` match can do.
-
-What it will not do is fix spelling. `panir` is not a stem of `paneer`; it is a different word. That needs fuzzy matching, which measures the edit distance between strings — how many single-character changes turn one into the other. `panir` to `paneer` is one insertion, so a threshold of two edits finds it. Set the threshold too loose and `rice` starts matching `ice` and `nice`.
-
-The practical answer for an Indian product is usually both: full-text search for real words, fuzzy matching as a fallback when full-text returns nothing.
+Search is a query, so it lives where chapter 9 lived: between your server and your database. It takes chapter 9's ordering too — **make the database do it before you add a service.** Postgres ships full-text search and fuzzy matching on a free tier, both indexable and both consistent with your data because they *are* your data. M05 caches popular queries; M10's retrieval for RAG is this same two-step with embeddings instead of words.
 
 ### Words to own
 
@@ -123,33 +91,25 @@ The practical answer for an Indian product is usually both: full-text search for
 
 ### Tradeoffs and gotchas
 
-**Indian search queries are not English search queries.** Your users type Hinglish, transliterate inconsistently (`chole`, `chhole`, `cholay`), abbreviate (`vdp` for vada pav), use regional names for the same dish, and type on a phone keyboard while walking. A search that only handles correctly spelled English names will fail for a large share of real queries, and you will not see this in testing because you know the right spellings.
+**Indian search queries are not English search queries.** Users type Hinglish, transliterate inconsistently (`chole`, `chhole`, `cholay`), abbreviate (`vdp` for vada pav), and type while walking. You will not catch this in testing, because you know the right spellings.
 
-**Fuzzy matching is a dial, not a switch.** Loose thresholds return nonsense and users stop trusting the box; tight thresholds miss real typos. The only way to set it is against a list of real queries with judged answers, which is the next section.
+**Fuzzy matching is a dial, not a switch.** Loose thresholds return nonsense — `rice` starts matching `ice` and `nice` — and tight ones miss real typos. Only a judged query list can set it.
 
-**Hiding sold-out items is usually the wrong call.** A student searching `paneer` wants to know the paneer roll is finished, not to conclude it does not exist. Rank it low, show it greyed, say "finished today". This is a product decision and it belongs in your ranking rules.
+**Hiding sold-out items is usually the wrong call.** A student searching `paneer` wants to know the roll is finished, not to conclude it does not exist. Rank it low and label it.
 
-**Ranking without a written rule is still ranking.** It is ranking by whatever order the database returned, which is arbitrary and will change. Write your rules down, in priority order, even if there are only three of them.
-
-**A separate search service is a sync problem in disguise.** Every write to your database must reach it. Miss one and you serve deleted dishes, as the team in the opening story did. Postgres full-text search cannot drift from your data because it is not a copy.
-
-**Searching with no limit and no debounce will hurt.** A search-as-you-type box that fires a query per keystroke, each returning every match, is four requests per word on a 4G connection. Debounce the input and bound the results.
+**A separate search service is a sync problem in disguise.** Every write to your database must reach it, and one missed write serves dishes you deleted yesterday.
 
 ### Verify it
 
-The one practice that separates working search from a demo: **a judged query list.**
+The one practice that separates working search from a demo: **a judged query list.** Write twenty queries your users would really type — three misspellings, two Hinglish words, one single letter, one with a trailing space, one for something you do not sell — and beside each, the result that should rank first and why. That list is your test suite, your brief to AI, and your only honest answer to "is our search good?"
 
-Write down twenty real queries your users would actually type — including three misspellings, two Hinglish words, one single letter, one with a trailing space, and one for something that does not exist. Beside each, write what the top result should be and why. Then run all twenty and mark pass or fail. That list is your test suite, your brief to AI, and the only honest answer to "is our search good?"
+1. **Run the twenty and count passes,** before and after every change. A change that fixes one query and breaks three is visible only this way.
+2. **Test the empty and absurd cases:** empty string, one letter, a 200-character paste, only stop words, something you do not sell.
+3. **Ask what the ranking rule is, in words.** If AI cannot state the ordering as a sentence, there is no rule.
+4. **Check it against realistic volume.** Seed a few thousand rows and confirm an index is used.
+5. **Check whether unavailable items are hidden or ranked low,** and that it matches what your team decided.
 
-Then five checks on anything AI builds.
-
-1. **Run the twenty queries and count passes.** Before and after any change. A change that improves one query and breaks three is visible only this way.
-2. **Test the empty and absurd cases.** Empty string, one letter, a 200-character paste, a query with only stop words, a query for something you do not sell. Each must return something sensible rather than an error or everything.
-3. **Ask what the ranking rule is, in words.** If AI cannot state the ordering as a sentence, there is no rule and you are seeing arbitrary order.
-4. **Check it against realistic volume.** Search on 40 dishes is always fast. Seed a few thousand rows and confirm an index is being used, using chapter 9's plan reading.
-5. **Check whether unavailable items are hidden or ranked low,** and confirm that matches the decision your team actually made.
-
-Red flags: a search that returns nothing for a one-character typo; results that change order between two identical requests; a dedicated search service proposed before the database's own full-text search was tried; "relevance" with no explanation of what contributes to it; a `LIKE '%query%'` on a large table with no index, which is chapter 9's sequential scan wearing a search box; and any search feature declared done without a list of test queries.
+Red flags: nothing returned for a one-character typo; results that reorder between two identical requests; a search service proposed before the database's own full-text search was tried; "relevance" with no explanation of what feeds it; a `LIKE '%query%'` on a large table with no index, which is chapter 9's sequential scan wearing a search box; any search feature called done without a list of test queries.
 
 ## Walkthrough
 1. Sit with a teammate and write twenty queries a real user of your product would type. Make three of them misspelled, two Hinglish or transliterated, one a single letter, one with a trailing space, and one for something you do not offer.

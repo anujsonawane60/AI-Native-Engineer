@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: pretraining-to-reasoning
 title: "Pretraining, Instruction Tuning, RLHF and Reasoning Models"
 order: 11
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,39 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Two problems, same root.
-
-A team is told that "the model was trained on the internet" and concludes it must know the canteen's prices, because the canteen has a website. It does not — the site was crawled before the last price rise, if at all, and the model will produce last year's number in a confident sentence.
-
-A second team wants their assistant to always reply in the house style: short, in Marathi, never apologising twice. They propose fine-tuning. Someone else wants today's menu in the answers and proposes fine-tuning for that too. One of those is a reasonable use of fine-tuning and the other is a guaranteed waste of a weekend, and nobody in the room can say which.
-
-Both confusions dissolve once you know how a model got from "predicts the next token" to "behaves like an assistant". It happened in four stages, each adding something specific and leaving other things untouched.
+One team hears "the model was trained on the internet" and concludes it knows the canteen's prices, because the canteen has a website. It does not, and it will give last year's number in a confident sentence. Another team proposes fine-tuning for the house style; someone else proposes fine-tuning to get today's menu into the answers. One of those is reasonable and the other wastes a weekend, and nobody can say which.
 
 ### The idea
 
 **A usable assistant is built in four stages: pretraining gives it the world's patterns, instruction tuning makes it follow instructions, preference training shapes how it answers, and reasoning training teaches it to work before it speaks.**
 
-**Pretraining** is self-supervised learning from chapter 2, at enormous scale: predict the next token across trillions of tokens of text. Out comes a **base model**, which knows an extraordinary amount and is nearly useless to talk to. Ask a base model a question and it may well continue with more questions, because a list of questions is a plausible continuation of a question.
+**Pretraining** is chapter 2's self-supervised learning at enormous scale: predict the next token across trillions of them. Out comes a **base model** that knows an extraordinary amount and cannot be talked to.
 
-**Instruction tuning**, also called supervised fine-tuning, is further training on tens of thousands of example pairs — an instruction and a good response, mostly human-written. This is the stage that makes it answer rather than continue. It is the biggest behavioural change in the whole pipeline and it is comparatively small and cheap.
+**Instruction tuning**, or supervised fine-tuning, trains on tens of thousands of instruction-and-answer pairs. It makes the model answer rather than continue: the biggest behavioural change in the pipeline, and cheap.
 
-**Preference training**, usually called **RLHF** — reinforcement learning from human feedback — is where humans are shown two responses to the same prompt and pick the better one. Those choices train a scoring model, and the assistant is then tuned to produce responses that score well. This is the stage that produces the helpful, formatted, hedging, polite voice you recognise, and the refusals.
+**Preference training**, or **RLHF**, shows humans two responses and asks which is better; those choices train a scoring model and the assistant is tuned to score well. This produces the polite voice you recognise, and the refusals.
 
-**Reasoning training** is the newest stage. The model is trained to produce a long internal working-out before its answer, rewarded on tasks where the answer can be checked automatically — maths, code that either runs or does not, puzzles with verifiable solutions. The result is a model that spends many more tokens thinking and is substantially better at multi-step problems.
+**Reasoning training** rewards working the answer out first, on tasks that can be checked automatically. It spends many more tokens thinking and is much better at multi-step problems.
 
 ### The analogy
 
-One cook, four stages of becoming employable.
+One cook, four stages of becoming employable. **Pretraining** is reading every cookbook ever written: vast knowledge, no kitchen training. **Instruction tuning** is a month of apprenticeship — "when someone asks for lunch, you make lunch". **Preference training** is a year of customers comparing two plates, until the cook settles into a house style. **Reasoning training** is learning to taste and adjust before plating, judged only on the final dish.
 
-**Pretraining** is reading every cookbook, food blog, menu and argument about food ever written. Vast knowledge, zero training in a kitchen. Ask this person for lunch and they may recite a recipe, or write a review, or continue your sentence — because they have absorbed what text looks like, not what a request means.
-
-**Instruction tuning** is a month of apprenticeship. "When someone asks for lunch, you make lunch." A few thousand corrected examples and the behaviour changes completely. They now respond to requests.
-
-**Preference training** is a year of customers comparing two plates and saying which they preferred. Nobody specifies the ideal dish; they just keep choosing. The cook converges on a house style: well-presented, safe, generous with garnish, and unwilling to serve certain things at all.
-
-**Reasoning training** is being taught to taste and adjust before plating, and being judged only on whether the final dish was right. They now take longer and get hard dishes right far more often.
-
-**Where the analogy breaks:** the cook, after all that, knows what is in the fridge this morning. The model does not. Nothing in these four stages gives it access to today — its knowledge is frozen at its **cutoff**, which is M00's second failure mode and the reason the first team's price was wrong. And preference training optimises what humans *preferred reading*, which is not the same as what was true. A confident, well-structured wrong answer frequently beats a hesitant correct one in a side-by-side comparison, and the model learns that.
+**Where the analogy breaks:** the cook knows what is in the fridge this morning. The model does not — its knowledge is frozen at its **cutoff**, which is why the first team's price was wrong. And preference training optimised what humans *preferred reading*: a confident wrong answer beats a hesitant correct one, and the model learned that.
 
 ### Picture it
 
@@ -89,15 +75,9 @@ One cook, four stages of becoming employable.
 
 Each stage adds one capability to the one before, and none of them adds knowledge of today.
 
-### Reasoning models, and when they are worth it
+A reasoning model generates **thinking tokens** before its visible answer — sometimes thousands, billed and usually unreadable. For a multi-step problem they are worth it; for "reformat this list as JSON" they are slower and no better.
 
-A reasoning model generates **thinking tokens** before its visible answer — sometimes hundreds, sometimes thousands. You are usually billed for them, you wait for them, and often you cannot read them.
-
-The trade is easy to apply. For a multi-step problem — debugging why three systems disagree, planning a schema, working through a calculation with conditions — a reasoning model is dramatically better and the extra seconds are worth it. For "reformat this list as JSON" or "classify this ticket into four buckets", it is slower, dearer and no better. Paying reasoning prices for formatting is a common way student teams burn credits, and M10 chapter 2 treats the decision properly.
-
-### The fine-tuning ladder
-
-This is the most immediately useful thing in the chapter. When a model's output is not what you want, there are four moves, and they go in this order, cheapest and fastest first.
+When the output is not what you want, there are four moves, cheapest first.
 
 ```
   1. BETTER PROMPT        minutes      fixes most problems
@@ -115,15 +95,13 @@ This is the most immediately useful thing in the chapter. When a model's output 
 
 Four responses to bad output, ordered by how much they cost you and what each one actually fixes.
 
-Read rung 3 and rung 4 together, because the distinction is the whole point. **Retrieval fixes facts. Fine-tuning fixes behaviour.** Today's menu is a fact, so it goes in the prompt — rung 3, which is M10's RAG work. House style is behaviour, so it is a legitimate rung-4 candidate, though a prompt with three examples usually gets most of the way there for a thousandth of the effort.
-
-The honest guidance for a student team: you will almost never need rung 4 in this program, and when you think you do, check whether rung 1 was done properly. M14 chapters 3 to 5 are where fine-tuning is practised, including the cheap variants that adjust a small set of extra weights rather than the whole model.
+Rungs 3 and 4 carry the whole point: **retrieval fixes facts, fine-tuning fixes behaviour.** Today's menu is a fact, so it goes in the prompt; house style is behaviour, a legitimate rung-4 candidate, though three examples usually get most of the way there.
 
 ### Where it lives
 
-Nothing in this chapter happens in your product. All four stages happened before you got access, and what reaches you is a named model with a version, a cutoff date, a price and a behaviour profile.
-
-Three of your own decisions follow from it. **Which model variant** — base, instruct or reasoning — chapter 13's work. **Where facts come from**, which is retrieval and belongs to M10. **What you do about the cutoff**: supply anything time-sensitive yourself, every request.
+- **Nothing here happens in your product.** All four stages ran before you got access; what reaches you is a named model with a version, a cutoff date, a price and a behaviour profile.
+- **Which variant — base, instruct or reasoning — is chapter 13's work**, and where facts come from is M10's retrieval. Anything time-sensitive you supply yourself, every request.
+- **Fine-tuning as a practice is M14.**
 
 ### Words to own
 
@@ -145,29 +123,20 @@ Three of your own decisions follow from it. **Which model variant** — base, in
 
 ### Tradeoffs and gotchas
 
-**Preference training made models agreeable, and agreeable is not accurate.** RLHF optimises for what raters preferred, and raters prefer confident, tidy, complete-sounding answers. The documented side effect is sycophancy: push back on a correct answer and the model may well fold. The defence is to ask for reasoning and alternatives rather than agreement — M00's Director's Loop ASK field.
-
-**Refusals are a trained behaviour, not a rule engine.** Being statistical, they both over-fire — refusing a legitimate medical or security question — and under-fire, which is what jailbreaks exploit in chapter 16. Never treat a refusal as a security control.
-
-**The cutoff is not a soft boundary.** Every library version, price, policy, free-tier limit and model name an AI gives you is from before its cutoff. That is why chapters 13 and 14 insist on the provider's own page for anything involving money.
-
-**Fine-tuning can make a model worse at everything else.** Tune hard on your narrow format and general ability degrades. It also freezes you: the base model improves next quarter and your tuned version does not. Both are real costs that plans rarely mention.
-
-**Thinking tokens are billed and invisible.** A reasoning model can quietly spend several thousand tokens before a two-line answer. If your cost estimate counts only the visible output, it can be wrong by a large multiple — a trap chapter 14 returns to.
+- **Preference training made models agreeable, and agreeable is not accurate.** The side effect is sycophancy: push back on a correct answer and the model may fold.
+- **Refusals are a trained behaviour, not a rule engine.** They over-fire on legitimate questions and under-fire where jailbreaks exploit them, so never treat one as a security control.
+- **The cutoff is not a soft boundary.** Every version, price, policy and model name an AI gives you predates it, which is why chapters 13 and 14 insist on the provider's own page.
+- **Fine-tuning can make a model worse at everything else**, and it freezes you: the base model improves next quarter, your tuned copy does not.
+- **Thinking tokens are billed and invisible**, so an estimate of visible output alone is wrong by a multiple.
 
 ### Verify it
 
-**Red flag, the one worth memorising: "fine-tune it on your data" offered for a fresh-facts problem.** Apply the test from chapter 6 — if the menu changes tomorrow, does this plan still work? If the answer is "retrain", it is rung 4 doing rung 3's job. Ask for the retrieval version and compare the two in hours.
-
-**Red flag: a plan that skips rungs 1 and 2.** Before anyone talks about tuning, ask what the best prompt achieved and what three examples in the prompt achieved, with the actual outputs shown. A surprising share of fine-tuning requests are badly-written prompts.
-
-**Red flag: a current fact asserted with no source.** Prices, limits, version numbers, "the latest model is...". Ask where it came from. The right answer is a URL you can open.
-
-**Red flag: a reasoning model proposed for a formatting or classification task.** Ask what it costs per request against the cheap model and whether the quality difference is measurable on your own examples. Usually it is not, and chapter 13's mission is how you find out.
-
-**Red flag: RLHF described as making a model truthful.** It made it preferred. Those are different, and the gap is where confident wrong answers live.
-
-And the check to run yourself, in fifteen minutes: ask a model for a fact about your own domain that changed recently. Note how confidently it answers. Then tell it, falsely, that it is wrong, and see whether it folds. Then ask it directly what its knowledge cutoff is. Three questions, and you have seen the cutoff, the confidence and the sycophancy on your own screen.
+- **"Fine-tune it on your data" for a fresh-facts problem** — the one worth memorising. If the menu changes tomorrow, does the plan still work? "We would retrain" means rung 4 is doing rung 3's job.
+- **A plan that skips rungs 1 and 2.** Ask what the best prompt achieved, and what three examples achieved.
+- **A current fact asserted with no source.** The right answer is a URL you can open.
+- **A reasoning model proposed for formatting or classification.** Ask its cost against the cheap model.
+- **RLHF described as making a model truthful.** It made it preferred, and the gap is where confident wrong answers live.
+- **Check yourself:** ask for a fact that changed recently, tell it falsely that it is wrong, then ask its knowledge cutoff.
 
 ## Walkthrough
 1. Ask a model a question about your own domain whose answer changed in the last year — a price, a fee, a rule. Record the answer and how confident it sounded.

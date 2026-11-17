@@ -4,7 +4,7 @@ module: m01-team-startup-git
 slug: git-why-it-matters-more
 title: "Git: Why Version Control Matters More When AI Writes the Code"
 order: 6
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,41 +22,26 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student asks an agent to fix a bug in the cart. Twenty minutes later the cart is fixed and the login page is broken. They are not sure what changed. They did not read the diff, there were eleven files in it, and they cannot remember which ones were already like that.
+A student asks an agent to fix a bug in the cart. Twenty minutes later the cart is fixed and the login page is broken. They did not read the diff, it touched eleven files, and the working version from an hour ago exists nowhere. They spend the evening asking the agent to undo things, which produces a third state, broken differently.
 
-There is no way back. The working version from an hour ago exists nowhere. They spend the evening asking the agent to undo things, which produces a third state that is broken differently.
-
-Now the same scenario with git. The student types one command, the project returns to exactly how it was an hour ago, and they try again with a tighter brief and one file in scope. Total cost: four seconds.
+With git, one command returns the project to exactly how it was an hour ago. Cost: four seconds.
 
 ### The idea
 
 **Git records a complete snapshot of your project every time you commit, so any past state is one command away.**
 
-It is not a backup. A backup is one copy of now. Git is every version you have ever saved, with a note on each explaining why — and the ability to compare any two of them.
+It is not a backup. A backup is one copy of now; git is every version you saved, with a note explaining why. Four things change once an agent is in your project:
+
+- **The diff is your review surface** — without git there is no "what changed".
+- **Undo is one command, so experiments are cheap.**
+- **Scope violations become visible:** you asked for one calculation, the commit shows eleven files.
+- **Agent edits become safe to auto-approve** — the M00 allowlist draws its line there *because* committed files are recoverable.
 
 ### The analogy
 
-Think of the canteen's register.
+The canteen's register. Overwriting today's total each evening is a backup: you know today, last Tuesday is gone. A register where each day gets a dated line with a note — "price of oil up, raised samosa to ₹15" — is version control, and in March the answer is in the register rather than in somebody's memory. Now imagine a fast helper who rewrites pages while you are not watching.
 
-A notebook where you overwrite today's total each evening is a backup. You know today. Last Tuesday is gone.
-
-A register where every day gets its own dated line, with a note — "price of oil went up, raised samosa to ₹15" — is version control. You can look back and see not only what the numbers were but why they changed. When someone asks in March why samosas cost ₹15, the answer is in the register rather than in somebody's memory.
-
-Now imagine you employ a very fast helper who rewrites pages of the register while you are not watching. The register suddenly becomes essential rather than merely useful.
-
-**Where the analogy breaks:** a register is a list, and git is a tree. You can take a branch — a parallel copy of the whole register — try something risky in it, and either merge it back or throw it away with the original untouched. That is the next chapter.
-
-### Why AI changes the calculation
-
-Version control was always good practice. With an agent in your project it becomes the thing the whole workflow depends on, for four specific reasons.
-
-**1. The diff is your review surface.** You do not read the whole project to check an agent's work; you read what changed. Without git there is no "what changed" — there is only the current state, which tells you nothing about what it used to be.
-
-**2. Undo is one command, which makes experiments cheap.** The single biggest behaviour change git produces is that you stop being careful in the wrong way. You let the agent try the ambitious thing, because the cost of it going wrong is four seconds.
-
-**3. Scope violations become visible.** You asked for one calculation to change. The commit shows eleven files. You now know the brief failed, in three seconds, without reading any code. This is the check from M00 — "read the diff before you accept it" — and git is what makes it possible.
-
-**4. It is why agent edits are safe to auto-approve.** In M00 you set an allowlist: editing committed files runs without asking, deleting and pushing require approval. That line is drawn where it is *because* committed files are recoverable. Git is the reason the permission model works.
+**Where the analogy breaks:** a register is a list, git is a tree. You can branch — copy the whole register, try something risky, then merge it back or throw it away with the original untouched. That is the next chapter.
 
 ### Picture it
 
@@ -84,11 +69,7 @@ Version control was always good practice. With an agent in your project it becom
   └──────────────────────────────────────┘      └─────────────┘
 ```
 
-Files move in one direction: you edit them, you stage the ones you want, you commit those as a snapshot, and you push the snapshots to the remote so your teammates and your deploy platform can see them.
-
-### The three states
-
-Every file is in exactly one of three states, and almost every confusing git moment as a beginner comes from not knowing which.
+Files move one way: you edit them, stage the ones you want with `git add`, commit those as a snapshot, then `git push` to the remote. Every file is in one of three states, and most confusing git moments come from not knowing which.
 
 | State | Meaning | How it got there |
 |---|---|---|
@@ -96,28 +77,13 @@ Every file is in exactly one of three states, and almost every confusing git mom
 | **Staged** | Marked to go into the next commit | `git add` |
 | **Committed** | Safely in history | `git commit` |
 
-`git status` tells you which files are where, and you will type it more often than any other command. Read it as the answer to "what has the agent done that I have not yet reviewed?"
+Read `git status` as "what has the agent done that I have not reviewed?" Staging lets you commit *some* changes: agent edited six files, you reviewed four, commit those four.
 
-The staging area exists for a genuinely useful reason: it lets you commit *some* of your changes. When an agent has edited six files and you have reviewed four of them, you can stage and commit those four and keep thinking about the other two.
+### Where it lives
 
-### Commit messages, and why they are not ceremony
+Git sits underneath everything from here on: in M06 a push triggers CI and a push to main deploys; in M10 the agent commits and watches tests pass; in M11 your history is checkpoint evidence. `TEAM.md`, `PRD.md` and `SCOPE.md` live there for the same reason as the code.
 
-A commit message answers "why", because the code already answers "what".
-
-| Weak | Strong |
-|---|---|
-| `fix` | `Fix cart total ignoring quantity` |
-| `update stuff` | `Recalculate price server-side, never trust client total` |
-| `changes from AI` | `Add sold-out toggle for staff; polling, not realtime` |
-| `asdf` | `Revert caching on /menu — stale after chef updates` |
-
-In month four you will be looking for the commit where a bug appeared, reading messages from week six. "fix" will cost you an hour. And in M18's defence, your commit history is one of the artefacts that shows you understood your own product rather than accepted whatever appeared.
-
-### `.gitignore` and the one thing you must never commit
-
-Some files must stay out of history: secrets, dependency folders, build output, editor settings.
-
-`.gitignore` is a list of patterns git refuses to track:
+Some files must stay out of history: secrets, dependency folders, build output. `.gitignore` lists patterns git refuses to track:
 
 ```
 .env
@@ -129,17 +95,9 @@ dist/
 *.log
 ```
 
-Two things to be clear about, both from M00:
+**`.gitignore` protects the file from git, not from an agent** — `.env` stays an ordinary file in the folder, readable by anything working there.
 
-**`.gitignore` protects the file from git, not from an agent.** `.env` is an ordinary file in the folder. An agent working there can read it. Keeping it out of history and keeping it out of reach are different problems.
-
-**A secret committed once is in history permanently.** Deleting the file in a later commit does not remove it from the earlier one — history is the point of git. The fix is to rotate the key immediately, then clean history if you want to. This is why `.gitignore` goes in on your very first commit, before anything else.
-
-### Where it lives
-
-Git sits underneath everything from here on. In M06 it triggers CI, which runs your tests on every push. In M06's deploy chapter, a push to the main branch is what deploys. In M10, an agent-ready repository is one where the agent can commit, run tests and see them pass. In M11's checkpoints, your history is evidence of how the product developed.
-
-It is also, concretely, the file your team agreement and your PRD live in. `TEAM.md`, `PROBLEM.md`, `PRD.md` and `SCOPE.md` are all under version control for the same reason as the code: so that a change is visible and the reason is recorded.
+**A secret committed once is in history permanently.** Deleting the file later does not remove it from the earlier commit — history is the point of git. Rotate the key immediately, then clean history. This is why `.gitignore` goes in on the very first commit.
 
 ### Words to own
 
@@ -159,26 +117,33 @@ It is also, concretely, the file your team agreement and your PRD live in. `TEAM
 
 ### Tradeoffs and gotchas
 
-**Commit small and often, especially with an agent.** One commit per logical change, not one per day. Large commits are unreviewable, and when something breaks you want to narrow the cause to a few lines rather than a thousand. The practical rule: commit before you give the agent a new task, so there is always a clean point to return to.
+**A commit message answers "why", because the code already answers "what".**
 
-**Commit before you let the agent start, not after.** This is the habit that saves evenings. A clean working tree means `git status` afterwards shows you exactly the agent's work, with nothing of yours mixed in.
+| Weak | Strong |
+|---|---|
+| `fix` | `Fix cart total ignoring quantity` |
+| `update stuff` | `Recalculate price server-side, never trust client total` |
+| `changes from AI` | `Add sold-out toggle for staff; polling, not realtime` |
+| `asdf` | `Revert caching on /menu — stale after chef updates` |
 
-**Never commit `node_modules/` or build output.** It is enormous, it is regenerated from your dependency file, and it makes every diff unreadable. If you see thousands of changed files in a commit, this is almost always why.
+**Commit before you let the agent start, small and often.** A clean tree means `git status` afterwards shows exactly the agent's work, there is always a known-good point to return to, and one commit per logical change narrows any break to a few lines.
 
-**Git is not a backup of your laptop.** It tracks your project, not your photos, and it only protects what you have actually committed and pushed. Uncommitted work is not protected by anything.
+**Never commit `node_modules/` or build output.** It regenerates from your dependency file and makes every diff unreadable; thousands of changed files in one commit is almost always this.
 
-**Do not let an agent commit on your behalf unreviewed.** It is capable of it, and the result is a history of commits called "Update files" containing changes nobody looked at. The history then stops being a review surface, which was the main reason you wanted it.
+**Git protects only what you committed and pushed** — it is not a backup of your laptop.
+
+**Do not let an agent commit unreviewed.** A history of commits called "Update files" destroys the review surface you wanted.
 
 ### Verify it
 
-Four checks to run once per project, and one to run constantly.
+Four checks per project, and one you run constantly.
 
-1. **Is `.gitignore` in place with `.env` in it, from the first commit?** Check `git log --all -- .env` returns nothing. Anything it returns is a key to rotate today.
-2. **Is the working tree clean before you brief an agent?** `git status` should say nothing to commit. Otherwise you will not be able to tell your changes from the agent's.
-3. **Do your commit messages say why?** Read your last five. If three of them are "fix" or "update", you are writing for nobody, including yourself in March.
-4. **Is anything enormous in your history?** Thousands of files in a commit means `node_modules/` or build output got in.
+1. **Is `.gitignore` in place with `.env` in it, from the first commit?** `git log --all -- .env` must return nothing; anything it returns is a key to rotate today.
+2. **Is the tree clean before you brief an agent?** `git status` should say nothing to commit.
+3. **Do your commit messages say why?** Read your last five; three "fix" or "update" means you write for nobody.
+4. **Is anything enormous in your history?** Thousands of files means `node_modules/` or build output got in.
 
-And the constant one: **`git status` and `git diff` before every commit.** That is the review. Everything in this program about verifying AI output depends on you actually looking at what changed.
+The constant one: **`git status` and `git diff` before every commit.** That is the review, and it depends on you actually looking.
 
 ## Walkthrough
 1. In your project folder, run `git status`. If it says "not a git repository", run `git init`. You now have history, starting from nothing.

@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: joins-indexes-query-plans
 title: "Reading a Query: Joins, Indexes and Query Plans"
 order: 9
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,33 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-The canteen app's admin page shows today's orders with the student's name and the dish names. It loads in 200 milliseconds on the demo laptop with 40 orders in the database.
-
-Three weeks later there are 9,000 orders and the page takes eleven seconds. Students on 4G see a spinner and reload, which makes it worse. Nobody changed the code.
-
-Two things are wrong and they compound. First, the server fetches the list of orders, then for each order makes another query for the student's name — 1 query becomes 1 + 200. Second, that per-student query searches the whole `students` table from the top every single time, because no index exists on the column it filters by. Two hundred full scans of a growing table, per page load.
-
-The fix takes four minutes once you can see it. Seeing it is the skill.
+The canteen admin page lists today's orders with student names. With 40 orders it loads in 200 milliseconds; three weeks later, with 9,000, it takes eleven seconds — and nobody changed the code. The server runs one extra query per order for the student's name, so 1 query becomes 1 + 200, and each reads the whole `students` table from the top because no index exists on the column it filters by.
 
 ### The idea
 
-**A join asks the database to combine two tables for you; an index is a shortcut that lets it find rows without reading all of them; a query plan is the database telling you, before you run anything, which it intends to use.**
+**A join combines two tables in one query; an index lets the database find rows without reading all of them; a query plan is the database telling you, before you run anything, which it intends to use.**
 
-You will never write these queries by hand in this program. You will read them, judge them, and measure them. Three capabilities, all of which are reading skills.
-
-Read a join and say what it returns. Read a plan and spot the scan. Read your own server code and spot the loop that should have been a join.
+You will read these queries rather than write them: say what a join returns, spot the scan in a plan, and spot the loop that should have been a join.
 
 ### The analogy
 
-The canteen keeps a register of orders and a register of students, and the manager wants a list of today's orders with names.
+The canteen keeps a register of orders and one of students. A **join** is holding both open and matching roll numbers across them. An **index** is the alphabetical thumb-tab on the student register: without it, finding roll number 4471 means reading every line from page one, and the cost is writing every new student into the tab too. A **query plan** is her saying out loud what she is about to do.
 
-A **join** is holding both registers open and matching roll numbers across them — one pass, both books, one list out.
-
-An **index** is the alphabetical thumb-tab down the side of the student register. Without it, finding roll number 4471 means starting at page one and reading every line. With it, you jump straight there. The cost is real: every time a new student joins, somebody has to write them into the tab as well, so the register takes slightly longer to update.
-
-A **query plan** is the manager saying out loud what she is about to do: "I will use the tab on the student register, then walk today's page of the order register." You can hear a bad plan before she starts.
-
-**Where the analogy breaks:** the manager knows her registers. The database guesses, from statistics about your data that can be out of date, and it sometimes guesses wrong — choosing to scan a table because it believes it has 40 rows when it has 90,000. That is why you read the plan rather than trusting that it will be sensible.
+**Where the analogy breaks:** she knows her registers; the database guesses from statistics that can be out of date, and sometimes scans a table because it believes it holds 40 rows when it holds 90,000.
 
 ### Picture it
 
@@ -70,15 +56,7 @@ A **query plan** is the manager saying out loud what she is about to do: "I will
 
 Without an index the database checks every row to find the matching ones; with an index it looks up the value and goes straight to the rows that match.
 
-### Where it lives
-
-This sits between your server and your database — the query is what travels down the arrow in M00's four boxes. Nothing in the client can fix a bad query, and no amount of pretty UI survives eleven seconds.
-
-Chapter 6 gave you the tables; this chapter is how you ask them questions efficiently. Chapter 10 extends it to searching text, which needs a different kind of index. M05 puts a cache in front of the whole thing — and this is the ordering that matters: **fix the query first, then cache.** Caching a bad query hides it until the cache misses during your demo. M05's connection pooling and read replicas are also downstream of here; they help a sound query and cannot rescue a scan.
-
-### Reading a join
-
-Here is a query to read, not to write.
+And the join that fixes the other half:
 
 ```
 SELECT o.id, s.name, o.total_paise, o.placed_at
@@ -90,39 +68,11 @@ ORDER BY o.placed_at DESC
 LIMIT 50;
 ```
 
-Read it in this order, which is not the order it is written: **FROM** says which table we start from. **JOIN** says we attach `students` by matching `s.id` to `o.student_id`. **WHERE** says keep only today's non-cancelled orders. **ORDER BY** and **LIMIT** say newest first, fifty of them. **SELECT** says which four columns come back.
+Read it as the database runs it: **FROM** and **JOIN** combine the rows, **WHERE** narrows them, **ORDER BY** and **LIMIT** take the newest fifty. That one `JOIN` replaces 50 queries for 50 names.
 
-Two things to notice. The join replaces 50 extra queries for 50 student names — that is the N+1 fix, and it is one line. And the `LIMIT 50` matters: without it, the day the canteen has 4,000 orders the endpoint returns all of them to a phone on 4G.
+### Where it lives
 
-The join types are worth knowing by name. An **inner join** keeps only rows that match on both sides — an order with a deleted student simply vanishes from the list, which can be a silent bug. A **left join** keeps every row from the left table and leaves the right side empty where nothing matched, so the order appears with a blank name. Which one you want is a product decision.
-
-### Indexes, and which columns deserve one
-
-An index is a separate sorted structure the database maintains so it can find rows by a value without reading the table. Four rules cover almost every case.
-
-**Every foreign key wants an index.** `orders.student_id`, `order_items.order_id`. These are the columns joins filter on, and most databases do *not* create these automatically even though they create one for the primary key.
-
-**Columns you filter by want an index.** `status`, `placed_at`, anything in a `WHERE` clause on a big table.
-
-**Columns you sort by often, especially combined with a filter.** An index on `(student_id, placed_at)` serves "this student's orders, newest first" in one go — and column order inside the index matters, because it is useful for filtering on `student_id` alone but not for `placed_at` alone.
-
-**Unique constraints give you an index for free,** which is one more reason to declare them.
-
-The cost is not zero. Every index must be updated on every insert, update and delete, and it takes disk space. An index on a column with two possible values rarely helps. Twelve indexes on one table slows every write and usually means somebody added one per slow query without measuring.
-
-### Reading a plan
-
-`EXPLAIN` in front of a query asks the database what it plans to do. `EXPLAIN ANALYZE` actually runs it and reports what happened. You are reading for four words.
-
-| What you see | What it means |
-|---|---|
-| `Seq Scan` on a big table | reading every row — usually a missing index |
-| `Index Scan` | using an index, which is what you want |
-| `rows=` | how many rows it expects at that step |
-| `actual time=` | how long that step really took, in milliseconds |
-| `Nested Loop` over many rows | a join done row by row; fine for few, bad for many |
-
-The habit: find the step with the largest `actual time`, then look at whether it is a scan and how many rows it touched. That is 90 percent of query diagnosis, and it is reading, not writing.
+A query travels down the arrow between M00's server and data boxes, so nothing in the client can fix a bad one. Chapter 6 gave you the tables; chapter 10 extends this to text search; M05 caches in front of all of it. **Fix the query first, then cache** — a cached bad query stays hidden until the cache misses during your demo.
 
 ### Words to own
 
@@ -141,31 +91,40 @@ The habit: find the step with the largest `actual time`, then look at whether it
 
 ### Tradeoffs and gotchas
 
-**N+1 queries are the single most common performance bug in AI-generated backends, and they are invisible at small data sizes.** The code looks clean: fetch the orders, then for each order fetch the student. With 40 rows nobody notices. The tell is a loop containing a database call. Learn to spot that shape and you will catch it in review every time.
+Every index is updated on every write, so add one only when a measurement showed a scan; a unique constraint is free.
 
-**Indexes do not fix a query that returns everything.** If the endpoint has no `LIMIT`, you are sending 9,000 rows to a phone regardless of how fast the database found them. Pagination and indexing are different problems.
+| Column | Index it? |
+|---|---|
+| Foreign keys like `orders.student_id` — joins filter on these | Always |
+| Columns a big table's `WHERE` narrows by | Usually |
+| A filter plus a sort, as `(student_id, placed_at)` in that order | Composite |
+| Booleans, three-value statuses, free text nobody filters | Rarely |
 
-**An index on every column is not thoroughness.** Writes get slower, disk fills, and the planner has more choices to get wrong. Add an index because a measurement showed a scan, and record which query it serves.
+**N+1 queries are the most common performance bug in AI-generated backends, and they are invisible at small data sizes.** With 40 rows nobody notices; the tell is a database call inside a loop.
 
-**Measure, do not reason.** "This should be faster" is not evidence. Run `EXPLAIN ANALYZE` before and after and compare the two actual times on realistic data.
-
-**Realistic data is the whole game.** Every query is fast on 40 rows. Seed a few thousand realistic rows into a scratch database before you measure anything, or you will ship the eleven-second page and find out during the demo.
-
-**`SELECT *` is a habit worth losing.** It fetches columns nobody displays, which costs bandwidth on 4G, and it means a new column added in chapter 11 silently starts travelling to every client.
-
-**Cache after you fix.** M05's caching is excellent and it is not a substitute for an index. A cached bad query is a bad query that will appear at the worst possible moment.
+**Indexes do not fix a query that returns everything.** With no `LIMIT` you send 9,000 rows to a phone however fast the database found them.
 
 ### Verify it
 
-When AI says it optimised a query, five checks.
+`EXPLAIN` asks what the database plans to do; `EXPLAIN ANALYZE` runs it and reports what happened.
 
-1. **Ask for the plan, before and after, on realistic data.** Not an explanation — the actual `EXPLAIN ANALYZE` output with timings. If it cannot produce one, it did not measure anything.
-2. **Hunt for loops containing queries.** Search your server code for a database call inside a `for` or `map`. Each one is an N+1 waiting for your user count to grow.
-3. **Check every foreign key has an index.** List your foreign keys, list your indexes, and compare. The missing ones are usually free wins.
-4. **Check the list endpoints have a limit.** Every endpoint that returns a collection needs pagination. "It only returns today's orders" is fine until the day it is not.
-5. **Re-measure with seeded data.** Insert 5,000 realistic rows and run the page again. A fix that only works on an empty database is not a fix.
+| What you see | What it means |
+|---|---|
+| `Seq Scan` on a big table | reading every row — usually a missing index |
+| `Index Scan` | using an index, which is what you want |
+| `rows=` | how many rows it expects at that step |
+| `actual time=` | how long that step really took, in milliseconds |
+| `Nested Loop` over many rows | a join done row by row; fine for few, bad for many |
 
-Red flags: "I added an index" with no named column; a new index on a boolean or status column with three distinct values and no accompanying measurement; `SELECT *` in a list endpoint; an inner join where a left join was meant, so rows disappear instead of showing blanks; the phrase "this will scale" with no number; a "fix" that changed the query and was never run against more than the handful of rows in dev.
+Find the step with the largest `actual time`, then check whether it is a scan. Five checks on anything AI calls optimised.
+
+1. **Ask for the plan, before and after, on realistic data** — the real `EXPLAIN ANALYZE` output, not an explanation.
+2. **Hunt for loops containing queries.** A database call inside a `for` or `map` is an N+1.
+3. **Check every foreign key has an index.** List the keys, list the indexes, compare.
+4. **Check every list endpoint has a limit.** "Only today's orders" is fine until it is not.
+5. **Re-measure with seeded data.** A fix that only works on an empty database is not a fix.
+
+Red flags: "I added an index" with no named column; an index on a boolean or three-value status with no measurement; `SELECT *` in a list endpoint; an inner join where a left join was meant, so rows vanish instead of showing blanks; "this will scale" with no number; a fix never run beyond dev's handful of rows.
 
 ## Walkthrough
 1. Find the slowest screen in your own product. Load it and time it with the browser's Network tab, noting the server time for the API call rather than the total page time.

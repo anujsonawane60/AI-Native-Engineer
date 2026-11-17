@@ -4,7 +4,7 @@ module: m02-the-web
 slug: responsive-design
 title: "Responsive Design: Viewports, Breakpoints and Units"
 order: 6
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team demos their canteen app at the live session. It looks excellent on the presenter's laptop. A mentor opens it on her own phone — a two-year-old Android at 360 x 800 — and three things happen at once.
+A team's canteen app looks excellent on the presenter's laptop. A mentor opens it on her two-year-old Android at 360 x 800 and the page arrives as a tiny postcard in the middle of the screen, because the HTML has no viewport meta tag and the phone assumed a 980px desktop. She pinch-zooms and now the page is wider than the screen. The "Add to order" button is 22 pixels tall — half a fingertip — and she taps "Remove" by accident.
 
-The whole page appears as a tiny, perfectly-proportioned postcard in the middle of the screen, because the HTML has no viewport meta tag, so the phone assumed the page was designed for a 980px desktop and shrank it to fit. She pinch-zooms in. Now the page is wider than the screen and she has to scroll sideways to read each line of text. And when she finally reaches the "Add to order" button, it is 22 pixels tall, which is about half a fingertip, and she taps "Remove" twice by accident.
-
-Nothing here is a design failure. Every one of these is a two-line fix that nobody checked for, because everybody tested on the machine they built it on.
+None of this is a design failure. Each is a two-line fix nobody checked for, because everybody tested on the machine they built on.
 
 ### The idea
 
 **You are not designing for a phone and a laptop. You are designing for a continuous range of widths, and the layout should be correct at every one of them — including widths no device has yet.**
 
-The practical version of this is **mobile-first**: write the layout for the narrowest screen first, as the default, then add rules that only apply as the screen gets wider. This produces less CSS, because the narrow layout is usually the simpler one, and it means the default behaviour favours the users who are least able to tolerate a broken page.
+The practical version is **mobile-first**: write the narrowest layout as the default, then add rules that apply only as the screen gets wider. That produces less CSS and makes the default favour the users least able to tolerate a broken page.
 
 ### The analogy
 
-The canteen's serving window.
+You cannot build one serving window for short people and a second for tall people. You set the counter height so a first-year of 150cm and a final-year of 190cm are both served without crouching or reaching. Notice which end you design from: set it for the tallest and the short student is stuck; set it for the shortest and everybody else manages. That is mobile-first.
 
-You cannot build one window for short people and a second for tall people. You set the counter height, the depth of the shelf and the height of the opening so that a first-year who is 150cm and a final-year who is 190cm can both be served without either of them crouching or reaching. You design for the range.
-
-And notice which end you design from. If you set the counter for the tallest person and then try to adapt, the short student is stuck. If you set it so the shortest person is comfortable, everybody else manages. That is mobile-first: optimise for the constrained case and let the roomy case cope.
-
-**Where the analogy breaks:** the canteen knows its range. Nobody 400cm tall is coming. The web has no such guarantee — your page will be opened on a 320px budget phone, a 1440px laptop, a 65-inch television, a watch, and a browser window somebody has dragged to be 180px wide for no reason. Which is why the answer is flexible rules rather than a list of known devices.
+**Where the analogy breaks:** the canteen knows its range — nobody 400cm tall is coming. Your page will open on a 320px phone, a 1440px laptop, a television, a watch, and a window somebody dragged to 180px wide. Hence flexible rules, not a list of known devices.
 
 ### Picture it
 
@@ -59,7 +53,7 @@ And notice which end you design from. If you set the counter for the tallest per
 
 The narrow layout is the default that needs no media query at all; each breakpoint above it adds only the rules that the extra space makes possible.
 
-### The viewport meta tag, and why it is not optional
+### Where it lives
 
 One line in the `<head>` decides whether anything else in this chapter matters:
 
@@ -67,13 +61,9 @@ One line in the `<head>` decides whether anything else in this chapter matters:
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 ```
 
-Without it, a mobile browser assumes the page was written for a desktop, pretends the screen is about 980 CSS pixels wide, renders the whole layout at that size, and then scales the result down to fit the real screen. Your media queries never fire, because as far as the page is concerned it is on a desktop. Every font becomes unreadably small. This is the postcard effect from the pain story, and it is the first thing to check whenever a page looks "zoomed out" on a phone.
+Without it a phone pretends its screen is 980 CSS pixels wide, renders the layout at that size and scales the result down, so your media queries never fire and every font is unreadable. That is the postcard effect, and the first thing to check when a page looks "zoomed out".
 
-### Where it lives
-
-Responsive behaviour is entirely client-side, from M00's four boxes: the server sends one page and the browser decides how to arrange it. That is worth saying plainly because the alternative — detecting the device on the server and sending a different page — was how this was done fifteen years ago, and it is still how an AI will sometimes suggest solving it. It is the wrong answer: it needs a device database, it breaks on every new phone, and it means two layouts to maintain.
-
-This chapter sits on top of chapter 5's layout tools — a grid with `auto-fit` is already responsive before you write a single media query — and feeds chapter 16, where the cost of what you send to a phone on slow 4G gets measured.
+Responsive behaviour is entirely client-side in M00's four boxes: the server sends one page and the browser arranges it. Detecting the device on the server and sending a different page — which an AI sometimes suggests — needs a device database and breaks on every new phone. This chapter sits on chapter 5's tools: an `auto-fit` grid is responsive before any media query.
 
 ### Words to own
 
@@ -94,31 +84,27 @@ This chapter sits on top of chapter 5's layout tools — a grid with `auto-fit` 
 
 ### Tradeoffs and gotchas
 
-**Pixel font sizes break the user's own accessibility settings.** A student who has set a larger default font size in their browser gets no benefit from `font-size: 14px`, because px is absolute. `rem` scales with that setting. This is one of the few cases where the "correct" unit choice has a direct, named group of people who are affected by it.
+**Pixel font sizes break the user's own accessibility settings.** A student who set a larger default font size gets no benefit from `font-size: 14px`, because px is absolute; `rem` scales with that setting.
 
-**Too many breakpoints is a sign the layout is not flexible.** Three is usually plenty for a product at this stage. If an AI gives you seven, including one at 420px and one at 480px, it is patching a rigid layout at every width where it happens to break rather than making it fluid.
+**Too many breakpoints means the layout is not flexible.** Three is plenty. Seven, including 420px and 480px, is a rigid layout being patched wherever it happens to break.
 
-**`100vh` is a lie on mobile browsers.** On many phones, the address bar and toolbar overlap the viewport, so an element set to `100vh` is taller than the visible area and the page scrolls by 60-ish pixels for no visible reason. The modern answer is `100dvh`, which accounts for dynamic browser chrome — and the better answer is usually not to need a full-height section at all.
+**`100vh` is a lie on mobile.** The address bar overlaps the viewport, so a `100vh` element is taller than the visible area and the page scrolls 60-ish pixels for no reason. Use `100dvh`.
 
-**Hiding content on small screens is not responsive design.** `display: none` below 768px is how a "mobile version" ends up missing the price filter that mobile users need most. If something does not fit, it needs rearranging, not deleting. Ask: would I be comfortable telling a user "that feature is for laptop people"?
+**Hiding content on small screens is not responsive design.** `display: none` below 768px is how a mobile version loses the price filter mobile users need most. Rearrange rather than delete.
 
-**The device toolbar is not a phone.** It gets the width right and almost everything else wrong: no real touch, no real CPU, no real network, no real font rendering, no real browser chrome. Use it to iterate; use a real cheap Android to decide.
-
-**Tap targets are a measurable thing, not a feeling.** 44 x 44 CSS pixels is the commonly cited floor, and the gap between two adjacent targets matters as much as their size — two correctly-sized buttons 2px apart still produce mis-taps. This is where UPI payment flows get dangerous: a "Pay ₹240" button next to a "Cancel" button, both small, both close together, on a bumpy bus.
+**Tap targets are measurable, not a feeling.** 44 x 44 CSS pixels is the floor, and the gap to the neighbour matters as much — two correct buttons 2px apart still produce mis-taps. That is how "Pay ₹240" next to "Cancel" gets dangerous on a bumpy bus.
 
 ### Verify it
 
-The whole verification story here is widths and real devices, in that order.
+1. **Check the viewport meta tag first.** Missing, `maximum-scale=1` or `user-scalable=no` are all failures; the last two block the pinch zoom some users read with.
+2. **Sweep the width, do not sample it.** Drag slowly from 1440px to 320px and note every width where something clips, overlaps or scrolls sideways — tablets and split-screen windows live between your favourite two sizes.
+3. **Test 320px specifically.** The narrowest width worth supporting, and the one that exposes fixed widths.
+4. **Zoom to 200% at desktop width.** The page should reflow, not break.
+5. **Measure the tap targets.** Under 44px in the box model is a finding, and so is the gap to the neighbour.
+6. **Open it on the cheapest Android in your group, on mobile data.** The step people skip, and the only one that tells the truth.
+7. **Check nothing was hidden.** Compare mobile against desktop feature by feature.
 
-1. **Check the viewport meta tag first.** View source, search for `viewport`. Missing or set with `maximum-scale=1` or `user-scalable=no` are all failures — the last two block pinch zoom, which some users depend on to read anything at all.
-2. **Sweep the width, do not sample it.** In the device toolbar, drag the viewport slowly from 1440px down to 320px and watch. You are looking for the exact widths where something clips, overlaps or starts to scroll sideways. Sampling only 360px and 1440px misses everything in between, which is where real tablets and split-screen windows live.
-3. **Test 320px specifically.** It is the narrowest width worth supporting, and it is the one that exposes fixed widths.
-4. **Zoom to 200% at desktop width.** This simulates low-vision use and it exposes px-based sizing immediately. The page should reflow, not break.
-5. **Measure the tap targets.** Inspect the primary button and read its height in the box model. Under 44px is a finding. Then check the gap to its nearest neighbour.
-6. **Open it on the cheapest Android in your group, on mobile data.** Not Wi-Fi. This is the step people skip and it is the only one that tells you the truth.
-7. **Check nothing was hidden.** Compare the mobile view against the desktop view feature by feature. Anything present on one and absent on the other was a decision somebody should have made deliberately.
-
-Red flags in AI output: a missing viewport meta tag; `user-scalable=no`; `font-size` in px throughout; more than four breakpoints; `display: none` used as the mobile strategy; `100vh` on a main section; and a fixed `width` in px on any container. One more that is easy to miss: a media query written with `max-width` only, which is desktop-first in disguise and means the narrow layout is the exception rather than the default.
+Red flags: no viewport meta tag · `user-scalable=no` · `font-size` in px throughout · more than four breakpoints · `display: none` as the mobile strategy · `100vh` on a main section · a fixed px `width` on a container · media queries written only with `max-width`, which is desktop-first in disguise.
 
 ## Walkthrough
 1. Open any Indian consumer site on a laptop — a food delivery app, a ticket booking site, your college portal. View source and search for `viewport`. Record exactly what the tag says, or that it is absent.

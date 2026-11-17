@@ -4,7 +4,7 @@ module: m11-ship-your-mvp
 slug: going-live
 title: "Going Live: Domain, TLS, Monitoring and Analytics"
 order: 6
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -24,29 +24,21 @@ last_reviewed: 2026-11-16
 
 **Read this at the start of the final week of the Sprint**, after Checkpoint 3 and before Checkpoint 4. Checkpoint 4 asks for ten real users and a measured north star. Neither is possible on a URL nobody can remember, with no way of knowing the product broke at 9 pm, and no event recording the action you claim to care about. This chapter is the two days of work that makes the last gate achievable.
 
-The underlying material is elsewhere: DNS and domains in M02.12, HTTPS and TLS in M02.14, certificates again at M06.13, monitoring in M07.4–M07.7, events and funnels in M07.8, consent and privacy in M07.9. What this chapter adds is the **order you do it in** and the smallest version that is enough.
-
 ### The pain
 
-A group finishes Checkpoint 3 on a host-generated URL that looks like `canteen-mvp-a7f3-git-main.example-host.app`. On Monday they start recruiting users. They put the URL in a WhatsApp message; it wraps onto three lines and two people mistype it. One person's browser warns them about the site before it loads anything.
-
-On Wednesday evening the free-tier database hits a connection limit and every save fails for two hours. The group finds out on Thursday afternoon, from a friend who says "I tried it and it said something went wrong, so I gave up."
-
-On Friday they are asked how many people completed an order. They count WhatsApp replies. The number is four, or six, depending on who is counting, and two of those were group members testing. All three failures are a few hours of work to prevent and much harder to fix afterwards — you cannot measure last Wednesday after the fact.
+A group finishes Checkpoint 3 on a host-generated URL like `canteen-mvp-a7f3-git-main.example-host.app`. In a WhatsApp message it wraps onto three lines; two people mistype it. On Wednesday the free-tier database hits a connection limit and every save fails for two hours; they hear about it on Thursday, from a friend who gave up. On Friday, asked how many people completed an order, they count WhatsApp replies: four, or six, two of them group members.
 
 ### The idea
 
 **Going live is not deploying. Deploying makes the code run; going live makes it findable, trustworthy, observable and measured.**
 
-Four pieces of work, not optional extras. They are what turns a deployed URL into something a stranger will use and you can learn from.
+Four pieces of work, not optional extras.
 
 ### The analogy
 
-The stall moves out of the corridor and into an actual shop. Four things change on the first day, and none of them is about the food.
+The stall moves into an actual shop. Four things change on day one, none about the food: a **signboard** people can say to a friend; a **licence displayed** where customers see it; a **shutter with a lock**, the owner's number beside it; and a **counter book**, because "it felt busy" is not a number.
 
-There is a **signboard** with a name people can say to a friend. There is a **licence displayed** where the customer can see it, so a stranger believes the place is real. There is a **shutter with a lock**, and the owner's number painted beside it so someone can report a problem. And there is a **counter book** recording how many plates went out today, because "it felt busy" is not a number.
-
-**Where the analogy breaks:** a shopkeeper walking up at 7 am sees immediately that the shutter is bent. Software fails silently, and nobody walks past your server. Unless you install the thing that notices, the failure is discovered by a user who has already given up — and users who give up do not complain, they just never come back.
+**Where the analogy breaks:** a shopkeeper sees at once that the shutter is bent. Software fails silently: unless something notices, the failure is found by a user who has already given up, and they never come back.
 
 ### Picture it
 
@@ -73,29 +65,19 @@ A typed name resolves through DNS to your host, which serves your production env
 
 ### The four pieces, in order
 
-**1. A name, and TLS.** Buy a domain. A `.in` costs a few hundred rupees a year and is the one real expense in this program, so decide as a group whether to spend it; a free subdomain from your host is acceptable if it is short enough to say out loud. Point it at your host with the record type your host asks for — usually an `A` record for a bare domain and a `CNAME` for `www`. Changes take minutes to hours to spread, so do this on Monday, not the night before you recruit.
+**1. A name, and TLS.** Buy a domain — a `.in` costs a few hundred rupees a year — or use a subdomain short enough to say out loud. Point it at your host with the record type it asks for: usually `A` for the bare domain, `CNAME` for `www`. DNS takes hours to spread, so do it on Monday; TLS follows once it resolves. Mixed content, a page loading anything over plain `http`, is what phones block. M02.12, M02.14.
 
-TLS is then usually automatic: your host issues a certificate once DNS resolves. Your job is to check three things. The padlock appears, with no warning. `http://` redirects to `https://`. And nothing on the page loads over plain `http` — a single image or script on `http` is "mixed content", and some phone browsers will block it or warn, which is exactly the moment a stranger decides your product is not safe.
+**2. Separate environments.** One place you can break, one strangers use, each with its own environment variables and ideally its own database. This prevents a migration tried in production because it was the only one, deleting users you recruited. Payments stay in test mode, labelled as such.
 
-**2. Separate environments.** You need one place you can break and one place strangers use. Both exist on free tiers: a preview or staging deployment and a production one, with their own environment variables and, if you possibly can, their own database. The failure this prevents is specific and common — a migration tried in production because it was the only environment, deleting the data of users you spent two days recruiting.
+**3. Monitoring: error tracking, one uptime check, one alert.** Install error tracking (M07.7). Point the monitor at a `/health` route that touches your database, not at your homepage, which renders perfectly while every save fails. Then **one** alert, to **one** person, for **one** condition.
 
-Payments stay in test mode for this entire program. If you have a payment step, label it in the interface so a real person does not believe they paid: "test mode — no money moves" next to the UPI button.
+**4. Analytics: one event, then a funnel.** Before recruiting anyone, send one event when a user completes the core action from `SCOPE.md`, plus the two or three before it — opened, started, completed — so you can say where the other nine dropped out. M07.8.
 
-**3. Monitoring: error tracking, one uptime check, one alert.** Error tracking catches exceptions your users hit, with the request that caused them. Install it and then cause an error on purpose so you know it works. From M07.7.
-
-An uptime monitor pings a URL every few minutes and tells you when it stops answering. Give it a dedicated `/health` route that actually touches your database and returns a simple ok, rather than your homepage — a homepage can render perfectly while every save is failing, which is precisely the Wednesday-evening failure above.
-
-Then **one** alert, to **one** person, for **one** condition: the site is down, or errors have crossed a threshold. Five alerts in week four becomes a muted channel in week five, and a muted channel is worse than no alert because you believe you are covered. M07.7 calls this alert fatigue.
-
-**4. Analytics: one event, then a funnel.** Before you recruit anyone, send one event when a user completes the core action from your north star in `SCOPE.md`. One. Then add the two or three events before it that make a funnel — opened, started, completed — so that when nine of ten users drop out you can say where.
-
-Do not build a dashboard of forty numbers. M01.5's warning applies: three metrics is a dashboard, and a dashboard lets everyone pick the number that makes them look good.
-
-**Privacy is part of this piece, not a separate chore.** You are about to collect real people's data under India's DPDP framework. The minimum: a plain-language page saying what you collect, why, and how to get it deleted; no personal data in your logs, which M07.5 covers; consent before analytics if your tool sets identifiers; and a working way for a user to ask you to delete their account. Write it in language a second-year student can read, because that is who your users are.
+Privacy belongs here. Under India's DPDP framework the minimum is a plain-language page saying what you collect and how to get it deleted; no personal data in logs (M07.5); consent before analytics; a deletion path that works.
 
 ### Where it lives
 
-This is the handover point between building and operating. M07's monitoring and analytics chapters are the depth behind every paragraph above. M11.7 consumes all four pieces directly: ten users arrive through a name they can type, their failures show up in your error tracker, and your north star is a number rather than a count of WhatsApp replies. At the Company tier, M16 turns this one event into a retention cohort and M17 puts a price on it.
+This is the handover between building and operating. M11.7 consumes all four pieces: users arrive through a name they can type, their failures reach your tracker, your north star is a number.
 
 ### Words to own
 
@@ -114,33 +96,28 @@ This is the handover point between building and operating. M07's monitoring and 
 
 ### Tradeoffs and gotchas
 
-**Do DNS first, because it is the only step you cannot hurry.** Everything else in this chapter takes minutes once decided. A name change can take hours to spread, and a certificate cannot be issued until it has.
+**Do DNS first; it is the only step you cannot hurry.** Everything else takes minutes, and the certificate waits on it.
 
-**Cause one real error and one real outage on purpose.** An error tracker you have never seen fire is an assumption. Throw an exception deliberately, confirm it arrives with the request attached, then take the health route offline for two minutes and confirm the alert reaches a human's phone. Both tests take ten minutes and are the only proof that the tooling works.
+**A tracker you have never seen fire is an assumption.** Break things deliberately.
 
-**One alert, one person, one condition.** Decide now, in `TEAM.md`, who that person is this week, and what they do when it fires. "The group chat" is not a person and will not act.
+**Name the on-call person in `TEAM.md`.** "The group chat" will not act.
 
-**Never put personal data in a log line.** A phone number or an email in your logs is a copy of personal data in a place you will forget about, exported to whichever third party stores your logs. Log an id and look the rest up. M07.5 has the detail.
+**Analytics measured from Friday cannot tell you about Monday.** Everything else you can retrofit; a week of uninstrumented behaviour is gone.
 
-**Analytics measured from Friday cannot tell you about Monday.** The one genuinely unrecoverable item here: everything else you can retrofit, but a week of uninstrumented user behaviour is simply gone.
-
-**Rehearse the rollback.** Find the button or the command, use it once on purpose, and confirm the previous version comes back. The first time you roll back must not be at 10 pm with ten users waiting, and an agent cannot do this for you — it is your host's interface, and your credentials.
+**Rehearse the rollback.** An agent cannot do it for you, and the first time must not be at 10 pm with ten users waiting.
 
 ### Verify it
 
-Nine checks, and all of them from a device that is not yours.
+All from a device that is not yours.
 
-1. **Type the name on someone else's phone, on mobile data.** It loads, with a padlock, with no warning.
-2. **Type `http://` explicitly.** It redirects to `https://`.
-3. **Open the browser console and look for mixed-content warnings.** Zero, on every page a user reaches.
-4. **Open `/health`.** It answers, and it answers by touching the database rather than returning a hard-coded ok.
-5. **Throw an error on purpose.** It appears in your error tracker within a minute, with the request that caused it.
-6. **Take the health route down for two minutes.** The alert reaches a human's phone, and you can name who that human is.
-7. **Complete the core action once** and confirm exactly one event arrives, with no personal data in it.
-8. **Roll back and roll forward again.** Confirm the live site changed both times.
-9. **Read your own privacy page as a user would**, and then actually delete a test account using the path you described. If the path does not work, the page is a claim rather than a promise.
+1. **Type the name on someone else's phone, on mobile data, then type `http://`.** Padlock, no warning, a redirect to `https://`, and no mixed-content warnings in the console.
+2. **Open `/health`.** It answers by touching the database.
+3. **Throw an error, then take `/health` down for two minutes.** The error reaches your tracker; the alert reaches a human you can name.
+4. **Complete the core action once.** Exactly one event, no personal data in it.
+5. **Roll back and roll forward.** The live site changed both times.
+6. **Delete a test account using the path your privacy page describes.**
 
-The red flags: a monitor pointed at a static page; an error tracker nobody has seen fire; analytics added after recruiting users; a payment step in test mode that does not say so; personal data in log lines; an alert that goes to a group chat; and a rollback nobody has ever performed. Each of these looks like coverage and provides none.
+Red flags: a monitor on a static page; a tracker nobody has seen fire; analytics added after recruiting; an unlabelled test-mode payment; personal data in logs.
 
 ## Walkthrough
 1. Decide as a group whether to spend on a domain. If yes, buy it today; if no, choose the shortest subdomain your host offers and say it out loud to check it survives being read over the phone.

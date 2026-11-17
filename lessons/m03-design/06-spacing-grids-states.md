@@ -4,7 +4,7 @@ module: m03-design
 slug: spacing-grids-states
 title: "Spacing, Grids and Component States"
 order: 6
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team's canteen app has a cart screen. The gap between a dish name and its price is 14 px. The gap between one dish and the next is 16 px. So each price visually belongs to the dish below it, and a student reads the vada pav as costing ₹40.
-
-Lower down, "Remove" sits 6 px from "Pay now". Both are 28 px tall, and a thumb is wider than that. In testing, two students paid when they meant to remove an item.
-
-And the pay button looks identical whether it is ready, disabled because the cart is empty, submitting, or already failed once — so the student cannot tell which of those four situations they are in.
-
-Three problems, one cause: nobody decided the spacing, nobody measured the targets, and nobody designed the states. All three are invisible on a laptop and painful on a phone.
+On a team's cart screen the gap between a dish and its price is 14 px and the gap between dishes is 16 px, so each price reads as belonging to the dish below and a student reads the vada pav as ₹40. "Remove" sits 6 px from "Pay now", and two testers paid when they meant to remove.
 
 ### The idea
 
 **Space is how you say what belongs together, and a component is not designed until all its states are.**
 
-Proximity is the strongest grouping signal there is — stronger than a border, a background colour or a shadow. And an interactive element is not one thing; it is eight things that share a shape.
+Proximity groups more strongly than a border or a shadow, and an interactive element is eight things sharing a shape.
 
 ### The analogy
 
-Watch how the canteen counter is laid out. Plates, spoons and water glasses sit in one cluster with a clear gap before the chai urn. Nobody drew a line between them. The gap does all the work — you understand instantly that plates and spoons are one group and chai is another.
+At the canteen counter, plates and glasses sit in one cluster with a clear gap before the chai urn. Nobody drew a line — the gap does the work. The urn's tap has states too: empty, ready, mid-pour, and "wait two minutes", which the staff say because the urn cannot.
 
-Now look at the chai urn. It has a tap, and the tap has states. Empty, so nothing comes out. Full and ready. Mid-pour. "Just boiled, wait two minutes", which the person behind the counter tells you because the urn cannot. That missing signal is exactly the gap your software must close by itself.
-
-**Where the analogy breaks:** the counter is arranged once for one room. Your layout has to hold at 320 px, at 412 px and on a tablet, which is why you work from a *scale* of permitted gaps rather than placing things by eye.
+**Where the analogy breaks:** the counter is arranged once for one room. Your layout must hold at 320 px and on a tablet, so you work from a *scale* of gaps, not by eye.
 
 ### Picture it
 
@@ -63,9 +55,7 @@ Now look at the chai urn. It has a tap, and the tap has states. Empty, so nothin
 
 On the left the gap inside a group is almost as large as the gap between groups, so the eye assigns each price to the wrong dish; on the right the inside gap is much smaller than the between gap, and the grouping is unambiguous without a single border.
 
-### One spacing scale
-
-Pick a base unit — 4 px is standard — and allow only multiples of it. A workable scale:
+Pick a base unit — 4 px — and allow only multiples of it:
 
 | Token | Value | Typical use |
 |---|---|---|
@@ -76,21 +66,9 @@ Pick a base unit — 4 px is standard — and allow only multiples of it. A work
 | xl | 32 px | Between sections |
 | 2xl | 48 px | Above and below a page heading |
 
-Two laws make this scale useful rather than decorative.
+Two laws: the inside gap is *clearly* smaller than the between gap, and no improvised values — 13 px means somebody nudged it. Say which you mean: padding is inside an element, margin outside. On mobile a grid mostly means a 16 px page margin on every screen.
 
-**The proximity law.** The gap *inside* a group must be clearly smaller than the gap *between* groups. Not slightly — clearly. 4 px inside and 24 px between is unambiguous. 14 px and 16 px is the bug at the top of this chapter.
-
-**No improvised values.** If a gap is 13 px, somebody nudged it. Every gap should be nameable from the scale. This sounds pedantic until you have six screens built by AI in six sessions and none of them line up.
-
-Padding and margin are different, and AI confuses them constantly. Padding is space inside an element; margin is space outside it, pushing neighbours away. "The button text is touching the edge" is padding; "the buttons are too close together" is margin. Saying which you mean is the difference between one correction and four.
-
-### Grids, briefly
-
-A grid is an agreement about columns and gutters so that things line up down the page. On mobile you mostly need one thing: a consistent left and right page margin — 16 px is a good default — so every element on every screen starts at the same x position. Its absence is why AI-generated screens often feel subtly untidy even when each component is fine. Beyond that, 4 columns on phones, 8 on tablets and 12 on desktop is the common arrangement, with the gutter taken from your spacing scale. M02 covered how flexbox and grid achieve this; here the point is that the *numbers* get decided once and reused.
-
-### The eight states
-
-Every interactive component has states. Here they are, with what each one must communicate.
+Every interactive component has eight states:
 
 | State | What it says | Common failure |
 |---|---|---|
@@ -103,25 +81,18 @@ Every interactive component has states. Here they are, with what each one must c
 | Error | It failed, here is what to do | A number instead of a sentence |
 | Success | It worked | Flashes too fast to notice |
 
-Four of these deserve a specific warning.
+The focus ring is never removed; disabled says why at 3:1 contrast ("Pay now — add an item first"); loading changes the text *and* blocks a second tap; an error says "your money was not deducted — try again or pay at the counter."
 
-**Focus is not optional and must not be removed.** The focus ring is how a keyboard or switch-access user knows where they are. AI strips it frequently because it looks cleaner. Chapter 9 treats this as a hard failure, and so should you.
-
-**Disabled must say why.** A greyed-out "Pay now" with no explanation is a dead end. "Pay now — add an item first" is a disabled state that teaches. A disabled button still needs 3:1 contrast or it is invisible on a sunlit phone.
-
-**Loading is the state that prevents double orders.** Chapter 3 named this as heuristic 1. On tap, the button changes text, shows progress, and becomes untappable. All three, not one.
-
-**Error states need the user's words.** "Payment failed — your money was not deducted. Try again or pay at the counter." That second sentence is the one that matters in an Indian payment flow, because the student's real question is never "what was the error code", it is "did my money go".
-
-### Tap targets
-
-The guideline everyone quotes is 44×44 px, from Apple; Google says 48×48 dp. Either way the number is the size of a fingertip, not the size of the visible icon. A 20 px icon can still be a 48 px target by padding around it.
-
-Two additions for budget Android phones. Minimum 8 px between adjacent targets, and far more if one is destructive — "Remove" next to "Pay" should not be adjacent at all. And the bottom of a tall phone screen is where the thumb rests one-handed, which is why primary actions belong there rather than at the top, where a 6.7-inch phone forces a grip change. M08 and M12 go further.
+Tap targets are 44×44 px (Apple) or 48×48 dp (Google) — a fingertip, not the icon — with 8 px between them, more when one is destructive.
 
 ### Where it lives
 
-Spacing and states are the second half of hi-fi, after chapter 5's type and colour. Chapter 7 freezes these numbers into tokens so they stop being re-decided per screen. Chapter 8 leans on spacing more than anything else — generous, consistent space is one of the few things that reliably makes a generated interface look intentional. Chapter 9 depends on focus and disabled states being real. In M02 these values were CSS variables; at M11's checkpoint, a consistent scale across screens is visible evidence that your product was directed rather than accumulated.
+Spacing and states are the second half of hi-fi.
+
+- **Chapter 7** — these numbers freeze into tokens
+- **Chapter 8** — consistent space is what makes generated work look intentional
+- **Chapter 9** — needs focus and disabled states to be real
+- **M11** — one scale across screens is evidence of direction
 
 ### Words to own
 
@@ -140,28 +111,26 @@ Spacing and states are the second half of hi-fi, after chapter 5's type and colo
 
 ### Tradeoffs and gotchas
 
-**Tight spacing is not information density.** Cramming fits more on screen and makes all of it slower to read. If you genuinely need density — a staff screen showing forty dishes — get it by removing elements, not by shrinking gaps.
+**Tight spacing is not density.** For density, remove elements rather than shrink gaps.
 
-**Borders are not substitutes for space.** A screen where every group sits in its own bordered, shadowed card is a screen where space failed and decoration was applied over the top. Remove the borders first; if the grouping still reads, you never needed them.
+**Borders are not substitutes for space.** Remove them; if the grouping still reads, they were never needed.
 
-**Hover states are nearly irrelevant to your users.** Most of your traffic is touch. Get *pressed* and *focus* right before you think about hover at all.
+**Hover is nearly irrelevant.** Traffic is touch, so get *pressed* and *focus* right first.
 
-**Disabled buttons can be a trap.** If the user cannot work out why a button is disabled, an enabled button that explains the problem on tap is often kinder.
-
-**Optical alignment beats measured alignment occasionally.** A circular icon measured flush to a square looks slightly inset. A real exception, and the most over-used excuse for improvised values. Twice per product, not twice per screen.
+**Disabled buttons can be a trap.** If the user cannot tell why, an enabled button that explains on tap is kinder.
 
 ### Verify it
 
-Six checks. Do all of them on a real phone.
+Six checks, on a real phone.
 
-1. **Measure two gaps per group** — one inside, one between. If the inside gap is more than about half the between gap, proximity is broken and the grouping is lying.
-2. **List every distinct gap value on the screen.** Anything off your scale was improvised. Ask for the scale to be stated and reapplied, rather than fixing gaps one at a time.
-3. **Check the left edge.** Lay a straight edge down the left of a screenshot. Every element should start at the page margin unless deliberately indented.
-4. **Tap everything with your thumb, standing up, one-handed.** Not a mouse. Anything you mis-hit twice is too small or too close to its neighbour.
-5. **Force every state and photograph it.** Network off, then submit. Submit an empty form. Tab through with a keyboard and confirm a visible focus ring on every control. Empty the cart and look at the pay button. A state you cannot produce does not exist.
-6. **Measure the destructive action's distance from the nearest safe one.** Adjacent and the same size is a confirmed real-world failure, not a theoretical one.
+1. **Measure two gaps per group.** An inside gap over half the between gap means the grouping is lying.
+2. **List every distinct gap value**; anything off your scale was improvised.
+3. **Check the left edge**: everything starts at the page margin.
+4. **Tap everything with your thumb, standing, one-handed.** Two mis-hits means too small or too close.
+5. **Force all eight states and photograph each**: network off, empty form, tab for a focus ring, empty cart. A state you cannot produce does not exist.
+6. **Measure the destructive action's distance from the nearest safe one.**
 
-Red flags: gaps like 13 px or 22 px; every group wrapped in a bordered card; the focus ring deleted; a disabled state identical to default; no pending state on a submit button; icon-only buttons smaller than a thumb; and AI calling spacing "balanced" or "clean" rather than naming the values.
+Red flags: gaps like 13 px or 22 px; every group in a bordered card; no focus ring; a disabled state identical to default; no pending state on submit; AI calling spacing "clean" instead of naming values.
 
 ## Walkthrough
 1. Screenshot one data-heavy screen of your product on a real phone and open it in any image viewer where you can read pixel distances.

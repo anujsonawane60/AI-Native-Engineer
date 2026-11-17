@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: prompt-caching
 title: "Prompt Caching and Why It Changes Your Costs"
 order: 6
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,25 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team's canteen assistant runs out of free-tier quota by two in the afternoon, every day. They look at their call and find 1,200 tokens of rules, tool definitions and examples, plus 2,500 tokens of retrieved menu and FAQ text, on top of a forty-token question. Three thousand conversations a day, several calls each, and the same 3,700 tokens re-sent and re-processed every single time.
+A team's canteen assistant runs out of free-tier quota by two every afternoon: 3,700 tokens of rules, tools, examples, menu and FAQ, re-sent and re-processed on every one of three thousand conversations a day.
 
-Their fix is to cut the system prompt. They delete the Hinglish examples and two of the refusal rules, the quality drops noticeably, and the quota still runs out — now at three in the afternoon.
-
-What they had not noticed is the line at the top of their prompt. Their template begins "Today is 16 November 2026, 14:32." That timestamp changes every minute, which means the very first tokens of every call differ from the last call, which means nothing after it can ever be reused. One helpful line was costing them the entire saving.
+So they cut the system prompt. Quality drops and the quota still runs out, now at three. What they had not noticed is the first line of their template — "Today is 16 November 2026, 14:32" — which changes every minute, so the first tokens differ every call and nothing after them can be reused. One helpful line cost them the entire saving.
 
 ### The idea
 
-**Providers can store the processed form of a prompt prefix. If the first tokens of this call are identical to the last one, you pay a small fraction for them and they process almost instantly — but only if they are identical, and only if they are at the front.**
+**Providers can store the processed form of a prompt prefix. If the first tokens of this call are identical to the last one, you pay a fraction for them and they process almost instantly — but only if they are identical, and only at the front.**
 
-Two consequences follow, and the second one surprises people more than the first. Cost drops a lot, often by most of the bill for a prompt-heavy product. And *latency* drops, because the model is no longer re-reading 3,700 tokens before it writes the first word. On a slow Indian 4G connection, time to first word is what a user actually experiences.
+Cost drops a lot, often most of the bill for a prompt-heavy product. Latency drops too, because the model no longer re-reads 3,700 tokens before the first word, and on slow 4G time to first word is what the user experiences.
 
 ### The analogy
 
-Every canteen that serves two hundred plates at lunch makes a base masala in the morning: onion, tomato, ginger, garlic, the standard spices, one big vessel. A specific order adds the vegetable at the end and it is on the plate in ninety seconds.
+Every canteen serving two hundred plates makes a base masala in the morning: onion, tomato, ginger, garlic, spices, one big vessel. An order adds the vegetable at the end and is on the plate in ninety seconds. Making fresh masala per plate is what an uncached prompt does.
 
-Making fresh base masala for each individual plate is what an uncached prompt does. Same ingredients, same work, repeated two hundred times, while the queue grows.
-
-**Where the analogy breaks in two places.** The vessel of masala keeps all day whether anyone orders or not. A prompt cache expires after a short period of inactivity — minutes, typically — so if your next call comes an hour later you pay to build it again. And making the vessel costs *more* than making one plate's worth: writing to the cache is usually billed above a normal call, so a product with a handful of scattered conversations can genuinely end up worse off. Caching pays when calls are frequent and share a prefix.
+**Where the analogy breaks, twice.** The vessel keeps all day; a prompt cache expires after minutes of inactivity, so a call an hour later pays to build it again. And the vessel costs *more* than one plate's worth — a cache write is billed above a normal call, so a product with scattered conversations ends up worse off.
 
 ### Picture it
 
@@ -66,47 +62,17 @@ Making fresh base masala for each individual plate is what an uncached prompt do
 
 The first call pays to build the cache; later calls with a byte-identical prefix read it cheaply. One changed token anywhere in the prefix discards all of it.
 
-### What makes a prefix match
-
-Matching is by exact prefix, from the first token forward. The provider walks your call from the beginning and reuses as much as is identical. The moment something differs, everything from that point on is new work — including the parts after it that have not changed.
-
-So this is a layout problem, and it is the same layout chapter five already argued for, now with a bill attached.
-
-**Front:** the system prompt, tool definitions, few-shot examples. Identical for every user, every call, forever.
-
-**Middle:** anything shared by many calls but not all. A product-wide FAQ, the day's menu, a policy document. Still cacheable, just with a shorter useful life.
-
-**Back:** retrieved chunks for this question, conversation history, the question itself. Never the same twice, never cached, and that is fine.
-
-### The small mistakes that kill it
-
-Each of these has cost a real team its entire saving.
-
-**A timestamp or a date at the top.** Put the date in the user turn at the end, never in the system prompt. If a rule genuinely needs today's date, the rule can refer to a date supplied later.
-
-**A per-user system prompt.** "You are helping Priya, roll number 4121." That is a different prefix for every student, so your cache hit rate is zero across users. Put the student's name in the final turn and keep one canonical prefix for everybody.
-
-**Tool definitions in a different order.** If your code builds the tool list from a dictionary or a set, the order can change between runs. Sort it. Deterministically.
-
-**Shuffled retrieved chunks above the stable block.** If anything variable sits above your rules, nothing below it caches.
-
-**Editing the rules file during a session.** Entirely correct behaviour that you should expect: every edit is a new prefix and a new cache write. Expect a cost blip after each change, not a mystery.
-
-### Prompt caching is not answer caching
-
-These get confused constantly and they are different techniques with different failure modes.
-
-**Prompt caching** stores the *processed input*. The model still generates a fresh answer every time. There is no staleness risk, because nothing about the answer is reused.
-
-**Answer caching** stores the *output*: "what are the canteen timings" asked twice returns the stored reply. That is far cheaper again — zero model calls — and it carries the classic staleness problem M05 taught you, which is why it needs a TTL and a way to invalidate when the underlying data changes. Caching "which dishes are sold out" for an hour is a bug, not an optimisation.
-
-Both are worth having. Decide them separately, and never explain a staleness bug by pointing at the prompt cache.
+Matching runs by exact prefix from the first token forward, so the moment something differs everything after it is new work — including parts that did not change. This is chapter five's layout with a bill attached: rules, tools and examples at the front, things shared by many calls in the middle, this question's chunks and history at the back.
 
 ### Where it lives
 
-Caching is a provider feature you enable in the API call, usually by marking where the cacheable prefix ends. In your code it is a property of the single `build_context()` function from chapter five — which is the argument for having exactly one such function.
+Caching is a provider feature you switch on by marking where the cacheable prefix ends, so in your code it is a property of chapter five's single `build_context()`. M05 covered caching as a general systems idea; this is the same idea at the model boundary. Five small mistakes destroy it:
 
-M05 covered caching, rate limiting and cost control as general systems ideas; this is the same idea applied one layer up, at the model boundary. M09's token economics is how you price the before and after. And chapter two's build-time trick combines well with this: a prompt and schema designed once by a reasoning model, then served as a cached prefix to a cheap model, is close to the cheapest reliable AI feature you can build on a free tier.
+- A timestamp or date at the top — move it to the final user turn
+- A per-user system prompt: "helping Priya, roll 4121" is a new prefix per student
+- A tool list built from a set, so its order changes between runs
+- Shuffled chunks sitting *above* the stable block
+- Editing the rules file mid-session — correct behaviour, new prefix each time
 
 ### Words to own
 
@@ -125,31 +91,23 @@ M05 covered caching, rate limiting and cost control as general systems ideas; th
 
 ### Tradeoffs and gotchas
 
-**The numbers move.** Discounts, minimum cacheable lengths and TTLs differ by provider and change between releases. Learn the mechanism here and read the current pricing page before you design around a specific figure. Anything you memorise today will be wrong within a year.
+**Prompt caching is not answer caching.** Prompt caching stores the processed *input* and the model still generates fresh output, so there is no staleness risk. Answer caching stores the *output*, is cheaper again, and carries M05's staleness problem — caching "which dishes are sold out" for an hour is a bug.
 
-**There is usually a minimum prefix length.** Below it, nothing is cached at all and you get no warning. A 200-token system prompt may simply not qualify, which is one of the rare arguments for a *longer* stable block — if the extra content earns its place on quality grounds too.
+**The numbers move.** Discounts, TTLs and the minimum prefix length differ by provider and change between releases — below that minimum nothing caches and you get no warning. Learn the mechanism here and read the current pricing page.
 
-**Low-traffic products lose.** Cache writes cost more than normal calls. If your demo gets twelve conversations a day spread over twelve hours, you will pay more with caching on. Measure before and after rather than assuming.
+**Low-traffic products lose.** Cache writes cost more than normal calls, so twelve conversations over twelve hours cost more with caching on.
 
-**Caching never improves correctness.** It changes cost and latency and nothing else. A wrong answer gets wrong faster and cheaper.
-
-**Do not put one user's data in a shared prefix.** The mechanism is scoped to your account, not to a user, so a prefix containing Priya's order history is a prefix every other student's call will match against. Per-user data belongs at the end, with the question.
-
-**Shortening your rules is the wrong first move.** The team in the opening story deleted quality to save money that caching would have saved for free. Fix the layout first, measure, and only then decide whether the content is too long.
+**Never put one user's data in a shared prefix.** The cache is scoped to your account, not to a user, so a prefix holding Priya's order history is one every other student's call matches against. And caching changes cost and latency only — a wrong answer just gets wrong faster.
 
 ### Verify it
 
-**Read the token counts the provider returns.** Most responses report cache-read and cache-write token counts separately. Log them. On a warm product, cache-read should dominate within minutes of starting. If cache-write is high on every call, your prefix is not stable and the numbers will tell you so immediately.
+- **Read the token counts the provider returns.** Most report cache-read and cache-write separately. Log them; on a warm product cache-read should dominate.
+- **Diff two consecutive prompts byte for byte.** What shows up is almost always a timestamp, a user name or a reordered tool list.
+- **Measure time to first token before and after**, twenty calls each way on a throttled connection.
+- **Price it over a full day, not one call**, including cache writes and cold starts.
+- **Confirm cache and freshness are separate.** Ask about a dish marked sold out five minutes ago; a stale answer means you have answer caching somewhere, because prompt caching cannot cause it.
 
-**Diff two consecutive prompts byte for byte.** Print the exact prefix on two calls and compare them with a diff. What shows up is almost always a timestamp, a user name, a reordered tool list or a randomly ordered set.
-
-**Measure time to first token, before and after.** Twenty calls each way, on a throttled connection. This is the number your users experience, and it is the most persuasive evidence that the work was worthwhile.
-
-**Price it honestly over a full day, not one call.** Include the cache writes and the cold starts. A product with bursty traffic has more cold starts than you expect.
-
-**Confirm your cache and your freshness are separate.** Ask the model something that changed five minutes ago — a dish just marked sold out. If the answer is stale, find out whether you also enabled answer caching somewhere, because prompt caching cannot cause that.
-
-Red flags: a date, time, user name or session id anywhere in the system prompt; a tool list built from an unordered collection; no cache-read or cache-write numbers in your logs; a team that shortened its rules to cut costs without checking the layout; a staleness bug blamed on the prompt cache; and one user's private data inside a prefix shared across users.
+Red flags: a date, time, user name or session id in the system prompt; a tool list built from an unordered collection; no cache-read or cache-write numbers in your logs; rules shortened to cut costs without checking the layout; a staleness bug blamed on the prompt cache; one user's data inside a shared prefix.
 
 ## Walkthrough
 1. Print the full prompt your product sends, for two consecutive calls, and save both to files.

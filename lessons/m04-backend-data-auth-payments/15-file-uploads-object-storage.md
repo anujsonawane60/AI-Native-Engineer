@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: file-uploads-object-storage
 title: "File Uploads: Object Storage, Buckets and Signed URLs"
 order: 15
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,35 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-The canteen app lets staff photograph each dish. The first version works like this: the phone uploads the photo to the server, the server saves it to a folder on disk, and the database stores the filename.
-
-Four things go wrong in two weeks.
-
-The server is serverless, so the disk vanishes between invocations. Half the photos disappear and nobody can reproduce it, because on a laptop the disk persists.
-
-The team moves the images into the database as binary columns. Now every query that touches the menu drags megabytes with it, backups take forty minutes, and the free-tier storage limit is reached on day three.
-
-Then a staff member uploads a 12-megapixel photo straight from a phone camera: 6 MB. The upload itself times out at ten seconds on hostel 4G. When one does get through, the student menu loads 6 MB per dish, which on a budget phone on 4G means a blank screen and an eventual reload.
-
-Finally, a student discovers that the image URLs are sequential and public. Photos uploaded for an internal stock-check — including one with a staff member's handwritten notes and phone number — are readable by anyone who guesses the number.
+The canteen app lets staff photograph each dish, and the first version uploads the photo to the server, saves it to disk, and stores the filename. It fails three ways in two weeks: the serverless disk vanishes between invocations, so half the photos disappear; images moved into database columns drag megabytes through every menu query and fill the free tier on day three; and a 6 MB phone-camera photo times out on hostel 4G. Then a student notices the image URLs are sequential and public, and reads a stock-check photo nobody meant to publish.
 
 ### The idea
 
-**Files live in object storage, not in your database and not on your server's disk; your database stores only a key pointing at them, and access is granted one file at a time with a signed URL.**
+**Files live in object storage, not in your database and not on your server's disk; your database stores only the key, and access is granted one file at a time with a signed URL.**
 
-**Object storage** is a service built for exactly this: a **bucket** holds **objects**, each identified by a **key** that looks like a path (`dishes/91/main.jpg`). It is cheap, effectively unlimited, and designed to serve a file to a browser directly without your server touching the bytes.
+**Object storage** is built for exactly this: a **bucket** holds **objects**, each identified by a **key** that looks like a path (`dishes/91/main.jpg`). It is cheap, effectively unlimited, and serves files straight to a browser.
 
-A **signed URL** is a temporary link, cryptographically signed, that grants one specific operation on one specific object for a few minutes. It is how you let a phone upload straight to the bucket without your server relaying the file, and how you let someone read a private file without making the bucket public.
+A **signed URL** is a temporary, signed link granting one operation on one object for a few minutes — how a phone uploads straight to the bucket, and how someone reads a private file without the bucket being public.
 
 ### The analogy
 
-The canteen does not keep crates of supplies behind the serving counter. It keeps them in a storeroom, and the register at the counter notes which shelf each item is on.
+The canteen keeps supplies in a storeroom; the register at the counter notes which shelf each item is on. Object storage is the storeroom, the database the register — one line per crate, never the crate itself. A signed URL is a chit: "collect one sack from shelf D4, valid fifteen minutes" — the keeper checks the chit, not the person.
 
-Object storage is the storeroom. The database is the register — one line per crate, with a shelf reference, never the crate itself. A register with sacks of rice stuffed between the pages is the "images in the database" mistake, and it is why nobody can carry the register anymore.
-
-A signed URL is a chit the manager writes: "bearer may collect one sack from shelf D4, valid fifteen minutes". The storeroom keeper checks the chit, not the person. The manager never carries the sack himself — he just authorises the trip.
-
-**Where the analogy breaks:** a storeroom has one door and a keeper who sees who walks in. A bucket is reachable from anywhere on the internet, and if you make it public, every object in it is public forever to anyone who guesses a key. There is no keeper. The chit system is not a convenience — it is the only door.
+**Where the analogy breaks:** a storeroom has one door and a keeper who sees who walks in. A bucket is reachable from anywhere on the internet, and a public bucket is public forever to anyone who guesses a key. The chit is the only door.
 
 ### Picture it
 
@@ -76,37 +62,14 @@ Your server authorises the upload and stores the key, the file travels directly 
 
 ### Where it lives
 
-Object storage is a fourth box beside M00's client, server, network and data — or more precisely, it is a second kind of data store, one your client talks to directly under supervision.
+Object storage is a second kind of data store beside M00's four boxes, one your client talks to directly under supervision. The bytes bypass your server, so a 6 MB upload never hits chapter 5's ten-second timeout; but chapter 14's row-level security does not apply, because a bucket has no concept of "rows this student may see". **Permission for files is entirely the signed URL and the bucket's policy.**
 
-That directness is the point and the risk. The bytes bypass your server, which is why a 6 MB upload does not hit chapter 5's ten-second timeout. But it also means chapter 14's row-level security does not apply: a bucket has no concept of "rows this student may see". **Permission for files is entirely the signed URL and the bucket's policy**, which is why this chapter sits right after the permissions chapters.
+| File kind | Bucket | How a read is authorised |
+|---|---|---|
+| Dish photo on the public menu | public, via a CDN | no check — anyone may read |
+| ID card, receipt, stock photo | private | signed URL after a matrix check |
 
-The resize belongs to chapter 16's background jobs. The private-versus-public decision belongs to M07, where leaked documents are an incident and the DPDP Act has opinions about a student's ID photo being publicly readable. In M10, documents you ingest for RAG are also objects in a bucket, with the same access questions.
-
-### Public or private, and the decision you must make per bucket
-
-Two kinds of file, and conflating them is the leak in the opening story.
-
-**Public files** are meant for everyone: a dish photo on a menu that anyone can browse. Make the bucket readable, serve through a CDN, and let the browser cache it. Cheap and fast.
-
-**Private files** are meant for one person or one role: a student's ID card, a payment receipt, an internal stock photo with handwritten notes. These live in a bucket that is **not** publicly readable, and every read goes through a signed URL your server issues after checking the permission matrix from chapter 14.
-
-The mistake is one bucket for both, made public because the dish photos needed it. Then private files are one guessed key away. Use two buckets — or two prefixes with different policies — and decide which one a file goes into at the moment you issue the upload URL.
-
-A related detail: **do not let the client choose the key.** If the phone sends `key: "dishes/91/main.jpg"`, a malicious client sends `key: "students/441/id-card.jpg"` and overwrites someone else's file. Your server generates the key, including a random component, and tells the client what it will be.
-
-### Validating an upload, properly
-
-Four checks, and the order matters because the first three happen before any bytes move.
-
-**Size.** Enforce a maximum when you issue the signed URL, not after the upload. A limit checked afterwards means you have already paid for the bandwidth and the storage.
-
-**Type.** Allow a specific list — `image/jpeg`, `image/png`, `image/webp` — rather than blocking a list. And know that the declared content type is a claim by the client; the real check is inspecting the file's actual bytes after it arrives, which is work for a background job.
-
-**Permission.** Chapter 14's matrix. May this role upload this kind of file at all? Can staff upload dish photos but not replace a student's ID?
-
-**Filename.** Never trust it. It can contain path traversal, Unicode tricks, or 400 characters. Generate your own key and keep the original name as a plain text column if you need to display it.
-
-After the file lands, the real work starts and none of it belongs in a request handler. A 6 MB phone photo must become a sensible web image of about 100 KB — resizing, re-encoding and stripping EXIF metadata, which matters more than it sounds: phone photos carry GPS coordinates, and publishing one with the canteen's exact location embedded is a privacy leak nobody intended.
+One bucket for both, made public for the dish photos, is the leak in the opening story.
 
 ### Words to own
 
@@ -125,34 +88,28 @@ After the file lands, the real work starts and none of it belongs in a request h
 
 ### Tradeoffs and gotchas
 
-**Never store files in your database.** Binary columns bloat every backup, slow every query that selects them by accident, and burn a free tier in days. The database stores the key.
+**Never store files in your database or on your server's disk.** Binary columns bloat every backup and burn a free tier in days; serverless disk does not persist, and a second instance cannot see the first's files.
 
-**Never rely on your server's disk.** On serverless it does not persist; on a scaled server the second instance cannot see what the first wrote. Both failures are invisible with one instance on a laptop.
+**Your server generates the key.** A client that picks its own can send `students/441/id-card.jpg` and overwrite someone else's file. Ask for a direct-to-bucket upload — AI's default posts the file through your server, which the timeout kills.
 
-**Signed URL lifetimes should be short.** Five or ten minutes for an upload, a few minutes for a private read. A link valid for a week will be pasted into a WhatsApp group, and then it is a public link you cannot revoke without moving the object.
+**Signed URL lifetimes should be minutes, not days.** A week-long link gets pasted into a WhatsApp group, and then it is a public link you cannot revoke.
 
-**Deleting the row does not delete the file.** Your database and your bucket are separate systems with no transaction between them — chapter 11's point. You need a deliberate decision: delete the object when the row goes, or run a periodic cleanup for orphans. Pick one, or your free tier fills up with photos of dishes that no longer exist.
+**Orphans happen in both directions.** There is no transaction between database and bucket, so issue the key, upload, write the row — and sweep for objects with no row after a day.
 
-**The reverse orphan is worse.** A file uploaded and then the database write fails leaves an object nobody knows about. Issue the key, upload, then write the row — and have the cleanup job sweep objects with no row after a day.
-
-**Strip EXIF from anything you publish.** Faces plus locations in a student app is the kind of thing the DPDP Act exists for.
-
-**Resize on the way in, not on the way out.** Serving a 6 MB original and letting the browser scale it down spends the user's data allowance, which on a metered 4G plan is their money. Generate a thumbnail once, store it, serve that.
-
-**Do not let AI build an upload that posts to your server.** It is the default answer and the one the ten-second timeout kills. Ask for a direct-to-bucket upload with a server-issued signed URL.
+**Resize and strip EXIF on the way in.** Serving a 6 MB original spends the user's data allowance, which on 4G is their money, and phone photos carry GPS coordinates.
 
 ### Verify it
 
-Six attacks on your own upload path. Every one takes two minutes.
+Six attacks on your upload path.
 
-1. **Upload something far too big.** A 50 MB file. It must be refused — ideally at the point of requesting the signed URL, before any bytes travel. If the refusal happens after the upload, you paid for it.
-2. **Upload the wrong type.** A PDF, a `.zip`, a text file renamed to `.jpg`. The declared type check should stop the obvious ones; note whether anything inspects the actual bytes afterwards.
-3. **Try to choose your own key.** Send a request asking to upload to another user's path. If the server honours a client-supplied key, you can overwrite other people's files.
-4. **Guess a private URL.** Take a private file's URL and open it in a browser with no session, in a private window. If it loads, your bucket is public and chapter 14's matrix means nothing for files.
-5. **Reuse an expired signed URL.** Get one, wait past its lifetime, use it. It must fail. Then check how long you actually set — if it is hours or days, shorten it.
-6. **Check what the student actually downloads.** Open the menu on a throttled connection and look at the image sizes in the Network tab. If you are serving the 6 MB original, the resize is not happening, whatever the code says.
+1. **Upload something far too big.** A 50 MB file must be refused when the signed URL is issued, not after you have paid for the transfer.
+2. **Upload the wrong type.** A text file renamed `.jpg`. Types come from an allow-list, and the declared type is only a client claim — does anything inspect the actual bytes after arrival?
+3. **Try to choose your own key.** Ask to upload to another user's path; if the server honours it, you can overwrite their files.
+4. **Guess a private URL.** Open it with no session. If it loads, your bucket is public and chapter 14's matrix means nothing for files.
+5. **Reuse an expired signed URL.** It must fail — and if the lifetime is hours or days, shorten it.
+6. **Check what the student actually downloads.** Read the image sizes in the Network tab; a 6 MB original means the resize is not in the delivery path.
 
-Red flags: an upload endpoint that receives the file through your server; files in a database column; one bucket holding both public photos and private documents; a client-supplied key used directly; signed URLs lasting days; resizing inside the request handler; no plan for objects when rows are deleted; images served at original resolution.
+Red flags: the file posted through your server; files in a database column; one bucket for public photos and private documents; a client-supplied key; signed URLs lasting days; resizing inside the request handler; no plan for orphans; images served at original resolution.
 
 ## Walkthrough
 1. List every kind of file your product will store, and mark each one public or private. Be strict: anything containing a person's identity, a document or a receipt is private.

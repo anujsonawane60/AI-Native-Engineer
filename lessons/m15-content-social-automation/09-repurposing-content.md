@@ -4,7 +4,7 @@ module: m15-content-social-automation
 slug: repurposing-content
 title: "Repurposing One Idea Into Ten Formats"
 order: 9
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,13 +22,7 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team finds something genuinely good. Of their 1,240 orders, 61% were placed between 8:05 pm and 8:40 pm, and they can argue from it that evening-slot capacity, not menu variety, decides whether a tiffin service survives. Nobody else has that number.
-
-They post it once. One Instagram caption, to 41 followers, at 11 pm. Nine people see it. Two weeks later they cannot remember whether they published it at all. The best insight they produced that term reached nine people, and the work of finding it was two hours.
-
-The second team does the opposite and it is no better. They "repurpose" by pasting the same 400 words into five boxes. The short-form version truncates mid-sentence. The Instagram caption's first line is "In today's competitive food delivery landscape", so nobody reads line two. The WhatsApp message is eleven lines long, which means nobody forwards it — and forwarding was the only reason to put it on WhatsApp. The same words, five times, reaching almost nobody.
-
-One idea published once is waste. One idea pasted five times is also waste, and slightly embarrassing.
+A team finds something genuinely good: of their 1,240 orders, 61% were placed between 8:05 pm and 8:40 pm, and they can argue from it that evening-slot capacity, not menu variety, decides whether a tiffin service survives. Nobody else has that number. They post it once — one caption, 41 followers, 11 pm — and nine people see it. A second team fares no better by "repurposing", which for them means pasting the same 400 words into five boxes: the short version truncates mid-sentence, the caption opens "In today's competitive food delivery landscape", and the WhatsApp message runs eleven lines, so nobody forwards it — and forwarding was the only reason to be on WhatsApp. One idea published once is waste; one idea pasted five times is also waste, and slightly embarrassing.
 
 ### The idea
 
@@ -36,11 +30,26 @@ One idea published once is waste. One idea pasted five times is also waste, and 
 
 If the claim changes between formats you do not have one idea in ten places, you have ten half-ideas and no position. If only the box changes, you have copied. The work is in the middle.
 
+| Format | What it is | What changes |
+|---|---|---|
+| Article on your own site | The canonical version, 400–800 words | Full argument, the evidence table |
+| Vertical video, 30–60s | One number, one claim, burned-in captions | Five-second hook, no intro |
+| Longer video, 3–6 min | The argument with the data on screen | Spoken, chapters, searchable title |
+| Carousel, 6 cards | Card 1 the number, card 6 the claim | One idea per card, no paragraphs |
+| Text thread | First line standing alone, then the steps | Each part readable on its own |
+| WhatsApp forward | Two lines, one image, one link | Written so somebody forwards it |
+| FAQ or glossary page | Answers one exact query from chapter 2 | Query as the heading, answer first |
+| Regional-language version | Its own piece in Marathi or Hindi | Written, not translated |
+| One-screen image | The number as the whole design | Chapter 7's kit, three ratios |
+| Direct message to 40 people | Personal, one line, no broadcast feel | Named, specific, asks a question |
+
+The hook is the part you rewrite, and it is where most repurposing fails. Search wants the query itself: *"How much does a monthly tiffin cost in Nashik?"* A feed wants curiosity inside five words, before the "more" link cuts it off: *"61% of our orders land in 35 minutes."* WhatsApp wants a reason to forward, which is almost always usefulness to a third person: *"Useful if you run a tiffin service — their busiest 35 minutes, with numbers."* A video wants a reason not to swipe within two seconds. Five hooks, one claim: twenty minutes of work, and the difference between nine views and nine hundred.
+
 ### The analogy
 
-One pot of usal, cooked at six in the morning. It becomes misal with tarri on top, usal-pav wrapped for the walk to class, one compartment of the thali, a parcel box for the hostel, and tomorrow's gravy base. One thing, five dishes, each prepared for how it will actually be eaten — misal in a bowl with a spoon, usal-pav in paper, in one hand.
+One pot of usal, cooked at six in the morning. It becomes misal with tarri on top, usal-pav wrapped for the walk to class, one compartment of the thali, and tomorrow's gravy base — one thing, prepared each time for how it will actually be eaten: misal in a bowl with a spoon, usal-pav in paper, in one hand.
 
-**Where the analogy breaks** in two ways. The pot is finite: serve it five ways and it runs out, which forces the cook to choose. An idea is infinitely copyable, so your limit is not supply but your audience's patience. And nobody minds eating misal twice, while a reader who sees the identical words twice unfollows. Reuse the substance; never reuse the sentences.
+**Where the analogy breaks** in two ways. The pot is finite, which forces the cook to choose; an idea is infinitely copyable, so your limit is not supply but your audience's patience. And nobody minds eating misal twice, while a reader who sees identical words twice unfollows. Reuse the substance, never the sentences.
 
 ### Picture it
 
@@ -60,46 +69,11 @@ One pot of usal, cooked at six in the morning. It becomes misal with tarri on to
 
 A single claim fans out into formats that differ in hook, length, shape and language, while the claim stays identical and every derivative points back to one page you own.
 
-### Ten formats from one claim
-
-| Format | What it is | What changes |
-|---|---|---|
-| Article on your own site | The canonical version, 400–800 words | Full argument, the evidence table |
-| Vertical video, 30–60s | One number, one claim, burned-in captions | Five-second hook, no intro |
-| Longer video, 3–6 min | The argument with the data on screen | Spoken, chapters, searchable title |
-| Carousel, 6 cards | Card 1 the number, card 6 the claim | One idea per card, no paragraphs |
-| Text thread | First line standing alone, then the steps | Each part readable on its own |
-| WhatsApp forward | Two lines, one image, one link | Written so somebody forwards it |
-| FAQ or glossary page | Answers one exact query from chapter 2 | Query as the heading, answer first |
-| Regional-language version | Its own piece in Marathi or Hindi | Written, not translated |
-| One-screen image | The number as the whole design | Chapter 7's kit, three ratios |
-| Direct message to 40 people | Personal, one line, no broadcast feel | Named, specific, asks a question |
-
-Two more that students forget. A line in your app-store listing from M12, where the same claim does work on a surface you already own. And a slide in your demo-day deck, because a claim you have published fifty times is one you can defend under questioning.
-
-### The hook is the part you rewrite
-
-The claim is fixed. The first line is not, and it is where most repurposing fails.
-
-Search wants the query itself: *"How much does a monthly tiffin cost in Nashik?"* A feed wants curiosity inside five words, before the "more" link cuts it off: *"61% of our orders land in 35 minutes."* WhatsApp wants a reason to forward, which is almost always usefulness to a third person: *"Useful if you run a tiffin service — their busiest 35 minutes, with numbers."* An email wants a reason to open. A video wants a reason not to swipe, within two seconds.
-
-Five hooks, one claim. Writing them is twenty minutes and it is the difference between nine views and nine hundred.
-
-### Language is a format, not a translation
-
-A Marathi version is a separate piece. Translating your English sentences word for word produces something grammatical that no Marathi speaker would say, and your audience hears it immediately. Write it for the way people actually talk, with one named person on your team reading it aloud before it ships — the rule from chapter 6's language policy.
-
-This is also where your least contested distribution lives. Almost nobody is writing well in Marathi about your subject.
-
-### Order matters: canonical first
-
-Publish the article on your own site first, and point every derivative at it. Three reasons. The page is the only version you control and the only one that can be indexed, so chapters 2 to 4 need it to exist. The link gives every social post somewhere to send the people it earns. And when a platform's reach collapses — which it does — the thing you own survives.
-
-Then stagger the derivatives over a week or two rather than dumping ten pieces in one afternoon. Same idea, different days, different rooms.
-
 ### Where it lives
 
-Chapter 5 produces the claim and the evidence; this chapter multiplies it. Chapter 6 keeps the voice constant while the format changes. Chapter 7 supplies the imagery and the ratios. Chapter 8 carries the variants to each channel on a schedule. Chapters 2 to 4 are why the canonical page exists at all. M12's store listing is one more surface for the same claim, and M17's launch work is this method applied to one big moment instead of one weekly idea.
+Chapter 5 produces the claim and the evidence; this chapter multiplies it. Chapter 6 keeps the voice constant while the format changes, chapter 7 supplies the imagery and ratios, chapter 8 carries the variants to each channel.
+
+Order matters: publish the article on your own site **first**, and point every derivative at it. The page is the only version you control and the only one that can be indexed, so chapters 2 to 4 need it to exist; the link gives every social post somewhere to send the people it earns; and when a platform's reach collapses, the thing you own survives.
 
 ### Words to own
 
@@ -119,37 +93,35 @@ Chapter 5 produces the claim and the evidence; this chapter multiplies it. Chapt
 
 ### Tradeoffs and gotchas
 
-**Do not repurpose a bad idea.** Ten formats of a claim nobody could disagree with is ten times nothing. Chapter 5's disagreement test comes first, always.
+**Do not repurpose a bad idea.** Ten formats of a claim nobody could disagree with is ten times nothing. Chapter 5's disagreement test comes first.
 
-**Pick four formats, not ten, in your first month.** Video costs roughly ten times what a text post costs. Choose the four your audience actually consumes — from your chapter 1 interviews, not from a list — and do those well.
+**Pick four formats, not ten, in your first month.** Video costs roughly ten times a text post, so choose the four your audience actually consumes — from your chapter 1 interviews, not from a list.
 
-**Never let the claim drift.** If the article says capacity matters more than variety and the reel says variety matters, you have published a contradiction. Write the claim once, at the top of your working document, and check each derivative against it.
+**Never let the claim drift.** If the article says capacity matters more than variety and the reel says variety matters, you have published a contradiction.
 
-**Stagger, do not dump.** Ten pieces in one day reaches the same small group ten times and annoys them. Spread them.
+**Language is a format, not a translation.** A Marathi version is its own piece: translating word for word produces something grammatical that no Marathi speaker would say, and your audience hears it immediately. Write it for how people actually talk, with the named person from chapter 6's language policy reading it aloud first. It is also your least contested distribution — almost nobody is writing well in Marathi about your subject.
 
-**Reposting is legitimate.** Your audience in week ten is not the audience of week two. Republishing a good piece to new followers is normal practice, not cheating — as long as it is a repost and not a reheated rewrite pretending to be new.
+**Stagger, do not dump.** Ten pieces in one day reaches the same small group ten times. And reposting is legitimate: your audience in week ten is not the audience of week two.
 
-**Timely ideas expire; evergreen ones compound.** A festival post is dead in a week. A price-comparison page works for two years. Spend most of your effort on the second kind.
-
-**AI is genuinely good at this step.** Reformatting a strong source piece into eight formats with eight hooks is one of the most reliable things you can direct it to do. It just cannot supply the claim.
+**Timely ideas expire; evergreen ones compound.** A festival post is dead in a week; a price-comparison page works for two years.
 
 ### Verify it
 
 **Red flag: the same text in a different box.** Put the article and the carousel side by side. If the carousel's words appear verbatim in the article, no decision was made about the format.
 
-**Red flag: identical first lines.** Line up the opening line of all ten pieces. If more than two match, the hooks were not rewritten, and the hook is the whole job.
+**Red flag: identical first lines.** Line up the opening line of every piece. More than two matching means the hooks were not rewritten, and the hook is the whole job.
 
 **Red flag: a thread whose first line does not stand alone.** Read part one with no context. If it needs part two to make sense, nobody reaches part two.
 
-**Red flag: a WhatsApp message longer than three lines.** Ask the real question: would I forward this to one person? If not, it will not be forwarded by anyone.
+**Red flag: a WhatsApp message longer than three lines.** Would you forward this to one person? If not, nobody else will either.
 
 **Red flag: a translated version nobody read aloud.** Ask the named person in your language policy to read it to you. If they wince once, it is not ready.
 
-**Red flag: the claim changed.** Write the claim at the top of the document and check each derivative against that one sentence, in order. Any drift is a defect, not a variation.
+**Red flag: the claim changed.** Check each derivative against the one sentence at the top of your document. Drift is a defect, not a variation.
 
-**Red flag: no canonical home.** If none of the derivatives links back to a page you own, you have spent effort growing someone else's platform.
+**Red flag: no canonical home.** If no derivative links back to a page you own, you have grown someone else's platform.
 
-**Red flag: AI producing ten pieces with no evidence in them.** Count the numbers and proper nouns in each one. A format that lost the evidence has become filler, which is chapter 5's failure in new clothes.
+**Red flag: a format with no evidence left in it.** Count the numbers and proper nouns in each piece. A derivative that lost the evidence is filler — chapter 5's failure in new clothes.
 
 ## Walkthrough
 1. Take your single best claim from chapter 5 and write it as one sentence at the top of a fresh document. Everything in this walkthrough gets checked against that sentence.

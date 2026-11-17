@@ -4,7 +4,7 @@ module: m11-ship-your-mvp
 slug: checkpoint-2-walking-skeleton
 title: "Checkpoint 2 · Walking Skeleton, Deployed"
 order: 2
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -24,29 +24,23 @@ last_reviewed: 2026-11-16
 
 **Checkpoint 2 is due at the end of week two of the Sprint.** Checkpoint 1 was last week: problem, PRD, scope, diagram, team, decision log. This week the gate is the first thing a human being can use.
 
-The work itself is built by missions elsewhere. M01.6–M01.8 gave you git, branches and pull requests. M02 gave you the page. M04.6–M04.7 gave you tables and a schema. M06.12 gave you CI and preview deploys. This chapter does not re-teach any of that. It states what must be live by a date, and how to check it is genuinely live rather than merely demonstrable.
+The work is built elsewhere: git in M01.6–M01.8, the page in M02, tables in M04.6–M04.7, CI in M06.12. This chapter states what must be live by a date.
 
 ### The pain
 
-A group demos on day fourteen. One of them turns their laptop around and walks through the product: the menu loads, they tap an item, they type a name, a confirmation appears. It looks finished.
-
-Then someone asks to try it on their own phone. There is no URL. Then someone asks what happens if you reload the page. The order is gone — it was never saved anywhere, it was held in the page's memory. Then the laptop's owner goes home for the weekend and the other two members cannot work on the product at all, because the only copy of the database is on that machine and the environment variables that make it run are in a file that was never shared.
-
-Nothing in that demo was a lie. It was a genuine screen showing genuine code. It was also worth almost nothing, because the product does not exist anywhere except on one machine, in one state, for one person.
+A group demos on day fourteen. The menu loads, they tap an item, a confirmation appears; it looks finished. Then someone asks to try it on their own phone — there is no URL. Then someone reloads, and the order is gone because it was never saved. Nothing was a lie, and it was worth almost nothing: the product exists on one machine, for one person.
 
 ### The idea
 
 **A walking skeleton is a thin complete path through every layer, deployed at a public URL, with the data really stored.**
 
-All the bones connected, no muscle yet. Ugly is fine. Narrow is fine — one action, not six. Fake is not fine, and local-only is not fine, because both of those are the exact two things that make a week-two product worthless in week three.
+All the bones connected, no muscle yet. Ugly is fine. Narrow is fine — one action, not six. Fake and local-only are not: those are what make a week-two product worthless in week three.
 
 ### The analogy
 
-The canteen stall's first real sale. Not a tasting in the kitchen for the two people who cooked it: one actual student walks up to a counter that exists, reads a price written where customers can see it, hands over ₹20, gets a plate of poha, and the ₹20 goes into a cash box that the owner can count at the end of the day.
+The canteen stall's first real sale. Not a tasting in the kitchen: a student walks up to a counter that exists, hands over ₹20, gets a plate of poha, and the ₹20 goes into a cash box the owner can count that evening. Almost everything is missing, and it does not matter: the loop is closed.
 
-Almost everything is missing. One dish, no second burner, a price list on paper, no change for a ₹500 note. It does not matter. The loop is closed: a stranger paid, got the thing, and the record survives.
-
-**Where the analogy breaks:** a stall built badly can be rebuilt over a weekend. Software accumulates, so the tape holding your skeleton together has to be *replaceable* tape. That is exactly why the skeleton still goes through git, still deploys properly, and still writes to a real database — those three are the parts you cannot retrofit cheaply.
+**Where the analogy breaks:** a badly built stall can be rebuilt over a weekend. Software accumulates, so the tape holding your skeleton together has to be *replaceable* tape — hence git, a real deploy and a real database.
 
 ### Picture it
 
@@ -67,27 +61,31 @@ The two columns are the same feature; the left one survives only as long as the 
 
 ### What must exist by the end of week two
 
-**1. One complete user path, live.** A public HTTPS URL, reachable from a phone that has never been on your wifi. The single most important action from `SCOPE.md`, start to finish, ending in something the user can see.
+**1. One complete user path, live.** A public HTTPS URL reachable from a phone that has never been on your wifi, running the main action from `SCOPE.md`.
 
-**2. Data really saved.** A row in a real database, visible in the host's table view. If reloading the page loses the thing the user just did, you do not have a skeleton.
+**2. Data really saved.** A row in a real database, visible in the host's table view, that a reload cannot lose.
 
-**3. The path works for a stranger.** Hand your phone to someone outside the group with no explanation and watch them. You are not testing them, you are testing whether the path exists without a narrator.
+**3. The path works for a stranger.** Hand your phone to someone outside the group and watch.
 
-**4. One handled failure.** Exactly one, chosen deliberately: an empty list, a failed save, or a submit with the network off. Agents build the happy path by default, and one real failure state is what separates a skeleton from a screenshot.
+**4. One handled failure.** Exactly one, chosen on purpose: an empty list, a failed save, a submit with the network off.
 
-**5. Everything through git.** Each of the three of you has at least one merged pull request. Main is protected if you managed the stretch in M01.8. No secrets in any commit, ever — M07.2 explains why that is permanent.
+**5. Everything through git.** One merged pull request each, from M01.6–M01.8. No secrets in any commit, ever (M07.2).
 
-**6. One automated check.** One test that genuinely fails when you break the thing it tests, running on every push. One is enough this week. From M06.10 and M06.12.
+**6. One automated check.** A test that genuinely fails when you break what it tests, on every push. M06.10, M06.12.
 
-**7. Two more decision-log entries.** Dated this week. Why this slice and not another, or what you cut when you ran out of days.
+**7. Two more decision-log entries.** Dated this week: why this slice, or what you cut.
 
 ### Where it lives
 
-The skeleton is the spine that every later module hangs flesh on. M03 restyles the page you deployed this week. M04.12 adds real accounts to the name-in-a-text-box you used instead of login. M05.3 caches the query you wrote. M10 adds the AI feature to the server you already have. M07.7 points an uptime monitor at the URL you already own.
+The skeleton is the spine later modules hang flesh on:
 
-That ordering is not an accident. Each of those is an increment on something live, and an increment is a brief you can verify. "Add login to the deployed app" is checkable in ten minutes; "build the whole product" is not checkable at all.
+- M03 restyles the page you deployed this week
+- M04.12 adds real accounts to the name-in-a-text-box
+- M05.3 caches the query you wrote
+- M10 adds the AI feature to the server you already have
+- M07.7 points an uptime monitor at this URL
 
-**Each of you submits your own evidence**, as in Checkpoint 1. One shared URL, three posts. Your reflection names the pull request you personally opened and what the reviewer found in it.
+**Each of you submits your own evidence**, as in Checkpoint 1: one shared URL, three posts. Your reflection names the pull request you personally opened.
 
 ### Words to own
 
@@ -104,30 +102,26 @@ That ordering is not an accident. Each of those is an increment on something liv
 
 ### Tradeoffs and gotchas
 
-**Ugly but real beats beautiful but fake.** A styled prototype with sample data teaches you about layout. A plain page writing real rows teaches you about people. You need the second this week; M03 gives you the first next week.
+**Ugly but real beats beautiful but fake.** M03 gives you the styling next week.
 
-**Deploy on day one of the week, not day seven.** Deployment is where the surprises live: a missing environment variable, a build that works locally and fails on Linux because a filename's capitalisation differs, a free-tier database that sleeps. Hitting those with fifty lines of code is a bad afternoon. Hitting them in week five is a bad week.
+**Deploy on day one of the week, not day seven.** Deployment is where the surprises live: a missing environment variable, a build that fails on Linux over a filename's case, a sleeping free-tier database. Finding those with fifty lines of code is a bad afternoon; in week five it is a bad week.
 
-**Secrets never go in the repository.** Not in a config file, not "temporarily", not in a comment. A commit is permanent the moment it merges, and a key in git history is a key you must rotate. Use the host's environment settings, as in M07.2.
+**Secrets never go in the repository.** Not in a config file, not "temporarily" — a commit is permanent the moment it merges, and a key in git history must be rotated. Use the host's environment settings (M07.2).
 
-**One slice, not four.** The temptation at this gate is to show more. Three half-features look better in a demo and are worse at every subsequent checkpoint, because none of them has a verified failure state and none can be built on.
-
-**Check the free tier's limits before you depend on them.** Row caps, cold starts, sleeping databases, monthly request budgets, a region far from India adding latency on 4G. M06.7 covers the billing traps; the ones that bite in week two are usually the sleeping database and the cold start.
-
-**If only one of you can deploy, you have one engineer and two passengers.** All three must have run a deploy at least once. This is the cheapest possible insurance against the member with the credentials falling ill in week four, and it is also what makes three individual defences possible in M18.
+**If only one of you can deploy, you have one engineer and two passengers.** All three must have run a deploy once.
 
 ### Verify it
 
-Six checks. Run them in this order, because the first two find most of the problems.
+The first two find most problems.
 
-1. **Open the URL on a phone that has never been on your wifi, with wifi off, on mobile data.** This single test catches localhost-only builds, missing environment variables, mixed-content errors and anything that depended on your machine. If it fails here, nothing else matters yet.
-2. **Do the action, then reload the page.** Then close the browser and open the URL again on a different device. If what you did is gone, your data is not persisted.
-3. **Look at the row in the database yourself.** Not the confirmation message — the actual table. Agents will happily show a success toast for a request that errored.
-4. **Hand it to a stranger with no explanation.** Say nothing, including when they go the wrong way. Where they hesitate is where next week's work is.
-5. **Break your one test on purpose.** Change the thing it checks, push, and confirm the check goes red. A test that cannot fail is proving nothing, and this is the only way to know the difference.
-6. **Throttle the network and try the failure state.** Turn on airplane mode mid-submit. The product must say something true rather than hanging forever or claiming success.
+1. **Open the URL on a phone that has never been on your wifi, on mobile data.** This catches localhost-only builds, missing environment variables and anything that depended on your laptop.
+2. **Do the action, then reload**, then open the URL on another device. If what you did is gone, your data is not persisted.
+3. **Look at the row in the database yourself**, not the confirmation message. Agents show success toasts for requests that errored.
+4. **Hand it to a stranger with no explanation.** Where they hesitate is next week's work.
+5. **Break your one test on purpose** and confirm the check goes red.
+6. **Throttle the network mid-submit.** It must say something true rather than hanging forever.
 
-The red flags at this gate: **a demo that only works on the author's machine**, a product with no failure state at all, data that disappears on reload, a single member holding every credential, and a test that passes whether or not the feature exists. Each one is cheap to fix in week two and expensive to discover in the final week.
+The red flags here: a demo that only works on the author's machine, no failure state, data lost on reload, one member holding every credential, and a test that passes whether or not the feature exists.
 
 ## Walkthrough
 1. Open `SCOPE.md` and read slice one out loud as a sentence a person performs. If it still sounds like a list of components, rewrite it before you brief anything.

@@ -4,7 +4,7 @@ module: m06-cloud-linux-devops-testing
 slug: unit-integration-e2e-tests
 title: "Unit, Integration and End-to-End Tests: What Each Catches"
 order: 10
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,35 +22,27 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team's canteen app has worked for three weeks. An agent is asked to add a student discount. Twenty minutes later the discount works. Two days later a student pays ₹0 for a ₹240 order, because the discount was applied to the total *after* a quantity change, and the quantity path was never exercised again by anyone.
+An agent adds a student discount to a working canteen app in twenty minutes. Two days later a student pays ₹0 for a ₹240 order: the discount was applied after a quantity change that nobody exercised again. The team checks its work by opening the app and clicking what it just changed — one path, and the product has forty.
 
-Nobody noticed, because the way they check their work is to open the app and click the thing they just changed. That checks one path. The product has forty.
-
-Now the second half of the pain, which is why this chapter exists. The same team asks an agent to refactor their pricing code. The agent does it and reports "all changes complete and working as expected". It has no way to know that. It cannot open a browser, tap through a checkout and look. It changed text in files and inferred success. The team has no way to know either, short of forty manual clicks they will not do.
-
-A test suite is what converts "I think it works" into "the machine checked, and here is the answer" — for you and for the agent.
+Then they ask the agent to refactor pricing and it reports "all changes complete and working as expected". It cannot open a browser and tap through a checkout: it changed text in files and inferred success.
 
 ### The idea
 
 **A test is an executable sentence about what your product must do, and the three levels differ only in how much of the product each sentence covers.**
 
-A **unit** test checks one small piece in isolation: given these inputs, this function returns this. An **integration** test checks that two or three real pieces work together: your code, your database, your query. An **end-to-end** test drives the real product the way a user does: open the page, tap, fill, submit, expect to see this.
+A **unit** test checks one small piece in isolation: given these inputs, this function returns this. An **integration** test checks that real pieces work together — your code, your database, your query. An **end-to-end** test drives the real product the way a user does. Each catches a category of bug the others cannot see.
 
-They are not competing. Each catches a category of bug the others structurally cannot see.
+| Level | Catches | Cannot catch |
+|---|---|---|
+| Unit | Wrong arithmetic, wrong rules, edge cases, off-by-one | Anything about wiring, the database or the UI |
+| Integration | Wrong query, missing column, broken migration, bad API contract | Whether a human can complete the task |
+| End-to-end | Button does nothing, broken route, login loop, blank page | Which of fifty functions is wrong |
 
 ### The analogy
 
-The canteen checks food at three levels.
+The canteen checks at three levels. The cook tastes the dal from the pot: one item, fast, saying nothing about whether the plate reaches the student — a unit test. The thali is inspected, dal, rice, sabzi and roti in the right amounts — an integration test. Then a staff member queues, orders, pays and eats: slow, once a day, and the only check that catches "the card machine is unplugged".
 
-The cook tastes the dal from the pot. One item, fast, immediate — and it tells you nothing about whether the rice is cooked or whether the plate ever reaches the student. That is a unit test.
-
-The thali is assembled and inspected: dal, rice, sabzi, roti, together on the tray, in the right amounts. Each item was fine alone; the check is whether the combination is right. That is an integration test.
-
-Then a staff member actually queues, orders, pays, collects and eats, start to finish. Slow, awkward, done once a day — and the only check that would catch "the card machine is unplugged" or "the queue leads to the wrong counter". That is end-to-end.
-
-No sensible kitchen does only one of the three. They taste constantly, inspect every tray, and walk the whole queue once a day — because the cost of each check and the class of problem it finds are both completely different.
-
-**Where the analogy breaks:** a cook tasting dal uses judgement and notices things nobody specified, like a smell that is slightly wrong. A test checks exactly and only what it was told to check, forever. It will never notice that your page is unreadable in sunlight or that the Marathi text is mangled. Tests catch regressions in things you thought of; they do not catch the things you did not.
+**Where the analogy breaks:** a cook tasting dal notices a smell nobody specified. A test checks exactly and only what it was told to check, forever — it will never notice that your page is unreadable in sunlight. Tests catch regressions in things you thought of, not the things you did not.
 
 ### Picture it
 
@@ -74,37 +66,9 @@ No sensible kitchen does only one of the three. They taste constantly, inspect e
 
 The three levels trade coverage against speed: many fast unit tests check logic precisely, a few slow end-to-end tests check that the whole thing is actually usable, and integration tests sit between them.
 
-### What each level catches that the others cannot
-
-| Level | Catches | Cannot catch |
-|---|---|---|
-| Unit | Wrong arithmetic, wrong rules, unhandled edge cases, off-by-one | Anything about wiring, the database, or the UI |
-| Integration | Wrong query, missing column, broken migration, bad API contract | Whether a human can complete the task |
-| End-to-end | Button does nothing, broken route, login loop, blank page on mobile | Which of fifty functions is actually wrong |
-
-Three concrete bugs make the distinction real.
-
-**A discount that gives 110% off** is a unit bug. One function, wrong maths. A unit test with the input "₹240 order, 10% student discount, quantity changed to 3" would have caught it in a millisecond, and would still be catching it in March.
-
-**A query that reads `price` from a column renamed to `price_paise` in a migration** is an integration bug. Every function is correct in isolation; the pairing with the real database is wrong. No unit test will see this, because a unit test does not use your database.
-
-**A checkout button wired to a route that no longer exists** is an end-to-end bug. The maths is right, the query is right, and the product is unusable. Only a test that drives the real interface will find it.
-
-### Why this is the chapter that makes agents trustworthy
-
-This is the connection to make now and carry into M10.
-
-An agent cannot see your product. It can read files, write files, and run commands. When it says "this works", it is predicting, not reporting — unless there is something it can *run* that answers the question. A test suite is exactly that: a command that returns a pass or fail, with the name of the failing case in plain text.
-
-That changes the agent's whole loop. Instead of "change code, claim success", it becomes: change code, run the suite, read the failure, change again, run again, and stop when the suite is green. The agent verifies itself, and you review a result rather than a promise.
-
-This is most of what "agent-ready repository" means in M10: one documented command that runs the tests, tests that fail honestly when the product is broken, and a clean git state from M01 so the diff is readable. It is also why chapter 12's CI matters — the same suite runs on every pull request, so nobody has to remember.
-
-And it is why a test that asserts nothing is worse than no test. A suite that is always green teaches both you and the agent that everything is fine. You have replaced "I do not know" with a confident wrong answer, which is the one state worse than ignorance.
-
 ### Where it lives
 
-Tests sit between your code and everything that depends on it being correct. M01's pull requests are where they run; chapter 12 makes that automatic. M04's migrations are the most common cause of an integration test failure, which is exactly what you want — the failure arrives in CI rather than in production. M05's load tests ask "how fast", not "is it right". M07's monitoring tells you something broke in production; tests tell you before it ships. M11's checkpoint asks for your suite, and M13 goes deep on test strategy.
+An agent cannot see your product. It reads files, writes files and runs commands, so "this works" is a prediction, not a report — unless there is something it can *run* that answers the question. A test suite is that: one command returning pass or fail with the failing case named. The agent's loop becomes change, run, read the failure, change, run, stop when green, and you review a result, not a promise. That is most of what "agent-ready repository" means in M10, and why chapter 12's CI runs the same suite on every pull request; M11's checkpoint asks for your suite too.
 
 ### Words to own
 
@@ -125,31 +89,19 @@ Tests sit between your code and everything that depends on it being correct. M01
 
 ### Tradeoffs and gotchas
 
-**Write the test so it fails first.** A test you have never seen fail may be testing nothing. Thirty seconds of proof — break the code deliberately, watch the test go red, fix it, watch it go green — is the only thing that establishes the test is connected to reality. Do this every single time, and especially for tests an agent wrote.
-
-**End-to-end tests are expensive and flaky; have few and choose them well.** They are slow, they break when the design changes, and they fail intermittently for timing reasons. Three to five, covering the paths that would end your demo — sign up, place an order, pay — are worth more than thirty that nobody trusts.
-
-**Coverage percentage is a hint, not a goal.** It measures which lines ran, not whether anything was checked. A suite with 95% coverage and no meaningful assertions proves nothing. Chasing the number produces exactly those tests.
-
-**Tests that duplicate the implementation are dead weight.** A test that re-does the same arithmetic as the function it tests will agree with any bug the function has. The useful test states the *expected answer* as a literal — `21600` — not a recalculation.
-
-**Do not test the framework or the library.** You are testing your product's rules, not whether the HTTP library can make a request.
-
-**Flaky tests destroy the suite's value fast.** Once a test fails randomly, people start ignoring red, and an ignored suite is worse than none. Fix it or delete it the same week.
-
-**Your time is limited, so start absurdly small.** Five tests covering money, permissions and the main user path beat a plan for a hundred that never happens. Money, because errors there are not recoverable. Permissions, because M04's broken-authorisation bug is invisible from the outside. The main path, because without it you cannot demo.
+- **Write the test so it fails first.** A test you have never seen fail may test nothing. Break the code deliberately, watch it go red, fix it, watch it go green: thirty seconds, every time, and especially for tests an agent wrote. A test that asserts nothing is worse than none: a permanently green suite teaches you and the agent that everything is fine.
+- **End-to-end tests are expensive and flaky, so have few and choose them well.** Three to five covering the paths that would end your demo — sign up, order, pay — beat thirty nobody trusts. Fix or delete a flaky test the same week — once one fails randomly, people ignore red.
+- **Start absurdly small.** Five tests covering money, permissions and the main user path beat a plan for a hundred that never happens: money errors are unrecoverable, and broken authorisation is invisible from outside.
 
 ### Verify it
 
-Agents write tests readily, and a meaningful fraction of them check nothing. Five checks, and the first is non-negotiable.
+Agents write tests readily, and many check nothing. The first check is non-negotiable.
 
-1. **Break the code and confirm the test goes red.** Change a `+` to a `-`, change a returned number, delete a line. If the suite stays green, the test is decoration. This single habit catches the module's recurring red flag — tests that assert nothing — better than reading them does.
-2. **Read every assertion and look for an expected value.** A test with no assertion, or one that asserts `true` is `true`, or that the result "is not null", is theatre. Real assertions contain a literal you can disagree with.
-3. **Ask which level each test is, and what it catches that the others cannot.** If an agent produces eleven unit tests and nothing that touches the database or the interface, your two most dangerous categories are unguarded.
-4. **Check the failure message.** Run the suite red on purpose and read what it prints. If a failure does not tell you which behaviour broke, it will not help you at 11 p.m. the night before a checkpoint.
-5. **Make sure the test uses real inputs for your product.** Rupees in paise, as M04 insisted. A UPI reference. A dish name in Devanagari. Tests built on `foo` and `bar` pass while your product fails on real data.
-
-Red flags: a test with no assertion; a test that mocks the exact thing it claims to test; `expect(result).toBeDefined()` as the only check on a money calculation; a suite that has never been seen to fail; a test that recalculates the expected value instead of stating it; and an agent reporting "all tests pass" without having shown you the command's output.
+1. **Break the code and confirm the test goes red.** Change a `+` to a `-`; if the suite stays green, the test is decoration.
+2. **Read every assertion and look for an expected value.** Asserting that `true` is `true` is theatre; a real assertion contains a literal you could disagree with — `21600`, not a recalculation of the function's own arithmetic.
+3. **Ask which level each test is.** Eleven unit tests and nothing touching the database or interface leaves two dangerous categories unguarded.
+4. **Check the failure message.** Run the suite red on purpose; a failure that does not name the broken behaviour will not help you at 11 p.m.
+5. **Make sure the tests use real inputs** — rupees in paise, a UPI reference, a Devanagari dish name, not `foo` and `bar`.
 
 ## Walkthrough
 1. List the five things in your product that must never break. Be specific: "a student is never charged the wrong amount", not "payments work". Write them as sentences.

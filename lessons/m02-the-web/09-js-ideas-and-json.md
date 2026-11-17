@@ -4,7 +4,7 @@ module: m02-the-web
 slug: js-ideas-and-json
 title: "Functions, Objects, Arrays and JSON as Ideas"
 order: 9
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,35 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team's cart worked fine for two weeks. Then a user ordered three items and was charged ₹0.45 instead of ₹45.
+A team's cart worked for two weeks, then a user was charged ₹0.45 instead of ₹45. One endpoint returned prices as `45.00` and another as `4500` paise, and the cart divided by a hundred in one place and not the other. No error, no crash — just a wrong number, and only for carts mixing both endpoints.
 
-The API had returned prices as `45.00`. Somebody later changed one endpoint to return `4500` — paise, which was the team's actual convention — and the cart's code divided by a hundred in one place and not another. Nothing errored. There was no failure, no red line in the console, no crash. The number was simply wrong, and it was wrong only for carts that mixed items from both endpoints.
-
-The same week, a different screen broke with `Cannot read properties of undefined (reading 'name')`. The cause was that one dish in the database had no category, so the API returned the dish without a `category` field at all, and the page tried to read `dish.category.name`. It worked for 94 dishes and crashed on one.
-
-Neither of these is a coding mistake you would need to code to catch. Both are **shape** mistakes, and both are catchable by looking at the actual data.
+The same week another screen died with `Cannot read properties of undefined`, because one dish had no category, so the API omitted the field and the page read `dish.category.name`. Both are **shape** mistakes, catchable by looking at the actual data.
 
 ### The idea
 
 **Almost all data in any product is held in four shapes, and most bugs that "only happen sometimes" are a disagreement about which shape something has.**
 
-A **function** is a named recipe: give it inputs, get an output. An **object** is one thing with labelled fields. An **array** is an ordered list of things. **JSON** is objects and arrays written out as plain text, so they can travel over a network or be stored in a file.
-
-That is genuinely most of it. You will never write these — but you must be able to read a response and say "the page expects a `price_paise` integer and this is giving me a `price` string", because that sentence is the difference between a four-minute fix and an afternoon.
+A **function** is a named recipe: inputs in, output out. An **object** is one thing with labelled fields. An **array** is an ordered list of things. **JSON** is objects and arrays written as text so they can travel. You will never write these, but you must be able to say "the page expects a `price_paise` integer and this is a `price` string".
 
 ### The analogy
 
-The canteen, written down.
+A **recipe card** is a function: "Sambar — inputs dal, tamarind, vegetables, masala; output one pot." Same inputs, same output, whoever cooks. A **menu card** for one dish is an object: labelled fields for name, price, is-vegetarian and photo, so nobody guesses that ₹45 is the price. The **whole menu** is an array of those cards. The **menu you type out and post to the new branch in Pune** is JSON.
 
-A **recipe card** is a function. "Sambar: inputs are dal, tamarind, vegetables and masala; output is one pot of sambar." Same inputs, same output, every time, and the card does not care who is cooking.
-
-A **single menu card** for one dish is an object: it has labelled fields — name, price, is-vegetarian, photo — and the labels are what make it readable. Nobody has to guess that ₹45 is the price, because the field says `price`.
-
-The **whole menu** is an array of those cards, in a deliberate order.
-
-And the **menu you type out and send to the new branch in Pune** is JSON: the same information, flattened into text, so it survives the journey and can be rebuilt at the other end.
-
-**Where the analogy breaks:** a recipe card tolerates "salt to taste", and a cook who receives one without a quantity will use judgement. A function gets exactly what it is passed and nothing more. Hand it a dish with no `category` field and it does not shrug and carry on — it stops, loudly, which is the `undefined` error above. There is no judgement step anywhere in the system, which is why the shape has to be right rather than approximately right.
+**Where the analogy breaks:** a recipe card tolerates "salt to taste" and a cook uses judgement. A function gets exactly what it is passed; hand it a dish with no `category` and it stops loudly. There is no judgement step anywhere, which is why the shape must be right rather than approximately right.
 
 ### Picture it
 
@@ -70,19 +56,11 @@ And the **menu you type out and send to the new branch in Pune** is JSON: the sa
 
 An object is one thing with labelled fields, an array is an ordered list of such things, and JSON is that structure written as text so it can travel.
 
-### Shape first, then build
-
-The single most useful habit from this chapter is to settle the shape **before** anything is built, and to put it in the brief.
-
-"A dish is an object with `id` (integer), `name` (string, max 60 characters), `price_paise` (integer, never a decimal), `is_veg` (true or false), `category` (string, always present, use `"other"` if unknown) and `photo_url` (string or null)."
-
-Six lines. They prevent the ₹0.45 bug, the `undefined` crash, the dish name that breaks the card layout from chapter 5, and the argument in week four about whether `price` means rupees. They also give you something to check the AI's output against — which is the entire point.
+Settle the shape **before** anything is built, in the brief: "a dish is an object with `id` (integer), `name` (string, max 60 characters), `price_paise` (integer, never a decimal), `is_veg` (true or false), `category` (string, always present, `"other"` if unknown) and `photo_url` (string or null)." That prevents the ₹0.45 bug, the `undefined` crash, and the week-four argument about what `price` means.
 
 ### Where it lives
 
-These shapes are the only thing that crosses the boundary between M00's client box and server box. The server reads from a database (M04), turns rows into objects, serialises them to JSON, and sends them. The browser parses the JSON back into objects and renders from them. The *same shape* therefore has to be agreed in two places at once, which is exactly why a rename breaks things silently: one side was updated and the other was not.
-
-Chapter 11 is the direct answer to this problem — types are the shape written down in a form a machine checks. Chapter 13 covers the trip itself.
+These shapes are the only thing that crosses between M00's client box and server box. The server turns database rows (M04) into objects, serialises them to JSON and sends them; the browser parses them back and renders. The *same shape* is therefore agreed in two places at once, which is why a rename breaks things silently: one side was updated and the other was not. Chapter 11 is the direct answer — types are the shape written down in a form a machine checks — and chapter 13 covers the trip itself.
 
 ### Words to own
 
@@ -103,35 +81,27 @@ Chapter 11 is the direct answer to this problem — types are the shape written 
 
 ### Tradeoffs and gotchas
 
-**Money is never a decimal.** Store and pass rupees as integer paise: ₹45 is `4500`. Decimal arithmetic on computers is approximate — three items at ₹0.10 famously do not add up to ₹0.30 — and the errors accumulate in exactly the place you least want them. Every payment system including UPI works in the smallest unit for this reason. Any AI output that has a `price` as `45.5` should be sent back.
+**Money is never a decimal.** Pass rupees as integer paise: ₹45 is `4500`. Decimal arithmetic is approximate — three items at ₹0.10 famously do not make ₹0.30 — and UPI works in the smallest unit for exactly this reason.
 
-**`null` and "missing" are different, and both will crash the same screen.** `null` is a field that exists and is empty on purpose. `undefined` is a field nobody ever sent. Decide which one your API uses for "no photo" and be consistent, because the page has to handle whichever you chose.
+**`null` and "missing" are different, and both crash the same screen.** `null` exists and is empty on purpose; `undefined` was never sent. Pick one for "no photo" and be consistent.
 
-**JSON has no dates.** There is no date type, so every date is a string and every string needs a convention. Without a timezone marker, "2026-11-16T09:00" is 9am somewhere, and your canteen's opening hours will be wrong for anybody whose device is set to a different zone. The convention to insist on is ISO 8601 with an explicit offset.
+**JSON has no date type,** so every date is a string needing a convention. Without an offset, "2026-11-16T09:00" is 9am somewhere, and your opening hours are wrong for anyone in another zone. Insist on ISO 8601.
 
-**JSON has no comments either**, so a config file in JSON cannot explain itself. Minor, and it surprises everyone once.
+**Renaming a key is a breaking change with no error.** `price` becomes `price_paise` and the page silently reads `undefined`, displaying "₹NaN". The strongest argument for chapter 11.
 
-**Renaming a key is a breaking change with no error.** `price` to `price_paise` on the server, and the page silently reads `undefined`, which displays as "₹NaN" or as nothing at all. This is the single strongest argument for chapter 11.
-
-**An empty array is not an error, and almost nothing handles it.** Zero dishes available is a legitimate state and needs its own screen — M00's lesson about writing acceptance criteria for failure states applies directly. An AI asked for a menu page will produce one that looks great with six dishes and blank with zero.
-
-**Arrays of inconsistent objects are a trap.** If three dishes have `photo_url` and one does not, every piece of code that touches the list has to defend itself. Make the shape uniform at the source.
+**An empty array is a legitimate state almost nothing handles,** and uneven items are the same trap: if three dishes have `photo_url` and one does not, every piece of code must defend itself. Make the shape uniform at the source.
 
 ### Verify it
 
-The habit to build is: **read the actual data, not the description of it.**
+1. **Ask for the shape before the code,** as a table of every field, its kind and whether it can be absent. Approve that table.
+2. **Compare the Network response against what the page reads.** One letter of difference in a key is a silent failure.
+3. **Check every money field is an integer.** `4500` good; `45.00` needs a conversation about units.
+4. **Scan the whole array, not the first element.** Real data has fields some items lack.
+5. **Check how dates are written.** No offset is a bug waiting for a user in another timezone.
+6. **Force the empty case.** A category with no dishes that renders blank is a finding.
+7. **Force the missing-field case.** Drop one optional field and see whether the page copes.
 
-1. **Ask for the shape before the code.** Make the AI state every field, its kind and whether it can be absent, as a table. Approve that table. Everything downstream is then checkable against it.
-2. **Compare the Network response against what the page reads.** Open the Network panel, click the request, and read the JSON. Then ask: does the page read exactly these key names? One letter of difference is a silent failure.
-3. **Check every money field is an integer.** Search the response for a decimal point near anything price-shaped. `4500` good; `45.00` needs a conversation about which unit it is in.
-4. **Look for fields that are present in some items and absent in others.** Scan the array, not just the first element. AI-generated sample data is uniform; real data is not, and the first item is the one everybody checks.
-5. **Check how dates are written.** A date string with no timezone offset is a bug waiting for a user in a different zone, or for a server set to UTC.
-6. **Force the empty case.** Filter the list down to zero results, or ask for a category with no dishes. If the screen goes blank rather than explaining itself, that is a finding.
-7. **Force the missing-field case.** Use the Elements panel or the AI itself to produce one item with a missing optional field, and see whether the page copes or crashes.
-
-Red flags in AI output: `price` as a decimal number; a field name that differs from your agreed shape by a letter or an underscore; dates as strings with no offset; `any`-shaped data where the fields are not stated at all; code that assumes the array has at least one item; and a response where errors are returned inside a success body — chapter 13 covers why that is so common and so harmful.
-
-And one in AI behaviour: if the AI changes a key name as part of an unrelated change, that is a scope violation of exactly the kind M01's diff review exists to catch. Read the diff.
+Red flags: `price` as a decimal · a key differing from the agreed shape by a letter · dates with no offset · `any`-shaped data whose fields are never stated · code assuming the array has at least one item · errors returned inside a success body (chapter 13) · a key renamed as part of an unrelated change, the scope violation M01's diff review exists to catch.
 
 ## Walkthrough
 1. Open any site that loads data — a food delivery app, a jobs board, your college portal. Open DevTools, go to the Network panel and filter to Fetch/XHR, then reload.

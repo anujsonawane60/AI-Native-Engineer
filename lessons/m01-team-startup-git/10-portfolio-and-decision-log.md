@@ -4,7 +4,7 @@ module: m01-team-startup-git
 slug: portfolio-and-decision-log
 title: "Your Daily Portfolio and Decision Log"
 order: 10
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,92 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Two students finish the same six-month program with similar products.
+Two students finish the same program with similar products. The first has thirty posts, each showing something built that week: the brief, what got built, a failing test and then a passing one, a note on what the AI got wrong. An interviewer can scroll it and watch a beginner become an engineer.
 
-The first has a profile with thirty posts, each showing something that was built that week: the brief they wrote, the thing that got built, a screenshot of a failing test and then a passing one, and a note about what the AI got wrong. An interviewer can scroll it and watch a beginner become an engineer.
-
-The second has a working product and nothing else. At interview they are asked why they chose polling over realtime updates. It was a reasonable decision made in week four, for a reason that was obvious at the time. They cannot remember it. They say "it was simpler", which is true and sounds like they never considered the alternative.
-
-Both built the same thing. One can prove it.
+The second has a working product and nothing else. Asked why they chose polling over realtime, they cannot remember — a reasonable week-four decision, for a reason obvious at the time. "It was simpler" sounds like they never considered the alternative.
 
 ### The idea
 
 **Post the work as it happens, and write down each real decision with the option you rejected. Both are evidence; neither can be reconstructed later.**
 
-A portfolio built at the end is a claim. A portfolio built daily is a record. The difference is visible to anyone who has seen both.
+A portfolio built at the end is a claim. A portfolio built daily is a record, and the difference is visible to anyone who has seen both.
 
 ### The analogy
 
-The canteen register once more, with a second column.
+The canteen register, with a second column. The first is what you sold — daily, visible, countable: your portfolio. The second is why anything changed: "raised samosa to ₹15 — oil up 20%, considered a smaller samosa, rejected because students counted them." That is the decision log. Column one proves the stall worked; column two proves you ran it rather than watched it.
 
-The first column is what you sold — the daily output, visible, countable. That is your portfolio.
-
-The second column is why anything changed. "Raised samosa to ₹15 — oil up 20%, considered smaller samosa instead, rejected because students counted them." That is the decision log.
-
-Six months later the first column proves the stall worked. The second column proves you were running it rather than watching it. When someone asks why samosas cost ₹15, the answer is a sentence rather than a shrug — and the fact that you considered a smaller samosa and rejected it for a specific reason is what makes you sound like an operator.
-
-**Where the analogy breaks:** a register is private. Your portfolio is public and is read by people deciding whether to hire you, so it has a second audience and needs to be legible to someone who was not there.
-
-### What makes a post evidence
-
-The platform gives each post four slots — a caption, the AI conversation, the repository, and the live demo — plus images. Used properly, a post is self-proving.
-
-| Slot | What goes in it | Why it matters |
-|---|---|---|
-| Caption | What you set out to do, and what you learned | The thinking, not the feature list |
-| AI chat | The share link to the actual conversation | Proof you directed rather than copied |
-| Repo | The branch or PR | Proof the code is real |
-| Demo | The live URL | Proof it runs |
-| Images | Before and after, a failing test, a diff | Proof you verified |
-
-The weakest post is a screenshot of something working. It shows an outcome and no process, and an outcome can come from anywhere. The strongest post shows a decision: here is what I tried, here is what went wrong, here is what I changed and why.
-
-Specifically worth posting, because most people do not:
-
-**The thing that broke.** A screenshot of the error and then the fix is more convincing than the fix alone, because it shows diagnosis.
-**What the AI got wrong.** This is the single most differentiating thing you can post. Anyone can show AI output. Showing that you caught AI being wrong demonstrates the judgement this whole program is about.
-**The option you rejected.** Same reason as the decision log.
-
-### The decision log entry
-
-Five lines. Short enough to actually write at the end of a session.
-
-```
-DATE
-DECISION    What we are doing, in one sentence
-WHY         The reason, with a number or constraint in it
-REJECTED    What we did not do, and why not
-REVISIT IF  The condition that would change this
-```
-
-A real one:
-
-```
-2026-11-18
-DECISION    Students' menu refreshes by polling every 60 seconds.
-WHY         Menu changes ~3 times a day; a 60s delay is acceptable.
-            Free tier gives no realtime connection quota.
-REJECTED    Realtime subscriptions — needs a paid plan, and adds a
-            connection per open tab, which is our scaling risk at 1 pm.
-REVISIT IF  We move to a paid tier, or staff start changing
-            availability during the rush.
-```
-
-**REJECTED is the line that does the work.** It proves you chose rather than defaulted. In M18's defence, "we used polling" invites "did you consider realtime?" and leaves you improvising. The entry above answers the follow-up question before it is asked, four months after you stopped remembering.
-
-**REVISIT IF** is the line that makes the log a tool rather than a diary. It tells your future self the condition under which this decision expires — and when that condition arrives in month four, you will find the entry and know immediately what to change.
-
-### What counts as a decision
-
-Not everything. A log with forty entries is a log nobody reads.
-
-Log it when the decision:
-- is hard or expensive to reverse later (the data model, the auth approach)
-- had a real alternative you seriously considered
-- will be questioned by someone who was not there
-- involves money, user data, or a tradeoff you accepted knowingly
-
-Do not log naming a variable, or picking a colour, or anything where there was only one sensible option. Roughly one to three entries a week is healthy.
+**Where the analogy breaks:** a register is private. Your portfolio is read by people deciding whether to hire you, so it must be legible to someone who was not there.
 
 ### Picture it
 
@@ -136,19 +65,38 @@ Do not log naming a variable, or picking a colour, or anything where there was o
   follow            do it that way?"
 ```
 
-One day's work splits two ways. The visible part becomes a post with its evidence attached; anything that was genuinely a choice also gets an append-only log entry naming the option you turned down.
+One day's work splits two ways: the visible part becomes a post with its evidence attached, and anything that was genuinely a choice also gets an append-only log entry naming the option you turned down. Five lines, short enough to write before you leave.
+
+```
+2026-11-18
+DECISION    Students' menu refreshes by polling every 60 seconds.
+WHY         Menu changes ~3 times a day; a 60s delay is acceptable.
+            Free tier gives no realtime connection quota.
+REJECTED    Realtime subscriptions — needs a paid plan, and adds a
+            connection per open tab, which is our scaling risk at 1 pm.
+REVISIT IF  We move to a paid tier, or staff start changing
+            availability during the rush.
+```
+
+**REJECTED does the work**, because it proves you chose rather than defaulted: "we used polling" invites "did you consider realtime?" and leaves you improvising. **REVISIT IF** makes the log a tool rather than a diary, naming the condition under which the decision expires.
+
+A log with forty entries is a log nobody reads. Log a decision when it is expensive to reverse, had a real alternative, will be questioned by someone who was not there, or involves money or user data. One to three a week is healthy.
 
 ### Where it lives
 
-The decision log lives in your repository as `DECISIONS.md`, appended to, never rewritten. Being under version control means each entry is dated by its commit as well as by its text, which makes it hard to fabricate later — and that is precisely what makes it credible.
+`DECISIONS.md` lives in your repository, appended to and never rewritten, so each entry is dated by its commit as well as its text — hard to fabricate, therefore credible. M11's Checkpoint 4 asks for it; M18's defence is built on it.
 
-Both feed forward:
+Your posts live on the platform, which gives each one four slots plus images. Used properly, a post is self-proving.
 
-- **M11 Checkpoint 4** asks for the decision log as a deliverable
-- **M18** is a defence built on it: the architecture walkthrough, the ten what-if questions, and the operational handover all draw on entries you wrote months earlier
-- **Your portfolio** is what the program's outcomes are actually measured by, and it is the artefact that outlives the program
+| Slot | What goes in it | Why it matters |
+|---|---|---|
+| Caption | What you set out to do, and what you learned | The thinking, not the feature list |
+| AI chat | The share link to the actual conversation | Proof you directed rather than copied |
+| Repo | The branch or PR | Proof the code is real |
+| Demo | The live URL | Proof it runs |
+| Images | Before and after, a failing test, a diff | Proof you verified |
 
-There is also an individual dimension. In a group of three, the product is shared. Your posts are not — they are under your account, and they are the record of *your* contribution. Chapter 1 warned that the fastest person can quietly absorb all the work; a thin posting history is the earliest visible symptom of that, for you and for anyone looking.
+In a group of three the product is shared but your posts are not — they record *your* contribution. Chapter 1 warned that the fastest person can quietly absorb all the work; a thin posting history is the earliest visible symptom.
 
 ### Words to own
 
@@ -165,33 +113,30 @@ There is also an individual dimension. In a group of three, the product is share
 
 ### Tradeoffs and gotchas
 
-**Daily beats good.** A two-minute post every day builds a record; a perfect post once a month does not. The habit is the deliverable, and the bar is "did I show one true thing today".
+**Daily beats good.** A two-minute post every day builds a record; a perfect post once a month does not. The bar is "did I show one true thing today".
 
-**Do not post only successes.** A profile of thirty wins reads as a highlight reel and is less convincing than twenty wins and ten honest problems. The failures are what demonstrate diagnosis, and diagnosis is the scarce skill.
+**Do not post only successes.** Thirty wins reads as a highlight reel. Failures demonstrate diagnosis, and diagnosis is the scarce skill — so the two most differentiating posts are **the thing that broke**, error then fix, and **what the AI got wrong**.
 
-**Write the decision at the end of the session, not later.** The reason is obvious while you are deciding and genuinely gone within a fortnight. The constraint that drove it — the free-tier limit, the number from your interviews — is the first thing to evaporate.
+**A caption that lists features is weak.** "Added login, cart and checkout" is a changelog. "Stored the cart in memory, lost it on every redeploy, moved it to the database — here's the before and after" is a portfolio post.
 
-**Never rewrite a log entry.** If a decision changes, append a new entry that references the old one. An edited log is worthless as evidence, and the sequence of changing your mind is more impressive than appearing to have been right all along.
+**Write the decision at the end of the session.** The constraint that drove it — a free-tier limit, a number from your interviews — evaporates first.
 
-**Do not let the agent write the log for you.** It will produce plausible rationale, which is exactly the wrong thing — the point of the log is that the reasoning was yours. It is legitimately useful for the opposite task: give it an entry and ask what question an interviewer would ask next, or whether your REJECTED line is actually a reason or just a restatement.
+**Never rewrite a log entry; append a new one referencing the old.** An edited log is worthless as evidence, and the sequence of changing your mind beats appearing to have been right all along.
 
-**A caption that lists features is a weak caption.** "Added login, cart and checkout" is a changelog. "Tried storing the cart in memory, lost it on every redeploy, moved it to the database — here's the before and after" is a portfolio post.
+**Do not let the agent write the log.** Plausible rationale is exactly wrong — the reasoning has to be yours.
 
 ### Verify it
 
 Three checks on the log, three on the portfolio, once a week.
 
-**Log:**
-1. **Does every entry have a REJECTED line with a reason in it?** An entry without one does not prove you chose.
-2. **Does every WHY contain a number or a named constraint?** "It was simpler" is not a reason; "3 changes a day, free tier has no realtime quota" is.
-3. **Is it append-only, with commits spread across the weeks?** Ten entries committed on the same day in month five fool nobody.
+1. **Does every entry have a REJECTED line with a reason in it?** Without one it does not prove you chose.
+2. **Does every WHY contain a number or a named constraint?** "It was simpler" is not a reason.
+3. **Is it append-only, with commits spread across weeks?** Ten entries committed on one day in month five fool nobody.
+4. **Could a stranger follow your last post?**
+5. **Have you posted anything that went wrong this week?** All successes means curating, not recording.
+6. **Is the AI conversation linked?** That separates your portfolio from someone who pasted output.
 
-**Portfolio:**
-1. **Could someone who was not there follow what you did?** Read your last post as a stranger.
-2. **Have you posted anything that went wrong this week?** If every post is a success, you are curating rather than recording.
-3. **Is the AI conversation linked?** This is what separates your portfolio from someone who pasted output.
-
-The real test, and the one M18 applies: **pick a decision from a month ago and explain it out loud in thirty seconds, including what you rejected.** If you cannot, the log either does not exist or is not specific enough.
+Red flag: you cannot pick a decision from a month ago and explain it in thirty seconds, including what you rejected.
 
 ## Walkthrough
 1. Create `DECISIONS.md` in your repository with the five-field template at the top as a reminder of the format.

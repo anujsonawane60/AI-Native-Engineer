@@ -4,7 +4,7 @@ module: m16-users-analytics-growth
 slug: running-experiments
 title: "Running a Real Experiment Program"
 order: 9
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,33 +22,29 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team runs their first A/B test. On day two the variant is ahead and the tool says the result is significant, so they ship it and announce a 22% lift in the group chat.
+A team runs their first A/B test. On day two the variant is ahead and the tool calls it significant, so they ship it and announce a 22% lift. On day nine it is back where it started: they had checked the dashboard eleven times in forty-eight hours and stopped when it looked best.
 
-On day nine the number is back where it started. There was no lift. They had checked the dashboard eleven times in forty-eight hours and stopped at the moment it looked best, which is the single most reliable way to manufacture a false result.
-
-Six weeks later in M18 rehearsal someone asks what the primary metric was and when it was chosen. The honest answer is that it was chosen on day two, from among four numbers they were watching, because it was the one that moved. Nobody wrote anything down beforehand, and there is no record of the two earlier changes they shipped on the same reasoning.
+Six weeks later someone asks what the primary metric was and when it was chosen. The answer: on day two, from four numbers, because it was the one that moved.
 
 ### What M07 covered, and what is new here
 
-M07's chapter nine taught experiment design and it taught it properly: what a p-value claims and does not claim, minimum detectable effect, sample size, sticky assignment, guardrail metrics, peeking, the ethical floor, and the honest conclusion that most student teams should not run A/B tests at all. Go back to it for any of those terms; this chapter does not redefine them.
-
-What is new is the **programme**: the artefacts and the cadence that make a series of experiments trustworthy rather than a sequence of anecdotes. A dated hypothesis document. A pre-declared end date. A decision rule written before the data. A backlog that is triaged rather than argued about. A log that contains the failures. And the version of all of that which works when you have four hundred users, which is most of you.
+M07 taught experiment design properly — p-values, minimum detectable effect, sample size, sticky assignment, guardrails, peeking, the ethical floor. New here is the **programme**: the dated artefacts that make a series of experiments trustworthy.
 
 ### The idea
 
 **An experiment programme is a set of written artefacts, not a set of tests. The hypothesis, the primary metric, the sample size, the end date and the decision rule all exist on paper, dated, before anybody looks at a number.**
 
-Everything that goes wrong in this chapter goes wrong because a decision was made after seeing the data that should have been made before. Pre-writing is not bureaucracy; it is the only mechanism that makes the result mean anything.
+Everything that goes wrong here goes wrong because a decision was made after seeing the data. The significance threshold accepts a one-in-twenty chance of being fooled — for **one** look, at the end. Look twenty times and you have twenty chances, and on two identical variants you will eventually see the line crossed. "We will check daily and stop when it is clear" is the mechanism that manufactures winners. Monitor guardrails daily if you must, never the primary metric.
+
+Two more artefacts: a **log** with one row per experiment ever, failures included, and a **backlog** ranked by reach times believable effect divided by cost.
 
 ### The analogy
 
-The canteen manager keeps a logbook. Each entry: the date, the one thing she changed, what she predicted would happen, how long she would run it for, and what actually happened — including the eleven changes that did nothing and the two that made things worse. She changes one dish at a time, because if she changes three on Thursday then Thursday tells her nothing.
+The canteen manager keeps a logbook: the date, the one thing she changed, what she predicted, and what happened — including the eleven changes that did nothing. She changes one dish at a time, because three changes on Thursday tell her nothing.
 
-**Where the analogy breaks, in the way that matters most to you.** She serves a hundred and eighty people a day, which is her entire population, and she can walk over and ask the student who left the samosa why. Her sample is complete and her feedback is conversational. Your four hundred users are a sample too small to detect anything subtle, and you cannot ask a single one of them. That combination is why the honest answer for most student products is not a smaller A/B test but a different method — and why the logbook discipline matters more than the statistics.
+**Where the analogy breaks:** she serves a hundred and eighty people a day, her whole population, and can ask the student who left the samosa why. Your four hundred users are too small a sample for anything subtle, and cannot be asked.
 
 ### Picture it
-
-The experiment document: one page, written before the test, with a date on it. This is the chapter's artefact.
 
 ```
   EXPERIMENT 07                      written 2026-11-16
@@ -80,35 +76,9 @@ The experiment document: one page, written before the test, with a date on it. T
 
 Five fields, each blocking a specific failure: the hypothesis blocks metric-shopping, the primary metric blocks measuring twenty things, the detect threshold blocks celebrating noise, the duration blocks peeking, and the decision rule blocks arguing about what the result meant after you have seen it.
 
-### Why peeking manufactures winners
-
-The usual threshold accepts a one-in-twenty chance of being fooled by randomness — for **one** look at the data, at the end.
-
-Look twenty times and you have twenty chances to be fooled, and on two genuinely identical variants you will eventually see the line crossed. Stop there and you have a winner that does not exist. The threshold was never a promise about repeated looking.
-
-This is why the end date is pre-declared, and why "we will check daily and stop when it is clear" is not caution but the exact mechanism that produces false results. If you must monitor daily, monitor the guardrails for harm — not the primary metric for victory.
-
-### Most of you cannot A/B test, and that is fine
-
-Do the sample-size arithmetic first, every time, before designing anything. M07 gave the shape of it: detecting a two-point move at a ten per cent baseline needs thousands of people per group, and halving the effect you want to detect roughly quadruples what you need.
-
-With four hundred users and twelve hundred sessions a month, a test needing two thousand per group would take years. Discovering that in advance takes ten minutes and saves three weeks of running something that could never have concluded.
-
-**The alternative programme is not "trust your gut".** It has the same artefacts and the same discipline. Locate the step with chapter three's funnel. Watch six to ten replays and count the pattern, as in chapter five. Sit with five real users as M03 taught. Write the prediction as a number and a date — "activation within 24 hours rises from 29% to at least 40% for cohorts starting after 18 November". Ship exactly one change. Re-measure the identical funnel on the next cohort only.
-
-That method has one known weakness: you cannot rule out that something else changed in the same period. So you name the confounds in the document — the exam week, the festival, the other release — and report the result with that caveat attached. A pre-registered before-and-after with named confounds is far more honest than an underpowered A/B test, and in M18 you present it as a deliberate choice with the arithmetic behind it.
-
-### The log and the backlog
-
-The **log** is one row per experiment, ever: id, date written, hypothesis in one line, primary metric, outcome, decision taken. Inconclusive and failed entries matter most — they stop you re-running the same idea in March, and they are the evidence that your programme is a process rather than a highlights reel.
-
-The **backlog** is how you choose what to test next, and it stops the loudest person deciding. For each idea, note how many users it would affect, how large an effect you would believe, and how long it would take to build. Rank by reach times believable effect, divided by cost, then take the top one.
-
-Cadence: one change at a time, one look at the end, one row in the log, every week or two.
-
 ### Where it lives
 
-Chapter three supplies the metric and the leak; chapter five supplies the mechanism; chapter six is where most of your early experiments will aim, and chapter seven's loop steps are next. M13's feature flags are how a variant is served at all, and M06's CI is what stops one shipping to everyone by accident. M09 matters when a variant changes model usage: a variant that triples cost per user can win on conversion and still be wrong. M18 is where the log is read aloud.
+Chapter three supplies the metric and the leak, chapter five the mechanism, chapter six is where most early experiments aim. M13's feature flags serve the variant; M18 reads the log aloud.
 
 ### Words to own
 
@@ -127,30 +97,28 @@ Chapter three supplies the metric and the leak; chapter five supplies the mechan
 
 ### Tradeoffs and gotchas
 
-**Weight-match your variant or you are testing load time.** If variant B ships 200 KB more JavaScript than control, then on a slow prepaid connection you have tested page weight and called it design. This is the most common invalid experiment in an Indian product and almost nobody checks for it.
+**Most of you cannot A/B test, and that is fine.** Do the sample-size arithmetic before designing anything: detecting a two-point move at a ten per cent baseline needs thousands per group, and halving the effect roughly quadruples the need. With four hundred users, a test needing two thousand per group takes years — finding that out takes ten minutes.
 
-**Shared devices break sticky assignment in a way you cannot fix.** Assignment hashed on user id is correct, and a phone shared by three students with one account puts three people in one variant. Note it as a limitation rather than pretending the groups are clean.
+**The alternative is not "trust your gut"; it has the same artefacts.** Locate the step with chapter three's funnel, count the pattern across six to ten replays, sit with five users. Write the prediction as a number and a date — "activation within 24 hours rises from 29% to at least 40% for cohorts starting after 18 November" — ship one change, then re-measure the identical funnel on the next cohort only. Name the confounds beforehand. A pre-registered before-and-after with named confounds beats an underpowered A/B test.
 
-**One primary metric, two or three guardrails, and nothing else.** Watch twenty numbers at a one-in-twenty threshold and one will look significant by chance. The rest are questions for next time.
+**Weight-match your variant or you are testing load time.** 200 KB more JavaScript on a slow prepaid connection tests page weight, not design. Novelty and the calendar will fool you in the same way: run long enough to pass both.
 
-**Inconclusive is the most common honest outcome and the hardest to accept.** The decision rule exists so that "we could not tell" is a result you wrote down in advance rather than a disappointment you argue your way out of.
+**Shared devices break sticky assignment.** One shared account puts three people in one variant; note it as a limitation.
 
-**Novelty and the calendar will both fool you.** A new thing gets attention for being new. A campus festival, exam week or a long weekend changes behaviour more than most variants do. Run long enough to pass the novelty, and write the calendar confounds into the document before you start.
+**Inconclusive is the commonest honest outcome, and the hardest to accept.**
 
-**The ethical floor from M07 still applies, and students are the subjects.** No price differences between students, nothing hidden that involves their money, no variant that removes a safety or cost warning. If you would not describe the test to the person inside it, do not run it.
+**The ethical floor still applies, and students are the subjects.** If you would not describe the test to the person inside it, do not run it.
 
 ### Verify it
 
-AI will build you an experiment, declare significance, and be wrong in six checkable ways.
+AI will build an experiment, declare significance, and be wrong in checkable ways.
 
-1. **Ask for the hypothesis document and look at its date.** **A primary metric chosen after the data arrived** is the central failure of this chapter, and a dated page is the only defence.
-2. **Ask for the sample size calculation and the planned end date before anything runs.** No calculation means nobody knows whether the test could have detected anything.
-3. **Check whether the test was stopped early.** **An experiment stopped on the day it first looked significant** is the named red flag here, and the reported lift is usually noise.
-4. **Test sticky assignment yourself.** Reload ten times and confirm the same variant every time. Assignment recomputed per render invalidates everything silently.
-5. **Compare the payload of the two variants.** If one is materially heavier, the experiment is confounded with load time on exactly the users you care about.
-6. **Ask what outcome would have caused you to keep the control**, and check it was written down. If the decision rule only has a ship branch, the test was a formality.
+1. **Ask for the hypothesis document and look at its date.** A primary metric chosen after the data arrived is this chapter's central failure.
+2. **Ask for the sample size calculation and the end date before anything runs.** Without it nobody knows whether the test could detect anything.
+3. **Test sticky assignment yourself.** Reload ten times and confirm the same variant every time.
+4. **Ask what outcome would have kept the control.** A rule with only a ship branch means the test was a formality.
 
-Red flags: significance reached after daily checking; a lift based on a difference of single-digit people; four metrics reported and one highlighted; no end date; a log containing only successes; a variant that also changed three other things; and any experiment run on price or money without disclosure.
+Red flags: significance after daily checking; a lift based on single-digit people; a log of successes only.
 
 ## Walkthrough
 1. Write your experiment backlog: at least six candidate changes, each with the users it would reach, the effect you would honestly believe, and the build cost in days.

@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: ledgers-blocks-consensus
 title: "Distributed Ledgers, Blocks and Consensus"
 order: 2
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-The canteen chain grows. There are now five outlets across the campus, and the loyalty register from the last chapter has been copied to all five, because a student who earns points at the hostel mess wants to spend them at the main canteen.
+The canteen chain grows to five outlets and the loyalty register is copied to all five, because a student who earns points at the hostel mess wants to spend them at the main canteen.
 
-Within a month it is a mess. Outlet three's copy says Asha has 60 points; outlet one's copy says 35. Both were written in good faith — she earned points at one and spent them at the other, and the two copies were updated an hour apart over a Wi-Fi link that dropped. Every evening the managers argue about whose copy is right, and the only tie-breaker is seniority.
+Within a month it is a mess. Outlet three's copy says Asha has 60 points; outlet one's says 35. Both were written in good faith — she earned at one and spent at the other, and the copies were updated an hour apart over a Wi-Fi link that dropped. Every evening the managers argue about whose copy is right, and the only tie-breaker is seniority.
 
-The sealed, signed pages from chapter 1 do not help. Each outlet's page is perfectly sealed and perfectly signed. The problem is not that any copy was tampered with. The problem is that five honest copies disagreed about the *order* things happened in, and nobody is allowed to be the referee.
-
-That question — how do machines that do not trust each other agree on one order of events without a referee — is what a distributed ledger exists to answer. It is a genuinely hard problem with a genuinely expensive solution, and understanding the price is the point of this chapter.
+The sealed, signed pages from chapter 1 do not help: every page is perfectly sealed and signed. Five honest copies disagreed about the *order* things happened in, and nobody is allowed to be the referee. How machines that do not trust each other agree on one order without a referee is what a distributed ledger answers, and understanding its price is the point of this chapter.
 
 ### The idea
 
 **A blockchain is an append-only log, copied to many machines, where each batch of entries carries the digest of the batch before it, and a public rule decides which copy counts as the real one.**
 
-Three pieces, each doing one job. The log is append-only: you add, you never edit. The chaining of digests means that altering any old entry changes that block's digest, which breaks the next block's stored copy of it, which breaks every block after — so tampering with history is detectable from the latest block alone. And consensus is the rule, written into the software, that every node applies to pick one chain when two valid chains exist.
+Three pieces, each doing one job. The log is append-only: you add, you never edit. The chaining of digests means altering any old entry changes that block's digest, which breaks the next block's stored copy, and so on — so tampering is detectable from the latest block alone. Consensus is the rule, written into the software, that every node applies to pick one chain when two valid chains exist.
 
 ### The analogy
 
-Picture the register rebuilt. Each page holds twenty transactions, and at the top of every page the manager copies the foil pattern from the bottom of the previous page. Rub out one entry on page four and the pattern no longer matches what page five recorded, and so on to the end of the book. Anyone checking only the last page can tell the book is intact.
+Each page of the rebuilt register holds twenty transactions, and at the top of every page the manager copies the foil pattern from the bottom of the previous one. Rub out an entry on page four and the pattern no longer matches what page five recorded, and so on to the end of the book.
 
-Now remove the manager. Five outlets each keep the whole book and each wants to write the next page. The rule they adopt is: whoever solves a pointless, expensive puzzle first gets to write the page, and if two books ever differ, everyone switches to the one with more total puzzle-solving in it. That is proof of work, and it is as absurd and as effective as it sounds.
+Now remove the manager. Five outlets each keep the whole book and each wants to write the next page. The rule they adopt: whoever solves a pointless, expensive puzzle first writes the page, and if two books differ everyone switches to the one with more puzzle-solving in it. That is proof of work, as absurd and as effective as it sounds.
 
-**Where the analogy breaks**, and this is the most important paragraph in the chapter: the canteen *has* a manager. He is trusted, he is accountable, and he is cheap. Every cost of a blockchain — the energy, the slowness, the storage that only grows, the impossibility of fixing a mistake — is the price of not having him. If you have a trusted referee, you are paying for a service you do not need. Chapter 4 makes that question explicit.
+**Where the analogy breaks**, and this is the most important paragraph here: the canteen *has* a manager, who is trusted, accountable and cheap. Every cost of a blockchain — the energy, the slowness, the growing storage, the impossibility of fixing a mistake — is the price of not having him. Chapter 4 makes that question explicit.
 
 ### Picture it
 
@@ -72,11 +70,9 @@ When honest nodes temporarily disagree, the consensus rule picks one chain and t
 
 ### Where it lives
 
-This is M05 wearing a costume. You already know replication, you already know that copies drift, and you already know that making many copies agree costs either latency or consistency. A blockchain is a replicated state machine that chooses extreme durability and extreme auditability, and pays for it with throughput that would embarrass a single laptop.
+This is M05 wearing a costume: replication, drift, and the fact that making many copies agree costs either latency or consistency. A blockchain chooses extreme durability and auditability, and pays with throughput that would embarrass a single laptop.
 
-The numbers matter. Bitcoin settles roughly seven transactions a second with an hour's wait for practical finality. Ethereum does low tens per second at the base layer with finality in minutes. A well-run permissioned ledger in a consortium does hundreds to a few thousand. UPI in India processes well over 600 crore transactions a month — roughly 2,500 a second on average and several times that at peak — with settlement you feel as instant and a dispute process you can escalate to a human. One Postgres instance on a free tier will out-write any public chain by three orders of magnitude.
-
-So the reason to use a ledger is never performance. It is only ever that no single party is allowed to hold the write authority.
+The numbers matter. Bitcoin settles roughly seven transactions a second with an hour's wait for practical finality; Ethereum does low tens per second at the base layer; a permissioned consortium ledger does hundreds to a few thousand. UPI processes well over 600 crore transactions a month — roughly 2,500 a second on average, several times that at peak — with settlement you feel as instant and a dispute process you can escalate to a human. So the reason to use a ledger is never performance. It is only ever that no single party is allowed to hold the write authority.
 
 ### Words to own
 
@@ -96,29 +92,29 @@ So the reason to use a ledger is never performance. It is only ever that no sing
 
 ### Tradeoffs and gotchas
 
-**Immutability is not correctness.** A blockchain guarantees that what was written stays written. It guarantees nothing whatsoever about whether what was written was true. A wrong entry, a fraudulent one, or one containing someone's Aadhaar number is now permanent, which under India's DPDP Act is a problem rather than a feature.
+**Immutability is not correctness.** A blockchain guarantees that what was written stays written, and nothing about whether it was true. A wrong entry, a fraudulent one, or one containing someone's Aadhaar number is now permanent, which under India's DPDP Act is a problem rather than a feature.
 
-**Storage only grows, and everybody stores everything.** A full node must keep the whole history. That design is fine for a global currency and ridiculous for a canteen's points.
+**Storage only grows, and everybody stores everything.** A full node keeps the whole history. Fine for a global currency, ridiculous for a canteen's points.
 
-**"Decentralised" is usually a marketing claim.** Ask who runs the nodes. A high proportion of real-world "blockchain" deployments are a single company running every node, which is a slow database with a worse backup story and extra vocabulary. A permissioned ledger among twelve genuinely independent banks is a real thing; a permissioned ledger among twelve servers owned by one startup is not.
+**"Decentralised" is usually a marketing claim.** A permissioned ledger among twelve independent banks is a real thing; one among twelve servers owned by a single startup is a slow database with extra vocabulary.
 
-**Finality is probabilistic on proof-of-work chains.** "Confirmed" means "increasingly unlikely to be undone", not "done". Any product that treats one confirmation as settlement has a reorg bug waiting.
+**Finality is probabilistic on proof-of-work chains.** "Confirmed" means "increasingly unlikely to be undone". Any product treating one confirmation as settlement has a reorg bug waiting.
 
-**Energy and cost are real.** Proof of work converts electricity into write rights, which is why proof of stake exists and why most new systems use it. It is a design choice with an electricity bill attached, and you should be able to say which one a system you are evaluating uses.
+**Energy and cost are real.** Proof of work converts electricity into write rights, which is why proof of stake exists. Say which one a system you are evaluating uses.
 
 ### Verify it
 
-Ask an AI to design you "a blockchain-based attendance system" and it will. Fluently. Here is how to tell whether it reasoned.
+Ask an AI to design "a blockchain-based attendance system" and it will, fluently. Here is how to tell whether it reasoned.
 
-**Red flag: it never asked who the distrusting parties are.** This is the single most diagnostic question. A ledger exists because two or more parties who do not trust each other need one shared write path. If the answer does not name them, it is matching a keyword.
+**Red flag: it never asked who the distrusting parties are.** The most diagnostic question of all. A ledger exists because parties who do not trust each other need one shared write path; if the answer does not name them, it is matching a keyword.
 
-**Red flag: immutability offered as a guarantee of truth.** Watch for "records cannot be falsified". Records cannot be *altered*. A false record entered correctly is immutable too, and now you cannot remove it even when the law says you must.
+**Red flag: immutability offered as a guarantee of truth.** Records cannot be *altered*. A false record entered correctly is immutable too, and now you cannot remove it even when the law says you must.
 
-**Red flag: throughput quoted without naming the chain and the finality window.** "Thousands of transactions per second" is meaningless without saying on which network, with what finality, at what fee, and with how many independent validators.
+**Red flag: throughput quoted without naming the chain and the finality window.** "Thousands of transactions per second" is meaningless without the network, the finality, the fee and the validator count.
 
-**Red flag: a private chain described as decentralised.** Ask how many organisations run nodes, who can add a node, and who can change the software. If the answer to all three is "we can", the trust model is identical to a database owned by you.
+**Red flag: a private chain described as decentralised.** Ask who runs nodes, who can add one, and who ships the software. Three answers of "we can" means the trust model is a database you own.
 
-**Red flag: no mention of what happens to a mistake.** Ask directly: a wrong entry is written, what now? An honest answer says you can only append a correction, never remove the original, and that this interacts badly with data-deletion rights.
+**Red flag: no mention of what happens to a mistake.** Ask directly: a wrong entry is written, what now? An honest answer says you can only append a correction.
 
 ## Walkthrough
 1. Open a free in-browser blockchain demonstration page — the kind with editable blocks that recompute their own digests live. Start on the single-block view.

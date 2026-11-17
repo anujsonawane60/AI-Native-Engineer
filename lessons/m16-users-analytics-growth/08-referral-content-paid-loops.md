@@ -4,7 +4,7 @@ module: m16-users-analytics-growth
 slug: referral-content-paid-loops
 title: "Referral, Content and Paid Loops Compared"
 order: 8
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,39 +22,40 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team reads about loops, decides referral sounds cheapest, and builds a referral programme: ₹50 off for the referrer and ₹50 off for the friend. They announce it to three hundred users.
+A team ships ₹50 off for both sides to three hundred users. Four weeks later: four referrals, two from one phone with two accounts and two SIMs.
 
-Four weeks later: four referrals, ₹200 of discounts given away, and on inspection two of the four came from the same phone with two accounts and two SIM numbers. Net new real users: two. Net engineering time: nine days.
-
-In the same four weeks, one user posted a screenshot of their order on a WhatsApp status, unprompted, and eleven people arrived from it. Nobody built that, nobody paid for it, and nobody measured it either — those eleven are recorded as "direct" and the team only knows about them because one of them mentioned it.
-
-The loop they built was the wrong family, and the loop that was already working was invisible. Both mistakes come from comparing loops on how they sound rather than on what they cost and what they need.
+In the same weeks a user posted an order screenshot to a WhatsApp status and eleven people arrived, all logged as "direct". They built the wrong family, and the loop already working was invisible.
 
 ### What M07 covered, and what is new here
 
-M07 covered none of this. Chapter seven of this module gave you the anatomy — input, action, output, return, cycle time, branching factor — and the test of whether an output reaches a non-user.
-
-This chapter compares the four families you will actually choose between, on the four dimensions that decide the choice: how long one cycle takes, what each new user costs, how high the channel can go before it saturates, and what has to already be true for the loop to work at all.
+M07 covered none of this, and chapter seven gave you the anatomy of a loop. This chapter compares the four families on cycle time, cost, ceiling and precondition.
 
 ### The idea
 
-**Loops are not interchangeable. Each family has its own cycle time, its own cost, its own ceiling and its own precondition — and the right choice follows from your product and your situation, not from which one sounds most exciting.**
+**Loops are not interchangeable: each family has its own cycle time, cost, ceiling and precondition, and your situation decides which one.**
 
-### The four families
+**Referral loops.** One person tells another, in days, at near-zero cost. It needs a product worth recommending — chapter four's flattening point must exist — and a sharing moment that suits the user. The ceiling is the social graph: one hostel finishes that hostel. WhatsApp sharing carries no referrer, so measurement is weak.
 
-**Referral and viral loops.** The output is one person telling another. Cycle time is days, because a recommendation travels in a message. Marginal cost is near zero. The precondition is a product someone would willingly recommend — which means chapter four's flattening point must exist — plus a natural moment at which sharing makes sense for the user, not for you. The ceiling is the social graph: a loop inside one hostel finishes that hostel. Measurement is the weak point, because the sharing happens in WhatsApp where no referrer survives.
+**Content loops.** A page keeps attracting strangers after you stop, but must be written, indexed and ranked first, so the wait is months. It needs evidence that people already search the question. Attribution is the best of the four.
 
-**Content loops.** The output is a page that keeps attracting strangers after you have stopped working on it. Cycle time is weeks to months: a page must be written, indexed and ranked before anybody arrives. Cost is your hours, not money. The precondition is a question that people already type into a search box, and evidence that they do. The ceiling is the highest of the four and the slowest to approach. Measurement is the best of the four, because search traffic arrives with a landing page and a query attached.
+**Paid loops.** Revenue is reinvested into ads to buy the next user, in days. Revenue per user must exceed cost per user inside a period you can survive. Without revenue there is no loop, only a funnel you buy until the money ends.
 
-**Paid loops.** The output is revenue, reinvested into advertising to acquire the next user. Cycle time is days. The precondition is strict and non-negotiable: the revenue a user produces must exceed what you paid to get them, within a period you can survive. Without revenue, there is no loop at all — you are buying a funnel, one user at a time, until the money runs out. For most student teams this family is unavailable, and saying so is not pessimism.
+**Partnership loops.** One relationship with somebody who already has an audience: a society secretary, a hostel warden, a canteen owner. Weeks, because trust takes meetings. One society of four hundred beats a month of individual asks, and AI almost never proposes it.
 
-**Partnership and community loops.** The output is a relationship with somebody who already has an audience: a college society secretary, a hostel warden, a canteen owner, a department head, a coaching-centre teacher. Cycle time is weeks, because trust takes meetings. Cost is your hours. The ceiling is low in count and high in value — one society with four hundred members is worth more than a month of individual asks. This is the most underrated family for an Indian campus product and the one AI will almost never propose.
+| Family | Cycle | Cost per user | Ceiling | Precondition |
+|---|---|---|---|---|
+| Referral | Days | Near zero | Social graph | Retention, a real sharing moment |
+| Content | Months | Your hours | Very high | Proven search demand |
+| Paid | Days | Real money | Your budget | Revenue above cost |
+| Partnership | Weeks | Your hours | Few but large | One person with an audience |
+
+The only question that chooses between them is which precondition is met today.
 
 ### The analogy
 
-The canteen has all four. A student tells a friend the Thursday thali is good — referral. A printed menu board at the college gate keeps bringing people for months after it was painted — content. Paying the auto drivers at the gate to mention the canteen — paid. A deal with the hostel warden to serve dinner for the whole block — partnership.
+The canteen has all four. A student tells a friend the thali is good — referral. A painted board at the gate pulls people in for months — content. Paying auto drivers to mention the canteen — paid. A deal with the warden to feed the whole block — partnership.
 
-**Where the analogy breaks:** three of those four are capped by the eighteen hundred students on campus. The board at the gate is the only one that reaches people who were never going to walk past the canteen at all. Content is likewise the only one of your four loops that is not limited by your existing social world — which is precisely why it is the slowest and why teams abandon it in week three.
+**Where the analogy breaks:** only the board reaches people who would never walk past; the rest stop at the campus's eighteen hundred students.
 
 ### Picture it
 
@@ -76,24 +77,11 @@ The canteen has all four. A student tells a friend the Thursday thali is good �
 
 Referral and paid produce results within days, partnership within weeks, and content within months — which is the opposite order from their long-run ceilings.
 
-### Choosing one
-
-The comparison in one table, for a product with a few hundred users and no money.
-
-| Family | Cycle | Cost per user | Ceiling | Precondition |
-|---|---|---|---|---|
-| Referral | Days | Near zero | Social graph | Retention, a real sharing moment |
-| Content | Months | Your hours | Very high | Proven search demand |
-| Paid | Days | Real money | Your budget | Revenue above cost |
-| Partnership | Weeks | Your hours | Few but large | One person with an audience |
-
-Four questions settle it. Does anybody already share your product without being asked — if yes, referral is the cheapest thing to strengthen. Does anybody already search for the problem you solve, and can you show the evidence — if yes, content is worth starting now because it will take a term. Do you have revenue per user that exceeds a plausible cost per click — if no, paid is closed. And is there one person on your campus whose audience is your persona — if yes, partnership will beat everything else this month.
-
 ### Where it lives
 
-Chapter seven is the anatomy and chapter four is the gate for all four families. Chapter one's recruitment log becomes the channel dimension that lets you compare them honestly: every arrival needs a channel attached, or you will be unable to tell which loop produced what. Chapter nine is how you test a change to a single loop step.
+Chapter seven is the anatomy and chapter four is the gate for all four families. Chapter one's recruitment log supplies the channel dimension: without a channel on every arrival you cannot tell which loop produced what.
 
-M15 is the content loop in full — SEO foundations, technical SEO, programmatic landing pages, and its own chapter on attribution without lying to yourself. If you choose content, that module is the practicum and this chapter is only the comparison. M17 is where the paid loop becomes possible or impossible: CAC, LTV, margin and payback are exactly the arithmetic that decides it, and it also covers partnerships and B2B outreach as a channel. M18 is where somebody asks why you chose this loop and not the other three.
+M15 is the content loop in full. M17 decides whether the paid loop is possible, with CAC, LTV and payback. Chapter nine tests one loop step, and M18 asks why you chose this one.
 
 ### Words to own
 
@@ -112,30 +100,28 @@ M15 is the content loop in full — SEO foundations, technical SEO, programmatic
 
 ### Tradeoffs and gotchas
 
-**Do not attach an incentive before organic sharing exists.** An incentive on a product nobody recommends does not create recommendations; it creates fraud, and at three hundred users you will see it within a fortnight. Shared SIMs and cheap second accounts make this trivially easy in India. The honest sequence is: make sharing possible, see whether anybody does it unprompted, and only then consider paying for more of it.
+**Do not attach an incentive before organic sharing exists.** It creates fraud rather than recommendations, and shared devices and cheap second SIMs make that trivial in India.
 
-**A paid loop without revenue is a countdown, not a loop.** Every rupee spent buys one user and produces nothing to spend again. That can still be a reasonable experiment to learn a conversion rate, but call it what it is and cap it in advance.
+**A paid loop without revenue is a countdown.** Every rupee buys one user and produces nothing to spend again, so cap it in advance.
 
-**Content started in month five of a six-month track will not pay inside the track.** That is not a reason to skip it if your product continues afterwards, and it is a reason to be honest in M18 about what you are presenting: a loop you started, not a loop that worked.
+**Content started in month five of a six-month track will not pay inside it.** Present it in M18 as a loop you started, not one that worked.
 
-**Run one loop at a time.** With a few hundred users, two loops running together cannot be told apart, and neither gets the attention it needs. One loop, one cycle time, one measurement.
+**Partnerships concentrate your risk in one person.** Secretaries graduate and wardens are transferred, so keep a second relationship warm.
 
-**Partnerships concentrate your risk in one person.** The society secretary graduates, the warden is transferred, the enthusiastic teacher changes colleges. Treat a partnership as a channel with a single point of failure and keep a second one warm.
-
-**Every loop needs a channel cohort or you cannot compare them.** If arrivals are not tagged by channel at the moment they arrive, you will be arguing about which loop worked from memory. Chapter one's log plus a per-channel link parameter is the whole solution.
+**Run one loop at a time, and tag every arrival with its channel.** At a few hundred users two loops cannot be told apart, and untagged arrivals leave you arguing from memory. Chapter one's log plus a per-channel link parameter is the fix.
 
 ### Verify it
 
-AI has strong opinions about growth channels and they are mostly imported from companies with money and traffic.
+AI's growth-channel opinions are imported from companies with money and traffic.
 
-1. **Check whether a referral incentive was proposed before any evidence of organic sharing.** **An incentive on a product with no unprompted shares** is the first red flag, and the cost arrives as fraud rather than as growth.
-2. **Check that any paid proposal states revenue per user and cost per user.** Without both numbers it is not a loop, and asking for them usually ends the proposal.
-3. **Demand evidence that anyone searches for your content topic.** "People want to know about X" is an assertion. A search volume, however rough, is evidence. Also check it is not a question only you would phrase that way.
-4. **Check that the partnership family was considered at all.** If the reply lists only referral, content and paid, it has ignored the strongest campus channel because it is not in its training distribution of startup advice.
-5. **Ask how each arrival will be tagged with its channel**, at the moment of arrival. If the answer is "we will ask them", the comparison will not survive four weeks.
-6. **Check referral counts for duplicate devices and duplicate phone numbers** before celebrating any of them. One device producing two accounts is the standard pattern.
+1. **Check whether a referral incentive was proposed before evidence of organic sharing.** The cost arrives as fraud, not growth.
+2. **Check that any paid proposal states revenue per user and cost per user.** Without both it is not a loop.
+3. **Demand evidence that anyone searches your content topic**, phrased as a user would phrase it.
+4. **Check that the partnership family was considered at all**, not only referral, content and paid.
+5. **Ask how each arrival is tagged with its channel**, at the moment of arrival, not by asking users later.
+6. **Check referral counts for duplicate devices and phone numbers.**
 
-Red flags: a growth plan that assumes an email list; "post on social media" as a channel; a content calendar with no search evidence; a referral reward with no cap and no fraud check; two loops launched in the same week; and any channel claim with no per-channel cohort behind it.
+Red flags: a plan that assumes an email list; "post on social media" as a channel; a content calendar with no search evidence; an uncapped referral reward.
 
 ## Walkthrough
 1. Write down, from your own data, whether anybody has ever shared your product without being asked. Find the evidence rather than assuming: a screenshot, a message, an arrival somebody mentioned.

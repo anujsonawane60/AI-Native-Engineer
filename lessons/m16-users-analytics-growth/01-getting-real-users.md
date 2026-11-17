@@ -4,7 +4,7 @@ module: m16-users-analytics-growth
 slug: getting-real-users
 title: "Getting Real Users: The Unscalable First Hundred"
 order: 1
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,31 +22,32 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team finishes M11 with a working, deployed product. The architecture is sound, the p95 is fine, the error rate is zero. They open their analytics dashboard in week one of this module and it shows eleven users. Nine are the three team members on three devices each. Two are flatmates who signed up at 11 p.m. because they were asked to and never opened it again.
+A team finishes M11 with a deployed product — sound architecture, fine p95, zero errors — and a dashboard showing eleven users. Nine are the three team members on three devices each; two are flatmates who signed up at 11 p.m. as a favour and never came back.
 
-Every chapter that follows this one — funnels, retention, cohorts, experiments — is arithmetic on user behaviour. With eleven users there is no behaviour. A funnel with eleven people at the top is a sentence about four of your friends. A retention curve on eleven people is a straight line with no information in it. The entire rest of the module is blocked, and no amount of better instrumentation unblocks it.
-
-This is where most student products quietly die. Not from a bug and not from a bad idea, but because nobody did the uncomfortable, manual, un-engineerable work of putting the product in front of strangers. The team keeps building features instead, because building features is familiar and asking people is not.
+Every chapter after this one is arithmetic on user behaviour, and eleven users have no behaviour. Student products die here not from bugs but because nobody did the manual work of putting the thing in front of strangers.
 
 ### What M07 covered, and what is new here
 
-M07's chapter eight taught you to read the instruments: what an event is, what a funnel measures, how a retention curve is shaped, what churn means. Chapter nine taught experiment design and consent. Both assumed users existed.
-
-Nothing in M07 tells you how to get the people. That is this chapter, and it is first in the module because everything after it is useless without it. M01 taught you to talk to five users before building. You now need a hundred who actually use it.
+M07 taught you to read the instruments — events, funnels, retention, churn, experiment design — and assumed users existed. Nothing in it tells you how to get the people.
 
 ### The idea
 
 **The first hundred users are recruited one at a time, by hand, by you — and nothing about the process scales, which is exactly why it works.**
 
-Growth channels that scale — search, content, paid ads, referral loops — all need something to amplify. At eleven users there is nothing to amplify. What works instead is the individual ask: one named person, one message written for them, often one conversation where you sit beside them while they sign up. It is slow, it feels like begging, and it is the only thing that works at this size.
+Search, content, ads and referral loops all amplify something, and there is nothing yet to amplify. What works is the individual ask. In India, at this size:
+
+- **One-to-one WhatsApp beats everything.** The same text in a group of two hundred is read by nobody: everyone assumes it was meant for someone else.
+- **Groups work only with the admin's permission, and only once.** A second post gets you removed and costs the channel permanently.
+- **Go to a physical room.** Ninety seconds before a lecture, with an offer to set it up for anyone now, beats a hundred link clicks.
+- **Install it with them, on their phone.** Concierge onboarding produces a user who reached value and shows you the step that confuses a stranger.
+- **Do the work manually if you must.** A team member walking each pre-order to the counter buys real behaviour while the automation gets built.
+- **Shared devices and prepaid data shape all of it.** A hostel phone passed between three students puts three people under one account, breaking per-user identity for every number in this module; nobody on a prepaid pack downloads 40 MB on a classmate's word.
 
 ### The analogy
 
-A new stall opens inside the campus canteen. Nobody knows it exists.
+A new stall opens inside the campus canteen and nobody knows it exists. The owner does not buy a hoarding; they stand at the front handing samples to individual students. Thirty plates on day one, three of which produce a student who returns on Thursday.
 
-The person running it does not buy a hoarding. They stand at the front with a tray of free samples and hand them to individual students walking past, one plate at a time, and they watch each face as the student tastes it. Thirty plates on day one, most of which produce nothing, three of which produce a student who comes back on Thursday. By week three the stall has forty regulars, every one of whom was handed a sample by a human being.
-
-**Where the analogy breaks:** the canteen stall has a doorway and a captive stream of students who pass it four times a day. Your product has no doorway. Nobody walks past a URL. So the equivalent of standing at the front is going to where the stream already is — the class WhatsApp group, the hostel floor, the 3 p.m. lab queue, the society meeting — and the equivalent of handing over a plate is a message written to one named person, not a broadcast to two hundred.
+**Where the analogy breaks:** the stall has a doorway and a stream of students passing four times a day. Nobody walks past a URL. Standing at the front means going where the stream already is — the class group, the hostel floor, the lab queue.
 
 ### Picture it
 
@@ -61,35 +62,13 @@ The person running it does not buy a hoarding. They stand at the front with a tr
   came back once      6  ▌                          2%
 ```
 
-Three hundred individual asks produce roughly seventeen people who did the thing your product is for, and six who came back — which means a hundred users who actually use the product costs something like fifteen hundred asks.
+Three hundred individual asks produce roughly seventeen people who did the thing your product is for and six who came back — so a hundred users who actually use the product costs something like fifteen hundred asks. Every team assumes its own rate will be better. It will not be.
 
-That arithmetic is the whole chapter. The first reaction of every team is that their rate will be better; in week one it will not be. It improves when the asks get more targeted, which only happens after you have logged enough of them to see which channel worked.
-
-### Where the users actually come from, in India, at this size
-
-**One-to-one WhatsApp beats everything.** A message addressed to one person, naming why you thought of them, gets read and sometimes acted on. The same text pasted into a group of two hundred gets read by nobody, because everyone in a large group assumes the message is for someone else. Broadcast blindness is real and it is severe.
-
-**Groups work only with the admin's permission and only once.** Ask the class or society group admin first, post once, never twice. A second post gets you removed and costs you the channel permanently. One well-timed post in a hostel group of ninety, with the admin's blessing, is worth more than thirty uninvited posts.
-
-**Go to a physical room.** For a Nashik-offline cohort this is the strongest channel available and the one teams skip because it is frightening. Walk into a classroom before a lecture, ask the teacher for ninety seconds, show the product on your own phone, and offer to set it up for anyone who wants it now. Ten installs you watched happen are worth a hundred link clicks.
-
-**Install it with them, on their phone.** Sit beside the person and watch where they hesitate. This is concierge onboarding, and it does two jobs: it produces a user who actually reached value, and it shows you the exact step that confuses a stranger. Chapter five's replays and chapter six's activation work both start here, with your own eyes.
-
-**Do the work manually if you must.** If the product cannot yet do something, do it yourself behind the scenes for the first twenty users. A canteen pre-order app with no counter integration can have a team member walk each order over. It does not scale and it is not cheating; it buys you real behaviour to measure while the automation gets built.
-
-**Shared devices and prepaid data shape all of this.** A hostel phone passed between three students produces three people's behaviour under one account, which breaks per-user identity for every number in this module. A student on a prepaid pack will not download a 40 MB app on mobile data to try something a classmate mentioned.
-
-### The recruitment log
-
-One row per ask: who, which channel, which date, what you said, whether they opened it, whether they signed up, whether they did the thing your product is for. A spreadsheet is correct here.
-
-The log does three jobs. It converts a vague feeling of effort into a number you can divide. It tells you which channel produced users who stayed rather than users who signed up, which are very different lists. And it is the only honest record of whether your hundred users are strangers or your friend group wearing different names.
+Those rows exist only if you keep a recruitment log: one row per ask, with who, channel, date, opened, signed up, reached value. It separates channels that produced users who stayed from channels that only produced signups.
 
 ### Where it lives
 
-M01's chapter three is directly upstream. There you ran five conversations, wrote a persona from evidence, and recorded a baseline — "skipped lunch twice last week", "pays a senior ₹20 on Thursdays". The people you recruit here must match that persona, or every number in this module describes somebody you were never building for. That baseline is what you will finally measure against in chapter four.
-
-Downstream, this chapter feeds M17's unit economics: the cost per acquired user starts as your own hours, which is still a cost, and the channel column of your log becomes the first version of an acquisition channel mix.
+M01's chapter three is upstream: the persona you wrote from evidence and the baseline you recorded — "skipped lunch twice last week". Recruit people who do not match it and every number here describes somebody you were never building for. Downstream, your channel column becomes M17's acquisition channel mix.
 
 ### Words to own
 
@@ -108,26 +87,26 @@ Downstream, this chapter feeds M17's unit economics: the cost per acquired user 
 
 ### Tradeoffs and gotchas
 
-**Friends poison your numbers more than they help them.** A friend who signs up to be supportive and never returns adds one to your signup count and drags your retention curve down, and you will spend chapter four wondering why. Keep friends in a separate marked cohort in your log from day one. It is far cheaper than untangling it in month three.
+**Friends poison your numbers more than they help them.** A favour signup never intended to return still drags your retention curve down. Mark friends as a separate cohort from day one.
 
-**Do not spend money on ads at this size.** A thousand rupees of ads at eleven users buys traffic you cannot interpret, from people who do not match your persona. Paid acquisition is chapter eight's topic and M17's arithmetic, and it needs a working retention curve first.
+**Do not spend money on ads at this size.** A thousand rupees buys traffic you cannot interpret from people who do not match your persona.
 
-**Counting installs as users is the oldest self-deception in this subject.** An install is a file on a phone. A signup is a form submission. Neither is a user. Only "did the thing" counts, which is why that row sits at the bottom of the ask ladder.
+**An install is not a user.** An install is a file; a signup is a form submission. Only "did the thing" counts.
 
-**Hundred is a target, not a magic number.** Below roughly a hundred actives, percentages are stories about individuals rather than statistics — M07 said this and it is the reason this chapter exists. Three hundred actives is where funnels start behaving; a thousand is where chapter nine's experiments become possible at all.
+**Hundred is a target, not a magic number.** Below a hundred actives, percentages are stories about individuals. Three hundred is where funnels behave; a thousand is where experiments become possible.
 
-**The social cost is real and it is temporary.** Asking classmates to try your thing is genuinely uncomfortable, you will feel like a nuisance, and roughly four in five will say no or say nothing. The teams that get through this module are not the ones who found it easy. They are the ones who kept a log and did it anyway.
+**The social cost is real and temporary.** Four in five will say nothing. The teams that get through this module kept a log anyway.
 
 ### Verify it
 
-AI is good at drafting your messages and terrible at telling you where your users are. Four checks on anything it gives you.
+AI is good at drafting your messages and terrible at telling you where your users are.
 
-1. **Does the plan assume traffic you do not have?** Ask for an acquisition plan and you will get SEO, content, launch-site posts and referral loops. Every one of those amplifies existing traffic. At eleven users there is nothing to amplify, and a plan full of them is a plan to do nothing for six weeks. Red flag: any step whose first requirement is "drive traffic to".
-2. **Does the plan assume a budget?** "Run a small paid campaign" is a sentence that ends your free tier. Say the budget is zero rupees in the brief and check that every step survives it.
-3. **Is the message written for one person or for everyone?** A draft that opens "Hi! We've built an exciting new app" is a broadcast and will be ignored. Make it name the person and name the specific problem you heard them describe in M01.
-4. **Would your persona recognise themselves?** Ask AI who it thinks the message is aimed at, without telling it. If the answer is not your M01 persona, you are recruiting the wrong hundred people.
+1. **Does the plan assume traffic you do not have?** Red flag: any step whose first requirement is "drive traffic to".
+2. **Does the plan assume a budget?** Say zero rupees in the brief and check every step survives it.
+3. **Is the message for one person or for everyone?** "Hi! We've built an exciting new app" is a broadcast; name the person and the problem you heard in M01.
+4. **Would your persona recognise themselves?** Ask AI who it thinks the message is aimed at, without telling it.
 
-Red flags in your own log: a column for signups but none for reached value; every row the same channel; no date column; every name a friend; and a plan with fewer than fifty rows against it, which means it was never actually run.
+Red flags in your own log: signups but no reached-value column; every row the same channel; no dates; every name a friend; fewer than fifty rows, meaning it was never run.
 
 ## Walkthrough
 1. Open your analytics or your database and write down three numbers for today: total signups, how many did the thing your product is for at least once, and how many of those are not on your team.

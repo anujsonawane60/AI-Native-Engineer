@@ -4,7 +4,7 @@ module: m13-production-engineering
 slug: graphql-grpc-in-practice
 title: "GraphQL and gRPC in Practice: Schemas, Resolvers, Contracts"
 order: 1
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-M04 chapter 2 taught you the three API styles and the one question that separates them: who decides the response shape — the server with REST, the client with GraphQL, or a compiled contract with gRPC. It taught over-fetching and under-fetching, it taught the N+1 problem as 1 + 20 = 21 requests and about six seconds on a Nashik 4G connection, and it told you unprotected GraphQL is a denial-of-service vulnerability. All of that was the overview. This chapter is the practice: writing the schema, reading the resolvers, installing the limits, and evolving a contract without breaking a mobile app you already shipped to the Play Store.
+M04 chapter 2 taught you the three API styles and who decides the response shape — the server with REST, the client with GraphQL, a compiled contract with gRPC. It named over-fetching, N+1, and unprotected GraphQL as a denial-of-service risk. That was the overview. This chapter is the practice: writing the schema, reading the resolvers, installing the limits, and evolving a contract without breaking a shipped mobile app.
 
-So here is what week one of real GraphQL looks like. A team replaces four REST endpoints with one GraphQL endpoint. The mobile app gets faster, everyone is pleased. Then a teammate writes a query on the dashboard that asks for every order, and for each order the student, and for each student their last ten orders, and for each of those the dishes. One HTTP request. Four thousand database queries. The database's connection pool — the one from M05 chapter 6 — is exhausted in nine seconds, and the entire product is down, including the parts that have nothing to do with the dashboard.
-
-Second failure, three weeks later. They rename a field from `price` to `priceInPaise` because the old name was ambiguous. The web app is updated the same day. The Android app on two hundred phones is not, because an app store update takes days and users do not install it. Every one of those phones now shows a blank price. In REST you would have versioned the endpoint. In GraphQL there are no versions, so the only tool you have is deprecation — and you did not use it.
+Week one of real GraphQL. A teammate's dashboard query asks for every order, each order's student, each student's last ten orders, and each order's dishes. One HTTP request, four thousand database queries, and the M05 connection pool is gone in nine seconds.
 
 ### The idea
 
 **In GraphQL you publish a type system and give up control of the query, so your safety comes entirely from the resolvers and the limits. In gRPC you publish a numbered contract, so your safety comes entirely from never reusing a number.**
 
-A schema declares the types and fields that exist. A **resolver** is the function that produces one field's value. The client sends a tree of fields; the server walks that tree calling resolvers. Every performance problem and every security problem in GraphQL is a property of that walk.
-
-gRPC is the opposite trade. The shape is fixed in a `.proto` file both sides compile, so the client cannot ask for anything new. Its fragility is in the field *numbers*, which are the actual wire identity of each field — the name is only for humans.
+A schema declares the types and fields that exist. A **resolver** produces one field's value. The client sends a tree of fields and the server walks it calling resolvers; every performance and security problem in GraphQL is a property of that walk. In gRPC the shape is fixed in a `.proto` both sides compile, so the fragility moves to the field *numbers*, the real wire identity of each field.
 
 ### The analogy
 
-M04 gave you three canteens. Go behind the counter of the second one.
+Go behind the counter of M04's second canteen. The tick-sheet is the **schema** — nothing off the sheet is orderable. Each ticked item is fetched by a particular person — warmer, fridge, sweet counter. Those are the **resolvers**. Now the mistake: twenty students tick "dish of the day" and the runner walks to the kitchen twenty times, when one trip with a list costs the same. Those twenty trips are your N+1; one trip is **batching**.
 
-The tick-sheet a student fills in is the **schema**: it defines what can be asked for at all, and nothing off the sheet is orderable. Each ticked item is fetched by a particular person — one goes to the warmer, one to the fridge, one to the sweet counter. Those are the **resolvers**. Now watch the mistake: twenty students tick "dish of the day", and the runner walks to the kitchen twenty separate times to ask which dish it is today. One trip with a list of twenty would have taken the same time as one trip. That is **batching**, and the twenty trips are your N+1.
-
-The third canteen's hatch has pre-printed carbon forms with numbered boxes. Box 7 always means "paneer trays". The storeroom never reads the labels, only the box positions, because that is faster. That is a **protobuf contract**. Reprint the form with the boxes in a new order and the storeroom will keep filling box 7 with paneer while the kitchen now reads box 7 as rice — silently, with no error anywhere.
-
-**Where the analogy breaks:** a student cannot tick an item on the sheet a thousand times, nested inside itself. A GraphQL client can send a query nested fifteen levels deep that asks for a million rows, and the server will attempt it with total enthusiasm. The counter staff have a physical limit on how absurd an order can get; your resolvers have none unless you install one.
+**Where the analogy breaks:** a student cannot tick one item a thousand times, nested inside itself. A GraphQL client can, and the server will try.
 
 ### Picture it
 
@@ -69,9 +61,11 @@ One client query becomes a tree of resolver calls, and the difference between 41
 
 ### Where it lives
 
-This chapter sits on top of M04's API layer and reaches into three other places. The batching fix is a request-scoped cache, which is M05 chapter 2's in-process cache with a lifetime of one request — and that short lifetime is exactly why it has no invalidation problem. The query limits are M05 chapter 4's rate limiting applied to cost rather than to count. The connection pool a runaway query exhausts is M05 chapter 6. And gRPC's home, as M04 said, is one of your services calling another, which is where chapter 2's event-driven work and chapter 3's cluster put it.
+This sits on M04's API layer and touches three places:
 
-Caching is the honest cost of GraphQL and it points at chapter 8. A REST `GET` has a URL, so a CDN can cache it. A GraphQL query is a `POST` with a body, so the edge cannot cache it at all unless you adopt persisted queries, which turn a known query into a short id that *can* appear in a URL.
+- **Batching** is M05 chapter 2's in-process cache with a one-request lifetime, which is why it needs no invalidation.
+- **Query limits** are M05 chapter 4's rate limiting applied to cost, not count.
+- **Caching** points at chapter 8: a CDN can cache a REST `GET` URL; a GraphQL `POST` needs persisted queries first.
 
 ### Words to own
 
@@ -95,30 +89,27 @@ Caching is the honest cost of GraphQL and it points at chapter 8. A REST `GET` h
 
 ### Tradeoffs and gotchas
 
-**Batching is not optional and it is the thing AI omits most.** A resolver that queries the database per parent row is the default shape of generated code, because it is the obvious shape. It works perfectly with three test rows and falls over at twenty. Ask for the query count, not the correctness.
+**Batching is what AI omits most.** A resolver that queries per parent row is generated code's default shape: fine with three rows, fatal at twenty.
 
-**Install all three limits before you expose the endpoint, not after.** Depth, complexity and introspection. Depth stops infinite nesting. Complexity gives every field a cost and every query a budget, which is the only limit that catches a shallow but enormous query. Turning introspection off in production is not real security, but it does stop a stranger reading your entire data model in one request.
+**Install all three limits before you expose the endpoint.** Depth stops infinite nesting; complexity gives every query a budget, the only limit that catches a shallow but enormous query; introspection off hides your data model.
 
-**GraphQL returns 200 when things fail.** An error arrives as an `errors` array inside a successful HTTP response, often alongside partial data. This breaks every monitoring assumption from M07: your error rate looks like zero while users see blanks. You must count GraphQL errors explicitly or you are blind.
+**GraphQL returns 200 when things fail.** Errors arrive inside a successful response beside partial data, so your M07 error rate reads zero while users see blanks.
 
-**There are no versions, so deprecate rather than remove.** Add the new field, mark the old one deprecated with a reason and a date, watch field-level usage until it reaches zero, and only then delete. The shipped mobile app from M12 is why this matters: you do not control when users update.
+**There are no versions, so deprecate rather than remove.** Add the new field, deprecate the old with a reason and date, watch its usage reach zero, then delete. M12's shipped app is why: you do not control when users update.
 
-**In protobuf, never reuse a field number, and never change a field's type.** Rename freely — names are for humans. But a retired number must be marked reserved forever, because an old client still on the wire will put its data in that box. This is the single rule that makes gRPC safe and the single rule that silently corrupts data when broken.
+**In protobuf, never reuse a field number or change a field's type.** Rename freely — names are for humans — but a retired number stays reserved forever, because an old client will still fill that box.
 
-**Adding a third API style to a small product is a self-inflicted wound,** exactly as M04 said. The honest default for your startup is still REST, with GraphQL where one screen genuinely needs six resources at once, and gRPC only between your own services. Three styles means three sets of auth, three sets of monitoring and three sets of limits.
-
-**Authorization lives in the resolvers, per field.** This is the trap M07 chapter 1's broken-access-control entry predicts. With REST you check permissions per endpoint. With GraphQL a student can reach `order { student { phone } }` through a path nobody thought about, and if the check is only on the top-level query, they get another student's phone number.
+**Authorization lives in the resolvers, per field.** A student can reach `order { student { phone } }` by a path nobody thought about, and a root-only check hands them another student's phone number.
 
 ### Verify it
 
-1. **Ask for the query count, with a number.** "How many database queries does this query produce for 20 orders?" If the answer is not stated and then demonstrated by a log of actual queries, you do not know. Turn on query logging and count them yourself.
-2. **Try the abusive query yourself.** Write one nested fifteen levels deep and send it. If it returns data instead of a rejection, your limits are missing. Then write a shallow one asking for ten thousand rows; depth alone will not stop it, which is what complexity limits are for.
-3. **Ask as the wrong user.** Pick a field holding someone else's personal data and reach it through the deepest path you can construct. This is the check that finds the resolver where authorization was forgotten.
-4. **Confirm errors are visible.** Force a resolver to fail and look at your monitoring from M07. If your error rate stayed at zero, instrument GraphQL errors before you ship anything.
-5. **For a schema change, demand the deprecation path.** Any answer that removes or renames a field without a deprecation period and a usage check is wrong, no matter how much tidier the result is.
-6. **For a `.proto` change, read the field numbers.** Confirm nothing was renumbered, nothing retired was reused, and retired numbers are reserved.
+1. **Ask for the query count, with a number.** "How many database queries for 20 orders?" Then log and count them yourself.
+2. **Send the abusive query.** Fifteen levels deep: data instead of a rejection means your limits are missing. Then a shallow one asking for ten thousand rows — only complexity stops that.
+3. **Ask as the wrong user.** Reach someone else's personal data by the deepest path the schema allows. This finds the forgotten resolver check.
+4. **Force a resolver to fail** and check M07 monitoring. A zero error rate means GraphQL errors are uninstrumented.
+5. **Read the field numbers** on any `.proto` change: nothing renumbered, retired numbers reserved.
 
-Red flags: a resolver that queries inside a loop; a GraphQL endpoint with no depth or complexity limit; introspection enabled in production; a field removed rather than deprecated; a protobuf field renumbered "to tidy it up"; authorization checked only at the query root; a claim that GraphQL "reduces load on the server", which is backwards — it reduces round trips for the client and increases how much one request can cost you.
+Red flags: a resolver that queries inside a loop; no depth or complexity limit; introspection on in production; a protobuf field renumbered to tidy it up; authorization only at the query root.
 
 ## Walkthrough
 1. Pick one real screen in your product that currently needs three or more API calls. Write down the calls, what each returns, and the measured total time on a throttled connection.

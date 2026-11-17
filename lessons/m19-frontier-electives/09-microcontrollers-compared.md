@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: microcontrollers-compared
 title: "Microcontrollers: Arduino vs ESP32 vs Raspberry Pi"
 order: 9
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,27 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-The canteen loses forty litres of milk. The deep fridge failed at some point after 9 pm, the staff found out at 6 am, and nobody can say whether the milk sat at 18 degrees for one hour or eight. The manager wants a sensor that reports the temperature and shouts when it drifts.
+The canteen loses forty litres of milk. The deep fridge failed some time after 9 pm, the staff found out at 6 am, and nobody can say whether the milk sat at 18 degrees for an hour or eight. The manager wants a sensor that reports temperature and shouts when it drifts.
 
-A student team takes the brief and buys a Raspberry Pi 5 for about ₹8,000, plus a power adapter, plus a memory card. Three weeks later: it works beautifully on the bench, and in the fridge room it has corrupted its memory card twice because the campus power cuts out without warning and the Pi was in the middle of writing. It cannot run on a battery for more than a couple of hours. It takes forty seconds to boot. And the team has spent most of their budget on one node for one fridge, when the canteen has nine fridges and a cold store.
+A student team buys a Raspberry Pi 5 for about ₹8,000. It works beautifully on the bench; in the fridge room it has corrupted its card twice, because the campus power cuts out mid-write. It lasts two hours on a battery and takes forty seconds to boot. And most of the budget went on one node, when the canteen has nine fridges.
 
-The job needed a ₹350 board the size of a matchbox that wakes up once a minute, reads a number, sends it, and sleeps. The team did not choose the wrong brand. They chose the wrong *class* of machine, and the three classes are genuinely different animals.
+The job needed a ₹350 board the size of a matchbox that wakes once a minute, reads a number, sends it, and sleeps. The team did not choose the wrong brand. They chose the wrong *class* of machine, and the three classes are different animals.
 
 ### The idea
 
 **There are three classes of small computer, and the dividing lines are an operating system, a radio and a power budget.**
 
-A microcontroller is a chip with a processor, a small amount of memory and a set of pins, running exactly one program with no operating system underneath it. It boots in milliseconds, it never needs patching because there is nothing to patch, it does nothing you did not write, and it can idle on microamps. An Arduino Uno is the teaching example.
+A microcontroller is a chip with a processor, a little memory and a set of pins, running one program with no operating system underneath. It boots in milliseconds, has nothing to patch, does nothing you did not write, and can idle on microamps. An Arduino Uno is the teaching example.
 
-A microcontroller with a radio built in is the same thing plus Wi-Fi and Bluetooth. The ESP32 family is the one that reshaped hobby and small-commercial IoT in India, because at a few hundred rupees it gives you a connected sensor node that can genuinely sleep.
+A microcontroller with a radio built in is the same thing plus Wi-Fi and Bluetooth. The ESP32 family reshaped small-scale IoT in India, because for a few hundred rupees it gives you a connected sensor node that can genuinely sleep.
 
-A single-board computer is a small Linux machine. A Raspberry Pi has an operating system, a file system, package management, several cores, a camera interface and the ability to run Python, a database and a web server at once. It also wants steady mains power, a graceful shutdown, and a memory card it will eventually wear out.
+A single-board computer is a small Linux machine. A Raspberry Pi serves Python, a database and a web server at once, and also wants steady mains power, a graceful shutdown, and a memory card it will eventually wear out.
 
 ### The analogy
 
-Three members of canteen staff. The kettle timer does one thing forever, cannot be distracted, costs nothing to keep, and will never learn a second task — that is a microcontroller. The cashier with a phone does one main job and can also talk to the outside world, at the cost of needing to be charged — that is the ESP32. The manager with a laptop can do twenty things, keeps records, runs reports, and also takes lunch breaks, crashes, and needs the electricity to stay on — that is the Raspberry Pi.
+Three members of canteen staff. The kettle timer does one thing forever and will never learn a second task — a microcontroller. The cashier with a phone does one main job and can also talk to the outside world, at the cost of needing charge — the ESP32. The manager with a laptop does twenty things and keeps records, and also crashes and needs the electricity to stay on — the Raspberry Pi.
 
-**Where the analogy breaks**: every member of staff can improvise. If the fridge makes a strange noise, a human investigates. A microcontroller executes the loop you wrote and nothing else, forever, including when the sensor has been reading minus forty for a week because its wire fell off. There is no judgement anywhere in the device, which is why chapters 10 and 12 spend so much time on how it fails.
+**Where the analogy breaks**: every member of staff can improvise. If the fridge makes a strange noise, a human investigates. A microcontroller executes the loop you wrote and nothing else, forever, including when the sensor has read minus forty for a week because its wire fell off. There is no judgement in the device, which is why chapters 10 and 12 spend so long on how it fails.
 
 ### Picture it
 
@@ -76,11 +76,9 @@ Matching the job to the class settles the choice before any brand comparison sta
 
 ### Where it lives
 
-M00 gave you four boxes: client, server, network, data. A device is a new kind of client — one with no user, no screen, and no ability to retry by having someone tap again. Everything you know about unreliable clients from M05 applies harder here.
+A device is a new kind of M00 client — no user, no screen, no way to retry by having someone tap again — so M05's unreliable-client thinking applies harder. M06's Linux is relevant to the Pi and irrelevant to the other two. M09's quantization is why a Pi or a modern ESP32 can run inference at all, which chapter 12 covers as edge AI.
 
-M06's Linux is directly relevant to one of the three boxes and irrelevant to the other two. A Pi is a Linux machine: you will use a shell, a service manager and package updates, exactly as in M06. A microcontroller has none of those, which removes a whole class of problems and adds a different one — there is no shell to log into when something is wrong, so your only window is what the firmware chooses to report. M09's quantization and small-model work is why a Pi or a modern ESP32 can run inference at all, which chapter 12 covers as edge AI.
-
-Indian cost reality, because it decides what a student team can actually attempt: an ESP32 development board is roughly ₹300 to ₹500, an Arduino Uno clone around ₹400, a Raspberry Pi Zero 2 W around ₹2,000, and a Pi 5 with accessories well past ₹8,000. Sensors are ₹50 to ₹500. Nothing in this module requires buying any of it — free in-browser simulators build the circuit, run the firmware and show you the serial output. A student who already owns a board will get more out of chapters 10 to 12, and a student who owns nothing will still learn every concept.
+Indian prices decide what a student team can attempt: an ESP32 board is roughly ₹300 to ₹500, an Arduino Uno clone around ₹400, a Pi Zero 2 W around ₹2,000, a Pi 5 with accessories past ₹8,000, sensors ₹50 to ₹500. Nothing here requires buying any of it — free in-browser simulators build the circuit, run the firmware and show you the serial output. A student who owns nothing still learns every concept.
 
 ### Words to own
 
@@ -100,27 +98,25 @@ Indian cost reality, because it decides what a student team can actually attempt
 
 ### Tradeoffs and gotchas
 
-**A Pi needs a graceful shutdown and India has power cuts.** Pulling power from a running Linux box mid-write corrupts the card. In the field you need a battery backup, a read-only root file system, or a microcontroller instead. This one failure accounts for most dead student IoT projects.
+**A Pi needs a graceful shutdown and India has power cuts.** Pulling power from a running Linux box mid-write corrupts the card. In the field you need a battery backup, a read-only root, or a microcontroller instead. This one failure accounts for most dead student IoT projects.
 
-**Battery life is a design parameter, not a result.** A board awake all the time lasts hours. The same board sleeping and waking once a minute lasts months. If a plan does not say how often the device wakes and for how long, it has no battery life.
+**Battery life is a design parameter, not a result.** A board awake all the time lasts hours; waking once a minute it lasts months. A plan that does not say how often the device wakes, and for how long, has no battery life.
 
-**There is no shell on a microcontroller.** No logging in, no reading a log file after the fact, no running one more command. Whatever the firmware does not report, you will never know, and chapter 12 is where that becomes a security problem too.
+**There is no shell on a microcontroller.** Whatever the firmware does not report, you will never know. A Pi gives you a shell and an operating system that must then be patched; a microcontroller has nothing to patch and no easy way to be patched.
 
-**More capability is more attack surface and more maintenance.** A Pi runs a full operating system that must be patched, which is M06 and M07 arriving in a fridge room. A microcontroller has nothing to patch and also no easy way to be patched.
-
-**Pin numbering lies.** Board labels, chip pin numbers and library numbering disagree, and they differ between board revisions of the same family. This is the single most common source of wasted hours, and it is why you check against the specific board's own documentation rather than a generic answer.
+**Pin numbering lies.** Board labels, chip pin numbers and library numbering disagree, and differ between revisions of one family. This is the commonest source of wasted hours, and why you check the board's own documentation.
 
 ### Verify it
 
-**Red flag: a Raspberry Pi recommended for a battery-powered sensor.** The most common AI error in this area. Ask for the current draw while idle and the expected battery life with the stated battery. If those two numbers are absent, the recommendation is decoration.
+**Red flag: a Raspberry Pi recommended for a battery-powered sensor.** The commonest AI error here. Ask for the idle current draw and the expected life on the stated battery.
 
-**Red flag: no power budget at all.** A correct answer states how often the device wakes, how long it stays awake, how much current it draws awake and asleep, and the resulting life on a named battery. Insist on all four.
+**Red flag: no power budget at all.** A correct answer states how often the device wakes, how long it stays awake, the current in each state, and the resulting life on a named battery.
 
-**Red flag: no mention of what happens when power is cut.** Ask directly. For a Pi the answer must include card corruption and a mitigation. For a microcontroller it must include what state is lost and whether the next boot recovers.
+**Red flag: no mention of what happens when power is cut.** For a Pi the answer must name card corruption and a mitigation; for a microcontroller, what state is lost.
 
-**Red flag: pin numbers given without naming the exact board.** "Connect the sensor to pin 4" is unusable. Ask which board revision, and whether the number refers to the silkscreen label or the chip's own numbering.
+**Red flag: pin numbers given without naming the exact board.** "Connect the sensor to pin 4" is unusable. Ask which board revision, and whether the number is the silkscreen label or the chip's own.
 
-**Red flag: a single node costed and a fleet ignored.** You have nine fridges. Ask for the cost, the provisioning effort and the failure rate across the whole fleet, which is how a ₹8,000 choice becomes a ₹72,000 choice.
+**Red flag: a single node costed and a fleet ignored.** Ask for cost, provisioning effort and failure rate across all nine fridges, which is how a ₹8,000 choice becomes a ₹72,000 choice.
 
 ## Walkthrough
 1. Open a free in-browser microcontroller simulator that supports both ESP32 and Arduino boards. Create a new ESP32 project with nothing but a blinking light.

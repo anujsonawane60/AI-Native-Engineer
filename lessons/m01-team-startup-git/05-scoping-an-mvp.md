@@ -4,7 +4,7 @@ module: m01-team-startup-git
 slug: scoping-an-mvp
 title: "Scoping an MVP You Can Ship, and Your North Star Metric"
 order: 5
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team has a good PRD. They decide to build "the backend properly first", because it is the foundation and because that feels responsible.
-
-Three weeks later they have an excellent data model, seven working endpoints, authentication with roles, and nothing a human being can look at. They cannot test with a user, because there is nothing to show. They cannot tell whether the product is useful, because the product does not exist yet — only half of it does, perfectly.
-
-Meanwhile a second team spent four days building one ugly screen that lets one student place one real order, saved to a real database. It is held together with tape. It has told them three things about their users that the first team will not learn for another month.
+A team with a good PRD decides to build "the backend properly first", because that feels responsible. Three weeks later they have an excellent data model, seven endpoints, and nothing a human can look at — only half a product, perfectly. A second team spent four days on one ugly screen that puts one real order into a real database, and it has already told them three things about their users.
 
 ### The idea
 
 **Slice the product along the user's journey, not along the layers of the stack. Build the thinnest complete path first.**
 
-A thin slice through all four boxes — client, server, data, and deployed — is worth more than a perfect version of any one box, because only a complete path can be used by a human.
+A thin slice through all four boxes — client, server, data, deployed — beats a perfect version of any one box, because only a complete path can be used by a human.
 
 ### The analogy
 
-You are opening the canteen stall. Two ways to spend the first week.
+You are opening the canteen stall. **By layer:** build the entire kitchen. By the end of the week you can cook anything and have sold nothing, because there is no counter and no way to take money. **By slice:** make poha, write "Poha ₹20" on paper, take cash. By the end of day one you have revenue, you know whether anyone wants poha at that price, and you have found that your real problem is change for ₹500 notes.
 
-**By layer:** build the entire kitchen. Every burner, full storeroom, complete prep station. At the end of the week you can cook anything and you have sold nothing, because there is no counter, no menu board and no way to take money.
-
-**By slice:** one dish. Buy ingredients for poha, make poha, write "Poha ₹20" on paper, take cash. Sell it to one person. At the end of day one you have revenue, you know whether anyone wants poha at that price, and you have discovered that your biggest problem is actually change for ₹500 notes — which no amount of kitchen building would have taught you.
-
-Then you add the second dish, then card payments, then the proper board.
-
-**Where the analogy breaks:** a kitchen built badly can be rebuilt over a weekend. Software accumulates. A tape-and-string first slice is correct, but it needs to be *replaceable* tape — which is why the walking skeleton still goes through git, still gets deployed properly, and still has a real database behind it rather than fake data.
+**Where the analogy breaks:** a badly built kitchen can be rebuilt over a weekend. Software accumulates, so the tape must be *replaceable* — which is why the first slice still goes through git, still deploys properly, and still has a real database rather than fake data.
 
 ### Picture it
 
@@ -67,15 +57,7 @@ Then you add the second dish, then card payments, then the proper board.
   └───────────────────────────────────────────────┘
 ```
 
-Each slice in the lower diagram touches every layer and ends in something a person can do. That first complete path is called a **walking skeleton**: all the bones connected, no muscle yet.
-
-### What goes in the first slice
-
-The test for slice one: **one real user can complete the single most important action, and the result is really stored.**
-
-For a canteen product that means: see today's items, choose one, submit, and the order exists in a real database where staff could see it. That is it.
-
-What is deliberately left out of slice one, and why:
+Each slice in the lower diagram touches every layer and ends in something a person can do. That first complete path is a **walking skeleton**: all the bones connected, no muscle yet. The test for slice one: **one real user completes the single most important action, and the result is really stored.** Everything else waits.
 
 | Left out | Why it can wait |
 |---|---|
@@ -86,15 +68,13 @@ What is deliberately left out of slice one, and why:
 | Error handling | Handle the one error you actually hit |
 | Images | Text names. Photos are a slice of their own |
 
-Each of those is real work you will do. None of them is needed to find out whether a student will place an order.
+Three things are **not** optional: it goes in git, it deploys to a real URL, and the data is really saved.
 
-**What is not optional in slice one**, even though it is tempting: it goes in git, it deploys to a real URL, and the data is really saved. Skip those three and you have a demo rather than a skeleton, and you will rebuild from zero.
+### Where it lives
 
-### The north star metric
+Checkpoint 2 in M11 is "walking skeleton, deployed". Slicing also shapes your briefs: "build the whole backend" is not checkable; "a student submits an order and I can see the row in the database" is.
 
-One number that tells you the product is working. Not a dashboard — one number, chosen deliberately, because what you measure is what the team optimises without being asked.
-
-The test: **could this number go up while the product delivers no value?** If yes, it is a vanity metric.
+The second output is your **north star metric** — one number that means the product works, because what you measure is what the team optimises. The test: could it rise while the product delivers no value?
 
 | Vanity | Why it fails | Actionable instead |
 |---|---|---|
@@ -104,17 +84,7 @@ The test: **could this number go up while the product delivers no value?** If ye
 | App installs | Install then never open | Weekly active orderers |
 | Time on site | Rises when people are lost | Time to complete an order, falling |
 
-A good north star usually contains a **repeat**, because repetition is the hardest thing to fake and the clearest evidence of value. One order proves curiosity. A second order proves usefulness.
-
-For most products in this program the shape is: *number of people who did the core action more than once, this week.*
-
-### Where it lives
-
-Scope and metric are the two inputs to the first checkpoint in M11. Checkpoint 2 is literally "walking skeleton, deployed" — this chapter is what you will be checked against.
-
-The slicing habit also carries into how you brief AI. A slice is a brief-sized unit of work: small enough to verify, complete enough to be useful. "Build the whole backend" is not a brief you can check. "A student submits an order and I can see the row in the database" is.
-
-And the north star reappears in M16, where you will instrument it properly and discover whether it moved. Choosing a gameable number now means measuring the wrong thing for five months.
+A good north star contains a **repeat**: one order proves curiosity, a second proves usefulness. M16 is where you instrument it.
 
 ### Words to own
 
@@ -132,29 +102,27 @@ And the north star reappears in M16, where you will instrument it properly and d
 
 ### Tradeoffs and gotchas
 
-**"Ugly but real" beats "beautiful but fake".** A prototype with hard-coded data teaches you about layout. A tape-and-string app with a real database teaches you about people. In this program you need the second, and you need it in week two.
+**"Ugly but real" beats "beautiful but fake".** Hard-coded data teaches you about layout; a real database teaches you about people.
 
-**Timebox the slice, then cut features to fit — never extend the box.** Two weeks is two weeks. When you are behind, the only honest lever is scope. Teams that extend the timebox instead extend it again, and arrive at month three with nothing deployed.
+**Timebox the slice, then cut features to fit — never extend the box.** Scope is the only honest lever. Teams that extend a timebox extend it again and reach month three with nothing deployed.
 
-**Beware "while we're in there".** The single most common way a two-week slice becomes five weeks. Write the idea down in your nice-to-haves and carry on. This is also why NON-GOALS exists in your PRD.
+**Beware "while we're in there".** The commonest way two weeks becomes five. Write the idea in your nice-to-haves; this is why NON-GOALS exists.
 
-**Do not skip deployment in slice one.** Deploying is where the surprises live — environment variables, build failures, the Linux case-sensitivity bug from M00. Discovering those in week one with fifty lines of code is a bad afternoon. Discovering them in week eight with a real codebase is a bad week.
+**Do not skip deployment in slice one.** Environment variables, build failures and the Linux case-sensitivity bug from M00 surface at deploy time. Week one is a bad afternoon; week eight is a bad week.
 
-**One north star, not five.** Three metrics is a dashboard, and a dashboard lets everyone pick the number that makes them look good. Pick one, write it in the PRD, and let the others be supporting numbers.
-
-**AI will happily build you the whole thing at once.** Ask for "a canteen ordering app" and you will get something broad, shallow, and impossible to verify — many files, nothing tested, no clear idea what works. Ask for one slice with acceptance criteria and you get something you can check. The discipline is yours, not the tool's.
+**One north star, not five.** A dashboard lets everyone pick the number that flatters them.
 
 ### Verify it
 
-Before you start building, five checks on your slice and your metric.
+Five checks before you build.
 
-1. **Does slice one touch all four boxes and end in something a person can do?** If it stops at an endpoint, it is a layer, not a slice.
-2. **Is the data really saved, in a real database, deployed at a real URL?** Fake data makes a demo, not a skeleton.
-3. **Can you list what you are deliberately leaving out?** If not, you have not scoped — you have just started.
+1. **Does slice one touch all four boxes and end in something a person can do?** If it stops at an endpoint, it is a layer.
+2. **Is the data really saved, in a real database, at a real URL?** Fake data makes a demo, not a skeleton.
+3. **Can you list what you are deliberately leaving out?** If not, you have not scoped.
 4. **Could your north star rise while the product is useless?** Then it is vanity. Add a repeat.
-5. **Can you honestly ship this in two weeks with everything else going on?** Exams, other courses, three people's schedules. If not, cut now rather than discover later.
+5. **Can you ship this in two weeks, around exams and three schedules?** If not, cut now.
 
-Then one test on the plan itself: **describe slice one to someone outside the team in one sentence, as an action a person takes.** If you cannot, the slice is still a list of technical tasks rather than a path through the product.
+Red flag: you cannot describe slice one as one action a person takes. Then it is still a list of technical tasks.
 
 ## Walkthrough
 1. Open your PRD. Look only at MUST HAVE. Everything in this exercise comes from that list.

@@ -4,7 +4,7 @@ module: m16-users-analytics-growth
 slug: activation-and-onboarding
 title: "Activation and Onboarding: The First Five Minutes"
 order: 6
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,39 +22,27 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Chapter four handed this team an uncomfortable pair of numbers: retention from signup flattens near 4%, retention from first order flattens at 31%. The product works. Almost nobody reaches it.
+Chapter four handed this team two uncomfortable numbers: retention from signup flattens near 4%, retention from first order at 31%. The product works. Almost nobody reaches it.
 
-So they counted their own onboarding for the first time. Six screens. Eleven fields. An email verification link, then a phone OTP, then a full delivery address — all before the user has seen a single dish. Median time from opening the app to a first order: nine minutes and twenty seconds. Share of signups who never finish: 71%.
-
-Then a user they had recruited by hand said the sentence that ended the argument: "I thought I had already ordered." She had completed four of the six screens, the fifth was an OTP that never arrived on a weak hostel signal, and she assumed the job was done. She was not confused about the product. She was never shown it.
+So they counted their onboarding: six screens, eleven fields, an email link, a phone OTP and a full address, all before the user sees a dish. Median time to a first order was nine minutes twenty, and 71% never finished. Then a hand-recruited user said "I thought I had already ordered" — she had finished four screens, the fifth was an OTP that never arrived on a weak signal, and she assumed the job was done. She was never shown the product.
 
 ### What M07 covered, and what is new here
 
-M07's chapter eight gave activation one line in a table — "the first moment a user got real value" — and warned that counting a signup as activation is a mistake, because a signup is a form submission rather than value received. That definition is correct and it is where this chapter starts.
-
-What is new is all the work it hides. Which action is your activation event, discovered from your own data rather than chosen by taste. Why the definition needs a time box. How to find and remove the steps between a stranger and that action. How to measure activation rate per cohort week after week. And what goes wrong in India specifically — OTPs that do not arrive, downloads that cost money, addresses typed with a thumb.
+M07 gave activation one line — the first moment a user got real value — and warned against counting a signup as activation. New here is the work that line hides: finding the event in your data, time-boxing it, and deleting the steps in front of it.
 
 ### The idea
 
-**Activation is the earliest action that predicts whether someone will still be here next month, and your onboarding has exactly one job: get a stranger to that action as fast as possible.**
+**Activation is the earliest action that predicts whether someone will still be here next month, and your onboarding has exactly one job: get a stranger to that action as fast as possible.** Everything else in a first run is at best neutral. Ask of each element: does this stand between a stranger and the action?
 
-Everything else in a first-run experience — the tour, the welcome screen, the tips, the branding — is at best neutral and usually an obstacle. The question for every element is not "is this nice?" but "does this stand between a stranger and the action?"
+Do not pick the event; compute it. For five or six candidate early actions, compare week-four retention between users who did it within 24 hours and users who did not. The candidate with the largest gap, and enough users on both sides to read, wins.
 
-### Finding your activation event honestly
-
-Do not pick it. Compute it.
-
-List five or six candidate actions a new user could take early: viewed the menu, saved a favourite, added an item, placed an order, placed a second order, invited a friend. For each one, split your users into those who did it within their first 24 hours and those who did not, then compare the two groups' retention four weeks later. The candidate with the largest gap, and with enough users on both sides to be worth reading, is your activation event.
-
-Now the honest caveat, which most courses skip. **This is correlation, not causation.** Users who place an order in their first day are not retained *because* they ordered; they ordered because they were the kind of person who was going to retain. Forcing a reluctant user through that action does not convert them into a loyal one.
-
-It is still the right target, for two practical reasons. It is the earliest observable signal of a user who will stay, so it tells you within a day rather than a month how a cohort will turn out. And the obstacles between signup and that action are real obstacles, so removing them genuinely helps the people who did want to get there. What you must not do is treat the number as a lever to be pulled by any means — chapter nine's discipline applies here too.
+**This is correlation, not causation.** Users who order on day one were already the kind of person who would retain, so forcing a reluctant user through the action does not convert them. It is still the right target: it tells you within a day how a cohort will turn out, and the obstacles in front of it are real obstacles.
 
 ### The analogy
 
-A first-year student walks into the canteen on day one. There is no menu board, the queue has no signs, and the cashier asks for a token they have never heard of. They leave and eat a packet of biscuits instead. The canteen's activation event is simple: did this student eat a plate here on their first visit?
+A first-year student walks into the canteen on day one. No menu board, no signs, and the cashier asks for a token they have never heard of. They leave and eat biscuits. The canteen's activation event: did this student eat a plate here on their first visit?
 
-**Where the analogy breaks:** the canteen gets a second chance for free. That student still has to eat lunch tomorrow, and the canteen is still the nearest option, so a bad first visit costs the canteen very little. Your product has no such gravity. A stranger who fails to get value in five minutes does not come back out of necessity — they come back only if someone asks them to, by hand, which is chapter one's expensive work all over again.
+**Where the analogy breaks:** the canteen gets a second chance free, because that student still has to eat tomorrow and it is still the nearest option. Your product has no such gravity: a stranger who fails in five minutes returns only if someone asks them to by hand.
 
 ### Picture it
 
@@ -73,27 +61,15 @@ A first-year student walks into the canteen on day one. There is no menu board, 
 
 The same product, with verification moved after the first value and the address deferred entirely, takes a stranger from arrival to a placed order in ninety seconds instead of nine minutes.
 
-### Cut before you add
+Deleting steps is the highest-return work in this module:
 
-The highest-return work in this entire module is deleting steps. In order of value:
-
-**Remove a field.** Every field is a chance to stop. Ask of each one: do we need this now, later, or never? Most addresses, names and preferences are "later".
-
-**Defer the signup itself.** Let a stranger see the menu, build an order, and only then ask who they are. Identity collected at the moment it becomes necessary converts far better than identity collected at the door, and chapter two's anonymous id is what makes the before-and-after join up.
-
-**Move verification after value.** An OTP before anything useful is an activation killer in India, because SMS delivery on a weak hostel signal can take minutes or never arrive at all. Verify when it matters — before a payment, before a delivery — not before a menu.
-
-**Pre-fill and default everything you can.** A sensible default is one fewer decision. A pincode guessed from the last order is one fewer keyboard.
-
-**Write a real empty state.** M03's chapter work applies directly: a new user's first screen has nothing in it, and "No orders yet" is a dead end where "Order today's thali, ₹40, ready in 10 minutes" is a path.
-
-**Only then consider explaining.** A product tour is usually a plaster over a design nobody could follow, and it adds steps to the exact moment you are trying to shorten. If five people in a row need the tour, the screen is wrong.
+- **Remove or pre-fill a field.** Needed now, later, or never? Most names and preferences are "later".
+- **Defer signup and verification until after first value.** An OTP before anything useful is an activation killer in India, where SMS on a weak signal may never arrive; chapter two's anonymous id joins the before to the after.
+- **Write a real empty state before you write a tour,** which only adds steps to the moment you are shortening.
 
 ### Where it lives
 
-Chapter four produced the brief for this chapter: the gap between the signup-anchored curve and the value-anchored curve is the size of the problem. Chapter three locates which onboarding step leaks, and chapter five shows you why. Chapter one's concierge onboarding — sitting beside a stranger while they try — is the cheapest and most brutal version of this whole chapter, and it should run alongside the data.
-
-M03 is the design half: usability testing with three friends, empty states, cognitive load, the cost of choices. M10 matters if your first-run experience includes an AI feature, because a bad first answer during onboarding is an activation failure and not just a quality one. M17 is where activation rate becomes money, since the cost of acquiring a user is wasted on everyone who never activates.
+Chapter four wrote the brief: the gap between the two retention curves is the size of the problem. Chapter three locates which step leaks and chapter five shows why. M03 is the design half, and M17 is where activation becomes money, because acquisition cost is wasted on everyone who never activates.
 
 ### Words to own
 
@@ -112,30 +88,27 @@ M03 is the design half: usability testing with three friends, empty states, cogn
 
 ### Tradeoffs and gotchas
 
-**Activation needs a time box or it cannot move.** "Placed an order ever" rises forever and compares nothing. "Placed an order within 24 hours of signup" is a number that can get better or worse, and that cohorts can be compared on.
+**Activation needs a time box.** "Placed an order ever" rises forever and compares nothing.
 
-**Do not pick an activation event because it is easy to move.** "Viewed the menu" is trivially pushed to 95% by autoplaying a screen, and it predicts nothing. Choosing a weak metric because it responds to effort is how teams spend a term improving a number that means nothing.
+**Do not pick an event because it is easy to move.** "Viewed the menu" is trivially pushed to 95% and predicts nothing.
 
-**Setup is not value.** Typing an address is work the user does for you; eating lunch is the value they receive. Teams routinely celebrate completed setup as activation and then wonder why retention does not follow.
+**Changing the definition invalidates chapter four's curves,** so every earlier cohort needs a dated note.
 
-**Changing the activation definition invalidates chapter four's curves.** If you move it, every earlier cohort becomes incomparable and needs a dated note in the taxonomy. Choose carefully once rather than tuning it.
+**Test on a real bad phone, on real bad data.** Your device has autofill, a saved password, a fast connection and working SMS; each one hides an activation killer.
 
-**Test on a real bad phone, on real bad data.** Your own device has autofill, a saved password, a fast connection and an SMS app that works. Every one of those hides an activation killer. Borrow a four-year-old Android phone, throttle it, and do your own onboarding as a stranger.
-
-**Shared devices break "sign in with Google".** On a phone with three accounts the chooser is a step, and the wrong account is a dead end the user cannot diagnose. Test that path specifically.
+**Shared devices break "sign in with Google".** On a phone with three accounts, the wrong account is a dead end the user cannot diagnose.
 
 ### Verify it
 
-Onboarding is the area where AI is most confidently wrong, because it optimises what it can see.
+Onboarding is where AI is most confidently wrong, because it optimises what it sees.
 
-1. **Check the activation definition for a time box and for evidence.** **An activation event with no window**, or one chosen by taste rather than from a retention comparison, is the first red flag.
-2. **Check that activation is not a signup in disguise.** **Counting a completed signup form, a verified email or a finished profile as activation** makes the number look healthy while the product remains unseen.
-3. **Count the steps and fields before and after any change.** If the count did not fall, nothing has improved, whatever the screens look like.
-4. **Look for a tour added where a step should have been removed.** Ask directly: which step did this change delete? If the answer is none, send it back.
-5. **Check the activation event's firing condition.** An event that fires when the success screen loads, rather than when the order is committed, counts failures as activations — and it inflates exactly the number you are trying to improve.
-6. **Do your own onboarding as a stranger on a slow, old phone with no autofill**, with SMS disabled to simulate an OTP that never arrives. Time it. The number you measure yourself is the only one you can defend.
+1. **Check the definition for a time box and for evidence.** An event chosen by taste rather than from a retention comparison is the first red flag here.
+2. **Check that activation is not a signup in disguise.** A verified email looks healthy while the product stays unseen.
+3. **Count steps and fields before and after.** If the count did not fall, nothing improved, and a tour added where a step should have been removed is the usual culprit.
+4. **Check the firing condition.** An event firing when the success screen loads rather than when the order commits counts failures as activations.
+5. **Do your own onboarding on a slow old phone**, autofill off and SMS disabled.
 
-Red flags: an activation rate quoted without a window; a definition that changed in the same week the number improved; "onboarding completion" presented as activation; a five-step tour described as an improvement; and a before-and-after measured on the team's own devices.
+Red flags: an activation rate with no window; a definition changed the week the number improved; a before-and-after measured on your own phones.
 
 ## Walkthrough
 1. Copy the two retention numbers from chapter four — signup-anchored and value-anchored — and write the gap between them as one sentence. That gap is this chapter's budget.

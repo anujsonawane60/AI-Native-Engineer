@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: transformers-and-attention
 title: "Transformers and Attention, Visually"
 order: 10
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,31 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team builds a canteen support assistant. At the top of the conversation they set the rules: always reply in Marathi, never promise a refund, always ask for the order number.
-
-For six turns it is perfect. By turn fifteen it is answering in English. By turn twenty it has promised a refund. They add "IMPORTANT" in capitals. It helps for a while and then stops helping. Someone suggests the model is "getting tired".
-
-Separately, another team notices that pasting a long document into the prompt makes the assistant much slower and much more expensive than the length alone would suggest. Doubling the document more than doubles the cost, which nobody predicted.
-
-Both effects come from the same mechanism. Understanding attention is what turns these from mysteries into things you can design around.
+A team sets three rules at the top of their support assistant's conversation: reply in Marathi, never promise a refund, always ask for the order number. For six turns it is perfect; by turn twenty it answers in English and has promised a refund. They add "IMPORTANT" in capitals, which helps briefly. Another team finds that doubling the pasted document more than doubles the cost. Both effects come from the same mechanism.
 
 ### The idea
 
 **Attention lets every token look at every other token in the input, score how relevant each one is to it, and build its own understanding from the ones that matter. A transformer is this operation, repeated in dozens of layers.**
 
-Take "the sambar was too sour so the cook added more of it". For the model to handle "it", something has to connect "it" back to "sambar" rather than to "cook" or "sour". Attention is that connection, computed rather than hand-written: when processing "it", the model scores every earlier token for relevance, finds "sambar" scores highest, and pulls in that meaning.
+Take "the sambar was too sour so the cook added more of it". Something must connect "it" back to "sambar" rather than "cook". Attention is that connection, computed rather than hand-written: processing "it", the model scores every earlier token and pulls in the meaning of the highest scorer.
 
-Two things make this a revolution rather than a refinement. The distance between "it" and "sambar" costs nothing — eight tokens away or eight hundred, it is one direct look, so nothing fades. And every token does this simultaneously, which means the whole operation is exactly the thousands-of-independent-things shape that a GPU devours, as chapter 7 described.
+Two things make this a revolution. Distance costs nothing — eight tokens away or eight hundred is one direct look, so nothing fades. And every token does it simultaneously, exactly the shape a GPU devours.
 
 ### The analogy
 
-Picture a long table in the canteen with twelve people arguing about whether to order one more plate of biryani.
+Twelve people at a long table argue about ordering one more plate of biryani. An RNN is a whispered chain: by person twelve the message is mangled, and it is slow, because nobody speaks until the person before has finished. Attention is different: all twelve at once look around and decide who is worth listening to — the one who knows the budget listens hardest to whoever mentioned money. Each builds a view from a weighted blend of the others in one parallel round, then does it again, dozens of times.
 
-An RNN is a whispered chain: person one whispers to person two, who whispers to person three, and by person twelve the message has been mangled and the original point is lost. It is also slow, because nobody can speak until the person before them has finished.
-
-Attention is different. Every one of the twelve, at the same moment, looks around the table and decides who is worth listening to. The person who knows the budget listens hardest to whoever mentioned money. The person who is hungry listens hardest to whoever mentioned biryani. Each builds their own view from a weighted blend of everyone else's, all in one round, in parallel. Then they do it again, now informed by the first round — and again, dozens of times.
-
-**Where the analogy breaks:** the twelve people remember yesterday's argument. The model does not. When the round ends, everything is discarded. The next question arrives at a table of twelve people with no memory whatsoever, and the only reason a chat feels continuous is that the whole conversation is re-sent, every single time. There is nothing else there. That is the most practically important fact in this chapter.
+**Where the analogy breaks:** the twelve people remember yesterday's argument. The model does not. When the round ends everything is discarded, and the only reason a chat feels continuous is that the whole conversation is re-sent every time. That is the most practically important fact in this chapter.
 
 ### Picture it
 
@@ -67,35 +57,15 @@ Attention is different. Every one of the twelve, at the same moment, looks aroun
 
 When the model processes "it", it scores every other token for relevance and draws most of its meaning from the highest-scoring one.
 
-### Heads, layers, and positions
-
-Three more pieces, each of which explains something you will notice in practice.
-
-**Heads.** One round of attention can only track one kind of relationship well. So each layer runs many attention operations side by side — commonly dozens — called **heads**. One may end up tracking grammatical subjects, another tracking which noun a pronoun refers to, another tracking tone. Nobody assigns these roles; they emerge in training, and most heads do nothing a human could name. This is why the model can keep several kinds of relationship straight at once.
-
-**Layers.** The output of one layer becomes the input to the next, and a large model stacks dozens. Early layers do local, shallow work; later layers do abstract work. This stacking is where "understanding" accumulates, and it is also why a bigger model costs more per token: each token passes through every layer.
-
-**Positions.** Attention by itself is blind to order — "cook added sambar" and "sambar added cook" would look identical. So position information is added to each token before the layers begin. This is a bolted-on fix rather than something inherent, and it is the reason models are oddly weak at very precise positional questions, like "what was the fourth word" or "exactly how many items are in this list".
-
-### Why long prompts cost more than you expect
-
-Here is the practical consequence that will show up on your bill.
-
-If every token attends to every other token, then doubling the number of tokens roughly quadruples the number of pairwise comparisons. Ten times the tokens is roughly a hundred times the attention work. The cost does not rise in step with length; it rises much faster.
-
-Providers have engineered around a great deal of this, and the price you are charged per input token is usually flat, so you will not see a squared term on your invoice. What you will see is that very long prompts get slower, that the effective cost of stuffing the whole conversation in grows unpleasantly, and that there is a hard ceiling — the context window of chapter 12.
-
-There is also a memory consequence with a name you will meet in M10. To avoid recomputing everything for each new token, the model caches its intermediate attention state — the **KV cache**. That cache grows with the length of the conversation and lives in GPU memory, which is why long conversations are expensive to serve and why providers offer **prompt caching**, a billing discount for the part of your prompt that has not changed. M10 chapter 6 is entirely about turning that into a cost saving, and the reason it works is this paragraph.
+Three more pieces explain what you will notice. **Heads**: one round of attention tracks one kind of relationship, so each layer runs dozens side by side, and their roles emerge in training rather than being assigned. **Layers**: each layer's output feeds the next, local work early and abstract work later. **Positions**: attention alone is blind to order, so position is bolted on before the layers begin, which is why models are weak at "what was the fourth word".
 
 ### Where it lives
 
-On your architecture map, the transformer is inside the box you call across the network. You will never touch it. What leaks out of it into your design decisions is a short list, and that list is why the chapter exists.
+The transformer sits inside the box you call across the network. Three things leak out into your design.
 
-**The model is stateless.** Every request is complete and independent. Conversation memory is your application's job — you store the history and re-send it, which is M04's data problem and chapter 14's cost problem. When a chat product appears to remember you across sessions, something outside the model saved that text and pushed it back in.
-
-**Instructions at the top of a long context get diluted.** Attention spreads over everything present, so a rule set twenty turns ago is competing with twenty turns of conversation. The fix is not shouting; it is restating the constraint near the end of the prompt, keeping the context short, or enforcing the rule in your own code instead of hoping. M10's context engineering chapter is this problem treated properly.
-
-**Nothing inside is readable.** You cannot ask which head fired. A model can produce a fluent account of its own reasoning, and that account is more generated text — a plausible story, not a log. This matters for chapter 16 and for any product where you have to justify a decision.
+- **The model is stateless.** Every request is complete and independent, so conversation memory is your application's job: you store the history and re-send it. When a chat product seems to remember you, something outside the model pushed that text back in.
+- **Instructions at the top of a long context get diluted**, because attention spreads over everything present. The fix is restating the rule near the end, keeping the context short, or enforcing it in your own code.
+- **Nothing inside is readable.** You cannot ask which head fired, and a fluent account of the model's own reasoning is more generated text, not a log.
 
 ### Words to own
 
@@ -115,29 +85,21 @@ On your architecture map, the transformer is inside the box you call across the 
 
 ### Tradeoffs and gotchas
 
-**"It forgot my instruction" is a context problem, not a model defect.** Switching to a bigger model rarely fixes it. Shortening the context, restating the rule late, or validating in your own code does. This is M00's "model or harness?" question in a new form, and the answer here is usually neither — it is your prompt design.
-
-**Longer context is not free capability.** Models are measurably better at the beginning and end of a long input than at its middle, an effect usually called lost-in-the-middle. Burying the one important paragraph at position 40 of 80 is a reliable way to have it ignored. Retrieving three relevant paragraphs beats pasting eighty, which is the entire argument for RAG in M10.
-
-**Repetition beats emphasis.** Capital letters and "IMPORTANT" do very little. Stating the constraint twice, once near the end, does more, because position affects attention and shouting does not.
-
-**You are paying for history you may not need.** If a support conversation does not actually need turn two to answer turn twenty, trim it. Teams re-send everything by default and are surprised by the bill, which is the mechanism from chapter 8 and the arithmetic of chapter 14.
-
-**Do not design a feature around precise counting or positions.** "How many items are in this list", "what is the fourth bullet", "is this exactly 200 words" — positional precision is a known weak spot, and ordinary code does all of it perfectly for free.
+- **"It forgot my instruction" is a context problem, not a model defect.** A bigger model rarely fixes it; shortening the context, restating the rule late, or validating in code does.
+- **Long prompts cost more than their length suggests.** Every token attends to every other, so doubling the tokens roughly quadruples the comparisons: long prompts get slower and hit chapter 12's hard ceiling.
+- **The attention state is cached, and the cache grows.** The **KV cache** avoids recomputing tokens, lives in GPU memory, and grows with the conversation — which is why providers offer **prompt caching**, a discount on an unchanged prompt prefix.
+- **Longer context is not free capability.** Models are better at the beginning and end of a long input than the middle. Retrieving three paragraphs beats pasting eighty, which is the whole argument for RAG.
+- **Repetition beats emphasis.** Capitals do little; stating the constraint twice, once near the end, does more, because position affects attention and shouting does not.
+- **Do not design a feature around precise counting or positions.** Ordinary code does all of that perfectly, for free.
 
 ### Verify it
 
-**Red flag: "the model remembers our earlier conversation".** It does not. Ask where that history is stored and who re-sends it. If nobody can answer, the feature is relying on something that does not exist.
-
-**Red flag: a confident account of what happened inside the model.** "The attention mechanism identified your intent and routed it to..." is storytelling. The honest form is "the output suggests", and anyone claiming to read a large model's internal reasoning from the outside is overclaiming.
-
-**Red flag: "use a bigger model" offered for an ignored instruction.** Ask instead how long the context was, where in the prompt the instruction sat, and whether it is restated near the end. Then ask what would enforce the rule in code if the model ignored it anyway — because for anything that matters, something must.
-
-**Red flag: a plan that pastes an entire document in when three paragraphs would do.** Ask what it costs per request at full length versus retrieved length, and point at lost-in-the-middle. This is the single highest-value habit from this chapter.
-
-**Red flag: invented architecture details.** Head counts, layer counts and context limits for named models are exactly the facts an AI produces fluently and wrongly. The provider's model page is the authority.
-
-And the check to run yourself, in twenty minutes: take one real conversation, set a strict rule at the top, and run it out to twenty turns, testing the rule at turns two, ten and twenty. Record where it starts failing. Then run the same conversation again with the rule restated in the last message each turn, and record the difference. That one experiment teaches more about prompt position than any explanation, and it is the measurement you will reuse all through M10.
+- **"The model remembers our earlier conversation."** It does not. Ask where that history is stored and who re-sends it.
+- **A confident account of what happened inside the model.** The honest form is "the output suggests", not "the attention mechanism identified your intent".
+- **"Use a bigger model" for an ignored instruction.** Ask how long the context was, where the instruction sat, and what would enforce the rule in code.
+- **A plan that pastes a whole document in when three paragraphs would do.** Ask the cost at full length versus retrieved length.
+- **Invented architecture details.** Head counts, layer counts and context limits for named models come out fluently and wrongly; the provider's model page is the authority.
+- **Check yourself:** set a strict rule at the top of a real conversation, test it at turns two, ten and twenty, then rerun with the rule restated last.
 
 ## Walkthrough
 1. Write one sentence containing a pronoun whose meaning depends on an earlier word — the sambar sentence or your own. Mark by hand which word the pronoun refers to.

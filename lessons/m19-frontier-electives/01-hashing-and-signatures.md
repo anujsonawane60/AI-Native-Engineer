@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: hashing-and-signatures
 title: "Hashing, Digital Signatures and Key Pairs"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-The canteen keeps a loyalty register in a hardbound notebook. One point per ₹10 spent, fifty points for a free thali. By March the register has 900 students in it and a problem: somebody has been adding points. Not forging whole pages — just turning a 4 into a 9 here and there, in the same blue pen, in handwriting close enough to pass.
+The canteen keeps a loyalty register in a hardbound notebook: one point per ₹10 spent, fifty points for a free thali. By March it holds 900 students and a problem. Somebody has been adding points — turning a 4 into a 9 here and there, in the same blue pen, in handwriting close enough to pass.
 
-The manager cannot prove anything. He cannot tell which lines changed, because he never recorded what the page looked like before. He cannot tell who changed them, because the register has no signatures. And he cannot undo it, because there is no earlier copy to compare against. He has 900 students, a thousand rupees a week leaking out, and no evidence.
+The manager cannot prove anything. He never recorded what the page looked like before, and the register has no signatures. A thousand rupees a week is leaking out and there is no evidence.
 
-This chapter is about the two tools that fix exactly those two gaps: a way to detect that something changed, and a way to prove who approved it. They are the floor that the next three chapters stand on. Nothing in blockchain, in UPI, in your HTTPS connection, in an Aadhaar e-sign or in an Android app update works without them.
-
-This module aims at literacy, not mastery. You are not going to implement a hash function. You are going to be able to read a design, a vendor pitch or an AI answer and say "that is hashing, that is signing, and that claim is wrong."
+This chapter fixes those two gaps: a way to detect that something changed, and a way to prove who approved it. Nothing in blockchain, UPI, HTTPS or an Android app update works without them. This module aims at literacy, not mastery — you will not implement a hash function, but you will be able to read a design, a vendor pitch or an AI answer and say "that is hashing, that is signing, and that claim is wrong."
 
 ### The idea
 
 **A hash is a fingerprint of data. A signature is a fingerprint of data plus proof of who stood behind it.**
 
-A hash function takes any input — three characters or a three-gigabyte video — and produces a short fixed-length output, called a digest. Same input, same digest, every time, on any machine. Change one character of the input and the digest changes completely, not slightly. And you cannot work backwards from the digest to the input.
+A hash function takes any input — three characters or a three-gigabyte video — and produces a short fixed-length output called a digest. Same input, same digest, every time, on any machine. Change one character and the digest changes completely, not slightly. And you cannot work backwards from the digest to the input.
 
-A signature adds identity. You hold two mathematically linked keys: one you never show anyone (the private key) and one you hand out freely (the public key). Signing runs the private key over a hash of the message. Anyone with your public key can check that the signature matches both that exact message and that exact key. If either the message or the key is different, verification fails.
+A signature adds identity. You hold two mathematically linked keys: one you never show anyone (the private key) and one you hand out freely (the public key). Signing runs the private key over a hash of the message. Anyone with your public key can check that the signature matches both that exact message and that exact key.
 
 ### The analogy
 
-Imagine the canteen manager starts stamping each page of the register with a tamper-evident foil seal, and the pattern of the foil is derived from the ink on the page. Any change to any digit cracks the pattern. That is hashing: cheap, automatic, and it detects alteration.
+The manager starts stamping each page with a tamper-evident foil seal whose pattern is derived from the ink on the page. Any change to any digit cracks the pattern. That is hashing: cheap, automatic, and it detects alteration. He also initials each page with a signature nobody can reproduce, because it depends on a stencil locked in his drawer, and anyone can compare the initials against a specimen on the noticeboard. That is signing.
 
-Then imagine he also initials each page with a signature that nobody on campus can reproduce, because it depends on a stencil locked in his drawer. Anyone can compare the initials against a specimen pinned to the noticeboard. That is signing: it proves this page passed through someone who holds the stencil.
-
-**Where the analogy breaks**, in three places worth naming. A foil seal tells you a page changed but not what it should have said, and a hash is the same — you must have stored the original digest somewhere the attacker cannot reach, or it proves nothing. Second, a human signature can be copied well enough to fool a human; a digital signature either verifies or does not, with no middle ground. Third, and most importantly: the stencil can be re-cut if the manager loses it. A private key cannot. There is no forgot-password link for a key pair, which is the single fact that makes the rest of this block behave so strangely.
+**Where the analogy breaks**, in three places. A foil seal tells you a page changed but not what it should have said, so you must have stored the original digest somewhere the attacker cannot reach or it proves nothing. A human signature can be copied well enough to fool a human; a digital signature either verifies or does not. And the stencil can be re-cut if the manager loses it, while a private key cannot. There is no forgot-password link for a key pair, which is the single fact that makes the rest of this block behave so strangely.
 
 ### Picture it
 
@@ -73,11 +69,7 @@ Signing happens with the half nobody else has; verifying happens with the half e
 
 ### Where it lives
 
-You have met all of this already without the vocabulary.
-
-In M02, your HTTPS connection used the server's certificate — a public key signed by a certificate authority — to prove the server is who the domain says it is. In M04, your password column stored hashes rather than passwords, and your session tokens were signed so a user could not edit their own role. In M06, Git named every commit by the hash of its contents, which is why you cannot quietly rewrite history without every later commit id changing. In M08 and M12, the Play Store refused any app update not signed with the same key as the original.
-
-UPI runs on this too. Every payment instruction moving between your app, the payment service provider and the bank is signed, which is how a bank can accept an instruction from a third-party app without trusting that app's database.
+You have met all of this already without the vocabulary: M02's TLS certificate is a public key signed by a certificate authority, M04's password column stored hashes and its session tokens were signed, M06's Git named every commit by the hash of its contents, and the Play Store in M08 and M12 refuses any update not signed with the original key. UPI runs on it too — every instruction moving between your app, the payment service provider and the bank is signed, which is how a bank accepts an instruction from a third-party app without trusting that app's database.
 
 ### Words to own
 
@@ -96,27 +88,27 @@ UPI runs on this too. Every payment instruction moving between your app, the pay
 
 ### Tradeoffs and gotchas
 
-**Hashing is not encryption.** Encryption is reversible by design — that is the point of it. Hashing is one-way on purpose. "Hash the credit card number so we can decrypt it later" is a sentence that cannot be true, and you will hear it.
+**Hashing is not encryption.** Encryption is reversible by design; hashing is one-way on purpose. "Hash the credit card number so we can decrypt it later" is a sentence that cannot be true, and you will hear it.
 
-**A general-purpose hash is the wrong tool for passwords.** SHA-256 is fast, and fast is exactly what you do not want when an attacker is guessing billions of candidates. M04 covered this: passwords need a deliberately slow function such as bcrypt or Argon2, with a salt. An AI that suggests SHA-256 for passwords has given you a 1998 answer.
+**A general-purpose hash is the wrong tool for passwords.** SHA-256 is fast, and fast is what you do not want when an attacker is guessing billions of candidates. Passwords need a deliberately slow function such as bcrypt or Argon2, with a salt — M04 covered this.
 
-**Old hashes are broken and still in use.** MD5 and SHA-1 both have practical collisions. They survive in legacy checksums and in a depressing amount of IoT firmware, which you will meet again in chapter 12.
+**Old hashes are broken and still in use.** MD5 and SHA-1 both have practical collisions, and they survive in legacy checksums and in a depressing amount of IoT firmware.
 
-**A signature proves key possession, not human identity.** It says "whoever holds this private key approved this message". Whether that is the person you think depends entirely on key custody, which is a people problem, not a mathematics problem.
+**A signature proves key possession, not human identity.** It says "whoever holds this private key approved this message". Whether that is the person you think is a custody problem, not a mathematics problem.
 
-**Losing a private key is final.** This is where students get hurt in the next two chapters. A forgotten database password is a support ticket. A lost seed phrase is a permanent loss, because the whole design assumes nobody — including the people who built the system — can recover your half.
+**Losing a private key is final.** A forgotten database password is a support ticket. A lost seed phrase is a permanent loss, because the design assumes nobody — including the people who built the system — can recover your half.
 
 ### Verify it
 
-Ask an AI about hashing and you will get fluent, confident text that is wrong in specific, repeatable ways. Four checks.
+AI answers about hashing are fluent and wrong in specific, repeatable ways. Four checks.
 
-**Red flag: the words hashing and encryption used interchangeably.** Watch for "we encrypt the password" when the answer goes on to describe a one-way store, or "decrypt the hash to compare". If the explanation implies reversal, the answer does not understand the primitive.
+**Red flag: hashing and encryption used interchangeably.** Watch for "decrypt the hash to compare". If the explanation implies reversal, it does not understand the primitive.
 
-**Red flag: SHA-256 or MD5 recommended for passwords.** Correct answers name a slow key-derivation function and mention a per-user salt. If salting is not mentioned at all, the answer is incomplete regardless of which function it picked.
+**Red flag: SHA-256 or MD5 recommended for passwords.** Correct answers name a slow key-derivation function and a per-user salt. No salt mentioned means the answer is incomplete whichever function it picked.
 
-**Red flag: a private key living anywhere a user can reach it.** If a proposed design puts a signing key in frontend code, in an app bundle, in a committed configuration file, or in a prompt, the design is finished before it starts. Ask where the key is generated, where it is stored, and who can read it. M07 gave you the secrets discipline; it applies here without exception.
+**Red flag: a private key living anywhere a user can reach it.** A signing key in frontend code, an app bundle, a committed config file or a prompt ends the design before it starts. Ask where the key is generated, where it is stored, and who can read it.
 
-**Red flag: "hashing makes the data tamper-proof".** It makes it tamper-*evident*, and only if the digest is stored somewhere the attacker cannot also edit. Hashing a register and writing the digest on the last page of the same register protects nothing. Ask the question directly: where does the digest live, and who can change it?
+**Red flag: "hashing makes the data tamper-proof".** It makes it tamper-*evident*, and only if the digest is stored where the attacker cannot also edit it. Hashing a register and writing the digest on its last page protects nothing. Ask directly: where does the digest live, and who can change it?
 
 ## Walkthrough
 1. Open any free in-browser SHA-256 calculator. Type your own name and hash it. Note the length of the output.

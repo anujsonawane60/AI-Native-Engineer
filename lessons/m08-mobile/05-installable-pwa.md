@@ -4,7 +4,7 @@ module: m08-mobile
 slug: installable-pwa
 title: "Turn Your Product into an Installable PWA"
 order: 5
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,29 +22,30 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your product works. The link is in a WhatsApp group, the page loads, the flow is complete. And yet three weeks later usage is ten opens a week, all from the same two people.
-
-The answers are mundane. One student lost the link when the group hit a thousand messages. Another bookmarked it and has never opened the bookmark. A third opened it in the library, had no signal, saw Chrome's dinosaur, and concluded your product was down. Nobody chose against you. Your product simply had no address on their phone — nothing to tap next to WhatsApp.
-
-Then your team ships a fix and discovers the second half: there is no way to tell the two people who do use it. The engineering was fine. The *presence* was missing, and presence is a three-file problem.
+Your product works and the link is in a WhatsApp group, yet three weeks later usage is ten opens a week from the same two people. One student lost the link when the group hit a thousand messages; another opened it in the library, had no signal, saw Chrome's dinosaur, and decided your product was down. It had no address on their phone — nothing to tap next to WhatsApp.
 
 ### The idea
 
 **Three things turn a website into something a phone treats as an app: HTTPS, a web app manifest, and a service worker. No store, no account, no review.**
 
-HTTPS you already have from any modern host. The **manifest** is a small JSON file telling the browser your app's name, its icons and how it should open — that is what makes "Install app" appear. The **service worker** is a script the browser keeps even when your page is closed, sitting between your app and the network, able to answer from its own cache when the network cannot.
+The **manifest** is a small JSON file naming your app, its icons and how it should open — what makes "Install app" appear. The **service worker** is a script the browser keeps when your page is closed, answering requests from its own cache when the network cannot.
 
-That is the whole contract. The hard part is not getting installed; it is deciding what the service worker may cache, which is where almost all the real bugs live.
+| Field | What it decides | Get it wrong and |
+|---|---|---|
+| `name`, `short_name` | Install dialog and icon label | The label truncates mid-word |
+| `icons` | The home-screen icon | A blurry or cropped icon |
+| `start_url` | Which screen opens on tap | It opens on a random page |
+| `display` | Whether browser chrome shows | It looks like a bookmark |
+| `theme_color` | The status-bar colour | A white bar over a dark app |
+| `background_color` | The launch screen before paint | A white flash on every open |
+
+You need a **192×192 and a 512×512 icon** plus a **maskable** variant, since Android crops icons into the launcher's shape. Getting installed is the easy part; what the service worker may cache is where the real bugs live.
 
 ### The analogy
 
-The canteen has been serving from a window with no signboard. Regulars find it; nobody else does.
+The canteen has been serving from a window with no signboard: regulars find it, nobody else does. Three changes fix that — a **signboard** with its name and logo (the manifest), a **fixed address** (the start URL), and a **shutter with a small counter built into it**, so when the gas fails the window still serves the three cold items kept ready (the service worker).
 
-Three changes fix that. It gets a **signboard with its name and logo**, so people can point at it and remember it. It gets a **fixed address**, so a friend can say "third building, ground floor" instead of forwarding directions. And it installs a **shutter with a small counter built into it**, so when the gas fails the window is not dark: it still serves the three cold items kept ready, with a sign saying what is unavailable.
-
-Signboard is the manifest. Fixed address is the start URL. The shutter with a counter is the service worker — limited service instead of a blank screen.
-
-**Where the analogy breaks:** a signboard is repainted when you decide to repaint it. A service worker, once installed on a student's phone, is *already there* and will keep serving yesterday's canteen until you have shipped a correct update strategy. A badly cached PWA is the one thing in this course that can break a user's copy of your product in a way you cannot reach from your side.
+**Where the analogy breaks:** a signboard is repainted when you decide to. A service worker, once on a student's phone, keeps serving yesterday's canteen until you ship a correct update strategy — the one thing in this course you can break remotely and cannot always fix remotely.
 
 ### Picture it
 
@@ -65,50 +66,15 @@ Signboard is the manifest. Fixed address is the start URL. The shutter with a co
 
 The service worker intercepts every request and chooses where to answer it from; the choice differs per request type, and getting it wrong is the whole of PWA debugging.
 
-### The manifest, field by field
-
-A handful of fields do all the work. These are the ones that go wrong.
-
-| Field | What it decides | Get it wrong and |
-|---|---|---|
-| `name`, `short_name` | Install dialog and icon label | The label truncates mid-word |
-| `icons` | The home-screen icon | A blurry or cropped icon |
-| `start_url` | Which screen opens on tap | It opens on a random page |
-| `display` | Whether browser chrome shows | It looks like a bookmark |
-| `theme_color` | The status-bar colour | A white bar over a dark app |
-| `background_color` | The launch screen before paint | A white flash on every open |
-
-Two specifics worth knowing by name. You need at least a **192×192 and a 512×512 icon**, plus a **maskable** variant — Android crops icons into whatever shape the launcher uses, and an icon without safe padding has its edges sliced off. And `display: standalone` removes the address bar; without it the installed app is visibly a web page in a frame, which users read as "not really an app". Make `start_url` the screen a returning user wants, usually today's list rather than your marketing home page.
-
-### Caching strategy, which is the part that matters
-
-A service worker that caches everything the same way is a bug. Choose per request type.
-
-**Cache first, for the app shell.** HTML skeleton, CSS, JavaScript, icons. These change only when you deploy, so serve them from the cache instantly and update in the background. That is what makes an installed PWA open in under a second on a budget phone.
-
-**Network first, falling back to cache, for API data.** The menu, the order list, anything from your server. Try the network; if it fails, serve the last known copy *and label its age*. This is chapter 3's offline-first, implemented.
-
-**Network only, for anything that must never be stale or shared.** Payments, authentication, anything personal. Do not put one student's data into a cache another student's session could read — M05's warning about caching personal data in a shared layer, now on a shared hostel phone.
-
-**An offline fallback page, for navigation.** With no signal and a cached shell, the user should see your page explaining what is available offline, never the browser's dinosaur. That file is the highest-value thing in this chapter per minute spent.
-
-### Updates, and the trap
-
-Here is the failure that bites every team once. You deploy a fix. Already-installed users open the app and still see the old version — because the service worker served the cached shell, exactly as you told it to.
-
-Two facts explain it. A new service worker **installs but waits** by default, taking over only once every tab of your app is closed, which on a phone may be days. And if you let it **cache your HTML cache-first with no version check and no update path**, installed users can be stuck on that build permanently.
-
-The safe pattern is small. Version your cache name, so a new deploy creates a new cache and deletes the old ones. Check for an update when the app regains focus. When one is found, show a small "Update available — reload" button rather than reloading underneath the user's typing.
-
-Test it deliberately: install, deploy a visible change, reopen, confirm you see it within one visit. Without that test you do not know whether you can ship a fix at all.
+Two rules the diagram cannot show: **network only** for payments, authentication and anything personal, and your own **offline fallback page** when navigation has no signal.
 
 ### Where it lives
 
-A PWA is M00's **client** box upgraded: it keeps a copy of itself on the device and can answer its own requests. Your server, network and data boxes are untouched — it is additive, which is why every Sprint student can ship it in one session.
+A PWA is M00's **client** box upgraded: it keeps a copy of itself on the device and answers its own requests, while your server, network and data boxes are untouched — which is why every Sprint student ships it in one session.
 
-It also stitches the module together. Chapter 1 chose this route. Chapter 2's push, on Android, arrives through this service worker. Chapter 3's offline rules are what the caching strategy implements. Chapter 4's budget is what the cached shell helps you meet, since a repeat open downloads almost nothing. M02's service worker and caching chapters are the mechanism, M03 supplies the offline and error screens, M06 deploys it over HTTPS, and M07 is where you check nothing personal landed in a cache.
+It stitches the module together: chapter 1 chose this route, chapter 2's push arrives through this service worker, and chapter 3's offline rules are what the caching strategy implements.
 
-**Store distribution stays in M12** — a Play Store listing for this same PWA via a Trusted Web Activity, plus the native route. You are not creating a developer account this week.
+**M08 ends here; store distribution stays in M12** — a Play Store listing for this same PWA via a Trusted Web Activity, plus the native route.
 
 ### Words to own
 
@@ -126,35 +92,27 @@ It also stitches the module together. Chapter 1 chose this route. Chapter 2's pu
 
 ### Tradeoffs and gotchas
 
-**Do not ask to install on the first paint.** It is chapter 2's permission mistake in a new costume. Let the user complete something useful once, then offer installation with a reason: "add to home screen so you can check the menu without opening the browser".
+**Version your caches, and test the update path before you need it.** A new service worker installs but *waits*, taking over only when every tab is closed — on a phone that may be days. Version the cache name, delete old caches on activation, check for updates on focus, and show an "Update available" button rather than reloading under the user's typing.
 
-**A service worker is the one thing you can break remotely and cannot always fix remotely.** Keep it small, version the caches, and test the update path before you need it. An unregister-and-clear path written in advance is what saves you.
+**Never cache-first anything personal or financial.** On shared hostel phones, one student's cached order list must not be served to the next person. And offline does not mean "the whole app works": make chapter 3's three features work and have the fallback page say what is unavailable.
 
-**Never cache-first anything personal or financial.** On shared hostel phones this is not theoretical. One student's cached order list must not be served to the next person who opens the app.
-
-**Offline does not mean "the whole app works".** Pick chapter 3's three features, make those work, and have your fallback page say plainly what is unavailable. An honest limit beats a half-broken pretence.
-
-**Installed does not mean retained.** The icon is an invitation, not a habit. If the product is not worth opening twice a week, installation changes nothing.
-
-**iPhone is a footnote with a plan attached.** On iOS a PWA installs only through Share → Add to Home Screen, with no prompt, and most users do not know the gesture exists. Web push needs that install first and the rules have shifted across versions. Ship the PWA, add one "how to install on iPhone" line, and do not build a core feature on iOS web push.
+**iPhone is a footnote with a plan.** A PWA installs there only through Share → Add to Home Screen, with no prompt; ship it, add a "how to install on iPhone" line, and never rely on iOS web push.
 
 ### Verify it
 
-AI will produce a manifest and a service worker in one pass, and the result often looks perfect and is wrong in the ways below.
+**Check the caching strategy per request type.** Ask for a table of request kind, strategy and reason; if every row is the same it was not a decision, and cache-first API rows mean stale prices.
 
-**Check the caching strategy per request type, not in general.** Ask for a table: every kind of request, the strategy, the reason. If every row says the same thing it was not a decision, and if your API rows say cache-first you have shipped stale prices.
+**Red flag: the HTML cached cache-first with no versioning.** The one that can strand users on a broken build. Look for a version in the cache name and old caches deleted on activation.
 
-**Red flag: the HTML cached cache-first with no versioning.** The one that can strand users on a broken build. Look for a cache name containing a version and old caches deleted on activation. If neither is there, fix it before deploying.
+**Red flag: no offline fallback page.** Ask what a user sees opening the installed app in aeroplane mode.
 
-**Red flag: no offline fallback page.** Ask: "show me the exact screen a user sees opening the installed app in aeroplane mode". If the answer is the browser's error page, the most valuable file is missing.
+**Red flag: anything personal in the cache.** Read the cached paths out loud; an authenticated response there is removed now.
 
-**Red flag: anything personal in the cache.** Read the cached paths out loud. If an authenticated response or a user-specific page is there, remove it and re-ask with that as a constraint.
+**Red flag: an install prompt on page load.** Move it behind a button reached after the product has done something useful.
 
-**Red flag: an install prompt fired on page load.** Find where it is triggered. If it is in the startup path, move it behind a button the user reaches after the product has done something for them.
+**Red flag: icons from one file at one size.** Confirm 192, 512 and a maskable variant.
 
-**Red flag: icons from one source file at one size.** Confirm 192, 512 and a maskable variant. A sliced-off icon is the easiest thing to miss, because it looks fine in the manifest.
-
-Then run the three tests no summary can fake. Install on a real Android phone and confirm there is no address bar. In aeroplane mode, confirm you see your page rather than the dinosaur. Deploy a visible change, reopen, and confirm it arrives within one visit.
+Then three tests no summary can fake: install on a real Android phone with no address bar; aeroplane mode shows your page, not the dinosaur; a deployed change arrives within one visit.
 
 ## Walkthrough
 1. Confirm your deployed product is served over HTTPS with no mixed-content warnings, then write down your three offline features from chapter 3. Without that list you will cache by instinct.

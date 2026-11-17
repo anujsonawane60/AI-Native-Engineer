@@ -4,7 +4,7 @@ module: m07-security-observability-analytics
 slug: monitoring-vs-observability
 title: "Monitoring vs Observability: Logs, Metrics and Traces"
 order: 4
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -24,31 +24,21 @@ last_reviewed: 2026-11-16
 
 A student gets a message at 9pm: "your app is broken". That is the entire report. They open the app on their own phone and it works perfectly.
 
-So begins the evening. Is it broken for everyone, or for that one person? Was it broken ten minutes ago and fine now? Is it the app, the database, the payment provider, or that user's 4G? Was it slow or did it show an error? Which page? They cannot answer any of it, because the only instrument they have is their own phone, and their own phone says everything is fine.
-
-They eventually ask the user for a screenshot, get one at 11pm, and discover the order page failed for anyone whose name contained an apostrophe. It had been failing for nine days. Thirty-one students had hit it. Nobody had told them, and nothing had recorded it.
-
-The code was fine. The blindness was the problem.
+Is it broken for everyone or for that one person? Was it broken ten minutes ago and fine now? Is it the app, the database, the payment provider, or that user's 4G? They cannot answer any of it, because the only instrument they have is their own phone. A screenshot at 11pm reveals the order page had been failing for nine days for anyone whose name contained an apostrophe — thirty-one students. The code was fine; the blindness was the problem.
 
 ### The idea
 
 **Monitoring answers questions you knew to ask in advance. Observability is having enough recorded detail to answer questions you had not thought of.**
 
-Monitoring is a fixed set of dials: is the site up, how many errors per minute, how slow is the database. You decided those in advance and you watch them. Observability is the property of a system where, when something strange happens, the data to explain it already exists — because you recorded enough context at the time.
-
-You need both. Monitoring tells you something is wrong. Observability tells you what.
+Monitoring is a fixed set of dials chosen beforehand: is the site up, how many errors per minute, how slow is the database. Observability is the property of a system where, when something strange happens, the data to explain it already exists. You need both: monitoring tells you something is wrong, observability tells you what.
 
 ### The analogy
 
 A well-run canteen has exactly three instruments, and they are the three pillars of observability.
 
-**The daily sales register** is your **logs**. One line per thing that happened, written at the moment it happened, with details: time, item, quantity, who served it. Dense, specific, and you read it when you need to reconstruct a particular event. It is also enormous after a month.
+**The daily sales register** is your **logs**: one line per thing that happened, with time, item, quantity and who served it — dense, specific, and enormous after a month. **The kitchen thermometer** is your **metrics**: one number sampled over and over, where the shape matters more than any reading. 180°C is meaningless alone; 180°C when it should be 140°C and climbing for twenty minutes is an incident. **The CCTV** is your **traces**: the register says a customer was served, but only the CCTV shows that eleven of their twenty minutes went on waiting to pay.
 
-**The kitchen thermometer** is your **metrics**. One number, sampled over and over, and what matters is the shape over time rather than any single reading. 180°C is meaningless alone; 180°C when it should be 140°C and climbing for twenty minutes is an incident. Cheap to keep, because a number per minute is tiny.
-
-**The CCTV** is your **traces**. Follow one customer from the door, through the queue, to the counter, to the payment, to the table. Where did *this particular person's* twenty minutes actually go? The register tells you they were served; only the CCTV shows that eleven of those minutes were spent waiting at the payment counter.
-
-**Where the analogy breaks:** CCTV records continuously and cheaply. Tracing every single request in a real app produces more data than the app itself, so you sample — one request in ten, or one in a hundred, plus every request that errored. Which means a trace for the specific request you care about may simply not exist, and you have to reproduce the problem to get one. Logs and metrics have no such gap; traces are the pillar you have to decide how much of to keep.
+**Where the analogy breaks:** CCTV records continuously and cheaply. Tracing every request produces more data than the app itself, so you sample — one in ten or one in a hundred, plus every request that errored. The trace for the exact request you care about may simply not exist.
 
 ### Picture it
 
@@ -70,9 +60,7 @@ A well-run canteen has exactly three instruments, and they are the three pillars
   per event     over time      end to end
 ```
 
-The three pillars are not three copies of the same data; each answers a different shape of question, and picking the wrong one is why people stare at dashboards and learn nothing.
-
-### Which one answers which question
+The three pillars are not copies of the same data; each answers a different shape of question, and picking the wrong one is why people stare at dashboards and learn nothing.
 
 | Your question | The pillar | Why |
 |---|---|---|
@@ -83,15 +71,18 @@ The three pillars are not three copies of the same data; each answers a differen
 | What exactly did the database say when it failed? | Logs | The detail lives in the message |
 | Is the slowness us or the payment provider? | Traces | Only a trace splits the time between them |
 
-A useful habit: before adding instrumentation, write the question down. Teams that start from "what will we want to know at 9pm on a Friday?" end up with far less data and far more answers than teams that start from "let us log everything".
+Before adding instrumentation, write the question down. Teams that start from "what will we want to know at 9pm on a Friday?" end up with far less data and far more answers than teams that start from "log everything".
 
 ### Where it lives
 
-All three run on the server, not in the user's browser — which is exactly why "it works on my machine" is not evidence. Your machine is one device, one network, one set of data, and one user: yours. M06 showed you logs on a server and in CI; this module is about what to put in them and what to do with them.
+All three run on the server, not in the user's browser — which is why "it works on my machine" is not evidence. Your machine is one device, one network, one set of data and one user: yours.
 
-The next three chapters take one pillar each: logs in chapter five, metrics and traces in chapter six, and chapter seven is what happens when one of them crosses a line and a human needs to know. M05's work on p95, retries and error budgets is the same subject from the reliability side — those numbers only exist if something is measuring them. In M11's going-live checkpoint you are asked to show working monitoring before you call the product live, and in M12 the same pillars get a mobile-specific form as crash reporting.
+- Chapters 5–7 — one pillar each, then what happens when one crosses a line
+- M05 — p95, retries and error budgets, the same subject from the reliability side
+- M11 — the going-live checkpoint wants working monitoring before you call the product live
+- M12 — the same pillars in mobile form, as crash reporting
 
-One thing to be clear about now: this half of the module is about the health of your *system*. Chapters eight and nine are about the behaviour of your *users*. They look similar, they often use the same events, and they answer completely different questions.
+This half of the module is about the health of your *system*; chapters eight and nine are about the behaviour of your *users*. They often use the same events and answer different questions.
 
 ### Words to own
 
@@ -110,27 +101,23 @@ One thing to be clear about now: this half of the module is about the health of 
 
 ### Tradeoffs and gotchas
 
-**Observability costs money per byte, and the bill is real.** Logs are the expensive pillar because they are text and there is one line per event. The free tiers this course runs on have limits in the low gigabytes, and a chatty debug log can burn a month's allowance in a day. Metrics are cheap because a number is small. Traces are in between, and that is why sampling exists.
-
-**Dashboards nobody opens are worse than no dashboards.** They create a feeling of being instrumented. A single dashboard with five charts that your team genuinely looks at every morning beats forty charts in a tab nobody has opened since the day they were built.
-
-**High cardinality is where the costs hide.** Putting a user id on a *log line* is useful. Putting a user id on a *metric* creates one separate time series per user, which is how a free tier becomes a bill. The rule of thumb: identifiers belong in logs and traces, categories belong in metrics.
-
-**You cannot add observability during an incident.** The data has to have been collected before the thing happened. This is why the walkthrough below is a day-one task, not a day-ninety one, and why the question "what will I wish I had recorded?" is worth ten minutes now.
-
-**Averages lie, and the next chapter but one is about why.** A dashboard showing average response time is almost worse than nothing, because it looks like information. Keep that discomfort until chapter six.
+- **Observability costs money per byte.** Logs are the expensive pillar: text, one line per event, and a chatty debug log can burn a free tier's monthly gigabytes in a day. Metrics are cheap; traces sit in between, which is why sampling exists.
+- **Dashboards nobody opens are worse than none,** because they create a feeling of being instrumented. Five charts read every morning beat forty in an unopened tab.
+- **High cardinality is where the costs hide.** A user id on a *log line* is useful; on a *metric* it creates one time series per user. Identifiers belong in logs and traces, categories in metrics.
+- **You cannot add observability during an incident.** The data must already exist, so "what will I wish I had recorded?" is a day-one question.
+- **Averages lie.** A dashboard showing average response time is almost worse than nothing, because it looks like information. Keep that discomfort until chapter six.
 
 ### Verify it
 
-AI asked to "add logging and monitoring" will produce something that runs. Five checks to find out whether it produces anything you can use.
+AI asked to "add logging and monitoring" produces something that runs. These checks tell you whether you can use it.
 
-1. **Ask a real question and try to answer it.** "Did this specific order fail, and why?" Open whatever was built and try. If you cannot get to an answer in two minutes, you have instrumentation rather than observability.
-2. **Check that it is recording from the server, not the browser.** Browser-only error tracking misses everything that happens after the request leaves the phone, which is where most failures live.
-3. **Check there is one id tying a request's records together.** Without a request id on every line, you have a pile of unrelated sentences and no way to assemble one story. This is the single most valuable thing to insist on.
-4. **Make something fail on purpose and go find it.** Break a database connection string, submit an apostrophe in a name, cut your network mid-request. If a failure you caused yourself does not appear anywhere, nothing a user causes will either.
-5. **Read the retention and the quota.** How long is data kept, and how much before it stops recording or starts charging? A log store that silently dropped everything after day three is a common and invisible failure.
+1. **Ask a real question and try to answer it.** "Did this specific order fail, and why?" If you cannot get there in two minutes, you have instrumentation rather than observability.
+2. **Check it records from the server, not the browser.** Browser-only error tracking misses everything after the request leaves the phone.
+3. **Check there is one id tying a request's records together.** Without a request id on every line you have unrelated sentences and no way to assemble one story.
+4. **Make something fail on purpose and go find it.** If a failure you caused does not appear anywhere, nothing a user causes will either.
+5. **Read the retention and the quota.** A log store that silently dropped everything after day three is a common and invisible failure.
 
-Red flags: a setup that only records errors the browser noticed; log lines with no timestamp, no request id and no user context; an "observability" setup that is one average-latency chart; **an error message that returns the raw database error** to the user rather than to the log, which is both a security flaw from chapter one and a sign that nobody has decided what belongs where; and a free-tier quota already exhausted before you had your first incident.
+Red flags: a setup that only records errors the browser noticed; log lines with no timestamp, no request id and no user context; an "observability" setup that is one average-latency chart; **a raw database error returned to the user** rather than to the log; a free-tier quota already exhausted before your first incident.
 
 ## Walkthrough
 1. Write down five questions you would actually want answered at 9pm if a user said your app was broken. Be specific to your product — "did Priya's UPI payment reach us?" not "is it working?".

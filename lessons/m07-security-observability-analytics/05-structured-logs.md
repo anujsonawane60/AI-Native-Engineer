@@ -4,7 +4,7 @@ module: m07-security-observability-analytics
 slug: structured-logs
 title: "Structured Logs, Levels and What Is Worth Logging"
 order: 5
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team's app starts failing at checkout. They open the logs, which is the right instinct, and find 46,000 lines from the last two hours. Most of them say `here`, `here 2`, `got to the function`, and `data: [object Object]`. Several hundred print an entire order object. Four print something that looks like a password.
+A team's app starts failing at checkout. They open the logs and find 46,000 lines from the last two hours. Most say `here`, `here 2`, `data: [object Object]`. Several hundred print a whole order object. Four print something that looks like a password.
 
-They search for "error" and get 900 results, because an earlier debugging session logged every retry as an error. They cannot tell which of the 900 belong to the student who complained, because no line says which request it came from. They cannot tell which came first, because a third of the lines have no timestamp.
-
-Twenty minutes later the log store hits its free-tier quota for the month and stops accepting new lines. The app is still broken. Now it is broken in the dark.
+Searching for "error" returns 900 results, because an earlier session logged every retry as an error — and no line says which request it came from, so none can be tied to the student who complained. Twenty minutes later the log store hits its monthly quota and stops accepting lines. The app is still broken, in the dark.
 
 ### The idea
 
 **A log line is a data record, not a sentence. Write it as fields so a machine can filter it, because you will have too many lines to read.**
 
-The instinct is to write for a human reading top to bottom. That works until you have a thousand lines. After that, the only thing that works is filtering — show me every error, for this one user, on this one endpoint, in this one hour — and filtering requires fields.
+Writing for a human reading top to bottom works until you have a thousand lines. After that only filtering works — every error, for this user, on this endpoint, in this hour — and filtering requires fields. One field is worth more than the rest together: **a request id, generated when a request arrives and attached to every line it produces.** Without it, logs are a shuffled pile from hundreds of concurrent users; with it you type one id and read one student's story in order. AI will not add it unasked.
 
 ### The analogy
 
-Back to the canteen's daily sales register. The useful register has columns: time, item, quantity, price, who served it, payment mode. At the end of the month you can answer "how many samosas before noon" by running your finger down one column.
+The canteen's useful sales register has columns: time, item, quantity, price, who served it. You can answer "how many samosas before noon" by running a finger down one column. The useless register is a diary: "busy morning, sold a lot of samosas, the idli ran out around eleven". Every fact is in there and none can be counted. Same information — one is data, one is prose.
 
-The useless register is a diary. "Busy morning, sold a lot of samosas, Ravi came in late, the idli ran out around eleven, somebody paid by UPI and it did not go through." Every fact is in there. None of it can be counted, sorted or compared, and in a month there are forty pages of it.
-
-Same information. One is data; one is prose. Structured logging is insisting on columns.
-
-**Where the analogy breaks:** a register is kept forever and costs nothing but shelf space. Logs cost money per gigabyte, every day, and on a free tier they stop working when the quota runs out. A canteen never has to decide to throw away March; you do, deliberately, and you set that retention on day one.
+**Where the analogy breaks:** a register costs nothing but shelf space. Logs cost money per gigabyte every day, and on a free tier they stop working when the quota runs out. A canteen never has to decide to throw away March; you do, on day one.
 
 ### Picture it
 
@@ -65,11 +59,9 @@ Same information. One is data; one is prose. Structured logging is insisting on 
         └─▶ filter: level=error AND reason=db_timeout
 ```
 
-The same event written as a sentence can only be grepped; written as fields it can be filtered, counted and grouped — which is the entire difference between 46,000 lines you cannot use and 46,000 lines you can.
+The same event written as a sentence can only be searched; written as fields it can be filtered, counted and grouped — the difference between 46,000 lines you cannot use and 46,000 you can use.
 
-### The levels, and what each one promises
-
-Levels are not degrees of enthusiasm. Each one is a promise about who reads it and when.
+Require those fields on every line: UTC timestamp, level, a stable `event` name, request id, user id, route, and duration in milliseconds for anything calling another system. Levels are not degrees of enthusiasm; each is a promise about who reads the line and when.
 
 | Level | The promise | Example |
 |---|---|---|
@@ -79,33 +71,15 @@ Levels are not degrees of enthusiasm. Each one is a promise about who reads it a
 | `error` | One user's request failed; somebody should look today | Order not saved |
 | `fatal` | The app itself cannot continue | Cannot reach the database at startup |
 
-Two rules make levels work. **First, `error` means a human should look.** The moment you log expected, routine events as errors, your error count stops meaning anything and chapter seven's alerts become noise. **Second, `debug` must be genuinely off in production.** Not "we leave it on, it is useful" — that is how 46,000 lines happen and how quotas die.
-
-A practical test: if your error rate chart would not change shape when a real outage started, your levels are wrong.
-
-### The field that matters most
-
-Of every field you could add, one is worth more than the rest put together: **a request id, generated when a request arrives and attached to every log line it produces.**
-
-Without it, logs are a shuffled pile of sentences from hundreds of concurrent users. With it, you type one id and get that one student's complete story in order: request arrived, user looked up, payment called, payment slow, database timed out, error returned. That is the difference between debugging and guessing, and it is the thing to insist on in the brief because AI will not add it unasked.
-
-Add to every line, as fields: timestamp in UTC, level, a stable `event` name, request id, user id where there is one, route, and duration in milliseconds for anything that calls out to another system.
-
-### What must never reach a log
-
-This list is not advice. Under India's DPDP Act and under GDPR, logs are personal data like anything else, and "we only put it in the logs" is not a defence — logs are copied to third-party services, read by whoever has dashboard access, and kept for weeks.
-
-Never log: passwords, even wrong ones. Full card numbers or CVVs. OTPs. Session tokens, cookies or authorization headers. API keys. Aadhaar or other government id numbers. Full request bodies from any form that collects personal data.
-
-Log instead the *fact* and a *reference*: not the card number but its last four digits, not the phone number but a user id, not the OTP but `otp_verification_failed`, not the whole body but the field names that failed validation. If you genuinely need an identifier, log the internal id and look the person up in your own database — which also means the log store never holds the mapping.
-
-The sneakiest leak is not deliberate. It is a tired line that prints the whole request, or an error handler that logs the exception's full detail including the query and its parameters. Which brings us to the one from chapter one: **returning the raw database error** to the user is a security flaw, and logging it verbatim can quietly put personal data into your log store at the same time.
+Two rules make levels work. **`error` means a human should look** — spend it on routine events and your error count stops meaning anything, killing chapter seven's alerts before you write them. **`debug` must be genuinely off in production**, because leaving it on is how 46,000 lines happen.
 
 ### Where it lives
 
-Logs are the first of the three pillars from chapter four — the sales register. They run on the server, and on your hosting platform they are already being collected whether you planned it or not, which is where M06's deploy chapter left you. Chapter six adds metrics and traces, and chapter seven is what turns a rising count of `error` lines into somebody's phone buzzing. The security half of this module uses the same lines as its audit trail: who changed a price, who issued a refund, who logged in from where.
+Logs are the first of chapter four's three pillars, and your platform is already collecting them whether you planned it or not.
 
-In M10 the same discipline applies to AI calls, where you log the model, the token counts, the latency and a reference to the prompt — never the user's raw text, for exactly the reasons above.
+- Chapter 6 — metrics and traces; chapter 7 — rising `error` counts becoming a buzzing phone
+- The security half of this module — the same lines as an audit trail: who changed a price, who issued a refund
+- M10 — the same discipline for AI calls: model, token counts, latency, a reference to the prompt
 
 ### Words to own
 
@@ -124,30 +98,24 @@ In M10 the same discipline applies to AI calls, where you log the model, the tok
 
 ### Tradeoffs and gotchas
 
-**Logging everything is the same as logging nothing, and costs more.** Signal goes down as volume goes up, because you stop being able to find anything. Before adding a line, ask what question it answers. If there is no question, there is no line.
-
-**Logs are the pillar that bankrupts free tiers.** They are text, one line per event, and they add up fast. Set retention short — a week is plenty for a student project — and keep `debug` off. If you are near a quota, the cheapest fix is almost always deleting a chatty line rather than paying for storage.
-
-**A log line is not a metric.** Counting `error` lines to get an error rate works until volume grows, then it is slow and expensive. Chapter six's counters exist for this. Use logs for the detail of one event, metrics for the shape of many.
-
-**Event names must be stable.** If the same event is logged as `order_failed` in one place and `orderFailed` or `failed_order` elsewhere, every filter you write is wrong by an amount you cannot see. Pick one spelling convention and write it down, exactly as chapter eight will ask you to do for analytics events.
-
-**Timestamps in UTC, always.** Your users are in IST, your server may not be, and your log store may display a third zone. One format, one zone, converted when displayed. Comparing a 21:14 to an 15:44 and concluding nothing happened is a genuinely common wasted hour.
-
-**Do not log inside a loop over user data.** One line per order is fine. One line per item in every order means your log volume scales with your biggest customer, which is the classic way a working setup dies at 10x.
+- **Never log** a password (even a wrong one), a full card number or CVV, an OTP, a session token, cookie or authorization header, an API key, Aadhaar or any government id, or a full request body from a personal-data form. Log the fact and a reference: the last four digits, a user id, `otp_verification_failed`, the fields that failed validation. Under the DPDP Act and GDPR, logs are personal data like anything else, and "it is only in the logs" is not a defence. The sneakiest leak is an error handler logging the exception's full detail, query parameters included.
+- **Logging everything is the same as logging nothing, and costs more.** Before adding a line, ask what question it answers.
+- **Logs are the pillar that bankrupts free tiers.** Keep retention short and `debug` off. Near a quota, delete a chatty line rather than paying for storage.
+- **A log line is not a metric.** Logs carry the detail of one event; metrics carry the shape of many.
+- **Event names stable, timestamps in UTC.** `order_failed` here and `orderFailed` there makes every filter wrong by an amount you cannot see.
 
 ### Verify it
 
-Ask AI to "add logging" and you get `console.log` statements. Six checks that find the difference between that and something usable.
+Ask AI to "add logging" and you get print statements. These checks find the difference.
 
-1. **Read ten consecutive lines from production.** Could you answer "what happened to this user" from them? If they are sentences rather than fields, stop and re-brief.
-2. **Pick one request and filter by its id.** You should get its complete story in order. If there is no request id, that is the single most valuable thing to add, before anything else.
-3. **Grep your own logs for the obvious secrets.** Search for `password`, `token`, `authorization`, `cvv`, `otp`, and the first six digits of a test card. **Logging a password or a full card number** is the red flag here, and the search takes a minute.
-4. **Check that `debug` is off in production and `error` means error.** Count your `error` lines for a normal hour. If there are hundreds and nothing is wrong, the levels are decorative and chapter seven's alerts are already dead.
-5. **Read the retention setting and the current volume.** Both numbers, from the platform, not from AI. Work out how many days from now you hit the quota.
-6. **Deliberately break one thing and read the resulting line.** Does it name the event, the user, the request and the reason? Does it also, accidentally, contain the whole request body?
+1. **Read ten consecutive lines from production.** Could you answer "what happened to this user"? If they are sentences rather than fields, re-brief.
+2. **Pick one request and filter by its id.** You should get its complete story in order. No request id means that is the first thing to add.
+3. **Search your logs for the obvious secrets:** `password`, `token`, `authorization`, `cvv`, `otp`, the first six digits of a test card. **Logging a password or a full card number** is the red flag.
+4. **Check `debug` is off in production and `error` means error.** Hundreds of `error` lines in a normal hour means the levels are decorative.
+5. **Read the retention setting and the current volume** from the platform, and work out how many days until the quota.
+6. **Break one thing on purpose and read the line.** Does it name the event, the user, the request and the reason? Does it also contain the request body?
 
-Red flags to say out loud: a log line with no timestamp or no request id; the same event spelled two ways; an `error` level used for expected retries; the raw database error logged verbatim, parameters included; and a log store already at its quota before your first real incident.
+Red flags: a log line with no timestamp or no request id; the same event spelled two ways; `error` used for expected retries; **a raw database error logged verbatim**, parameters included; a log store already at quota before your first incident.
 
 ## Walkthrough
 1. Open your deployed app's logs and read the most recent twenty lines. Write a one-sentence verdict: are these records or are these sentences?

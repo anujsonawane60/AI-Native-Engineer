@@ -4,7 +4,7 @@ module: m02-the-web
 slug: tokens-dark-mode-utility-css
 title: "Design Tokens, CSS Variables, Dark Mode and Utility-First CSS"
 order: 7
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Six weeks into the build, the team decides their brand green is too dark to read in Nashik sunlight and picks a lighter one.
+Six weeks in, the team decides their brand green is too dark for Nashik sunlight: "change `#0B6E4F` to `#15925F` everywhere." The agent reports success. The header is right; the "Add to order" button is still the old green, because it was written as `rgb(11, 110, 79)` in another file. Two badges are a fourth green nobody approved, and the dark theme — built by inverting the light colours — now shows white ₹ prices on pale green.
 
-They tell the agent: "change the brand green from `#0B6E4F` to `#15925F` everywhere." The agent reports success. The header is right. Three buttons are right. The "Add to order" button on the dish card is still the old green, because it was written as `rgb(11, 110, 79)` in a different file. Two badges are a fourth green nobody remembers approving. The focus ring is the old colour. And the dark-mode variant, which was built by taking the light colours and inverting them, now has white ₹ prices on a pale green card that nobody can read at all.
-
-One decision, forty-seven places. The change took an afternoon and shipped three inconsistencies that a user will notice before the team does.
+One decision, forty-seven places, and three inconsistencies a user will notice before the team does.
 
 ### The idea
 
 **A token is a named decision. Name it once, refer to the name everywhere, and the change becomes a one-line edit instead of a search-and-replace.**
 
-In CSS the mechanism is a custom property — a variable you define once and refer to by name. `--color-brand: #15925F` defined at the top of the document, and `color: var(--color-brand)` everywhere else. Change the one line, and everything that referred to the name follows, including things you have forgotten exist.
+In CSS the mechanism is a custom property: define `--color-brand: #15925F` once at the top of the document and write `color: var(--color-brand)` everywhere else. Change the one line and everything that referred to the name follows, including the things you forgot exist.
 
 ### The analogy
 
-The canteen's standard katori.
+Early on the canteen used whatever bowl was to hand, so "half plate of sambar" depended on who served you. Then it bought two hundred identical katoris: one katori is one serving, and "increase the portion by 20%" becomes one decision about the standard. Better still, they named the servings, not the vessels, so a new supplier's bowls change nothing.
 
-Early on, every counter used whatever bowl was to hand, so a "half plate of sambar" was a different amount depending on who served you. Then the canteen bought two hundred identical katoris and wrote a rule: one katori is one serving. Now "increase the sambar portion by 20%" is a single decision about the standard, not a negotiation with eleven staff members.
-
-Better still, they named the servings rather than the vessels: "student portion", "worker portion". A new supplier changes the actual bowls and the names still hold.
-
-**Where the analogy breaks:** a steel katori is a physical object, so you physically cannot serve a different amount. A CSS variable is only a name, and nothing stops anyone — including your AI agent — from writing a raw hex code right next to it. Tokens are a convention held up by review and verification, not a constraint enforced by the browser. That is precisely why the "verify it" section of this chapter is about searching for the things that bypassed the system.
+**Where the analogy breaks:** a steel katori is physical; you cannot serve a different amount. A CSS variable is only a name, and nothing stops your agent writing a raw hex next to it. Tokens are a convention held up by review, not by the browser — which is why Verify it is a search for what bypassed the system.
 
 ### Picture it
 
@@ -62,19 +56,13 @@ Better still, they named the servings rather than the vessels: "student portion"
 
 Raw values get names, those names get roles, and components only ever refer to roles — so switching a theme means repointing the roles, and no component changes at all.
 
-### Why the middle layer earns its keep
-
-A beginner's first attempt at tokens is usually one layer: `--green: #15925F`, used directly in components. That already solves the search-and-replace problem, and it is a real improvement.
-
-It fails the first time the brand changes to blue, because now you either have a variable called `--green` holding a blue, or you are back to editing every component. It also fails at dark mode, because "the green" is a different green in dark mode while "the brand colour" is still conceptually the brand colour.
-
-The two-layer version — primitives named by what they *are*, semantics named by what they are *for* — means components express intent. A "sold out" tag asks for `--color-danger`, not for red. The day somebody decides sold-out should be amber rather than red, that is one line, and nothing in any component was wrong.
+The middle layer earns its keep: with one layer, `--green` eventually holds a blue. With two, components express intent — a sold-out tag asks for `--color-danger`, not red, so the day sold-out becomes amber it is one line.
 
 ### Where it lives
 
-Tokens live in the client box from M00, usually in one file loaded before everything else. But conceptually they belong to design, not to code: M03's design-systems chapter is where you decide what the tokens *should be*, and this chapter is only the mechanism that makes those decisions hold.
+Tokens live in the client box from M00, in one file loaded before everything else, but conceptually they belong to design: M03 decides what they *should be*, and this chapter is only the mechanism that makes those decisions hold.
 
-They also become the shared vocabulary between you and your AI agent, which is the part that matters most for this programme. "Use `--space-4` for that gap" is a verifiable instruction. "Make the gap a bit bigger" is not. In M10 you will put your token list into a rules file so you stop restating it every session.
+They are also the shared vocabulary between you and your agent. "Use `--space-4` for that gap" is verifiable; "make the gap a bit bigger" is not. In M10 the token list goes into a rules file so you stop restating it every session.
 
 ### Words to own
 
@@ -92,45 +80,34 @@ They also become the shared vocabulary between you and your AI agent, which is t
 | Utility class | A tiny single-purpose class | `p-4`, `text-sm` |
 | Class soup | Markup where the class list dwarfs the content | Twelve classes on one `<div>` |
 
-### Dark mode is not inversion
-
-Flipping every colour to its opposite produces something that technically renders and is genuinely worse than no dark mode at all. Four specific things break.
-
-**Contrast inverts unpredictably.** A dark grey text on a light card becomes light grey text on a dark card — which sounds fine, until you measure it and find the ratio dropped from 7:1 to 2.9:1 and the ₹ price is now a suggestion.
-
-**Pure black and pure white are both wrong.** A white-on-pure-black interface produces halation, where text appears to smear, especially for people with astigmatism. Real dark themes use a very dark grey and an off-white.
-
-**Shadows stop working.** In light mode a shadow means "this is raised". On a dark background a dark shadow is invisible, so cards lose their separation and the layout flattens into a single sheet.
-
-**Images and logos do not invert.** A photo of a thali inverted is a horror. A logo with a white background becomes a glowing rectangle. These need per-asset decisions.
-
-The correct model is two sets of semantic values, each designed and each measured. Same role names, different numbers behind them.
-
 ### Tradeoffs and gotchas
 
-**Utility-first CSS trades stylesheet discipline for markup noise.** Writing the styling as small classes directly in the markup — `flex gap-4 p-4 rounded-lg` — means you never invent a class name, never hunt for which file a rule lives in, and never fight the cascade from chapter 4. In exchange, your markup becomes dense and hard to skim, and it becomes trivially easy for two cards to drift apart because nothing forces them to share. It is a real and reasonable trade; it is not a free win, and an AI will happily produce eighteen utility classes on a single element.
+**Dark mode is not inversion.** Flipping every colour renders, and is worse than no dark mode:
 
-**Over-abstraction is as bad as none.** Four layers of indirection to reach a colour means nobody can answer "what colour is this button" without opening five files. Two layers is almost always right.
+| Inverting breaks | What goes wrong |
+|---|---|
+| Contrast | 7:1 dark-on-light becomes 2.9:1 light-on-dark, and the ₹ price is a suggestion |
+| Pure black and white | White on pure black smears (halation); use dark grey and off-white |
+| Shadows | A dark shadow on a dark background is invisible, so cards lose separation |
+| Images and logos | An inverted thali photo is a horror; a white-background logo glows |
 
-**Tokens only work if nothing bypasses them.** One raw hex in one component is the whole value proposition broken, because now the "change it once" promise is false and you will not know until a user notices.
+The correct model is two designed, measured sets of semantic values: same role names, different numbers.
 
-**AI invents shades.** Asked for a slightly lighter green, a model will frequently produce a brand-new hex code rather than reaching for the next step on your existing scale. Over twenty such requests you accumulate a palette of eleven greens. The instruction that prevents it: "only use values from the token list; if none fits, tell me and propose a new token rather than a literal value."
+**Utility-first CSS trades stylesheet discipline for markup noise.** `flex gap-4 p-4 rounded-lg` in the markup means never inventing a class name or fighting the cascade, in exchange for dense markup where two cards drift apart. A real trade, not a free win.
 
-**Honour the OS setting, then let people override it.** `prefers-color-scheme` reads what the user already chose system-wide, which is the right default. But some users want a dark app and a light OS, so a manual toggle that overrides it is worth having — and it must beat the media query, which is a cascade problem from chapter 4.
+**Tokens only work if nothing bypasses them,** and four layers of indirection is as bad as none. One raw hex makes "change it once" false; five files to reach a colour makes it unanswerable. Two layers is right.
+
+**AI invents shades.** Asked for a lighter green it produces a new hex rather than the next step on your scale, and twenty requests later you own eleven greens. Say: "only use values from the token list; if none fits, propose a new token."
 
 ### Verify it
 
-Tokens are a convention, so verification is a search for what escaped it.
+1. **Search for raw values.** `#`, `rgb(`, `hsl(` and `px` outside the token file; each hit is a decision that will not follow the next change.
+2. **Change one token and check three screens.** Set `--color-brand` to hot pink: anything still green is a bypass.
+3. **Measure the contrast, do not judge it.** The DevTools colour picker shows the ratio — body text, the ₹ price, text on the brand colour, in both themes. Body text needs 4.5:1.
+4. **Toggle to dark mode and walk the whole app,** hunting for invisible shadows, lost contrast, white-background images and disabled states that look enabled.
+5. **Count things.** Thirty-one colours including `green`, `green2` and `brandGreen` means the system failed; more than eight utility classes on one element means a component should have been extracted.
 
-1. **Search the codebase for raw colour values.** Look for `#`, `rgb(` and `hsl(` outside your token definition file. Every hit is a decision that will not follow the next change. Zero is the target, and on a young project zero is achievable.
-2. **Search for raw spacing values.** `px` outside the token file, in padding, margin and gap. A handful is survivable; dozens means the scale is not being used.
-3. **Change one token and look at three screens.** Set `--color-brand` to a violently obvious colour like hot pink and reload. Everything that should be brand-coloured turns pink. Anything that stays green is a bypass, and this finds them faster than reading any file.
-4. **Measure the contrast, do not judge it.** Use the DevTools colour picker, which shows the contrast ratio for any text colour against its background and whether it passes. Do it for body text, for the ₹ price, for placeholder text and for text on your brand colour, in both themes. Body text needs 4.5:1.
-5. **Toggle to dark mode and walk the whole app.** Not one screen. Look specifically for: invisible shadows, text that has lost contrast, images with white backgrounds, disabled states that now look enabled, and your own logo.
-6. **Count the tokens.** If your colour list has thirty-one entries including four greens called `green`, `green2`, `brandGreen` and `primary`, the system has already failed and it is cheaper to consolidate now than in M11.
-7. **Count the classes on one element.** In utility-first markup, more than about eight on a single element usually means a component should have been extracted.
-
-Red flags in AI output: literal hex codes in components; new colour values that are not on your scale; a dark theme produced by inversion or by a single CSS filter; `prefers-color-scheme` handled but no manual toggle, or a toggle that the media query overrides; tokens named after their value rather than their role, like `--color-green-button`; and a "theme" that only covers backgrounds and text, leaving borders, shadows and focus rings on their light-mode values.
+Red flags: literal hex codes in components · values not on your scale · a dark theme made by inversion or a CSS filter · no manual theme toggle, or one the media query overrides · tokens named for their value, like `--color-green-button` · a "theme" that leaves borders, shadows and focus rings on light-mode values.
 
 ## Walkthrough
 1. Open a product you admire that offers both themes — any major app will do — and inspect its body text in DevTools. In the Styles panel, look at whether `color` resolves to a literal value or to a `var(--something)`.

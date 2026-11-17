@@ -4,7 +4,7 @@ module: m00-orientation
 slug: directors-loop
 title: "The Director's Loop and the Director's Brief"
 order: 8
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,13 +22,11 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Two students get the same thirty minutes with the same AI and the same goal: a page where canteen staff can mark dishes as sold out.
+Two students get thirty minutes with the same AI and the same goal: a page where canteen staff can mark dishes sold out.
 
-The first types "make a page for canteen staff to manage the menu". They get a page. It is generic, it lets anyone edit, the sold-out state is not stored anywhere, and when they ask for changes the AI rewrites the whole thing and breaks what worked. Thirty minutes later they have something that demos and cannot be used.
+The first types "make a page for canteen staff to manage the menu" and gets a generic page that lets anyone edit, stores the sold-out state nowhere, and breaks what worked at every change. The second spends eight minutes writing down what exists, what they want, what must not happen and how they will know it works, asks for two approaches before any code, then builds in verified steps.
 
-The second spends eight minutes writing down what exists, what they want, what must not happen, and how they will know it works. They ask for two approaches before any code. They pick one, build it in three steps, and check each one. Thirty minutes later they have a working page, they can explain every decision, and the next change takes four minutes instead of another thirty.
-
-Same tool. Same model. The difference is entirely in the method, and the method is learnable in one chapter.
+Same tool, same model: one has an unusable demo, the other a working page they can explain.
 
 ### The idea
 
@@ -44,17 +42,13 @@ Same tool. Same model. The difference is entirely in the method, and the method 
 7. DOCUMENT   Record what you chose and why
 ```
 
-Most people begin at DIRECT, skip VERIFY, and have nothing at DOCUMENT. Steps 1–3 feel like delay and are where the time is actually saved.
+Most people begin at DIRECT, skip VERIFY and have nothing at DOCUMENT. Steps 1–3 feel like delay and are where time is saved.
 
 ### The analogy
 
-A film director does not operate the camera, hold the boom, or act. They decide what the scene must achieve, who does what, which of two staging options is better, and — crucially — they watch the playback and say precisely what to change.
+A film director does not operate the camera. They decide what the scene must achieve, who does what, which staging option is better, and they watch the playback and say precisely what to change. "Make it more cinematic" gets nothing; "the actor's face is in shadow on the left, move the key light two feet right and keep everything else" gets the shot. You are the director; the AI is a crew that is fast, tireless, skilled and has not read the script.
 
-A director who says "make it more cinematic" gets nothing useful. One who says "the actor's face is in shadow on the left; move the key light two feet right and keep everything else" gets the shot.
-
-You are the director. The AI is a crew that is fast, tireless, technically skilled, and has not read the script.
-
-**Where the analogy breaks:** a film crew pushes back when a direction is physically impossible. The AI will attempt almost anything you ask, including the unwise, and report success. The playback review in step 5 is therefore not optional.
+**Where the analogy breaks:** a film crew pushes back when a direction is impossible. The AI attempts almost anything, including the unwise, and reports success. The playback review in step 5 is not optional.
 
 ### Picture it
 
@@ -73,11 +67,11 @@ You are the director. The AI is a crew that is fast, tireless, technically skill
                                          DOCUMENT
 ```
 
-Most loops run between DIRECT, VERIFY and ITERATE. Returning all the way to FRAME means the goal itself was wrong — which is useful information, not failure.
+Most loops run between DIRECT, VERIFY and ITERATE. Returning all the way to FRAME means the goal itself was wrong — useful information, not failure.
 
-### The Director's Brief
+### Where it lives
 
-The template. Every field earns its place by preventing a specific failure from the previous chapter.
+Step 2 produces the Director's Brief:
 
 ```
 CONTEXT:      What exists today, who the users are, what stack
@@ -89,7 +83,7 @@ ACCEPTANCE:   How I will know it works — testable checks
 ASK:          "2 approaches with tradeoffs first. No code until I pick."
 ```
 
-Which failure each field blocks:
+Each field blocks a specific failure from the last chapter:
 
 | Field | Blocks |
 |---|---|
@@ -99,59 +93,9 @@ Which failure each field blocks:
 | ACCEPTANCE | answering the question asked instead of the question meant |
 | ASK | plausible-but-wrong reasoning, by forcing comparison |
 
-### Vague versus precise
+The Talk to AI prompt below is a filled-in example. The loop runs at every scale: in M01 your PRD is this brief for the whole product, in M10 your rules file is CONTEXT and CONSTRAINTS made permanent, in M11 your decision log is DOCUMENT collected up.
 
-**Vague:**
-
-> Make a page for canteen staff to manage the menu.
-
-**Precise:**
-
-```
-CONTEXT:      Next.js on Vercel free tier, Supabase free tier for data.
-              Existing tables: users (id, email, role), menu_items
-              (id, name, price_paise, is_available). Users are canteen
-              staff on shared Android phones, often on slow 4G.
-
-GOAL:         Let canteen staff mark a dish sold out, and have students
-              see that within a minute.
-
-REQUIREMENTS: 1. Staff see a list of today's dishes with a toggle each
-              2. Toggling updates is_available in the database
-              3. The student menu reflects the change within 60 seconds
-              4. The toggle shows a pending state while saving
-              5. If the save fails, the toggle reverts and says so
-
-CONSTRAINTS:  Free tier only. Must work on a 5-inch screen, one-handed.
-              Must work on slow 4G. Prices are stored in paise, never
-              rupees. Do not introduce any new paid service.
-
-NON-GOALS:    No editing of names or prices. No image upload. No new
-              tables. Do not modify the student-facing menu page.
-
-ACCEPTANCE:   - Staff toggles a dish; is_available flips in the DB
-              - A student reloading within 60s sees the change
-              - A logged-in STUDENT who opens this page is refused
-              - With the network throttled, the toggle shows pending
-              - With the network cut, the toggle reverts and warns
-
-ASK:          Propose 2 approaches with tradeoffs, especially how
-              students get the update. No code until I pick one.
-```
-
-Twelve lines of thinking. The difference between them is the difference between the two students.
-
-Notice acceptance criterion three. Nobody asked for it in the goal. It is the Google login bug from the last chapter, caught in advance by writing down what must be *true* rather than what to build.
-
-### Where it lives
-
-The loop runs at every scale. In M01 you will write a PRD, which is this brief for the whole product. In M10 you will write a rules file, which is the CONTEXT and CONSTRAINTS sections made permanent so you stop retyping them. In M11's checkpoints, your decision log is the DOCUMENT step collected up.
-
-Two fields deserve extra attention as your projects grow:
-
-**NON-GOALS** becomes the most valuable line in the brief once a real codebase exists. "Do not modify the student-facing menu page" is what stops a one-hour task becoming a three-hour recovery.
-
-**ASK** is the step most people skip and the one with the best return. Forcing two options with tradeoffs does three things at once: it surfaces an approach you had not considered, it exposes shaky reasoning through comparison, and it puts the decision — which is your job — back in your hands.
+Two fields deserve extra attention. **NON-GOALS** becomes the most valuable line once a real codebase exists: "do not modify the student-facing menu page" stops a one-hour task becoming a three-hour recovery. **ASK** is the most-skipped step with the best return: two options surface an approach you had not considered and put the decision in your hands.
 
 ### Words to own
 
@@ -168,26 +112,26 @@ Two fields deserve extra attention as your projects grow:
 
 ### Tradeoffs and gotchas
 
-**Do not brief a trivial task.** "Centre this heading" needs no CONTEXT block. The brief earns its cost when the task touches data, money, permissions, or anything that already exists. Over-formalising small changes is its own waste.
+**Do not brief a trivial task.** "Centre this heading" needs no CONTEXT block. The brief earns its cost when a task touches data, money, permissions or existing code.
 
-**Acceptance criteria must be testable by someone else.** "Works well on mobile" is an opinion. "Usable one-handed on a 5-inch screen without horizontal scrolling" is a test. If you cannot hand it to a teammate and have them reach the same verdict, rewrite it.
+**Acceptance criteria must be testable by someone else.** "Works well on mobile" is an opinion; "usable one-handed on a 5-inch screen without horizontal scrolling" is a test. If a teammate cannot reach the same verdict, rewrite it.
 
-**Write the acceptance criteria before the requirements.** Counter-intuitive and effective. Starting from "how will I know this worked?" exposes requirements you would have forgotten — which is precisely how criterion three above appeared.
+**Write the acceptance criteria before the requirements.** Starting from "how will I know this worked?" surfaces requirements you would have forgotten. It is how "a logged-in student who opens this staff page is refused" gets written down — the Google login bug, caught in advance.
 
-**One change at a time, especially with agents.** An agent asked to fix three things will often touch thirty files, and then you cannot tell which change broke what. Sequential small steps feel slower and are reliably faster.
+**One change at a time, especially with agents.** An agent asked to fix three things will touch thirty files, and then you cannot tell which change broke what.
 
-**The decision log is for you in three weeks.** Not for marks, not for your mentor. In M11 you will be asked why you chose polling over realtime updates, and either you wrote down "polling: 60s delay is acceptable for a menu, realtime needs a paid tier" or you will invent something and sound like you do not understand your own product.
+**The decision log is for you in three weeks.** In M11 you will be asked why you chose polling over realtime: either you wrote down "60s delay is fine for a menu" or you will invent something.
 
 ### Verify it
 
 Before you send a brief, check four things:
 
-1. **Is every constraint that matters written down?** Free tier, existing tables, the device, the network. If it is only in your head, it is not in the brief.
+1. **Is every constraint written down?** Free tier, existing tables, device, network. If it is only in your head, it is not in the brief.
 2. **Could someone else test my acceptance criteria and get the same answer?** If not, they are opinions.
-3. **Have I said what not to touch?** On anything beyond a greenfield page, this line prevents the most expensive failure.
-4. **Am I asking for options, or for code?** If the task has more than one reasonable approach, ask for options.
+3. **Have I said what not to touch?** Beyond a greenfield page, this line prevents the most expensive failure.
+4. **Am I asking for options, or for code?** More than one reasonable approach means ask for options.
 
-After output arrives, run step 5 properly: test each acceptance criterion including the one nobody asked for, try it as the wrong kind of user, and ask it to explain its choice against the alternative.
+Then run step 5: test each criterion including the one nobody asked for, try it as the wrong kind of user, and ask it to justify its choice.
 
 ## Walkthrough
 1. Pick the task: a one-page canteen menu showing six dishes with name, price and a photo, plus a "sold out" label on unavailable dishes.

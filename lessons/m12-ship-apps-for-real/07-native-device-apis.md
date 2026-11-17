@@ -4,7 +4,7 @@ module: m12-ship-apps-for-real
 slug: native-device-apis
 title: "Native Device APIs: Camera, Location, Files"
 order: 7
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,33 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team ships a profile screen. On first launch the app asks, one dialog after another, for camera, photos, location, contacts and notifications. Five dialogs before the user has seen a single screen of the product.
+A team ships a profile screen that asks, on first launch, for camera, photos, location, contacts and notifications — five dialogs before the user has seen one screen of the product. She taps "Don't allow" five times, because a stranger asking for your camera before showing you anything is what a scam app does. On Android, two refusals mean the system never shows that dialog again.
 
-She taps "Don't allow" five times, because a stranger asking for your camera before showing you anything is exactly what a scam app does. Now none of the app's features work, and on Android the two refusals she gave the camera prompt mean the system will not show that dialog again at all — your only remaining option is a message telling her to go into Settings herself, which almost nobody does.
-
-The same team's photo upload works perfectly on their own phones. It fails for real users because a 12-megapixel photo from a modern camera is about 4 MB, they upload it at full size, and on a weak connection with metered data that takes ninety seconds, costs the user money, and frequently times out. Their object storage bill from M04 climbs for images that are displayed at 120 pixels wide.
-
-And one more: the app asks for background location — the kind that tracks you when the app is closed — because the AI's example code used it. Background location triggers an extra declaration and an extra review step on the Play Store, and a reviewer will ask what you need it for. The feature only ever needed the user's position once, while the app was open.
+Their photo upload works on their own phones and fails for real users: a 12-megapixel photo is about 4 MB, uploaded at full size, which on metered data takes ninety seconds and often times out — for images displayed 120 pixels wide. And the app asks for background location because the AI's example code used it, triggering an extra Play Store declaration and review step. The feature only needed the position once, while the app was open.
 
 ### The idea
 
-**Every permission is a question you are asking a stranger, so ask at the moment they understand why, ask for the weakest version that works, and design for "no".**
+**Every permission is a question you are asking a stranger: ask at the moment they understand why, ask for the weakest version that works, and design for "no".**
 
-Three rules follow, and they handle almost every case.
+**Ask in context.** The request belongs immediately after the user taps the thing that needs it, preceded by one sentence in your own interface explaining what you will do with it. Never in startup code.
 
-**Ask in context.** The permission request belongs immediately after the user taps the thing that needs it, preceded by one sentence in your own interface explaining what you will do with it. Never in app startup code.
+**Prefer no permission at all.** Launching the *system* image picker or document picker requires no permission, because the user chooses the file in the OS's own interface. If your feature is "attach a photo", you may need no camera or photo-library permission at all. Full camera permission is only for a live preview inside your app.
 
-**Prefer no permission at all.** This is the rule nobody expects. On both platforms, launching the *system* image picker or the *system* document picker requires no permission from you, because the user is choosing the file themselves in the operating system's own interface. If your feature is "let the user attach a photo", you may need no camera and no photo-library permission whatsoever. Full camera permission is only for when you need a live preview inside your app.
-
-**Design the denial path.** A denied permission is a normal state, not an error. The feature should degrade to something useful, and your message should tell the user what they lose and how to change their mind.
+**Design the denial path.** A denied permission is a normal state, not an error. The feature should degrade to something useful, and your message should say what was lost.
 
 ### The analogy
 
-The canteen's subsidised thali requires proof that you are a registered student. The counter asks for your ID *when you claim the subsidy* — not when you walk through the door, and not for the full-price plate.
+The canteen's subsidised thali requires proof that you are a registered student, and the counter asks for your ID *when you claim the subsidy* — not at the door, and not for the full-price plate. It also does not photocopy the ID or keep it; it glances once. A counter that kept your card all term would be demanding permanent background access to something it needed for a second.
 
-And notice the weakest-version rule in action. The counter does not need to photocopy your ID, keep it, or know your home address. It needs to glance at it once. A counter that demanded to keep your ID card for the whole term would be asking for permanent background access to something it only needed for one second.
-
-**Where the analogy breaks:** a student refused at the counter can argue with a human, and the human can make an exception. The operating system cannot be argued with. On Android, two refusals of the same prompt and the dialog is gone for good; your app can only point at Settings. There is no appeal, which is why the first ask has to be the good one.
+**Where the analogy breaks:** a student refused at the counter can argue with a human, who can make an exception. The operating system cannot be argued with — two refusals and the dialog is gone for good. There is no appeal, which is why the first ask has to be the good one.
 
 ### Picture it
 
@@ -78,11 +70,11 @@ The cheapest path needs no permission at all; a permission is only requested whe
 
 ### Where it lives
 
-On the device side these are Expo modules — an image picker, a camera, a location module, a document picker, a file system. Each has a matching declaration in your app config, which Expo turns into the right native entries at build time: an Android manifest permission and, on iOS, a **purpose string** explaining the use in plain language. Apple rejects apps whose purpose strings are missing or meaningless, and the string is shown to the user inside the system dialog, so it is user-facing copy, not boilerplate.
+On the device these are Expo modules — image picker, camera, location, document picker, file system. Each has a declaration in your app config, which Expo turns into an Android manifest permission and, on iOS, a **purpose string** explaining the use in plain language. The string appears inside the system dialog, so it is user-facing copy, not boilerplate.
 
-On the server side, what comes back from these APIs is an upload, which is M04's file-upload and object-storage territory, and a privacy obligation, which is M07's. A photograph is personal data. A location is more sensitive personal data. Both have to appear in the privacy policy and the data safety declaration from chapter 5 — and a photo carries EXIF metadata that may include the exact GPS coordinates where it was taken, which you probably did not mean to store.
+On the server side the result is an upload (M04's object storage) and a privacy obligation (M07). A photograph is personal data; a location is more sensitive. Both must appear in the privacy policy and chapter 5's data safety declaration.
 
-Adding any of these modules is a native change, so remember chapter 6: a new permission cannot be shipped over the air.
+Adding any of these modules is a native change, so remember chapter 6: a new permission cannot ship over the air.
 
 ### Words to own
 
@@ -101,33 +93,29 @@ Adding any of these modules is a native change, so remember chapter 6: a new per
 
 ### Tradeoffs and gotchas
 
-**Upload a resized copy, never the original.** A 4 MB photo displayed at 120 pixels wide is a waste the user pays for twice: once in data and once in waiting. Resize on the device to the largest size you actually display — 1280 pixels on the long edge is plenty for most app use — and compress to about 70% quality. You will usually go from 4 MB to under 200 KB with no visible difference on a phone screen. On a metered Indian connection that is the difference between a feature working and a feature being abandoned.
+**Upload a resized copy, never the original.** A 4 MB photo displayed at 120 pixels wide is a waste the user pays for twice, in data and in waiting. Resize on the device to 1280 pixels on the long edge and compress to about 70% quality: usually 4 MB down to under 200 KB with no visible difference on a phone screen.
 
-**Strip EXIF unless you need it.** Photos taken on a phone frequently embed GPS coordinates. If you store the original, you are storing the user's home location without telling them. Strip the metadata during the resize, or declare it.
+**Strip EXIF unless you need it.** Phone photos frequently embed GPS coordinates, so storing the original stores the user's home location without telling them. Strip it during the resize, or declare it.
 
-**Foreground location is almost always enough.** Background location means a separate Play Store declaration, a prominent-disclosure requirement, and a reviewer asking you to justify it. Ask yourself whether you need the position *while the app is open* — the answer for a student project is almost always yes, and the correct permission is the weaker one.
+**Foreground and approximate location are almost always enough.** Background location means a separate Play Store declaration, a prominent-disclosure requirement, and a reviewer asking you to justify it. Approximate location is faster, uses less battery, and users grant it more readily.
 
-**Location accuracy is a dial, and the coarse setting is cheaper.** Approximate location is faster, uses less battery, and users grant it more readily. "Which counter is nearest" does not need three-metre precision.
+**Storage is scoped: device "files" are not a filesystem you can roam.** Your app has its own directory; reaching anything else goes through a picker the user drives.
 
-**Storage is scoped, so the device "files" are not a filesystem you can roam.** Your app has its own directory. Reaching anything else goes through a picker the user drives. Plan features around that rather than around a desktop mental model.
-
-**Permissions can be revoked at any time, including while your app is backgrounded.** Check the status when you use the feature, not once at startup and never again. Modern Android can also auto-revoke permissions for apps the user has not opened in months.
-
-**Test the denial path as a first-class case.** The most common untested path in any mobile app is "user said no". Run through every permission feature with the permission denied and write down what the user sees. If it is a blank screen or a crash, that is the bug.
+**Permissions can be revoked at any time**, including while your app is backgrounded, and modern Android auto-revokes for apps unopened in months. Check the status when you use the feature, not once at startup.
 
 ### Verify it
 
-**Red flag: a permission requested at launch with no explanation.** Find the actual line in the code and look at what surrounds it. If it sits in a startup effect, in a layout file, or anywhere that runs before the user has tapped the relevant feature, move it. Ask AI to show the user flow from tap to dialog, not just the function call.
+**Red flag: a permission requested at launch.** Find the line and look at what surrounds it. If it runs before the user taps the feature, move it. Ask AI to show the flow from tap to dialog, not just the function call.
 
-**Red flag: more permission than the feature needs.** For each permission in the plan, ask the question "what is the weakest thing that would still make this feature work?" Three specific swaps catch most cases: a system picker instead of camera permission, foreground instead of background location, and approximate instead of precise location. An AI that proposes the strongest option by default is copying an example, not designing for you.
+**Red flag: more permission than the feature needs.** Ask "what is the weakest thing that would still work?" Three swaps catch most cases: a system picker instead of camera permission, foreground instead of background location, approximate instead of precise.
 
-**Red flag: a full-size image upload.** Look for an explicit resize and compress step before the upload call, with actual numbers in it. If the code sends what the picker returned, your users are paying for megabytes you will throw away on display. Ask for the expected file size before and after.
+**Red flag: a full-size image upload.** Look for an explicit resize and compress step before the upload call, with numbers in it.
 
-**Red flag: no denial path.** For every permission, ask: "what does the screen show if the user refuses, and what if they refused twice and the dialog will never appear again?" A plan whose answer is "show an error" has not been designed. On Android the correct second answer involves explaining what is lost and offering a route to Settings, plus a fallback that still works.
+**Red flag: no denial path.** Ask what the screen shows if the user refuses, and after two refusals when the dialog will never appear again. The correct answer explains what is lost, offers a route to Settings, and still leaves something that works.
 
-**Red flag: a missing or meaningless iOS purpose string.** "This app needs camera access" is a rejection waiting to happen and tells the user nothing. The string should name the user benefit: "To take a photo of your order so the kitchen can check it."
+**Red flag: a meaningless iOS purpose string.** "This app needs camera access" is a rejection waiting to happen; name the benefit instead.
 
-**Verify on a real phone, with a real refusal.** Install on a budget device, deny each permission, and use the app. Then grant it and check the file size that actually leaves the phone, using your server logs or your storage dashboard. Then check one stored photo for EXIF GPS data. Those three checks catch nearly everything in this chapter.
+**Verify on a real phone, with a real refusal.** Deny each permission on a budget device and use the app. Then grant it and check the file size that leaves the phone, and one stored photo for EXIF GPS data.
 
 ## Walkthrough
 1. List every device capability your app uses or plans to use. Next to each, write the user-facing feature that needs it.

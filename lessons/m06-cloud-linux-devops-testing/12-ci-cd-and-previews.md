@@ -4,7 +4,7 @@ module: m06-cloud-linux-devops-testing
 slug: ci-cd-and-previews
 title: "CI and CD: Checks on Every Push, Environments and Preview Deploys"
 order: 12
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team of three has a test suite from chapter 10. On Tuesday one teammate changes the discount logic and forgets to run it. The suite is red for nine days. Nobody knows, because nobody ran it. Every change made in those nine days is built on a broken base, and when they finally run it there are four failures and no way to tell which change caused which.
+A team has the test suite from chapter 10. One teammate changes the discount logic, forgets to run it, and the suite stays red for nine days because nobody ran it.
 
-The same week, a teammate opens a pull request. The others are asked to review it. They read the diff — M01 taught them that — and they cannot tell whether it works, because reading a diff tells you what changed and not whether the page looks right on a phone. So the review is "looks fine to me", which is not a review.
-
-And on Thursday someone runs a migration against the live database while testing, on a Tuesday-night whim, and loses the day's real orders. There was only ever one database, because nobody had decided there should be more than one.
-
-Three different pains, one missing piece: nothing happens automatically, so everything depends on someone remembering.
+The same week a teammate opens a pull request and the others cannot tell whether it works, because a diff shows what changed, not whether the page looks right on a phone. The review is "looks fine to me". Then someone runs a migration against the live database while testing and loses the day's orders. Nothing happens automatically, so everything depends on someone remembering.
 
 ### The idea
 
 **Continuous integration means every push runs your checks automatically, and continuous delivery means a change that passes can be deployed without anyone doing it by hand.**
 
-That is the whole idea. The machinery — pipelines, runners, workflow files — exists to make "the tests ran" a fact about your repository rather than a thing somebody claims. The checks are the ones you already have from chapter 10; CI simply removes the requirement to remember.
+The machinery — pipelines, runners, workflow files — exists to make "the tests ran" a fact about your repository, not a claim. A CI run is a clean Linux machine living about ninety seconds: it clones your repository, installs dependencies, runs the command from chapter 10 and reports the exit code from chapter 2. Because it starts clean, CI is the honest answer to "works on my machine": it catches missing dependencies, uncommitted files and chapter 1's capitalisation trap.
 
 ### The analogy
 
-The canteen has a rule: nothing leaves the kitchen without passing the counter check. Weight, temperature, the right number of items on the tray. The check is not performed because someone feels careful today; it is a physical station every tray passes through. A tray that fails goes back, and nobody argues with the scale.
+The canteen has a rule: nothing leaves the kitchen without passing the counter check — weight, temperature, item count. It is a station every tray passes, not a mood. Before a new dish joins the menu, a portion is plated exactly as a student would get it and left for the cooks to try: not described, plated. That is a preview deploy. And there are three kitchens deliberately: the practice counter, the tasting table, and the serving counter students queue at — and the practice counter never serves anyone.
 
-Then there is the tasting table. Before a new dish goes on the menu, a small portion is plated exactly as a student would receive it and put on a table for the other cooks to try. Not described — plated. That is a preview deploy, and it is the difference between "I have made a sabzi with less oil" and a spoon in someone's hand.
-
-And there are three kitchens, deliberately: the practice counter where a new cook experiments, the tasting table, and the serving counter that students actually queue at. The practice counter never serves a student.
-
-**Where the analogy breaks:** the counter check in a canteen is a human who notices things nobody wrote down — a smell, a wrong colour. A pipeline checks exactly the list you gave it and nothing else, with total consistency. A green pipeline means "the things we thought of passed", which is much narrower than "this is good", and a pipeline whose checks are weak is a counter with a broken scale that stamps every tray.
+**Where the analogy breaks:** a human at the counter notices things nobody wrote down; a pipeline checks exactly the list you gave it. Green means "the things we thought of passed", which is narrower than "this is good".
 
 ### Picture it
 
@@ -77,25 +69,7 @@ And there are three kitchens, deliberately: the practice counter where a new coo
 
 A push starts a fresh machine that runs your checks and, if they pass, publishes a preview URL for that branch; merging to the main branch is what reaches production.
 
-### What a CI run actually is
-
-A CI run is a clean Linux machine — chapter 1's machine — that exists for about ninety seconds. It clones your repository, installs your dependencies from your dependency file, runs the command you nominated in chapter 10, and reports the exit code from chapter 2. Zero means a green tick on your pull request; anything else is a red cross.
-
-Because it starts clean every time, CI is the honest answer to "works on my machine". The runner has none of your laptop's accumulated state, so it catches the missing dependency, the file nobody committed, and chapter 1's capitalisation trap — which is the most common first CI failure students see.
-
-The configuration is a small text file in your repository. The dominant hosted system is GitHub Actions, and your deploy platform almost certainly offers its own. Both are free for small projects within a monthly allowance of build minutes, which is a chapter 7 meter and worth reading today's figure for.
-
-The important thing is not the file. It is the branch rule: **CI must run on pull requests, and the pull request must not be mergeable while it is red.** Without that rule you have a pipeline; with it you have a guardrail. This connects directly to M01: a PR is where a teammate reviews the diff, and CI is the half of the review a human cannot do reliably.
-
-### Preview deploys, and why they matter most
-
-A preview deploy gives every pull request its own live URL, built from that branch alone.
-
-For a team of three students this is worth more than any other single piece of automation in the module, for four reasons. Your reviewer can *use* the change on their own phone instead of imagining it from a diff. You can test on a budget Android on 4G, which is the device your users actually have and the one your laptop cannot simulate. You can send the link to a real student in the canteen before merging anything. And your mentor at a checkpoint can click rather than ask you to demo.
-
-It also removes the worst habit a small team can form, which is testing on production because that is the only place the app exists.
-
-### Environments, and what each may touch
+### Where it lives
 
 | Environment | Who uses it | Its data | May it touch real money? |
 |---|---|---|---|
@@ -103,17 +77,11 @@ It also removes the worst habit a small team can form, which is testing on produ
 | Staging | The team, and your mentor | A copy, or realistic fake | No — test keys only |
 | Production | Real users | Real, backed up | Yes |
 
-Two rules, both learned the hard way by somebody every year.
+Two rules: a test environment never holds real user data or a live payment key, and production migrations go through your pipeline, not a laptop.
 
-**A test environment never holds real user data and never holds a live payment key.** M04's payment chapter gave you test credentials; this is where they belong. A preview deploy wired to your production database is a loaded gun, and it is a surprisingly easy mistake because the environment variable is right there.
+A preview deploy — one live URL per pull request — is the most valuable automation here: your reviewer uses the change on their own phone, you test on a budget Android on 4G, you send the link to a real student instead of testing on production.
 
-**Production migrations happen through your pipeline, not from a laptop.** M04's migrations and backups chapter gave the mechanism; CD is what makes it repeatable and recorded.
-
-### Where it lives
-
-CI is the automation layer over almost everything in this module. It runs chapter 10's tests, builds chapter 8's image, consumes chapter 7's build minutes, handles chapter 3's credentials as secrets, and deploys to chapter 6's platform. A failing CI log is also a chapter 11 reproduction you did not have to construct.
-
-M01's pull requests are where it attaches. M10's agent-ready repository assumes it: an agent that opens a PR gets told by the pipeline whether its work was correct, without you reviewing anything first. M11's going-live checkpoint asks to see a green pipeline. M13 goes deep into release engineering — canaries, blue-green, feature flags.
+CI runs chapter 10's tests, builds chapter 8's image, spends chapter 7's build minutes, deploys to chapter 6's platform.
 
 ### Words to own
 
@@ -134,28 +102,20 @@ M01's pull requests are where it attaches. M10's agent-ready repository assumes 
 
 ### Tradeoffs and gotchas
 
-**A green pipeline is only as good as its checks.** This is the central trap. A pipeline that installs dependencies and builds, with no tests, is green on every broken change — and it looks exactly as reassuring as a real one. Chapter 10's rule applies to the pipeline too: break something on purpose and confirm the pipeline goes red. If it does not, it is decoration.
-
-**Never put a secret in the workflow file.** The workflow file is in your repository and often public. Secrets go in the platform's secret store and are injected at run time. This is chapter 8's rule about Dockerfiles, applied to the pipeline, and it is the most common way student projects leak a key.
-
-**Keep the pipeline under a few minutes.** A ten-minute pipeline gets bypassed. Fast matters more than thorough for the checks that run on every push; the slow, exhaustive run can happen nightly.
-
-**Build minutes are finite and a loop can consume them.** A workflow that triggers itself, or one that runs on every push to every branch including automated ones, can eat a monthly allowance in a weekend. Chapter 7's budget alert covers money; here, check the usage page.
-
-**CD to production on every merge needs a rollback you have actually practised.** Automatic deployment is excellent and it means a mistake reaches users in ninety seconds. Know the rollback before you enable it, and have done it once deliberately.
-
-**Do not let the pipeline become the only place tests run.** If only CI ever runs the suite, the loop from change to feedback is minutes long, and both you and an agent need seconds. CI is the guarantee, not the workflow.
+- **A green pipeline is only as good as its checks.** One that installs and builds with no tests is green on every broken change and looks just as reassuring.
+- **CI must run on pull requests, and a red pull request must not be mergeable.** Without that rule you have a pipeline; with it, a guardrail.
+- **Never put a secret in the workflow file,** which is in your repository and often public. Secrets live in the platform's secret store, injected at run time.
+- **Keep the pipeline under a few minutes,** because a ten-minute one gets bypassed; a workflow that triggers itself can eat a month's build minutes in a weekend.
+- **CD on every merge needs a rollback you have practised,** because a mistake reaches users in ninety seconds. Nor should the pipeline be the only place tests run.
 
 ### Verify it
 
-Four checks on any pipeline an AI sets up for you.
+1. **Break something and watch it go red.** Push a branch with a failing test and confirm you cannot merge. If you can, it is all advisory.
+2. **Search the workflow file for secrets.** Any token written in it is published; check also that logs do not print environment variables.
+3. **Ask which environment each step touches.** Does anything reach the production database or a live payment key? On a pull-request pipeline, no.
+4. **Check the build-minute allowance on the provider's usage page today;** a remembered figure may be a year old.
 
-1. **Break something and watch it go red.** The only proof. Push a branch with a deliberately failing test, confirm the cross appears on the pull request, and confirm you cannot merge. If you can merge, the required-check rule is missing and the whole thing is advisory.
-2. **Search the workflow file for secrets.** Any token, key or password written in the file is published. Also check that the pipeline's logs do not print environment variables, which is a subtler version of the same leak.
-3. **Ask which environment each step touches.** Specifically: does anything in this pipeline connect to the production database or a live payment key? For a PR pipeline the answer must be no.
-4. **Check the quoted free-tier build minutes against the provider's usage page today.** The module's recurring red flag again. An AI's remembered allowance may be a year old, and this one has a monthly cliff.
-
-Red flags: a pipeline with no test step; a credential in the workflow file; a preview environment pointed at the production database; a workflow that triggers on every push to every branch; "all checks passing" where the only check is that the code compiles; and an agent that reports a green pipeline without linking you to the run.
+Red flags: a pipeline with no test step; a credential in the workflow file; a preview environment pointed at the production database; a workflow triggering on every branch; "all checks passing" where the only check is that it compiles.
 
 ## Walkthrough
 1. Confirm you have the one command from chapter 10 that runs your test suite, and that it works from a fresh clone. CI can only run what already works locally.

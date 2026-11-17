@@ -4,7 +4,7 @@ module: m12-ship-apps-for-real
 slug: offline-and-sync
 title: "Offline and Sync When the Network Is Bad"
 order: 4
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,31 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student boards the Nashik–Mumbai bus and opens your app. Mobile data flickers between one bar and none for the next forty minutes.
+A student on the Nashik–Mumbai bus opens your app while mobile data flickers between one bar and none. Every screen fetches on mount and nothing is stored locally, so she gets a spinner, then "Something went wrong" after eleven seconds. She fills in an order anyway, taps submit, and the button spins for thirty seconds before timing out. Her typing is gone, and when the signal returns twenty minutes later nothing happens, because your app only tries when the user taps.
 
-Here is what she sees. The app opens to a blank screen with a spinner, because every screen fetches on mount and nothing is stored locally. After eleven seconds it shows "Something went wrong". She pulls to refresh. It spins again. She fills in an order anyway — the form is local, after all — taps submit, and the button spins for thirty seconds before the request times out. The form clears. Her typing is gone.
-
-Twenty minutes later the signal comes back. Nothing happens, because your app only tries once and only when the user taps. She has to notice the signal herself, reopen the app and start again.
-
-Now the failure that costs you money. Another user taps submit on a weak connection. The request actually reached your server and created the order, but the response never got back, so the app showed an error. He taps again. You now have two orders, two kitchen tickets, and one angry customer. That bug exists in a startling number of student apps and it is entirely preventable with one extra field.
+Worse: another user on a weak connection taps submit, the request reaches your server but the response never comes back, so he taps again. Two orders, two kitchen tickets, one angry customer.
 
 ### The idea
 
 **Treat the network as an occasional visitor rather than a permanent fixture. Reads come from a local copy you refresh when you can; writes go into a durable queue that drains by itself.**
 
-Three consequences. Opening the app never shows a spinner on an empty screen, because yesterday's data is on the device. Submitting never loses the user's typing, because the write is saved locally before any request is attempted. And retrying is safe, because every queued write carries a key that lets your server recognise the second attempt as the same attempt.
+Three consequences. Opening never shows a spinner on an empty screen, because yesterday's data is on the device. Submitting never loses typing, because the write is saved locally before any request is attempted. Retrying is safe, because every queued write carries a key that lets your server recognise the second attempt as the same attempt.
 
-This is not an exotic architecture. It is the pattern every app you respect already uses, and WhatsApp is the reference your users already understand: a message typed with no signal shows a clock, then one tick when it reaches the server. The user is never lied to and never loses their words.
+WhatsApp is the reference your users already understand: a message typed with no signal shows a clock, then a tick when it reaches the server.
 
 ### The analogy
 
-The canteen loses power at 1:05 pm, right at the rush. The till is dead.
+The canteen loses power at 1:05 pm, right at the rush. Staff take orders on paper chits, hand over food, and clip the chits; at 1:40 somebody enters all forty into the till. The chit is the queued write, the clip is the durable queue, the person entering them is your sync process.
 
-The staff do not send everyone home. They take orders on paper chits, hand over food, and keep the chits in a clip. When power returns at 1:40, somebody enters all forty chits into the till. Service continued; the record caught up.
-
-That is offline-first. The chit is the queued write. The clip is the durable queue. The person entering them later is your sync process.
-
-**Where the analogy breaks**, and this is the interesting part. Two customers wrote a chit for the last plate of biryani. On paper, the cook notices at the counter and resolves it with a human conversation. In software, both chits arrive at the server forty minutes later and something must decide. There is no obvious right answer — and pretending there is one is the most common mistake in offline design. Your server has to be the authority for anything scarce, and your app has to be able to tell the user, politely and later, that their chit could not be honoured.
+**Where the analogy breaks.** Two customers wrote a chit for the last plate of biryani. On paper the cook notices and resolves it in conversation; in software both chits arrive forty minutes later and something must decide. Your server must be the authority for anything scarce, and your app must be able to tell the user, late and politely, that their chit was not honoured.
 
 ### Picture it
 
@@ -70,17 +62,13 @@ Screens read instantly from a local store that the network refreshes in the back
 
 ### Where it lives
 
-M02 gave you service workers and the web version of this idea; M05 gave you caching, stale data and offline tolerance as concepts. This chapter is both of those on a device where the network is genuinely worse and the storage is genuinely better — a phone has a real SQLite database, which a browser only approximates.
+This is M02's service workers and M05's caching with a worse network and better storage — a phone has a real SQLite database, which a browser only approximates. The idempotency key is an M04 column with a unique constraint; the retry schedule is M05's exponential backoff pointed the other way, your client backing off rather than your server pushing back.
 
-On the server side, the idempotency key is a column with a unique constraint, which is M04's territory. The retry schedule is the exponential backoff from M05's rate-limiting chapter, pointed the other way: your client backing off rather than your server pushing back.
+Three mechanisms, in build order:
 
-Three mechanisms, in the order you build them:
-
-**A local store.** Key-value storage is fine for small things like the last-seen cursor; a device SQLite database is the right answer for lists of records. Write every successful fetch into it, and read screens from it.
-
-**Optimistic UI.** When the user submits, update the screen immediately as if it succeeded, with a visible pending marker. If the write later fails permanently, revert and tell them clearly. The pending marker is not decoration — without it you have lied.
-
-**A drain loop.** On app start, on network reconnect, and on a timer, attempt the oldest queued write. On success, remove it. On a network failure, leave it and back off. On a definitive rejection from the server — the biryani is gone — remove it and surface it to the user.
+- **A local store** — key-value for small things like the last-seen cursor, device SQLite for lists. Write every successful fetch into it and read screens from it.
+- **Optimistic UI** — on submit, update the screen immediately with a visible pending marker. If the write later fails for good, revert and say so. Without the marker you have lied.
+- **A drain loop** — on app start, on reconnect and on a timer, attempt the oldest queued write. On success remove it; on network failure back off; on a definitive rejection remove it and tell the user.
 
 ### Words to own
 
@@ -100,33 +88,25 @@ Three mechanisms, in the order you build them:
 
 ### Tradeoffs and gotchas
 
-**Not everything should work offline, and payments least of all.** Never queue a payment. A UPI transaction is an action in the real world with a real bank behind it, and a queued payment that fires forty minutes later — possibly twice, possibly after the user gave up and paid in cash — is worse than a clear error. The correct offline behaviour for a payment is to refuse politely and say what to do: "You need a connection to pay. Your cart is saved." Same for anything that books a scarce resource or sends a message to a third party on the user's behalf.
+**Never queue a payment.** A queued UPI transaction that fires forty minutes later, possibly twice, possibly after the user paid cash, is worse than a clear error. Refuse politely: "You need a connection to pay. Your cart is saved." Same for booking a scarce resource.
 
-**Idempotency has to be generated on the device, not on the server.** The key must be created when the user taps submit and reused on every retry of that same tap. If the client generates a fresh key per retry, you have achieved nothing. A unique constraint on the server, plus returning the original result when the key repeats, is what makes the double-tap safe.
+**The idempotency key is generated on the device, not the server.** Created when the user taps submit and reused on every retry of that tap; a fresh key per retry achieves nothing. A unique constraint plus returning the original result when the key repeats is what makes the double-tap safe.
 
-**Last-write-wins is fine until it is catastrophic.** Overwriting a profile nickname by timestamp is sensible. Overwriting an inventory count by timestamp loses sales silently. The rule of thumb: last-write-wins for things only one person owns, server authority for anything counted, booked or paid for.
+**Last-write-wins is fine until it is catastrophic.** Overwriting a nickname by timestamp is sensible; overwriting an inventory count loses sales silently. Last-write-wins for what one person owns, server authority for anything counted, booked or paid for. And never order by a device clock: phone time can be days off.
 
-**Storage is not free on a ₹8,000 phone.** A device with 32 GB and 3 GB of photos has less headroom than you think. Cache what the user actually looks at, cap how much you keep, and clean up. Do not mirror your whole database onto every phone.
-
-**Your users pay for the data your sync uses.** A drain loop that polls every ten seconds while the signal is weak burns battery and data for nothing. Back off properly, sync on reconnect rather than on a tight timer, and prefer fetching changes since a cursor over refetching whole lists.
-
-**Clocks on phones are wrong.** Device time can be minutes or days off, and users change it. Never trust a device timestamp for ordering, conflict resolution or anything security-related. The server stamps the time.
-
-**Pending must be visible.** The worst version of optimistic UI is the one that looks identical to success. Users will close the app believing the order is placed. A small clock icon costs nothing and prevents a support conversation.
+**Storage and data are not free on a ₹8,000 phone.** Cache what the user looks at, cap it, and never mirror your whole database onto every phone. A drain loop polling every ten seconds on a weak signal burns data the user paid for.
 
 ### Verify it
 
-**Red flag: a design that assumes a fast connection.** The giveaway is that every screen fetches on mount and renders a spinner until it resolves, with no local store anywhere in the plan. Ask the direct question: "with the network switched off, what exactly does each of my screens show?" If the answer is a spinner or an error, the design is not finished.
+**Red flag: a design that assumes a fast connection.** The giveaway is every screen fetching on mount with no local store in the plan. Ask: "with the network off, what does each screen show?" A spinner or an error means the design is not finished.
 
-**Red flag: no idempotency key.** Ask explicitly what happens if the server receives the request but the response is lost and the user taps again. A correct answer names a client-generated key, a unique constraint, and returning the original result on the second attempt. An answer that says "the user can delete the duplicate" is not an answer.
+**Red flag: no idempotency key.** Ask what happens if the server receives the request but the response is lost and the user taps again. A correct answer names a client-generated key, a unique constraint, and the original result returned on the second attempt.
 
-**Red flag: a queued payment.** Read the feature list the AI produced and check which writes it decided to queue. If a payment, a booking or anything with real-world scarcity is in the queue, that is a bug with money in it. Insist on an explicit list of writes that must *not* be queued.
+**Red flag: a queued payment or booking.** Anything scarce in the queue is a bug with money in it. Insist on an explicit list of writes that must *not* be queued.
 
-**Red flag: retry with no backoff and no cap.** A loop that retries every second forever will flatten the battery and may get you rate-limited by your own API. Look for increasing delays and a maximum attempt count, plus a decision about what happens to a write that never succeeds.
+**Red flag: retries with no backoff and no cap**, or optimistic UI with no pending marker and no revert path.
 
-**Red flag: optimistic UI with no pending state and no revert path.** Check both halves. Does the screen show that this item is not yet saved? And if it fails permanently, what does the user see and what happens to their data?
-
-**Test it by breaking the network for real, not by mocking it.** Turn on airplane mode, do the thing, close the app completely, turn the network back on, reopen, and confirm the write arrived exactly once. Then do the harder test: enable airplane mode *in the middle* of a submit. Then the hardest: on a real weak signal, tap submit twice.
+**Test by breaking the network for real, not by mocking it.** Airplane mode, do the thing, close the app completely, reconnect, reopen, confirm the write arrived exactly once. Then enable airplane mode *in the middle* of a submit. Then, on a real weak signal, tap submit twice.
 
 ## Walkthrough
 1. List every screen in your app and every write action. For each screen write what it should show with no network; for each write, whether it may be queued.

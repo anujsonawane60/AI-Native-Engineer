@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: the-rag-pipeline
 title: "The RAG Pipeline: Chunk, Embed, Store, Retrieve"
 order: 10
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Two teams build retrieval over the same two hundred college circulars and fail in opposite directions.
+Two teams build retrieval over the same two hundred circulars and fail in opposite directions. The first embeds each document whole, so retrieval returns five entire circulars — sixty pages — with the one useful sentence in the middle, where attention is weakest. The second splits everything into hundred-character pieces, so a chunk reads "shall be ₹42,000 per annum" with no indication of what, for whom, or from when.
 
-The first embeds each document whole: one vector per twelve-page circular. Retrieval returns five entire circulars, sixty pages of text, which blows the context budget from chapter five, and the one sentence that answers the question sits somewhere in the middle where chapter five already told you attention is weakest.
-
-The second splits everything into hundred-character pieces. Now a chunk reads "shall be ₹42,000 per annum" with no indication of what, for whom, or from when. Retrieval finds it, the model reads it, and the answer is a number with no subject. Several chunks end mid-word. One table is spread across nine chunks.
-
-Then both teams discover the same thing: they embedded their documents with one model and their questions with another, so the two sets of coordinates have nothing to do with each other and the whole system was returning near-random text the entire time.
+Then both discover the same thing: they embedded documents with one model and questions with another, so the two sets of coordinates have nothing to do with each other and the system was returning near-random text all along.
 
 ### The idea
 
-**RAG is four stages, and each one can silently ruin the next: split documents into retrievable units, turn each unit into a vector, store the vectors with their metadata, and at question time fetch the nearest few.**
+**RAG is four stages, and each can silently ruin the next: split documents into retrievable units, turn each into a vector, store the vectors with their metadata, and at question time fetch the nearest few.**
 
-The word to hold onto is *silently*. None of these stages throws an error when it is done badly. A bad chunk is a valid chunk. A mismatched embedding is a valid vector. Only measurement tells you, which is why chapter twelve exists.
+The word to hold onto is *silently*. A bad chunk is a valid chunk; a mismatched embedding is a valid vector. Nothing throws an error, so only measurement tells you.
 
 ### The analogy
 
-The canteen's recipe knowledge used to live in six cookbooks on a shelf. Finding anything meant knowing which book.
+The canteen's recipes used to live in six cookbooks, so finding anything meant knowing which book. They rewrote them as index cards: one per dish, each complete enough to cook from alone, filed not alphabetically but *by taste*, so "spicy, gravy, chicken" sits beside "spicy, gravy, mutton". That is RAG — chunking writes the cards, embedding is the taste coordinates, the store is the box, retrieval grabs the five nearest.
 
-So they rewrote it as index cards: one card per dish, each card complete enough to cook from on its own — ingredients, quantities, method, and the dish name at the top. Then they filed the cards not alphabetically but *by taste*, so "spicy, gravy, chicken" sits next to "spicy, gravy, mutton", and a cook who wants something spicy and gravy-ish can pull the nearby cards without knowing any dish names.
-
-That is the whole of RAG. Chunking is writing self-contained cards. Embedding is the taste coordinates. The store is the filing box. Retrieval is grabbing the five nearest cards.
-
-**Where the analogy breaks:** cards that are near each other by taste can be entirely the wrong dish — a spicy gravy mutton card is a perfectly good match for a spicy gravy chicken question and a useless answer. Nearness in meaning is not correctness. And the person who filed the cards understood the dishes; the embedding model only saw the words, so a card full of mangled OCR gets filed somewhere confidently wrong.
+**Where the analogy breaks:** cards near each other by taste can be the wrong dish — mutton is a fine match for a chicken question and a useless answer. Nearness in meaning is not correctness. And whoever filed the cards understood the dishes; the embedding model only saw words, so mangled OCR gets filed somewhere confidently wrong.
 
 ### Picture it
 
@@ -67,53 +59,13 @@ That is the whole of RAG. Chunking is writing self-contained cards. Embedding is
 
 The same embedding model must be used on both sides or the coordinates are not comparable. The permission filter is applied inside the store, before the nearest-neighbour search picks winners.
 
-### Chunking: write cards, not fragments
-
-The test for a good chunk is one question: **could a human answer the question from this chunk alone, with nothing else?** If not, the chunk is too small or missing its context.
-
-**Split on structure first.** Headings, numbered clauses, paragraph breaks, question-answer pairs in an FAQ. Documents already carry the author's own idea of where one idea ends, and it beats any character count.
-
-**Then cap the size.** Something in the range of a few hundred to a thousand tokens suits most prose. Measure rather than believe; your right answer depends on your documents and chapter twelve is where you find it.
-
-**Overlap a little.** Repeating the last sentence or two of the previous chunk stops an answer being severed exactly at a boundary. Ten to fifteen percent is a common starting point, and too much overlap just means retrieving the same text twice.
-
-**Never split a table.** Keep it whole in one chunk or handle it as chapter nine described.
-
-**Prefix every chunk with its context.** This is the cheapest large win in the chapter. Store the chunk as "Fee Circular 2026-04, effective 1 July 2026 · Section 3: Hostel charges — shall be ₹42,000 per annum for second-year students." Now the fragment has a subject, a date and a scope, and it answers on its own. A chunk that needs its neighbours to make sense will fail the moment it is retrieved without them, which is always.
-
-### Embedding: one model, both sides, forever
-
-M09 taught embeddings as meaning turned into coordinates. Three practical consequences.
-
-**The same model embeds documents and questions.** Different models produce incompatible coordinate systems. This is the bug both teams in the opening story had, and it looks exactly like "retrieval is bad" rather than like a configuration error.
-
-**Changing the embedding model means re-embedding everything.** It is a data migration in M04's sense — plan it, keep the old vectors until the new ones are verified, and do not do it casually.
-
-**Free-tier reality.** Embedding is cheap compared with generation, but two hundred documents is thousands of chunks and provider free tiers have daily limits. Batch your requests, store the vectors so you never recompute them, and consider a small local embedding model: these run acceptably on a laptop, cost nothing, and keep your documents out of a third party's logs.
-
-### Store: the database you already have
-
-A vector store is a table that holds a vector per row plus whatever metadata you want to filter on. For a student project the right answer is almost always the Postgres from M04 with a vector extension, because it is already there, it is free, and your chunks can sit next to your other tables.
-
-Two things matter beyond the vectors themselves.
-
-**Metadata lives alongside.** Document id, title, page, effective date, language, access level — all of chapter nine's output. Without it you cannot cite, filter or detect staleness.
-
-**Search is approximate.** Comparing a query against every vector is exact and slow, so stores build an index that finds *probably* the nearest. That is the right trade at scale and it means recall is never quite one hundred percent. At a few thousand chunks you can often afford exact search, and you should, because one fewer source of uncertainty while you are learning is worth a lot.
-
-### Retrieve: filter, then rank
-
-**Pre-filter on metadata, then search.** Access level, language, effective date. A pre-filter searches only the rows this user may see. A post-filter searches everything and throws away what the user may not see — which means a student's five best chunks might all be staff documents, discarded, leaving nothing. Worse, some stores make it easy to forget the filter entirely, which is chapter eight's incident.
-
-**Choose top-k by measurement.** Five is a reasonable start. The needle test from chapter five tells you where your own threshold sits.
-
-**Keep a similarity floor.** If the best match is far away, the honest result is nothing retrieved, which lets the model abstain instead of blending five unrelated chunks.
+The test for a good chunk is one question: **could a human answer from this chunk alone?** Split on structure first — headings, clauses, FAQ pairs — because the author already marked where one idea ends. Cap the size, overlap ten to fifteen percent so an answer is not severed at a boundary, never split a table. Then prefix every chunk with its context: "Fee Circular 2026-04, effective 1 July 2026 · Section 3 — ₹42,000 per annum for second-year students." A chunk needing its neighbours is always retrieved without them.
 
 ### Where it lives
 
-Retrieval is a read tool in chapter four's sense — `search_docs(query)` returning chunks with their ids — and it fills the data block of chapter five's context. The store is M04's database. The embedding job is M04's queue-and-worker pattern, run after chapter nine's ingestion.
+Retrieval is a read tool in chapter four's sense — `search_docs(query)` returning chunks with ids — and it fills the data block of chapter five's context. The store is M04's database: for a student project, the Postgres you already have plus a vector extension, chapter nine's metadata in columns beside each vector.
 
-Chapter eleven fixes what pure vector search cannot do, chiefly exact matches on codes and names. Chapter twelve measures all of it. And chapter eight remains the gate: if you got here without needing retrieval, the prompt or a tool was the better answer.
+**Pre-filter on metadata, then search** — access level, language, effective date — because a post-filter searches everything and discards what the user may not see, leaving a student with nothing. And **keep a similarity floor**, so a distant best match returns nothing.
 
 ### Words to own
 
@@ -132,31 +84,23 @@ Chapter eleven fixes what pure vector search cannot do, chiefly exact matches on
 
 ### Tradeoffs and gotchas
 
-**Big chunks dilute, small chunks decapitate.** A long chunk buries the answer among distractors and costs tokens on every call. A short one loses its subject. The right size is the smallest unit that still stands alone, and that is a property of your documents.
+**Big chunks dilute, small chunks decapitate.** A long chunk buries the answer among distractors; a short one loses its subject. The right size is the smallest unit that still stands alone.
 
-**Embeddings cannot do exact match.** "SPDT", an order id, a part number, a person's surname — vector search is about meaning and these have none. It will return things that are *about* the same area and miss the exact token. This is the single biggest weakness of pure vector search and it is precisely what chapter eleven fixes.
+**Embeddings cannot do exact match.** "SPDT", an order id, a part number, a surname — vector search is about meaning and these have none. It returns things *about* the right area and misses the exact token. That is chapter eleven's subject.
 
-**Retrieval is not free latency.** Embed the query, search, then generate. That is two network round trips before the first token, and on 4G it is felt. Cache repeated queries and keep k small.
+**Changing the embedding model means re-embedding everything**, a data migration in M04's sense. Embedding is cheap next to generation, but thousands of chunks meet a free-tier daily limit, so batch, store, and consider a small local model that keeps your documents out of third-party logs.
 
-**A near-empty chunk is a magnet.** Chapter nine's blank extractions embed to an unhelpfully central position and match many questions. If you skipped the scoring stage, you will see it here.
-
-**Re-chunking is cheap; re-ingesting is not.** Store extracted text separately from chunks so you can change your chunking strategy in an afternoon without touching OCR. Teams that chunk straight from PDFs pay for that choice repeatedly.
-
-**Similarity scores are not comparable across models or corpora.** 0.78 means nothing on its own. Only the ranking within one query and one model is meaningful, so never hard-code a threshold you have not calibrated on your own data.
+**Similarity scores are not comparable across models or corpora.** 0.78 means nothing alone; only the ranking within one query is meaningful. And a near-empty chunk is a magnet, because chapter nine's blank extractions embed centrally and match many questions.
 
 ### Verify it
 
-**Look at the chunks before you look at the answer.** This is the habit that separates people who can debug RAG from people who cannot. Print the five retrieved chunks for every test question. If the answer is not in any of them, the generation step is innocent and no prompt change will help.
+- **Look at the chunks before the answer.** Print the five retrieved chunks per test question; if the answer is in none, generation is innocent and no prompt change helps.
+- **Read ten random chunks in isolation**, source hidden. Can you tell what each is about, who it applies to, and when? Anything that fails needs a contextual prefix.
+- **Verify both sides use the same embedding model** in code, not from memory. Then embed one chunk's exact text as a query and confirm it comes back first.
+- **Query as two different users and compare the chunk lists.** Identical lists mean your permission filter is not running.
+- **Search for something exact — a code, an id, a rare name — and watch it fail.** Meeting that in a test rather than a demo is what makes chapter eleven land.
 
-**Read ten chunks in isolation, chosen at random.** Cover up the document they came from. Can you tell what each is about, who it applies to and when? Anything that fails this test needs a contextual prefix.
-
-**Verify both sides use the same embedding model.** Check it in the code, not from memory. Then sanity-check it: embed one chunk's exact text as a query and confirm that chunk comes back first. If it does not, something is badly wrong and nothing downstream is worth testing.
-
-**Query as two different users and compare the chunk lists.** A student and a staff member. If the lists are identical, your permission filter is not running.
-
-**Search for something exact — a code, an id, a rare name.** Watch it fail. Experiencing this failure now is what makes chapter eleven make sense, and it is better to meet it in a test than in a demo.
-
-Red flags: retrieved chunks that do not contain the answer while the model answers anyway; chunks that are unintelligible out of context; a table split across chunks; different embedding models on the two sides; no metadata on chunks; a permission filter applied after search; top-k picked because it sounded safe; a hard-coded similarity threshold copied from a blog post; and chunking done directly from PDFs with no stored intermediate text.
+Red flags: retrieved chunks that lack the answer while the model answers anyway; chunks unintelligible out of context; a table split across chunks; different embedding models on the two sides; no metadata on chunks; a permission filter applied after search; top-k picked because it sounded safe; a similarity threshold copied from a blog post; chunking straight from PDFs.
 
 ## Walkthrough
 1. Start from chapter nine's output: clean extracted text with metadata in a table. Confirm you are not chunking from raw PDFs.

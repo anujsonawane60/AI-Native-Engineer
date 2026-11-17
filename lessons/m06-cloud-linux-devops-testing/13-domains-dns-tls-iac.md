@@ -4,7 +4,7 @@ module: m06-cloud-linux-devops-testing
 slug: domains-dns-tls-iac
 title: "Domains, DNS Records, TLS Certificates and Infrastructure as Code"
 order: 13
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team buys `canteenorder.in` for their demo. They point it at their app, it works on a laptop, and they announce it. Four teammates can reach it. One cannot, and keeps seeing the old placeholder page for six hours, because their phone's network is holding the previous answer in a cache nobody controls.
+A team buys `canteenorder.in`, points it at their app, announces it. One teammate sees the old placeholder page for six hours: their phone's network is holding the previous answer in a cache nobody controls.
 
-Then the browser starts saying "Not secure" in red. Their app is on HTTPS; their custom domain is not, because the certificate was issued for the platform's subdomain and not the domain they just added. A student sees a red warning before they see a menu, and does not enter their phone number.
-
-Three weeks later a teammate cleans up cloud resources and deletes the one nobody could identify. It was the bucket serving the dish photos, created by clicking around a console in week two. They rebuild it from memory, slightly differently, and every image URL changes.
+Then the browser says "Not secure" in red: the certificate was issued for the platform's subdomain, not the new domain. Three weeks later a teammate deletes the one cloud resource nobody could identify — the bucket serving dish photos, created by clicking a console in week two.
 
 ### The idea
 
 **A domain name is a lookup table the whole internet caches, a certificate is a time-limited proof that you control that name, and infrastructure as code is the same idea applied to everything else you created by clicking.**
 
-All three are really one idea: the important configuration of your product should be written down somewhere, with a known owner and a known expiry, rather than living in a console's memory and in yours.
+All three are one idea: your product's important configuration belongs written down, with an owner and an expiry, not in a console's memory and yours.
+
+A certificate encrypts traffic and proves its holder controls the name. The padlock means private and verified, not safe or honest: a phishing site has a valid padlock.
 
 ### The analogy
 
-The canteen moves from Block A to Block C.
+The canteen moves from Block A to Block C. The new location is a fact, but the campus noticeboard, the hostel map and last year's WhatsApp group all still say Block A. The board updates instantly; the copies people hold expire on their own clock, and anyone with an old one finds nothing. That is DNS; the delay is propagation. The health licence on the wall is the certificate: verified, dated, expiring. The recipe binder is infrastructure as code.
 
-The new location is a fact. But the campus noticeboard still says Block A, the printed hostel map says Block A, and last year's WhatsApp group says Block A. Updating the official board is instant; the copies people already hold expire on their own schedule, and anyone holding an old copy walks to Block A and finds nothing. That is DNS, and the delay is called propagation.
-
-The health licence pinned to the wall is the certificate. It proves an inspector verified this stall, it has a date, and it expires. A student does not have to trust the stall; they trust the body that issued it.
-
-The recipe binder is infrastructure as code: the layout, supplier list and counter arrangement written down, so the next manager does not reconstruct it from rumour.
-
-**Where the analogy breaks:** a noticeboard has one authority and one copy. DNS is cached by your phone, your browser, your network provider and intermediate resolvers, each with its own clock, and *none* of them answers to you. You can shorten the clock in advance; you cannot clear someone else's cache. That is the entire reason domain changes need planning instead of confidence.
+**Where the analogy breaks:** a noticeboard has one copy. DNS is cached by your phone, your browser, your provider and intermediate resolvers, each with its own clock, and *none* answers to you. You can shorten the clock in advance; you cannot clear someone else's cache.
 
 ### Picture it
 
@@ -67,48 +61,20 @@ The recipe binder is infrastructure as code: the layout, supplier list and count
                                          + TLS handshake
 ```
 
-A name is resolved by asking a chain of caches before reaching the nameserver that actually holds your records, and every cache in that chain keeps its answer for the record's TTL.
-
-### The records you will actually touch
-
-| Record | What it does | Typical use |
-|---|---|---|
-| A | Points a name at an IPv4 address | `canteenorder.in` → an IP |
-| AAAA | Same, for IPv6 | Alongside A |
-| CNAME | Points a name at another name | `www` → your platform's host |
-| TXT | Holds arbitrary text | Proving you own the domain |
-| MX | Where email for this domain goes | Your email provider |
-| NS | Which nameservers are authoritative | Set at your registrar |
-
-**TTL — time to live — is the number that decides your pain.** It is the seconds each cache may keep an answer. A TTL of 3,600 means someone may see the old answer for an hour after you change it. So lower the TTL to a few minutes *a day before* a planned change, make the change, then raise it again. Lowering it afterwards does nothing, because the caches already took the long value.
-
-**Use a CNAME to your platform rather than an A record to its IP.** Platform IP addresses change without notice; the hostname does not. An A record pointing at a reassigned IP is a silent outage that will baffle you.
-
-**Your registrar and your DNS host can be different things.** The registrar is who you bought the name from; the DNS host is whose nameservers answer for it. Records added at the registrar do nothing if the NS records point elsewhere — the commonest reason a correct-looking record has no effect.
-
-### TLS, in the amount you need
-
-A TLS certificate does exactly two things: it encrypts traffic between your user and your server, and it proves that whoever holds the certificate controls that domain name. The padlock means the connection is private and the name is verified.
-
-It does not mean the site is safe, honest, or well built. A phishing site has a valid padlock. This matters for the security judgement in M07 and for how you explain the padlock to a non-technical user.
-
-Three practical facts. Certificates are **free and automatic** on every platform in this program, usually via Let's Encrypt — anyone telling you to pay for a basic certificate is selling something. They **expire**, typically every 90 days, with automatic renewal; an expired certificate on a student project almost always means the automation broke quietly. And they are issued **per name**: adding a custom domain requires a new certificate, which is why the red warning appeared above and why you re-check the padlock after every domain change.
-
-### Infrastructure as code, honestly
-
-Infrastructure as code means your cloud resources are described in text files, kept in git, and applied by a tool — so the setup is reviewable, repeatable, and recoverable. Terraform is the common one. The benefits are real: no more unidentifiable resources, a diff before a change, and the ability to rebuild from nothing.
-
-The honest position for this course is that **you do not need the tool yet, and you absolutely need the discipline now.**
-
-For a team of three with four resources, Terraform costs more than it returns and introduces a new way to destroy things — a careless apply can delete a database. What you need is the `STACK.md` file from chapter 6: every resource, who created it, what it is for, which region, and the non-default settings. A text file in your repository delivers most of the value for a tenth of the work.
-
-M13 does infrastructure as code properly, with state files, plans and modules. Two things count as a real, free version of the idea today: the deploy configuration file many platforms read from your repository, and your list of environment variable names with the values removed, committed.
+A name is resolved by asking a chain of caches before reaching the nameserver that holds your records, and every cache in that chain keeps its answer for the record's TTL.
 
 ### Where it lives
 
-This chapter is the last mile. Chapter 6's platform gives you a subdomain; this is how you put your own name on it. Chapter 7's region decision is why a CDN, usually a DNS change, matters for your users in Nashik. Chapter 12's pipeline is where a deploy configuration file belongs. M02 covered DNS from the browser's side; this is the owner's side. M07's uptime monitoring watches both the name and the certificate.
+| Record | What it does | Typical use |
+|---|---|---|
+| A | Name → IPv4 address | `canteenorder.in` → an IP |
+| AAAA | Same, for IPv6 | Alongside A |
+| CNAME | Name → another name | `www` → platform host |
+| TXT | Arbitrary text | Proving you own the domain |
+| MX | Where email for this domain goes | Your email provider |
+| NS | Which nameservers are authoritative | Set at the registrar |
 
-M11's going-live checkpoint asks for a working custom domain with a valid certificate, which makes this the chapter you return to the week before.
+Infrastructure as code means cloud resources described in text files, in git, applied by a tool. You do not need the tool yet; you need the discipline now, and chapter 6's `STACK.md` — every resource, its owner, purpose, region and non-default settings — gives most of the value for a tenth of the effort.
 
 ### Words to own
 
@@ -129,28 +95,22 @@ M11's going-live checkpoint asks for a working custom domain with a valid certif
 
 ### Tradeoffs and gotchas
 
-**Lower the TTL before the change, not after.** The most useful sentence in this chapter. Caches took the old value with the old clock; nothing you do now shortens their copy. A day of planning turns a six-hour mystery into a five-minute switch.
-
-**Never announce a domain change until you have checked it from a network you do not control.** Your laptop may have a fresh answer while your users' network provider does not. Check from mobile data, and ask a teammate on a different connection.
-
-**The apex domain has a technical limitation worth knowing by name.** A plain CNAME is not allowed on the root of a domain, which is why platforms offer special record types or ask you to use `www` with a redirect. If an instruction does not work on the apex, this is usually why rather than anything you did wrong.
-
-**An expired certificate is an automation failure, not a certificate problem.** Renewal is automatic. If yours expired, something in the chain stopped — often a DNS record that changed, or a domain validation that can no longer complete.
-
-**Email records are easy to destroy by accident.** Replacing your DNS records wholesale can remove the MX records that deliver your email. Copy the whole record set before you change anything.
-
-**Infrastructure as code has its own foot-gun.** A tool that can create forty resources from a file can delete forty resources from a file. This is a genuine reason to wait until M13 and to learn the plan-before-apply habit properly rather than in a hurry.
+- **Lower the TTL before the change, not after.** TTL is the seconds a cache may keep an answer: 3,600 means an hour of old answers. Lower it to a few minutes a day before a planned change, then raise it after. Lowering it afterwards does nothing, because caches already took the long value.
+- **Use a CNAME to your platform's hostname, not an A record to its IP,** because platform IPs change without notice and an A record on a reassigned IP is a silent outage. A plain CNAME is also banned on the apex, hence platforms' special records.
+- **Never announce a domain change until you have checked it from a network you do not control:** mobile data, or a teammate elsewhere.
+- **Certificates are free, automatic and per name;** paying for a basic one buys nothing. They renew every 90 days, so an expired certificate is an automation failure; a new domain needs a new one, so re-check the padlock after a domain change.
+- **Email records are easy to destroy by accident,** so copy the record set first; and a tool that creates forty resources can delete forty.
 
 ### Verify it
 
-DNS and certificates are the area where AI's confident guesses are hardest to distinguish from facts, because everything looks correct until a cache disagrees. Four checks.
+DNS and certificates are where AI's guesses are hardest to tell from facts.
 
-1. **Make it tell you what to run, and run it yourself.** DNS state is observable. A lookup command shows the current record and its remaining TTL, and `curl -i` from chapter 4 shows what the name actually serves. An answer about your DNS that was not preceded by a lookup is a guess.
-2. **Check the record at the right place.** Confirm which nameservers are authoritative for your domain before concluding a record is wrong. Records added in the wrong console are the most common cause of "I did exactly what it said and nothing happened".
-3. **Verify the certificate covers the exact name you are using**, including with and without `www`. Open both in a browser and look at the padlock. A certificate for the platform subdomain does not cover your custom domain.
-4. **Before any destructive infrastructure step, make it show you what will be deleted.** For a console action, ask what else the resource is attached to. For a tool, the plan output. "This will remove these three things" is a sentence you must see before agreeing.
+1. **Make it tell you what to run, and run it yourself.** A lookup shows the record and its TTL; `curl -i` shows what the name serves. An answer not preceded by a lookup is a guess.
+2. **Check the record at the right place.** Your registrar and your DNS host can be different, and a record at the registrar does nothing if the NS records point elsewhere.
+3. **Verify the certificate covers the exact name you use,** with and without `www`: a platform-subdomain certificate does not cover a custom domain.
+4. **Before any destructive infrastructure step, make it show what will be deleted** — "this will remove these three things" is a sentence you must see.
 
-Red flags: an instruction to point an A record at a platform's IP address rather than a CNAME to its hostname; advice to "wait for propagation" with no mention of TTL; a suggestion to buy a certificate; a DNS change that replaces your whole record set without preserving MX records; and any infrastructure command run without showing the plan first.
+Red flags: an A record at a platform's IP instead of a CNAME; "wait for propagation" with no mention of TTL; paying for a certificate; a DNS change that wipes MX records; an infrastructure command without the plan.
 
 ## Walkthrough
 1. Find who your registrar is and where your DNS records are actually hosted. They may be the same or different. Write both down — this is the fact that saves you an hour later.

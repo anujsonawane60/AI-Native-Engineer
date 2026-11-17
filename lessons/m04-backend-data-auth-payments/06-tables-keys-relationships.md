@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: tables-keys-relationships
 title: "Tables, Rows, Keys and Relationships"
 order: 6
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,35 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-The canteen app's first database has one table called `orders`. It has a column for the student's name, their phone number, the dish name, the dish price, and the quantity.
+The canteen app's first database has one table, `orders`, with columns for the student's name and phone, the dish name and price, and the quantity. For two weeks it is wonderful.
 
-For two weeks it is wonderful. Then a student changes their phone number. It updates in their profile and stays old in all forty of their past orders, so the canteen calls a dead number about a missing order. Then the price of a samosa goes from ₹12 to ₹15 and somebody runs an update that rewrites the price on every historical order, destroying the record of what was actually charged in September. Then a student's name is entered three different ways — "Priya S", "priya s", "Priya Sharma" — and the "top customers" screen shows one person as three.
-
-Nobody wrote a bug. The structure allowed all of it. A table where the same fact is written in forty places will eventually have forty different versions of that fact, and no amount of careful coding prevents it.
+Then a student changes their phone number and it stays stale in all forty past orders, so the canteen calls a dead number. Then a samosa goes from ₹12 to ₹15, someone updates every historical order, and the record of what September charged is gone. Nobody wrote a bug — the structure allowed it.
 
 ### The idea
 
 **A good schema makes wrong data impossible to store, rather than relying on code to remember not to store it.**
 
-A **table** holds one kind of thing: students, menu items, orders. A **row** is one of that thing. A **column** is one fact about it, with a type and rules.
+A **table** holds one kind of thing, a **row** is one of them, a **column** is one fact about it. A **primary key** identifies a row forever; a **foreign key** points at another table's primary key, and the database *enforces* that the target exists.
 
-A **primary key** is the column that uniquely identifies a row forever. A **foreign key** is a column in one table that points at another table's primary key, and the database *enforces* that the target exists — you cannot have an order belonging to student 7 if student 7 does not exist.
-
-That enforcement is the whole point. Rules written in the schema are kept by the database, for every writer, forever. Rules written in your application code are kept only by the code paths that remember them.
+That enforcement is the point. Rules in the schema are kept for every writer, forever; rules in application code are kept only by the paths that remember them.
 
 ### The analogy
 
-The canteen keeps three registers, not one.
+The canteen keeps three registers, not one: students, dishes and orders. Students lists roll number, name and phone, the roll number being the primary key that never changes. Orders holds the trick: a line writes the roll number and the dish code, plus the price *charged at that moment*, because that is a fact about the order rather than the dish. So changing a phone number changes one line, and raising the samosa price leaves yesterday's orders at ₹12.
 
-One register lists students: roll number, name, phone. Each student appears once. The roll number is the primary key — it never changes and no two students share it.
-
-One register lists dishes: code, name, today's price. Each dish appears once.
-
-One register lists orders, and here is the trick: an order line does not write out the student's name or the dish's price. It writes the roll number and the dish code — plus, crucially, the price *charged at that moment*, because that is a fact about the order and not about the dish.
-
-Change a phone number and you change one line in one register. Raise the price of a samosa and yesterday's orders still say ₹12, because they recorded what was actually paid.
-
-**Where the analogy breaks:** a paper register tolerates a roll number that does not exist — the clerk writes it and nobody notices. A database with a foreign key refuses the write outright. That refusal feels obstructive and is the single most valuable thing the schema does for you.
+**Where the analogy breaks:** a paper register tolerates a roll number that does not exist; a foreign key refuses the write outright. That refusal feels obstructive and is the most valuable thing the schema does for you.
 
 ### Picture it
 
@@ -77,25 +65,23 @@ Change a phone number and you change one line in one register. Raise the price o
 
 Four tables: one row per student, one per dish, one per order, and one per line within an order — with foreign keys pointing at the owners and the price copied into the line because it is a fact about that sale.
 
+Every relationship there is one of three kinds.
+
+| Kind | Example | Where the key goes |
+|---|---|---|
+| One-to-one | a student has one profile | either side; usually fold into one table |
+| One-to-many | one student has many orders | on the "many" side: `orders.student_id` |
+| Many-to-many | a dish sits in many categories | a third **join table**, one row per pairing |
+
+A join table exists because the relationship has no natural home, and it often earns columns of its own, like `order_items.qty`.
+
 ### Where it lives
 
-This is the "data" box from M00's four boxes. Your server reaches into it on every request, and nothing else should — in chapter 14 you will see why letting a browser talk to a database directly is a problem.
+This is M00's "data" box, and only your server should reach into it — chapter 14 shows why letting a browser talk to a database is a problem.
 
-M01 made a point you should now take literally: the schema is a product decision, not just Tech's call. "Can a student order for a friend?" is answered in the `orders` table by whether there is a separate `ordered_for` column. "Can a dish have two prices on two days?" is answered by whether price lives on `menu_items` or in a separate price table. These are product questions wearing database clothes, and all three founders should be in the room.
+M01's point now becomes literal: the schema is a product decision, not Tech's call. "Can a student order for a friend?" is answered by whether `orders` carries an `ordered_for` column. That is a product question wearing database clothes, so all three founders should be in the room.
 
-Chapter 7 is where you design your own. Chapter 9 is how you read a query across these joins. Chapter 11 is how you change the schema without losing data.
-
-### One-to-many, many-to-many, and where join tables come from
-
-Almost every relationship is one of three kinds.
-
-**One-to-one.** A student has one profile. Rare, and usually better folded into one table unless you have a good reason.
-
-**One-to-many.** One student has many orders. This is the common case, and the rule is simple: **the foreign key goes on the "many" side.** `orders.student_id` points at `students.id`. There is no list of orders stored on the student — you find them by asking the orders table.
-
-**Many-to-many.** A dish can be in many categories, and a category contains many dishes. Neither side can hold the key, so you create a third table — a **join table** — with one row per pairing: `menu_item_categories(menu_item_id, category_id)`. Students are often confused about where this table comes from. It comes from the fact that the relationship itself has no natural home, and frequently it earns extra columns of its own: who added it, when, in what display order.
-
-`order_items` in the diagram is a many-to-many join between orders and menu items, and look at what it carries: `qty` and `unit_price_paise`. Those are facts about the pairing, not about either side. Recognising when a relationship deserves its own columns is most of what schema design is.
+Next: chapter 7 designs your own · chapter 9 reads across these joins · chapter 11 changes them safely.
 
 ### Words to own
 
@@ -114,29 +100,23 @@ Almost every relationship is one of three kinds.
 
 ### Tradeoffs and gotchas
 
-**Store each fact once — except when the copy is a different fact.** The phone number on an order is a duplicate and a bug. The price on an order line looks like a duplicate and is not: `menu_items.price_paise` means "what it costs today", `order_items.unit_price_paise` means "what this student was actually charged". If you cannot say which of those two you mean, you will eventually rewrite history. Learning to tell these apart is the main skill of this chapter.
+**Store each fact once — unless the copy is a different fact.** A phone number on an order is a duplicate and a bug. A price on an order line is not: `menu_items.price_paise` is "what it costs today", `order_items.unit_price_paise` is "what this student was charged". Confuse them and you rewrite history.
 
-**Use a surrogate primary key, not something meaningful.** A roll number feels like a natural key until the college changes its format, or a student has two, or someone was entered wrong. An `id` that means nothing can never become wrong. Keep the roll number as a column with a unique constraint if you need it.
+**Use a surrogate primary key, not something meaningful.** A roll number feels natural until the college changes its format. An `id` that means nothing can never become wrong.
 
-**Never store money as a float.** `price_paise` as an integer. `240.00` as a decimal is survivable; as a float it is a slow leak that nobody notices until a reconciliation in chapter 17 is off by a few paise and you cannot explain why.
-
-**Nullable columns are decisions, not defaults.** AI output tends to make everything nullable because it never fails to insert. Then you have orders with no student, totals with no value, and code full of checks for states that should have been impossible. Ask for each column: can this genuinely be absent? If not, say so in the schema.
-
-**A soft delete is usually right and must be designed.** If a dish is deleted, what happens to the three hundred historical order lines pointing at it? Either you keep the row and mark it `is_active = false`, or your history breaks. Decide before you need it, not during the demo.
-
-**Timestamps in UTC, always.** `created_at` and `updated_at` on nearly every table, stored in UTC, displayed in IST. Mixed time zones in a database are an afternoon you will never get back.
+**Nullable columns are decisions, not defaults.** AI makes everything nullable because that never fails to insert; then you have orders with no student and code checking for impossible states. Delete behaviour is the same kind of decision: if a dish is removed, either you mark it `is_active = false` or the order lines pointing at it break your history. Money is always integer paise, timestamps always UTC.
 
 ### Verify it
 
-When AI hands you a schema, five checks.
+Five checks on any schema AI hands you.
 
-1. **Try to insert a bad row and see if the database stops you.** An order for a student id that does not exist. A quantity of `-5`. Two accounts with the same email. A good schema refuses all three at the database level. If your application code is the only thing stopping them, the next code path will not.
-2. **Hunt for duplicated facts.** Read the column list of every table and look for the same real-world fact in two places. For each one, ask: is this a copy, or a different fact at a different moment? Copies without a reason get removed.
-3. **Check every money column.** Integer, named `_paise`, no floats anywhere.
-4. **Check every nullable column.** For each one, ask the AI to justify why that value may be absent. Most cannot be justified, and each unjustified one is a class of bug in your application code.
-5. **Ask what happens on delete.** Pick your most referenced table and ask: if I delete this row, what happens to everything pointing at it? There are three honest answers — refuse, cascade, or mark inactive — and the schema must have chosen one deliberately.
+1. **Insert a bad row and see if the database stops you.** An order for a student id that does not exist, a quantity of `-5`, two accounts with one email. A good schema refuses all three.
+2. **Hunt for duplicated facts.** For each, ask: a copy, or a different fact at a different moment? Copies without a reason get removed.
+3. **Check money columns.** Integer, named `_paise`, no floats.
+4. **Check every nullable column.** Make the AI justify each one; every unjustified one is a class of bug.
+5. **Ask what happens on delete.** For your most referenced table: refuse, cascade, or mark inactive — deliberately.
 
-Red flags: a single wide table with twenty columns covering three different kinds of thing; a column holding a comma-separated list of ids, which is a join table someone refused to create; `price` on an order line that is a foreign-key lookup rather than a stored amount; no `created_at` anywhere; a user's email as the primary key; any column named `data` or `info` with free-form content in it.
+Red flags: one wide table covering three kinds of thing · a comma-separated list of ids, which is a join table someone refused to create · `price` on an order line that is a lookup rather than a stored amount · no `created_at` anywhere · an email as primary key · a column named `data` or `info`.
 
 ## Walkthrough
 1. Open your project's database and list every table with its columns. If you are using a hosted database, its table editor shows this. Write the list on paper.

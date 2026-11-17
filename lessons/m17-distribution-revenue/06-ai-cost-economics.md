@@ -4,7 +4,7 @@ module: m17-distribution-revenue
 slug: ai-cost-economics
 title: "AI Cost Economics: When Inference Eats Your Margin"
 order: 6
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: high
@@ -22,7 +22,7 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team sells an AI study assistant at ₹99 a month. Each use is an agentic run — it reads the student's notes, retrieves the syllabus, thinks, drafts, checks itself — and costs about ₹4 once every step is counted with M09's method. They sanity-check the economics against their own usage: twelve runs a month.
+A team sells an AI study assistant at ₹99 a month. Each use is an agentic run — it reads the student's notes, retrieves the syllabus, thinks, drafts, checks itself — and costs about ₹4 once every step is counted with M09's method. They sanity-check the economics against their own twelve runs a month.
 
 ```
   WHAT THE TEAM BELIEVED
@@ -38,7 +38,7 @@ A team sells an AI study assistant at ₹99 a month. Each use is an agentic run 
 
 A 51% margin on a ₹99 plan, from an estimated average of twelve requests per user per month.
 
-Fifty-one per cent is a real business. They launch, reach a hundred subscribers, and the first bill arrives.
+Fifty-one per cent is a real business. They launch, reach a hundred subscribers, and the bill arrives.
 
 ```
   WHAT 100 SUBSCRIBERS ACTUALLY DID, IN ONE MONTH
@@ -56,7 +56,7 @@ Fifty-one per cent is a real business. They launch, reach a hundred subscribers,
 
 The same hundred subscribers in three usage groups: ₹11,120 of cost against ₹9,900 of revenue.
 
-Two things went wrong and only one is obvious. The estimated average of twelve was wrong; the real average was 27.8. But the deeper error is that **an average was used at all.**
+Two things went wrong and only one is obvious. The estimated average of twelve was wrong — the real average was 27.8. The deeper error is that **an average was used at all.**
 
 ### The idea
 
@@ -72,19 +72,15 @@ Two things went wrong and only one is obvious. The estimated average of twelve w
   gross margin           -12%       67%      -1516%
 ```
 
-Ninety-five of the hundred subscribers were a 67%-margin business; five of them destroyed it. Those five did nothing wrong — they are your best users, the ones who tell their friends, the ones M16 would call your most activated cohort. The product worked exactly as designed for them, and that is what cost ₹8,000.
+Ninety-five of the hundred subscribers were a 67%-margin business; five of them destroyed it. Those five did nothing wrong — they are your best users, the ones M16 would call your most activated cohort. The product worked exactly as designed for them, and that is what cost ₹8,000.
 
-And the warning that governs every number here. **Every rupee figure in this chapter is a placeholder for teaching the arithmetic. Every price an AI quotes you is probably stale. The provider's own pricing page, read today, with the date beside it, is the only authority for anything that goes into your budget.** This is M00's knowledge-cutoff failure mode landing where it costs money.
+**Every rupee figure in this chapter is a placeholder for teaching the arithmetic. Every price an AI quotes you is probably stale. The provider's own pricing page, read today, with the date beside it, is the only authority for anything that goes into your budget.** This is M00's knowledge-cutoff failure landing where it costs money.
 
 ### The analogy
 
-The canteen offers an unlimited thali at ₹60: rice, dal, sabzi, as many refills as you like.
+The canteen offers an unlimited thali at ₹60. Most students eat one and a half plates, costing the owner about ₹40. Then the wrestling team starts coming — six of them, five plates each, every day. One wrestler costs him ₹130 against ₹60 of revenue, and the forty students queueing behind are paying for it. He has three moves: cap the refills, charge the wrestlers more, or make the plate cheaper. He does all three.
 
-Most students eat one and a half plates, which costs the owner about ₹40, and he is pleased. Then the wrestling team starts coming. Six of them, five plates each, every day. One wrestler costs him ₹130 against ₹60 of revenue, and the forty students in the queue behind are paying for it.
-
-He has three moves: cap the refills, charge the wrestlers more, or make the plate cheaper. He does all three.
-
-**Where the analogy breaks:** the owner can *see* the wrestler at the counter on the first day and improvise. Your heavy user is invisible until the bill arrives — and invisible in your product analytics too, because M16's dashboards count events, not rupees. The query that ranks users by cost does not exist until you write it, and it is the prerequisite for every decision in this chapter.
+**Where the analogy breaks:** the owner can *see* the wrestler at the counter on day one. Your heavy user is invisible until the bill arrives — and invisible in your analytics too, because M16's dashboards count events, not rupees. The query that ranks users by cost does not exist until you write it, and it is the prerequisite for every decision here.
 
 ### Picture it
 
@@ -102,15 +98,9 @@ He has three moves: cap the refills, charge the wrestlers more, or make the plat
   heavy,   5 users  ████████████████████████       72%
 ```
 
-A tiny group makes most of the requests: five per cent of subscribers consumed 72% of them. This is the normal shape of usage in almost every product, so plan for it rather than discovering it.
+A tiny group makes most of the requests: five per cent of subscribers consumed 72% of them. This is the normal shape of usage in almost every product, so plan for it.
 
-### The two levers
-
-There are only two, and for a product like this you need both.
-
-**Lever one: cost per request.** M09 chapter 14's territory, in order of return: trim the system prompt and the history, cap max output tokens, cache repeated and near-repeated work (M05's caching, M10's prompt caching), route easy requests to a smaller model, and only then redesign. M14's work on smaller and distilled models is what makes routing real rather than theoretical.
-
-**Lever two: requests per user.** An allowance in the plan, a visible meter, and a hard cap — chapter 3's hybrid of base fee plus allowance plus overage, which is why it exists.
+There are only two levers, and you need both. **Cost per request** is M09 chapter 14's territory, in order of return: trim the system prompt and history, cap output tokens, cache repeated work, route easy requests to a smaller model, then redesign. **Requests per user** is an allowance, a visible meter and a hard cap — chapter 3's base-plus-allowance hybrid, which is why it exists.
 
 ```
   TWO LEVERS, APPLIED TO THE SAME 100 USERS
@@ -124,29 +114,11 @@ There are only two, and for a product like this you need both.
 
 Either lever alone makes the product solvent; both together make it comfortable.
 
-But read the second row carefully. The cap fixes your margin by taking the product away from your five best users at request sixty-one, and you cannot solve that by selling them a bigger plan, because at ₹4 a request their 400 runs cost ₹1,600 and no Indian student pays ₹1,600 a month. **The cap makes you solvent; only the cost reduction makes a higher plan sellable.** At ₹0.40 a request, a ₹499 plan with a 400-request allowance costs you ₹160 and earns ₹339 — a 68% margin, and your best users stay.
-
-That is the whole lesson: pricing cannot rescue a cost per request that is too high for what your market will pay, because the price ceiling is set by your market and not by you.
-
-### Pricing when your variable cost is real
-
-Classic software pricing assumes serving one more user costs nothing. Yours does not, so one rule changes.
-
-**If a plan has no cap, price it from the heavy user, not the average one.** Find the user at the 95th percentile of your cost distribution and treat their cost as your floor. Pricing an uncapped plan from the mean guarantees the tail is loss-making, and the tail is where your most enthusiastic users live.
-
-**If you want to price from the mean, you must cap.** The allowance converts an unbounded promise into a bounded cost, and it is what lets you quote a number a student will pay. These are the same rule from both ends, and one of them must be true of every plan you publish.
-
-A cap only works if it does not feel like a punishment. Four things make it bearable: an allowance covering roughly 95% of users; a meter in the product so nobody is surprised; a warning at 80% with a clear next step; and degradation rather than a stop at the cap — fall back to the smaller model instead of a locked door. A hard stop at request sixty with no warning turns your best user into the screenshot in chapter 9.
-
-### The free tier is an unbounded liability
-
-One free user behaving like your heavy user costs ₹1,600 a month at ₹4 a request. Ten of them cost more than your entire paying base brings in, and they can arrive in an afternoon if a post does well.
-
-So: no free tier without a cap, ever, for anything with a per-request cost. A free tier is a marketing budget, so give it a number — "at most ₹3,000 a month on free usage" — and enforce it with per-user limits and an account spend cap. M00's billing alerts are the backstop, and the backstop is not the plan.
+But read the second row carefully. The cap fixes your margin by taking the product away from your five best users at request sixty-one, and you cannot sell them a bigger plan instead: at ₹4 a request their 400 runs cost ₹1,600, and no Indian student pays ₹1,600 a month. **The cap makes you solvent; only the cost reduction makes a higher plan sellable.** At ₹0.40 a request, a ₹499 plan with a 400-request allowance costs you ₹160 and earns ₹339 — a 68% margin, and your best users stay. Pricing cannot rescue a cost per request that is too high for what your market will pay, because the ceiling is set by your market, not by you.
 
 ### Where it lives
 
-M09 chapter 14 gives you cost per request and the six multipliers; this chapter turns that number into a commercial decision. M05's caching and M14's smaller models are the mechanics of lever one, and M10's prompt caching is often the cheapest win. Chapter 2 set the price ceiling, chapter 3 chose the structure carrying the allowance, chapter 4 enforces the overage, chapter 5 consumes this as its inference line, and chapter 11 keeps it on the scorecard because it moves. M16 tells you who your heavy users are; this chapter tells you what they cost.
+M09 chapter 14 gives you cost per request; this chapter turns it into a commercial decision. M05's caching, M10's prompt caching and M14's smaller models are the mechanics of lever one. Chapter 2 set the price ceiling, chapter 3 chose the structure carrying the allowance, chapter 4 enforces the overage, chapter 5 consumes this as its inference line, and chapter 11 keeps it on the scorecard. M16 tells you who your heavy users are; this chapter tells you what they cost.
 
 ### Words to own
 
@@ -166,31 +138,30 @@ M09 chapter 14 gives you cost per request and the six multipliers; this chapter 
 
 ### Tradeoffs and gotchas
 
-**Caching is the best lever and the most over-claimed.** "Caching will fix it" means nothing without a measured hit rate. A 40% hit rate cuts cost by 40%, not 95%, and a semantic cache that returns the wrong answer to a slightly different question is cheaper and worse.
+**Two pricing rules, and one must hold for every plan you publish.** With no cap, price from the heavy user: take the user at the 95th percentile of your cost distribution and treat their cost as your floor. To price from the mean, you must cap, because the allowance converts an unbounded promise into a bounded cost. An uncapped plan priced from the mean makes the tail loss-making, and the tail is where your most enthusiastic users live.
 
-**Cheaper and worse is not a win.** Rerun five realistic requests after each lever and judge the output yourself.
-
-**Your cost moves without you doing anything.** Prices get cut, models get retired, token accounting changes, and the exchange rate moves against you because providers bill in dollars and you earn rupees.
-
-**An agent step is not a request.** One user action in an agentic product is four or five model calls with a growing context, which is why ₹4 rather than ₹0.40 is realistic here. Price per *user action*.
-
-**Do not cap your way out of a bad product.** If almost everyone hits the cap, the allowance is wrong, not the users. And a runaway retry loop is not a margin problem but an unbounded liability.
+| Gotcha | What it means for you |
+|---|---|
+| A cap must not feel like a punishment | An allowance covering ~95% of users, a meter, a warning at 80%, and degradation to the smaller model rather than a locked door |
+| A hard stop with no warning | Turns your best user into chapter 9's screenshot |
+| Almost everyone hits the cap | The allowance is wrong, not the users |
+| The free tier is an unbounded liability | One free heavy user costs ₹1,600 a month at ₹4 a request, and ten can arrive in an afternoon — cap it, budget it, enforce per-user limits and an account spend cap |
+| Caching is the best lever and the most over-claimed | A 40% hit rate cuts cost by 40%, not 95%, and a semantic cache can be cheaper and wrong |
+| An agent step is not a request | One user action is four or five model calls with a growing context, which is why ₹4 rather than ₹0.40 is realistic — price per user action |
+| Cheaper may be worse | Rerun five realistic requests after every lever and judge the output yourself |
+| Your cost moves on its own | Prices get cut, models get retired, token accounting changes, and providers bill in dollars while you earn rupees |
 
 ### Verify it
 
-**Red flag, the headline one: a margin computed from an average cost per user.** Ask for the distribution: the median, the 90th percentile, the 95th, and your single most expensive user. One number is an incomplete answer.
+**Red flag, the headline one: a margin computed from an average cost per user.** Ask for the distribution — the median, the 90th percentile, the 95th, and your single most expensive user. One number is an incomplete answer.
 
-**Red flag: a gross margin table with no inference line.** Chapter 5's commonest omission starts here.
-
-**Red flag: no query that ranks users by cost.** You cannot manage a tail you cannot see. If nobody can run "top twenty users by cost last month" today, build it first.
+**Red flag: no query that ranks users by cost.** You cannot manage a tail you cannot see, so if nobody can run "top twenty users by cost last month" today, build that first.
 
 **Red flag: a quoted model price.** Any figure per million tokens, from any AI, is a rumour from before its cutoff. Open the provider's page, read it, write the date. An AI that gives you a price *without* telling you to verify it is itself the warning.
 
-**Red flag: a cap with no in-product meter and no warning.** You have built a trap rather than a plan. **A free tier with no per-user cap and no account spend cap** is not a pricing error but an open liability.
+**Red flag: a cap with no meter and no warning**, which is a trap rather than a plan — or a free tier with no per-user cap and no account spend cap, which is an open liability.
 
-**Red flag: "caching will fix it" with no hit rate**, or **a plan priced from the mean user with no allowance.** Ask what share of requests were served from cache last week, measured; and check that one of the two pricing rules holds, because if neither does, the heavy users are loss-making by construction.
-
-And the measurement nothing substitutes for: query your own logs for cost per user last month, sort descending, and look at the top five rows. That list is your business.
+And the measurement nothing substitutes for: query your logs for cost per user last month, sort descending, and read the top five rows. That list is your business.
 
 ## Walkthrough
 1. Confirm you have the per-call logging from M09 chapter 14 in place: input tokens, output tokens, model name and estimated cost on every model call, tagged with the user id. If it is missing, add it first; nothing below is possible without it.

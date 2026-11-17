@@ -4,7 +4,7 @@ module: m08-mobile
 slug: offline-first-and-deep-links
 title: "Offline-First, Sync, Local Storage and Deep Links"
 order: 3
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student is on the third floor of the library, where the signal dies. She opens the canteen app, types a long note — "no onions, extra chutney, paying by UPI at the counter" — and taps Place Order.
-
-The spinner turns for forty seconds. She taps again. She walks to the stairwell, finds one bar, and the app shows an error with no detail. She reloads, and the note is gone. At the counter the cook holds two identical orders, because both taps eventually arrived — and neither carries the note, because the request holding it timed out at the phone while the server was still working.
-
-Nothing here is exotic. The app was built on campus Wi-Fi, where the network is solved, and then met the real Indian network: present, absent, and — worst — *present but unusable*. The endless spinner is not a bug in the spinner. It is the absence of a decision about what happens when the network does not answer.
+A student on the library's third floor, where the signal dies, types a long note — "no onions, extra chutney, paying by UPI at the counter" — and taps Place Order. The spinner turns for forty seconds, so she taps again, walks to the stairwell, and gets an error. She reloads, the note is gone, and the cook holds two identical orders. The app was built on campus Wi-Fi, then met the real Indian network: present, absent, and worst of all *present but unusable*.
 
 ### The idea
 
 **Treat the network as something that might not be there, and the copy on the device as the one the user may see and change.**
 
-That is offline-first, and it inverts the usual order. Instead of "ask the server, show a spinner, show what comes back", you do "show what is on the device now, record the change on the device, send it when sending is possible". The network becomes a background job, not a blocking step.
+That is offline-first: instead of "ask the server, show a spinner, show what comes back", you "show what is on the device, record the change, send it when sending is possible". The network becomes a background job, not a blocking step.
 
-The chapter's second half is the mirror image: you still need a way to *point at* a screen. That is a deep link, and it is how your product travels through WhatsApp.
+The mirror image: a **deep link** is a URL that opens one exact screen with one exact thing on it — `canteen.app/order/42`. You need them because WhatsApp is your distribution, because "order 42 is ready" must land on order 42, and because without per-screen URLs nothing can be shared.
 
 ### The analogy
 
-The canteen at 1:10 pm runs on paper slips.
+The canteen at 1:10 pm runs on paper slips: you write the order on a slip, the cashier stamps a token number, and you sit down rather than wait at the counter. That is a write queue — your tap creates a slip on the device, the UI says "order placed, token 42" at once, and the slip reaches the server when the network allows. Two identical slips with the *same* token are one order, and that number is an idempotency key.
 
-You do not wait at the counter for the cook to confirm before you may walk away. You write the order on a slip, the cashier stamps a token number, and you sit down. The slip is the record. The kitchen works through the spike at its own pace, and if the gas fails the slips wait — nobody's order is lost, nobody stood frozen at the counter. That is a write queue: your tap creates a slip on the device, the UI shows "order placed, token 42" at once, and the slip reaches the server when the network allows.
-
-The token is the other half. Two identical slips with the *same* token are one order, and the kitchen makes one plate. Two with no token are two plates and one annoyed cook. That number is an idempotency key.
-
-**Where the analogy breaks:** the canteen has one copy of the truth, the kitchen. An offline-first app has one per phone, and they can diverge. If two hostel-mates both claim the last plate of biryani while offline, both slips say yes and the server must choose. Paper cannot create that problem; distributed copies can, and it is called a conflict.
+**Where the analogy breaks:** the canteen has one copy of the truth; an offline-first app has one per phone. Two hostel-mates claiming the last plate of biryani while offline produce two slips that both say yes. That is a conflict.
 
 ### Picture it
 
@@ -71,9 +63,9 @@ The token is the other half. Two identical slips with the *same* token are one o
 
 The tap is recorded on the device and acknowledged at once; a background queue delivers it with a key that lets the server recognise a retry rather than create a second order.
 
-### The storage ladder
+### Where it lives
 
-Not all local data belongs in the same place, and picking wrong is how teams put a 6 MB JSON string in a store built for a few MB of text.
+On M00's four boxes, offline-first moves a copy of the **data** box onto the **client** and turns the **network** box from a prerequisite into a background worker. Your server changes in one way: two requests carrying the same idempotency key must produce one result. Local data does not all belong in one place.
 
 | Where | Holds | Survives | Use it for |
 |---|---|---|---|
@@ -83,45 +75,9 @@ Not all local data belongs in the same place, and picking wrong is how teams put
 | Cache Storage | whole HTTP responses | restart | app shell and images |
 | Your server | the truth | everything | money or shared data |
 
-Two rules make this easy. **Anything the user typed goes to IndexedDB as they type it** — asynchronous, so it never blocks the screen, and it holds real amounts of data. **Anything another person depends on goes to the server**, because a copy on one phone is not a shared fact.
+Anything the user typed goes to IndexedDB as they type it; anything another person depends on goes to the server. The browser may evict all of it, so it is never the only copy.
 
-One warning: the browser may evict all of it. On a phone whose 16 GB is 95% full, cached data can vanish without notice. Local storage is never the only copy of anything that matters.
-
-### Sync, conflicts and what to do about them
-
-The moment two copies exist you need a rule for disagreement. There are four, in increasing order of effort.
-
-**Server wins.** The device's copy is a cache; on reconnect you discard it and refetch. Correct for data the user only reads — menu, prices, hours — and the right default for most of a student product.
-
-**Last write wins.** Whichever update arrives last is kept. Fine for a personal note. Quietly destructive for anything two people edit, because the loser's change vanishes without trace.
-
-**Per-field merge.** Accept both updates when they touched different fields. More work, far fewer lost edits, right for a shared document.
-
-**Append-only.** Never update a row; record events and compute state from them. Two offline claims on the last plate become two recorded claims and one business decision — the honest model for stock.
-
-The decision is product, not technical. "What should happen if two people do this at once, offline?" is a question your team answers in a sentence. If nobody has answered it, whatever the AI generated answered it for you, usually with last-write-wins.
-
-And some things must never be optimistic. **Do not pretend a payment succeeded.** A UPI payment, a seat booking, the last plate of biryani need the server's confirmation first, because an optimistic lie costs real money and real trust. Say "we will take payment when you are back online".
-
-### Deep links: a URL for every screen
-
-A deep link is a URL that opens one specific screen with one specific thing on it — `canteen.app/order/42`, not "open the app and navigate". Three reasons it matters more here than the textbooks suggest.
-
-**WhatsApp is your distribution.** Products spread by someone forwarding a link to a hostel group. A link that opens on the right dish converts; a generic home screen does not.
-
-**Notifications need somewhere to land.** The push "order 42 is ready" must open order 42.
-
-**It is what makes you shareable at all.** On the web this is nearly free — unless your team built every screen as a state change behind one URL, a mistake common in AI-generated single-page apps that quietly removes your ability to be shared.
-
-Two terms for the app world. An **App Link** on Android (a **Universal Link** on iOS) is an ordinary `https://` URL your app claims, verified by a file you host on your own domain, so one link opens the app if installed and the website if not. A **custom scheme** like `canteen://order/42` fails badly: it does nothing if the app is absent, and anyone can register it. A **deferred deep link** — tap, no app, install, still land on order 42 — is M12's problem.
-
-### Where it lives
-
-On M00's four boxes, offline-first moves a copy of the **data** box onto the **client** and turns the **network** box from a prerequisite into a background worker. Your server changes in one way: it must accept an idempotency key and promise that two requests with the same key produce one result.
-
-M02 gave you service workers and HTTP caching; the service worker is what serves your shell when the network is gone, and chapter 5 makes you build one. M05's caching chapters gave you TTLs and invalidation, and the same thinking applies to the copy on the phone under a harsher constraint — a phone can be offline for an hour, not seconds.
-
-This chapter is the **overview**: the model, the storage choices, the conflict rules, the deep link. **M12's "Offline and Sync When the Network Is Bad" is the practicum** — a real sync engine, background sync, local database migrations and the deferred deep-link case. Here you decide the rules; there you implement them.
+**M08 is how to choose plus how to ship a PWA; M12 is the practicum** — a real sync engine, background sync, local migrations, deferred deep links. Chapter 5 builds the service worker.
 
 ### Words to own
 
@@ -138,29 +94,27 @@ This chapter is the **overview**: the model, the storage choices, the conflict r
 
 ### Tradeoffs and gotchas
 
-**Offline-first costs real complexity, so scope it.** You do not need a sync engine. Pick the three things that must work with no signal — reading the menu, drafting an order, seeing your last order — and make only those work. Everything else may say "you are offline".
+**Offline-first costs real complexity, so scope it.** Pick the three things that must work with no signal — read the menu, draft an order, see your last order. Everything else may say "you are offline".
 
-**A spinner with no timeout is the worst possible state.** A request that never resolves is worse than a failure, because the user cannot act. Every call needs a timeout and an outcome.
+**Never retry without an idempotency key, and never leave a call without a timeout.** A retry without a key is how one tap becomes three orders, and a request that never resolves is worse than a failure: the user cannot act.
 
-**Never retry without an idempotency key.** Retries are how you survive a bad network; a retry without a key is how one tap becomes three orders. Write the server contract first.
+**Choose a conflict rule per data type.** Server wins (the device's copy is a cache — right for menus and prices); last write wins (fine for a private note, destructive for shared edits); per-field merge (more work, fewer lost edits); append-only (two offline claims on the last plate become two claims and one business decision). If nobody chose, the AI chose last-write-wins for you.
 
-**Optimistic UI must be reversible, visibly.** If the sync later fails, the item comes back with an explanation rather than silently disappearing. Show pending, then confirm or revert.
-
-**Hash-routed single-page apps break sharing.** If every screen is the same URL you have no deep links, nothing is forwardable on WhatsApp, and push has nowhere to land. Retrofitting routes is tedious, so check early.
+**Never pretend a payment succeeded.** A UPI payment or the last plate needs the server's confirmation — say "we will take payment when you are back online". Optimistic UI must be visibly reversible.
 
 ### Verify it
 
-The network is the easiest thing to test, and the thing AI output most consistently assumes is fine. Start with the network off rather than slow — aeroplane mode, two minutes of use — then the harder case, dev tools throttled to high latency with packet loss, which is closer to campus 4G than "offline" is.
+Start with the network off, not slow: aeroplane mode, two minutes of use. Then throttle to high latency with packet loss.
 
-**Red flag: the plan assumes a fast connection.** No timeout, no retry, no offline branch and no pending state means it was written for Wi-Fi. Ask: "what does the user see at second 10, 30 and 60 of a request that never answers?"
+**Red flag: the plan assumes a fast connection.** Ask what the user sees at second 10, 30 and 60 of a request that never answers.
 
-**Red flag: retry logic with no idempotency key.** Search the diff for the retry, then the key. If the retry exists and the key does not, duplicate orders are a schedule rather than a risk. Check the server honours the key rather than merely accepting the header.
+**Red flag: retry logic with no idempotency key.** Check the server honours the key, not merely accepts the header.
 
-**Red flag: something that must never be stale, cached.** Prices, stock, balances, anything a payment depends on. Ask which fields come from the local copy and for how long, then what happens if the price changed ten minutes ago. A tick shown before money moved is a defect.
+**Red flag: something that must never be stale, cached.** Prices, stock, balances: ask which fields come from the local copy and for how long.
 
-**Red flag: one URL for the whole app.** Open three screens and watch the address bar. If it never changes you cannot be shared, bookmarked or opened from a notification.
+**Red flag: one URL for the whole app.** Open three screens and watch the address bar; if it never changes you cannot be shared or opened from a push.
 
-Then run the duplicate test by hand: offline, tap submit three times, back online, count the rows. The answer must be one. That test catches the worst bug in the chapter.
+Then the duplicate test: offline, tap submit three times, back online, count the rows. The answer must be one.
 
 ## Walkthrough
 1. Write down the three things in your product that must work with no signal at all. Three, not ten. Everything else is allowed to say "you are offline".

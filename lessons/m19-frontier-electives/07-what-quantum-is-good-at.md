@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: what-quantum-is-good-at
 title: "What Quantum Is Actually Good At"
 order: 7
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -24,23 +24,23 @@ last_reviewed: 2026-11-16
 
 A team puts "quantum-optimised delivery routing" on slide six. The mentor asks which algorithm, on which hardware, against which classical baseline. There is no answer, because the phrase came from a vendor's landing page.
 
-The embarrassing part is not the slide. It is that the team would have failed a harder test too: routing a fleet of ten vans is a problem the best classical solvers handle in seconds, nobody has demonstrated a quantum machine beating them on a real instance of it, and even the theoretical gain for that family of problems is modest. The slide claimed a benefit that does not exist on hardware that cannot run it against a baseline nobody measured.
+The embarrassing part is not the slide. Routing a fleet of ten vans is a problem the best classical solvers handle in seconds, nobody has demonstrated a quantum machine beating them on a real instance, and even the theoretical gain for that family is modest. The slide claimed a benefit that does not exist, on hardware that cannot run it, against a baseline nobody measured.
 
-So this chapter is a filter. There is a real list of things quantum computers are expected to be good at. It is short, it is specific, it is mostly not your product, and knowing it protects you from both the hype and the reflexive dismissal.
+So this chapter is a filter. The real list of things quantum computers are expected to be good at is short, specific and mostly not your product, and knowing it protects you from the hype and the reflexive dismissal alike.
 
 ### The idea
 
 **Quantum computing helps on problems with a particular hidden structure that interference can exploit. There are four credible families, and your startup is almost certainly in none of them.**
 
-The four. First, breaking certain public-key cryptography — factoring large numbers and solving discrete logarithms — where the known algorithm, Shor's, is an exponential improvement, and which is why the whole world cares and why chapter 8 exists. Second, simulating quantum systems themselves: molecules, catalysts, battery chemistry, materials. This is the one most experts consider the genuine commercial prize, because a quantum system is the natural thing to simulate on a quantum machine. Third, unstructured search, where Grover's algorithm offers a square-root improvement — meaningful in theory, almost always disappointing in practice for reasons below. Fourth, a set of sampling and linear-algebra niches, mostly of academic interest, where "advantage" has been claimed on tasks chosen because they suit the hardware.
+First, breaking certain public-key cryptography — factoring large numbers and discrete logarithms — where Shor's algorithm is an exponential improvement, which is why the world cares and why chapter 8 exists. Second, simulating quantum systems themselves: molecules, catalysts, battery chemistry, materials. Most experts consider this the genuine commercial prize, because a quantum system is the natural thing to simulate on a quantum machine. Third, unstructured search, where Grover's algorithm offers a square-root improvement that is almost always disappointing in practice. Fourth, sampling and linear-algebra niches of mostly academic interest, where "advantage" has been claimed on tasks chosen because they suit the hardware.
 
-Everything else — routing, scheduling, portfolio optimisation, general machine learning, databases, web applications — is either not on the list or sits in a category where nobody has shown a real-world win.
+Everything else — routing, scheduling, portfolio optimisation, general machine learning, databases, web applications — is either not on the list or in a category where nobody has shown a real-world win.
 
 ### The analogy
 
-The canteen buys a dedicated dosa griddle. On dosas it is unbeatable: faster, more even, better than anything else in the kitchen. On dal, rice, chai or washing up it is worse than useless, because it occupies the counter and demands a dedicated gas line. Nobody calls the griddle a general-purpose cooker, and nobody prices the canteen's whole menu on the griddle's dosa throughput.
+The canteen buys a dedicated dosa griddle. On dosas it is unbeatable: faster, more even, better than anything else in the kitchen. On dal, rice, chai or washing up it is worse than useless, because it occupies the counter and demands a dedicated gas line. Nobody calls it a general-purpose cooker, and nobody prices the whole menu on its dosa throughput.
 
-**Where the analogy breaks**, and the break is the honest news: the griddle works today. The quantum griddle is a prototype in a cold room that burns most of the dosas and can only manage very small ones. The specialisation is real, and the capability is not here yet for anything commercially decisive, with the partial exception of narrow chemistry research.
+**Where the analogy breaks**, and the break is the honest news: the griddle works today. The quantum griddle is a prototype in a cold room that burns most of the dosas and can only manage very small ones. The specialisation is real; the capability is not here yet for anything commercially decisive, with the partial exception of narrow chemistry research.
 
 ### Picture it
 
@@ -84,11 +84,9 @@ A square-root improvement in step count is real, but each quantum step is vastly
 
 ### Where it lives
 
-Attach this to things you already know. In M04 you met public-key cryptography holding up TLS, signed tokens and payment instructions — that is family one, and the only family with a deadline attached. In M09 you learned how training and inference actually work, and the honest statement is that quantum machine learning is an active research area with no demonstrated practical advantage over good classical methods on real datasets; several proposed quantum advantages in linear algebra were later matched by improved classical algorithms, a pattern researchers call dequantization. In M17 you will think about cost, and the cost picture here is simple: access is metered by the second on cloud hardware, and there is no credible business case for a student product.
+M04's public-key cryptography holding up TLS, signed tokens and payment instructions is family one, and the only family with a deadline attached. Against M09: quantum machine learning is an active research area with no demonstrated practical advantage over good classical methods on real datasets, and several proposed quantum advantages in linear algebra were later matched by improved classical algorithms, a pattern called dequantization. On M17's cost question: access is metered by the second on cloud hardware and there is no business case for a student product. Your free access is in-browser simulators, which run Grover on three or four qubits at no cost — enough to see the mechanism and feel the overhead.
 
-Where your access is free: in-browser simulators and composers let you run Grover on three or four qubits today, at no cost, and that is enough to see the mechanism and to feel the overhead.
-
-Annealing deserves a separate sentence because it is sold hardest. A quantum annealer is a different kind of machine aimed at optimisation problems expressed in one particular form. Independent benchmarks have repeatedly found well-tuned classical solvers competitive or better on realistic instances. Treat any routing or scheduling advantage claim as unproven until you see the classical baseline named.
+Annealing deserves its own sentence because it is sold hardest. An annealer is a different kind of machine aimed at optimisation problems in one particular form, and independent benchmarks have repeatedly found well-tuned classical solvers competitive or better on realistic instances. Treat any routing or scheduling advantage claim as unproven until you see the classical baseline named.
 
 ### Words to own
 
@@ -108,29 +106,29 @@ Annealing deserves a separate sentence because it is sold hardest. A quantum ann
 
 ### Tradeoffs and gotchas
 
-**Grover's gain is usually theoretical.** Beyond the overhead, Grover needs the search to be expressible as a circuit the machine can run, and it does not parallelise the way classical search does across cheap machines. For most practical search you already have an index, which beats both.
+**Grover's gain is usually theoretical.** It needs the search expressible as a circuit the machine can run, and it does not parallelise the way classical search does across cheap machines. For most practical search you already have an index, which beats both.
 
-**Advantage demonstrations are chosen to suit the hardware.** The famous ones involve sampling tasks with no application, selected precisely because they are hard classically and natural for the device. They are genuine scientific results and they are not products. Several have since been narrowed by better classical simulation.
+**Advantage demonstrations are chosen to suit the hardware.** The famous ones involve sampling tasks with no application, selected because they are hard classically and natural for the device. Genuine scientific results; not products.
 
 **Classical methods keep improving.** Any comparison against a weak classical baseline is worthless. Insist on knowing what the classical side was allowed to use.
 
-**Chemistry is the credible near-term case, and it is still narrow.** Useful simulation of industrially interesting molecules needs error-corrected machines that do not exist yet. Early work on very small systems is real research and not yet a replacement for established computational chemistry.
+**Chemistry is the credible near-term case, and it is still narrow.** Useful simulation of industrially interesting molecules needs error-corrected machines that do not exist yet.
 
-**"Quantum AI" and "quantum-inspired" are different from quantum.** Quantum-inspired usually means a classical algorithm borrowing an idea, which can be perfectly good — but then it runs on a normal computer and the word quantum is marketing.
+**"Quantum AI" and "quantum-inspired" are different from quantum.** Quantum-inspired usually means a classical algorithm borrowing an idea — fine, but then it runs on a normal computer and the word quantum is marketing.
 
 ### Verify it
 
 Four questions dissect any advantage claim, and asking them is the whole skill.
 
-**Which named algorithm?** Shor, Grover, a variational method, annealing, or something specific. "Quantum computing will optimise it" names nothing. If the answer cannot name an algorithm, there is no claim to evaluate.
+**Which named algorithm?** Shor, Grover, a variational method, annealing, or something specific. "Quantum computing will optimise it" names nothing, and without an algorithm there is no claim to evaluate.
 
-**What structure does it exploit?** Shor's exploits periodicity. Simulation exploits the fact that the target is itself quantum. If a model claims a speedup for routing or for training a model, ask what hidden structure interference is cancelling against. There is usually no answer.
+**What structure does it exploit?** Shor's exploits periodicity; simulation exploits the fact that the target is itself quantum. If a model claims a speedup for routing or for training, ask what hidden structure interference is cancelling against. There is usually no answer.
 
-**What was the classical baseline?** Named solver, tuned, on the same instance, with its runtime reported. A claim with no baseline is a claim about nothing. This is the red flag that catches most vendor material.
+**What was the classical baseline?** Named solver, tuned, on the same instance, with its runtime reported. A claim with no baseline is a claim about nothing, and this catches most vendor material.
 
-**What hardware, how many qubits, what error rate, what circuit depth?** The decoherence test from chapter 5, applied to a specific claim. A model that proposes a useful Shor run without mentioning that estimates call for millions of physical qubits is giving you a fantasy.
+**What hardware, how many qubits, what error rate, what circuit depth?** Chapter 5's decoherence test applied to a specific claim. A model proposing a useful Shor run without mentioning that estimates call for millions of physical qubits is giving you a fantasy.
 
-And one more, specific to this chapter: **red flag — "quantum machine learning will make our model better".** Ask for a published result on a real dataset beating a good classical model. As of now there is none, and an AI that asserts otherwise is reproducing marketing copy.
+And one specific to this chapter: **red flag — "quantum machine learning will make our model better".** Ask for a published result on a real dataset beating a good classical model. There is none.
 
 ## Walkthrough
 1. Open a free in-browser quantum composer or simulator. Load or build a small Grover search over three qubits, marking one of the eight possible answers.

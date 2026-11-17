@@ -4,7 +4,7 @@ module: m12-ship-apps-for-real
 slug: react-native-and-expo
 title: "React Native and Expo: One Codebase, Two Stores"
 order: 2
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -22,31 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your team has a working web app. You want it in the Play Store, and you have four hours before the live session.
+Your team has a working web app, you want it in the Play Store, and you have four hours before the live session.
 
-The first thing anyone suggests is wrapping the website in a WebView — a native app whose only screen is a browser showing your site. It takes twenty minutes. It also fails in every way that matters: it cannot work offline, it cannot use the camera properly, push notifications do not arrive, the back button behaves strangely, it feels like a website in a box because it is one, and both stores have rules against apps that are only a repackaged site. Teams get rejected for this every week.
+The first suggestion is always a WebView — a native app whose only screen is a browser showing your site. Twenty minutes of work, and it fails in every way that matters: no offline, no proper camera, no push, a strange back button, and both stores have rules against apps that are only a repackaged site. Teams get rejected for this every week.
 
-The second suggestion is to write the app twice — Kotlin for Android, Swift for iOS. Two codebases, two sets of bugs, two sets of screens to keep in sync, and nobody on your team has a Mac, which iOS development traditionally requires.
-
-The third option is the one this module uses, and it is the reason you can ship to both stores in a week instead of a term.
+The second is to write the app twice, Kotlin for Android and Swift for iOS: two codebases, two sets of bugs, and nobody on your team owns a Mac.
 
 ### The idea
 
-**React Native lets you describe your screens in JavaScript, and renders them using the platform's own native views — so one codebase produces a genuine Android app and a genuine iOS app.**
+**React Native lets you describe your screens in JavaScript and renders them using the platform's own native views — so one codebase produces a genuine Android app and a genuine iOS app.**
 
-When you write a `<Text>` in React Native, Android gets a real `TextView` and iOS gets a real `UILabel`. It is not a webpage pretending. Scrolling uses the platform's scroll physics, text uses the system font and respects the user's font-size setting, and the operating system treats your app as an app.
+Write a `<Text>` and Android gets a real `TextView`, iOS a real `UILabel`. Scrolling uses the platform's physics, text respects the user's font-size setting, and the operating system treats your app as an app.
 
-Expo sits on top of React Native and removes almost all of the setup. It gives you a ready project structure, a large library of device modules (camera, location, notifications, file system) that already work on both platforms, and — the part that changes your life as an Indian student team — **EAS Build**, a cloud service that compiles your app on Google's and Apple's toolchains for you. You do not install Xcode. You do not own a Mac. You run one command and a signed build appears.
+Expo sits on top and removes almost all the setup: a ready project structure, device modules (camera, location, notifications, file system) that already work on both platforms, and **EAS Build**, a cloud service that compiles your app on Google's and Apple's toolchains. No Xcode, no Mac — one command and a signed build appears.
 
 ### The analogy
 
-Picture the canteen with one kitchen and two serving counters: a veg window and a non-veg window.
+One kitchen, two serving counters: a veg window and a non-veg window. The single set of cooks and one stock of rice and oil is your JavaScript codebase; the two windows, each with its own queue, signage and rules about plates, are Android and iOS. A few dishes are genuinely per-window — the non-veg window closes on Tuesdays — but the kitchen stays shared.
 
-One kitchen, one set of cooks, one stock of rice and oil and gas. That is your JavaScript codebase. The two windows each have their own queue, their own signage, their own rules about what can be served and in what kind of plate. That is Android and iOS. Most dishes come out of the same kitchen and simply get plated differently at each window.
-
-But occasionally a window genuinely needs its own dish. The non-veg window is closed on Tuesdays by college rule. The veg window has a subsidised plate that the other does not. You cannot pretend the windows are identical, so you handle those few cases per window — and you keep the kitchen shared.
-
-**Where the analogy breaks:** a cook can look over at the other window and adapt instantly. Your code cannot. Platform differences appear at build time and at runtime in ways you will only discover by testing on both — the Android hardware back button has no iOS equivalent, iOS safe areas and the notch have no Android equivalent, and permission dialogs behave differently. "One codebase" means one place to write the logic, not one place to stop thinking.
+**Where the analogy breaks:** a cook can glance at the other window and adapt instantly; your code cannot. The Android hardware back button has no iOS equivalent, iOS safe areas and the notch have no Android equivalent, and permission dialogs behave differently. "One codebase" means one place to write the logic, not one place to stop thinking.
 
 ### Picture it
 
@@ -70,17 +64,13 @@ Your JavaScript goes to a cloud build service that runs both platforms' native t
 
 ### Where it lives
 
-The mobile app is a new client, not a new product. It talks to the same API from M04, with the same sessions and the same object storage. Your web app stays exactly where it is — many teams keep the web app as the admin surface and ship mobile only for the student-facing flows.
+The mobile app is a new client, not a new product. It talks to the same M04 API, with the same sessions and object storage, and your web app stays where it is. Most teams put the app in the same repository under `apps/mobile`, so one pull request can change the API and both clients together; CI from M06 runs the build.
 
-Practically, most teams put the app in the same git repository as the web app, in a folder like `apps/mobile`, so one pull request can change the API and both clients together. That is the M01 repository discipline applied to a second client. CI from M06 is what runs the build.
+Three Expo words you must not confuse:
 
-Three Expo words you will meet immediately, and must not confuse:
-
-**Expo Go** is a pre-built app from the store that can run your JavaScript during development. Convenient, and limited: it only contains the native modules Expo chose to include.
-
-**A development build** (sometimes called a dev client) is *your own* app, built once by EAS, containing *your* native modules, with your JavaScript loaded live. This is what you will actually use, because the moment you add anything Expo Go does not bundle, Expo Go stops being able to run your app.
-
-**A production build** is the signed artefact you upload to a store. On Android that is an `.aab` — an Android App Bundle, from which Google generates the right-sized download for each device. On iOS it is an `.ipa`.
+- **Expo Go** — a pre-built app from the store that runs your JavaScript during development. Limited to the native modules Expo chose to include.
+- **A development build** — *your own* app, built once by EAS, containing *your* native modules, with your JavaScript loaded live. This is what you will use daily.
+- **A production build** — the signed artefact you upload: an `.aab` on Android, from which Google generates the right-sized download per device, and an `.ipa` on iOS.
 
 ### Words to own
 
@@ -100,31 +90,29 @@ Three Expo words you will meet immediately, and must not confuse:
 
 ### Tradeoffs and gotchas
 
-**Pick your package name once and never again.** `com.yourteam.yourapp` is permanent on both stores. You cannot rename it after publishing; you can only publish a new app and lose every install. Decide it as a team, write it in your decision log, and check that nobody has typed `com.example.myapp` and shipped it.
+**Pick your package name once and never again.** `com.yourteam.yourapp` is permanent on both stores. You cannot rename it after publishing — only publish a new app and lose every install. Check nobody shipped `com.example.myapp`.
 
-**App size is bigger than you expect.** A trivial Expo app downloads at roughly 25–40 MB on Android. On a ₹8,000 phone with 12 GB of free storage and metered data, that is a real cost your users pay before seeing anything. Chapter 9 makes this a budget with a number.
+**App size is bigger than you expect.** A trivial Expo app downloads at roughly 25–40 MB on Android — a real cost on a ₹8,000 phone with metered data, before the user sees anything. Chapter 9 turns it into a budget with a number.
 
-**Not every npm package works.** Anything that touches the device needs a native side. If a library has no Expo support and no config plugin, adding it means a new build at minimum and sometimes is not possible at all. Check this *before* you design a feature around a library.
+**Not every npm package works.** Anything that touches the device needs a native side. No Expo support and no config plugin means a new build at minimum, sometimes impossible. Check before you design a feature around a library.
 
-**Expo Go will mislead you.** It works beautifully until it silently cannot, and then the error messages are confusing. Move to a development build on day one and you skip a whole category of lost evening.
+**Expo Go will mislead you.** It works beautifully until it silently cannot. Move to a development build on day one.
 
-**iOS still costs money even with EAS.** EAS runs the Mac for you, but Apple will not let anyone install your iOS build — even on your own phone, even for testing — without an Apple Developer Program membership at roughly ₹8,400 a year. Android has no such barrier for local testing: a `.apk` from EAS installs on any phone for free. This is the single strongest practical reason to ship Android first.
-
-**There is a point where React Native is the wrong answer.** A product whose core is heavy real-time graphics, serious audio processing, or deep integration with one platform's hardware will fight you. You made that decision in M08's first chapter; this chapter assumes you chose cross-platform and are now executing it.
+**iOS still costs money even with EAS.** EAS runs the Mac for you, but nobody can install your iOS build — not even you, on your own phone — without an Apple Developer Program membership at roughly ₹8,400 a year. An Android `.apk` from EAS installs on any phone for free. That is the strongest practical reason to ship Android first.
 
 ### Verify it
 
-AI is very good at producing React Native code and very bad at noticing which React Native you meant. Four checks.
+AI is good at producing React Native code and bad at noticing which React Native you meant.
 
-**Check it is Expo, not bare React Native.** The two have different setup, different commands and incompatible instructions. If the answer tells you to run `react-native link`, edit `Podfile`, open `android/app/build.gradle` by hand, or install CocoaPods, it has answered for bare React Native and following it will break your Expo project. Ask explicitly: "is every step in this valid for a managed Expo project?"
+**Check it is Expo, not bare React Native.** If the answer tells you to run `react-native link`, edit `Podfile`, hand-edit `android/app/build.gradle`, or install CocoaPods, it answered for bare React Native and will break your project. Ask: "is every step valid for a managed Expo project?"
 
-**Red flag: it assumes you have a Mac.** Any instruction involving opening Xcode, running a simulator, or `pod install` assumes hardware you do not have. The correct Expo answer routes that work through EAS Build. If AI never mentions EAS, it has not registered your constraint.
+Red flags:
 
-**Red flag: secrets in `app.json`.** The `extra` block in your config is bundled into the app and shipped to users. An app bundle can be downloaded and unzipped by anyone. If AI puts a service key, a database URL with credentials, or a third-party API secret in there, that secret is public the moment you publish. Only values you would print on a poster go in the app; everything else lives behind your own API.
+- **It assumes you have a Mac** — Xcode, a simulator, `pod install`. The correct Expo answer routes that through EAS Build.
+- **Secrets in `app.json`** — the `extra` block is bundled into the app, and a bundle can be unzipped by anyone. Only values you would print on a poster go in the app.
+- **A WebView in the proposal** — the rejected option with extra steps. Ask what the app does with no network; a WebView answers "nothing".
 
-**Red flag: a WebView in the proposal.** If the "cross-platform app" it designs is a `WebView` pointed at your site, you have been handed the rejected option with extra steps. Ask it to state, in one sentence, what the app does when there is no network. A WebView answers "nothing".
-
-**Verify on hardware, not on an emulator.** The emulator runs on your laptop's CPU and lies about startup time, memory and scroll smoothness. Install the real build on the cheapest phone you can find and open it. That is the only verification that counts.
+**Verify on hardware, not on an emulator.** The emulator runs on your laptop's CPU and lies about startup time, memory and scroll smoothness.
 
 ## Walkthrough
 1. As a team, agree your app name and your package name in the form `com.<yourteam>.<yourapp>`. Write both in your decision log. This is permanent.

@@ -4,7 +4,7 @@ module: m00-orientation
 slug: what-an-llm-is
 title: "What an LLM Is, and What Chat AI, App Builders and Coding Agents Each Do"
 order: 6
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: high
@@ -22,31 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A group of three starts building. One member uses a chat assistant and copies answers into files by hand, losing track of which version is current. Another uses an app builder, gets a beautiful landing page in nine minutes, then discovers they cannot add a login system the way the product needs. The third points a coding agent at the repository with no instructions and comes back to forty changed files and a broken build.
-
-All three used "AI". All three used the wrong one. The tools are genuinely different, and nobody told them how.
+Three students start building. One copies chat answers into files by hand and loses track of which version is current. Another gets a landing page from an app builder in nine minutes, then cannot add the login the product needs. The third points a coding agent at the repository with no instructions and gets a broken build. All three used "AI"; all three used the wrong one.
 
 ### The idea
 
 **A large language model predicts what text comes next. Everything else — the chat window, the app builder, the coding agent — is scaffolding built around that one ability.**
 
-The model is the engine. What differs between products is the body wrapped around the engine: what it can see, what it can touch, and how many steps it is allowed to take on its own.
+The model is the engine; what differs between products is the body around it.
 
 ### The analogy
 
-Imagine a cook who has read every cookbook ever written, remembers the patterns in all of them, and can write a plausible recipe for anything you name — but has never actually tasted food, cannot see your kitchen, and does not know what is in your fridge.
+A cook who has read every cookbook ever written and can write a plausible recipe for anything — but has never tasted food or seen your kitchen. That is the model.
 
-That cook is the model. Enormously well-read, confidently fluent, and completely disconnected from your reality.
+**Chat AI** is the cook on the phone: they suggest, they touch nothing. **An app builder** is a franchise kitchen: say "dosa counter" and a working counter appears from a template — fast, but it is their layout. **A coding agent** is the cook in your kitchen with hands on your equipment, so the mistakes now happen to your kitchen.
 
-Now consider three ways to employ that cook:
-
-**Chat AI** is talking to the cook on the phone. You describe your kitchen; they suggest. They never touch anything. Nothing happens unless you do it. Fast, cheap, zero risk, but every step of the actual work is yours.
-
-**An AI app builder** is a franchise kitchen. You say "I want a dosa counter" and a complete, working counter appears, built from a standard template, remarkably fast. It genuinely works. But it is their layout, and when you want something the template does not anticipate, you are negotiating with the franchise rather than building.
-
-**A coding agent** is the cook standing in your actual kitchen with their hands on your equipment. They can open your fridge, read your existing recipes, change them, throw things out and run the stove. Vastly more capable — and now their mistakes happen to your kitchen rather than in a conversation.
-
-**Where the analogy breaks:** a human cook who has never tasted food would say so. The model will not. It produces equally confident output whether it knows or is guessing, and that is the single most important fact about working with it.
+**Where the analogy breaks:** a human cook who had never tasted food would say so. The model will not — it is equally confident whether it knows or is guessing.
 
 ### Picture it
 
@@ -75,37 +65,13 @@ Now consider three ways to employ that cook:
     partner                  from zero                 on what exists
 ```
 
-The same engine in all three. What changes is how much it can see, how much it can touch, and how many steps it takes before checking with you — and risk rises along exactly that axis.
+The same engine in all three; what changes is how much it can see, how much it can touch, and how many steps it takes alone — and risk rises along that axis.
 
 ### Where it lives
 
-Notice that the model itself appears nowhere in your architecture diagram from chapter 1. That is deliberate and worth sitting with.
+The model appears nowhere in your architecture diagram from chapter 1. Using AI to build leaves no trace in the product; putting AI *in* your product — M10's "Ask our app" feature — makes it another server your server calls, a hop with a cost per call.
 
-When you *use* AI to build, the model is a tool on your desk — it leaves no trace in the product. When you *put* AI in your product — the "Ask our app" feature you will build in M10 — the model becomes another server your server calls across the network. It is a hop, with a cost per call and a latency of a second or two, exactly as you saw in chapter 2.
-
-Two completely different relationships, often confused. For M00 through M09 you are using AI as a tool. In M10 you start shipping it as a feature.
-
-### What a harness is
-
-This is the word that explains why two products using the *same* model feel so different.
-
-A **harness** is everything around the model: the loop that lets it take another step, the tools it can call, the files it can read, the permissions it must ask for, the sandbox it runs in, and the way it manages a context that is too small for your whole project.
-
-Claude Code, Codex and Cursor can all run the same underlying model and still behave differently, because their harnesses differ. One asks before editing; another edits and shows you the diff. One reads three files; another searches the whole repository first.
-
-The practical consequence: **when something goes wrong, ask whether the model was wrong or the harness was.** "It did not know about my other file" is usually a harness limit, not a model failure — and the fix is to tell it where to look, not to switch models. You will take this apart properly in M10.
-
-### Choosing between the three
-
-| You want to… | Use | Why |
-|---|---|---|
-| Understand a concept, or be argued with | Chat AI | No risk, fast, and it is the best tutor you have |
-| Compare two approaches before committing | Chat AI | You want options, not output |
-| Get a landing page or demo live today | App builder | Fastest path from zero to something real |
-| Validate an idea this week | App builder | Throwaway by design, and that is fine |
-| Add a feature to a project that already exists | Coding agent | It can read what is already there |
-| Change something across many files | Coding agent | The only one that can see the whole repository |
-| Understand why your own code behaves oddly | Coding agent | It can read the actual code, not your description of it |
+Around the model sits the **harness**: the loop that lets it take another step, the tools it can call, the files it can read, the permissions it needs. Two products on the same model behave differently because their harnesses differ, so when something breaks ask which one was wrong: "it did not know about my other file" is a harness limit.
 
 ### Words to own
 
@@ -124,28 +90,33 @@ The practical consequence: **when something goes wrong, ask whether the model wa
 
 ### Tradeoffs and gotchas
 
-**The two expensive mistakes.**
+**Do not build your real product in an app builder.** Superb at reaching something visible fast; bad at week six, when you need a design you decided on rather than a template they did. Validate, demo, expect to rebuild.
 
-The first is **building your real product in an app builder.** Builders are superb for getting to something visible fast, and genuinely bad at the thing you need in week six: fitting a design you have decided on, rather than a template they have. Use them to validate, demo, and prove an idea is worth building. Expect to rebuild.
+**Do not point an agent at a repository with a vague instruction.** "Make the app better" produces forty changed files and no way to tell what broke. Small scope, one step, review the diff.
 
-The second is **pointing an agent at a repository with a vague instruction.** "Make the app better" produces forty changed files and no way to tell what broke. Agents are powerful in proportion to how specific you are. Small scope, one verifiable step, review the diff — which is exactly the loop you learn in chapter 8.
+**Capability is not understanding.** A model that writes a working payment integration does not know your refund policy, or that your users share one phone. Fluent, not informed. And "vibe coding" — accepting output you do not understand — is fine for a throwaway demo but fails at the first bug you cannot describe.
 
-**Capability is not understanding.** A model that writes a working payment integration does not know your refund policy, your regulator, or that your users are students who share one phone. It is fluent, not informed. The gap between those two words is your job.
-
-**"Vibe coding" works until it does not.** Accepting output you do not understand is fast and genuinely fine for a throwaway demo. It fails at the first bug you cannot describe, because you cannot debug a system you cannot explain. This whole program is the alternative: understand the concepts, direct the tool, verify the result.
-
-**This chapter will age fastest.** The three categories are stable; the product names are not. Judge any new tool by the three questions in the diagram — what can it see, what can it touch, how many steps does it take alone — and you will place it correctly without needing anyone to tell you.
+**This chapter will age fastest.** The categories are stable; the product names are not. Judge any new tool by the diagram's three questions.
 
 ### Verify it
 
-A quick triage before you pick a tool, and one after.
+Three questions before picking:
 
-Before:
-1. **Does something already exist that this must fit into?** If yes, a builder is the wrong choice.
-2. **Am I trying to decide, or to produce?** Deciding is chat. Producing is a builder or an agent.
-3. **How bad is it if this is wrong?** The more it can touch, the more carefully you scope it.
+1. **Does something already exist that this must fit into?** If yes, a builder is wrong.
+2. **Am I deciding, or producing?** Deciding is chat; producing is a builder or an agent.
+3. **How bad is it if this is wrong?** The more it can touch, the tighter you scope it.
 
-After, regardless of tool: **ask it to explain its own output back to you.** "Walk me through what this does and why you chose this approach over the alternative." Two things come out of that. You learn the thing. And inconsistent or evasive explanations are a reliable signal that it was guessing — often more reliable than reading the output itself, especially while you are still learning.
+| You want to… | Use | Why |
+|---|---|---|
+| Understand a concept, or be argued with | Chat AI | No risk, fast, and it is the best tutor you have |
+| Compare two approaches before committing | Chat AI | You want options, not output |
+| Get a landing page or demo live today | App builder | Fastest path from zero to something real |
+| Validate an idea this week | App builder | Throwaway by design, and that is fine |
+| Add a feature to a project that already exists | Coding agent | It can read what is already there |
+| Change something across many files | Coding agent | The only one that can see the whole repository |
+| Understand why your own code behaves oddly | Coding agent | It can read the actual code, not your description of it |
+
+Afterwards, **ask it to explain its own output back to you.** An evasive or inconsistent explanation is a reliable signal it was guessing — more reliable than reading the output.
 
 ## Walkthrough
 1. Pick one small, concrete task — "a page showing today's canteen menu with prices and a photo per item".

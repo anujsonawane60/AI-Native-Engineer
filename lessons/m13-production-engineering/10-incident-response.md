@@ -4,7 +4,7 @@ module: m13-production-engineering
 slug: incident-response
 title: "Incident Response, On-Call and Blameless Postmortems"
 order: 10
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-M05 chapter 8 taught you reliability as a set of decisions made in advance: SLIs, SLOs, error budgets, timeouts, retries with backoff, and circuit breakers. It taught the availability arithmetic — 99.9% is forty-three minutes a month — and it handed runbooks forward. M07 taught you to see: logs, metrics, traces, p95, and alerts that fire on the things that matter. You can now detect a problem and you have defences against the predictable ones. This chapter is about the twenty minutes after the alert fires, which is a human process and the one nobody practises.
+M05 chapter 8 taught reliability as decisions made in advance: SLOs, error budgets, timeouts, retries, circuit breakers, and the arithmetic that 99.9% is forty-three minutes a month. M07 taught you to see. This chapter is the twenty minutes after the alert fires — a human process, and the one nobody practises.
 
-9:40 on a Friday evening. Payments start failing. Three teammates all notice within two minutes, and all three start debugging — in three separate WhatsApp threads, two of them with the same log file open. Nobody has told any user anything, so students keep trying to pay and keep failing. At 10:05 one teammate deploys a fix they are fairly confident about. It does not work, and now the system is in a state nobody can describe, because two people have changed things and neither wrote down what. At 11:20 somebody finds the cause — a third-party key that expired — and at 11:35 it is fixed. The next morning nobody can reconstruct the timeline, so the postmortem says "key expired, we renewed it, we will be more careful", and the same class of failure happens again in March with a different key.
-
-Total damage: one hour and fifty-five minutes of broken payments, about forty students who tried and gave up, and zero learning. Almost all of it is process, not engineering. A declared incident with one commander and a rollback at 9:45 would have made this a fifteen-minute event.
+9:40 on a Friday. Payments fail, three teammates all start debugging in three WhatsApp threads, and nobody tells any user, so students keep retrying. At 10:05 one deploys a fix that does not work, and now nobody can describe the system's state because two people changed things and neither wrote it down. Next morning nobody can reconstruct the timeline, so the postmortem says "we will be more careful" — and it recurs in March with a different key.
 
 ### The idea
 
-**An incident is a temporary change in how your team makes decisions: one person decides, one person talks to users, one person writes down what happened, and the first action is always to stop the bleeding rather than to understand it.**
+**An incident is a temporary change in how your team makes decisions: one person decides, one talks to users, one writes down what happened — and the first action is always to stop the bleeding, not to understand it.**
 
-Three roles, even with three people. The **commander** decides and explicitly does not debug — their whole job is to keep one plan running and stop three people changing things at once. The **comms** person tells users, on a schedule, even when there is nothing new. The **scribe** writes a timestamped line for every observation and every action, as it happens, because that log is the only honest source for the postmortem.
+Three roles, even with three people. The **commander** decides and does not debug. The **comms** person tells users on a schedule, even when there is nothing new. The **scribe** writes a timestamped line per observation and action — the postmortem's only honest source.
 
 ### The analogy
 
 There is a gas smell at the canteen counter at 1 p.m.
 
-What a good head cook does, in order: says the words "we are closing this counter" out loud so everyone hears it; sends one person to stand in front of the queue and tell students what is happening; shuts the main valve, which stops the danger without yet knowing where the leak is; and only then starts looking for the leak. Somebody is writing the times on a pad, because the gas company will ask.
+What a good head cook does, in order: says "we are closing this counter" out loud; sends one person to tell the queue; shuts the main valve, which stops the danger without knowing where the leak is; and only then looks for it. Somebody writes the times on a pad, because the gas company will ask.
 
-What a bad response looks like: three people sniffing different pipes, nobody telling the queue anything so students keep crowding in, and one person tightening a joint on a hunch while another has already turned a different valve.
-
-**Where the analogy breaks:** a gas leak announces itself to everyone in the room instantly and unambiguously. A software incident is invisible, and the first person to notice is often a user on WhatsApp twenty minutes in. That is why M07's alerting exists — it is the smell — and why "how did we find out?" is the first question of every postmortem. If the answer is "a student messaged us", your detection is the first thing to fix, not the bug.
+**Where the analogy breaks:** a gas leak announces itself instantly. A software incident is invisible, and the first to notice is often a user on WhatsApp twenty minutes in. That is why M07's alerting is the smell, and why "how did we find out?" opens every postmortem.
 
 ### Picture it
 
@@ -63,9 +59,10 @@ An incident runs as a fixed sequence with named roles, mitigation happens before
 
 ### Where it lives
 
-This is the operational half of M05 chapter 8. Your SLO decides what counts as an incident at all, and your error budget decides what you do afterwards. M07's alerts are the detection step, and M07's traces are what make diagnosis possible once you have mitigated. Chapter 5 supplies the mitigation: a tested rollback with a known stopwatch time, and a kill switch for the risky dependency. Chapter 9's runbook is what the commander reads when the answer is a failover. Chapter 6 is where an action item goes to die properly — a postmortem item that is only a sentence will be forgotten, and the same item written as a regression test will not.
-
-M18's handover asks for your incident history and your postmortems, because they are the strongest available evidence that you operated a real product rather than demonstrated one.
+- Your M05 chapter 8 **SLO** decides what counts as an incident, and the error budget what you do afterwards.
+- **M07's** alerts are the detection step, and its traces make diagnosis possible once you have mitigated.
+- **Chapter 5** supplies the mitigation — a tested rollback and a kill switch — and **chapter 9's** runbook is what the commander reads for a failover.
+- **Chapter 6** is where an action item survives: a postmortem line is forgotten, the same item as a test is not.
 
 ### Words to own
 
@@ -89,35 +86,26 @@ M18's handover asks for your incident history and your postmortems, because they
 
 ### Tradeoffs and gotchas
 
-**Mitigate before you diagnose, always.** The instinct of every engineer is to understand first. It is wrong during an incident, because users are being affected while you are being curious. Roll back, flip the kill switch, take the feature off the board. You will often lose the evidence by doing this, and that is an acceptable trade — take a copy of the logs and a screenshot of the dashboard first, then mitigate. The diagnosis can happen at leisure with nobody suffering.
+**Mitigate before you diagnose, always.** Users suffer while you are being curious. Save the logs and a screenshot, then roll back.
 
-**One person changes things.** Two people independently fixing the same incident produce a state nobody can reason about, and it is the single most common way a twenty-minute incident becomes a two-hour one. The commander grants the right to change, one change at a time, and the scribe records each one.
+**One person changes things.** Two people independently fixing one incident produce a state nobody can reason about — the commonest way twenty minutes becomes two hours.
 
-**Tell users early and say less than you know.** "We know payments are failing, we are working on it, next update in twenty minutes" costs you nothing and buys enormous goodwill. Silence makes students retry, which increases load, which makes everything worse — the retry storm from M05 chapter 8, generated by humans. You do not need a status-page product; a pinned post or a banner in your own app is a status page.
+**Tell users early and say less than you know.** "Payments are failing, next update in twenty minutes" costs nothing. Silence makes students retry, which is M05 chapter 8's retry storm generated by humans.
 
-**Blameless is a technique, not kindness.** The question is never "who deployed it" but "what allowed a change to reach production without being caught?" Human error is never a root cause; it is the thing a system is supposed to tolerate. If a postmortem concludes "we will be more careful", it has failed, because carefulness is not a mechanism and cannot be deployed. Replace it with an alert, a test, a guard, or a checklist item.
+**Blameless is a technique, not kindness.** The question is never "who deployed it" but "what allowed this to reach production uncaught?" A postmortem concluding "we will be more careful" has failed, because carefulness is not a mechanism. Prefer **contributing factors** to "root cause".
 
-**Prefer "contributing factors" to "root cause".** Real incidents need several things to be true at once: the key expired, *and* there was no expiry alert, *and* the error message was unclear, *and* nobody was watching on a Friday. Fixing one of four is weaker than you think, and naming all four shows you understood it.
+**Every action item needs an owner, a date and ideally a test.** "Improve monitoring" is not one; "add an alert for any credential expiring within fourteen days — Priya — 20 November" is.
 
-**Every action item needs an owner, a date and ideally a test.** "Improve monitoring" is not an action item. "Add an alert for any credential expiring within fourteen days — Priya — 20 November" is. And the item that closes the loop best is a chapter 6 regression test, because it keeps working after everyone forgets.
-
-**An on-call rota for three students with exams is a fiction, and pretending otherwise is the dishonest option.** Say instead: we respond during stated hours; outside them, the system must degrade politely rather than fail hard. That is achievable with M05 chapter 8's graceful degradation plus chapter 5's kill switches, and it is a far stronger answer in M18 than a rota nobody kept. Tell users your hours and keep them.
-
-**Spend the error budget deliberately.** M05 chapter 8 gave you the budget; this is the policy. When a month's budget is gone, you stop shipping features and spend the time on reliability instead. Writing that rule down before you need it is what stops it becoming an argument during the week you need it most.
+**An on-call rota for three students with exams is a fiction.** Say instead: we respond during stated hours, and outside them the system degrades politely rather than failing hard. A far stronger M18 answer than a rota nobody kept.
 
 ### Verify it
 
-Incident response is the one area where you verify your own process rather than AI's output, but AI will happily write you a postmortem, and the failure modes are specific.
+1. **Check the timeline is timestamped and was written live.** One reconstructed next day is tidier and less true.
+2. **Read the "how did we find out" line.** If a user told you, your top action item is detection, not the bug.
+3. **Find the two intervals, time to detect and time to mitigate.** No numbers means nothing to improve against.
+4. **Check every action item has a name and a date,** and that at least one is executable.
 
-1. **Check the timeline is timestamped and was written live.** A timeline reconstructed from memory the next day is always tidier and less true than the real one. Look for the awkward gaps; they are the honest parts.
-2. **Read the "how did we find out" line.** If it says a user told you, your top action item is detection, not the bug.
-3. **Find the two intervals: time to detect and time to mitigate.** A postmortem with no numbers has nothing to improve against next time.
-4. **Search the document for the word "careful", and for "human error".** Both are signs the analysis stopped early. Make it name the mechanism that would have caught it instead.
-5. **Check every action item has a name and a date.** Count the ones that do not; that count is how much of this postmortem will be forgotten.
-6. **Ask what would have happened if it had started at 3 a.m.** If the honest answer is "nothing until morning", then say so publicly and make the system degrade politely — do not pretend a rota exists.
-7. **Confirm at least one action item is executable** — a test, an alert, a guard — rather than a resolution.
-
-Red flags: a postmortem with "human error" as the cause; action items with no owner; no timeline; an alert that fires with no runbook attached; an incident where three people were changing things; users never told anything; no severity declared, so nobody knew whether to wake up; a mitigation attempted before any evidence was saved; and the same contributing factor appearing in two postmortems three months apart.
+Red flags: "human error" as the cause; action items with no owner; no timeline; an alert with no runbook; three people changing things at once; the same contributing factor in two postmortems.
 
 ## Walkthrough
 1. Write a severity scale with three levels for your own product. Define each in terms of user impact, not engineering difficulty: Sev-1 is payments or data loss, Sev-2 is a core feature broken, Sev-3 is degraded but usable. One line each.

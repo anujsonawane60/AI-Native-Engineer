@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: rest-graphql-grpc
 title: "REST, GraphQL and gRPC: Three Ways to Shape an API"
 order: 2
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,35 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-The canteen app's home screen needs six things: today's menu, the student's name, their wallet balance, their last order, whether the canteen is open, and three "order again" suggestions.
-
-An AI builds it the obvious way: six endpoints, six requests. On a laptop it loads instantly. On a budget Android phone on hostel 4G, each round trip costs about 300 milliseconds before any data moves, and the requests fire one after another because the suggestions need the last order first. Nearly two seconds of waiting, mostly spent on the network doing nothing.
-
-A second team hears "GraphQL fixes that", installs it, and now has one request — plus a query language, a schema, a caching problem they do not understand, and an endpoint where a single malicious query can ask for every order of every user and sit there for ninety seconds. They traded a slow screen for an outage.
-
-Neither problem is about the tool. Both are about choosing a shape without knowing what each shape is for.
+The canteen app's home screen needs six things: today's menu, the student's name, their wallet balance, their last order, whether the canteen is open, and three "order again" suggestions. An AI builds it the obvious way — six endpoints, six requests — instant on a laptop, nearly two seconds on hostel 4G where each round trip costs about 300 milliseconds before any data moves. A second team hears "GraphQL fixes that" and trades a slow screen for an outage: a query language nobody knows, and one malicious query that can ask for every order of every user.
 
 ### The idea
 
 **REST, GraphQL and gRPC are three answers to one question: who decides the shape of the response — the server, the client, or a compiled contract both sides share?**
 
-In REST the server decides. Each endpoint returns a fixed shape, and the client takes what it is given.
-
-In GraphQL the client decides. There is one endpoint, and the request itself describes exactly which fields it wants.
-
-In gRPC a shared contract file decides. Both sides compile code from the same definition, speak a compact binary format, and cannot drift apart without the build failing.
+In REST the server decides: each endpoint returns a fixed shape. In GraphQL the client decides: one endpoint, the request names the fields. In gRPC a shared contract decides: both sides compile from the same definition and cannot drift apart without the build failing.
 
 ### The analogy
 
-Three canteens.
+Three canteens. The first serves fixed thalis — thali 3 is rice, dal, two rotis, a sabzi, no swaps — so ordering is instant, but if you only want the dal you still carry the rice away: REST. At the second you fill in a slip — "rice yes, dal yes, roti no" — and get exactly that, but someone eventually asks for one of everything on the premises: GraphQL. The third is the kitchen-to-storeroom hatch, where two staff use clipped codes nobody outside understands because speed beats friendliness: gRPC.
 
-The first has a menu board with fixed thalis. Thali number 3 is rice, dal, two rotis and a sabzi. You cannot swap the sabzi. Ordering is instant, the kitchen is simple, and if you want only the dal you still carry the rice away. That is REST.
-
-The second has a counter where you fill in a slip: "rice yes, dal yes, roti no, sabzi yes, pickle yes". You get precisely what you asked for and nothing else. The slip takes longer to write, the kitchen has to be smarter, and someone eventually hands in a slip asking for one of everything on the premises. That is GraphQL.
-
-The third is the hatch between the kitchen and the storeroom. The two staff behind it use clipped codes nobody outside understands, because they work together fifty times an hour and speed matters more than friendliness. That is gRPC.
-
-**Where the analogy breaks:** a canteen's slip system cannot bankrupt the canteen. A single GraphQL query can genuinely take down a database, because the client is now writing part of your data access plan. Giving the caller that much power is a security decision, not just an ergonomics one.
+**Where the analogy breaks:** a slip cannot bankrupt the canteen. A single GraphQL query can take down a database, because the client is now writing part of your data access plan — a security decision, not an ergonomic one.
 
 ### Picture it
 
@@ -74,23 +58,11 @@ The third is the hatch between the kitchen and the storeroom. The two staff behi
 
 The same home screen fetched three ways: four separate fixed responses, one tailored response, or one compact binary call between two servers.
 
+Over-fetching is asking for too much; under-fetching hurts more. Fetch 20 orders, then the student's name for each: 1 + 20 = 21 requests, six seconds of spinner at 300 ms each, and the same pattern one layer down as 21 queries instead of one join (chapter 9). REST answers it with a purpose-built endpoint (`GET /api/orders?include=student`); GraphQL by nesting fields in one query.
+
 ### Where it lives
 
-All three sit in the same slot — the seam between client and server from chapter 1. What changes is who holds the pen.
-
-For your project in this program, the honest default is REST. It is what every free-tier platform gives you by default, what caching in M05 is designed around, what your browser's Network tab shows you plainly, and what AI produces most reliably because there is thirty years of it in the training data.
-
-GraphQL earns its place when one screen genuinely needs data from five places and you control both sides. Swiggy-style apps with dozens of screens and a mobile release cycle use it precisely because the client can change what it asks for without a server deploy.
-
-gRPC lives behind your own walls. Browsers cannot speak it directly without a proxy. Its home is one of your services calling another — which is chapter 5's territory, and M13 takes it further.
-
-### The N+1 request problem, which is the real enemy
-
-Over-fetching is asking for too much. Under-fetching is the opposite and it hurts more: you ask for the list, then make one more request per item in the list.
-
-Fetch 20 orders, then fetch the student's name for each one. That is 1 + 20 = 21 requests. At 300 ms of latency each on 4G, that is six seconds of a spinner. The same thing happens one layer down inside the database, where it becomes 21 queries instead of one join — chapter 9's subject.
-
-REST solves it by designing a purpose-built endpoint: `GET /api/orders?include=student`. GraphQL solves it by letting the client ask for nested fields in one query. gRPC solves it by making each call so cheap that twenty-one of them inside a data centre cost almost nothing. Three different answers to the same arithmetic.
+All three sit in the same slot — the client-server seam from chapter 1 — and what changes is who holds the pen. Your default is REST: every free tier gives it to you, M05's caching is designed around it, and AI produces it most reliably. GraphQL earns its place when one screen needs data from five places and you control both sides; gRPC lives behind your own walls, service to service (chapter 5).
 
 ### Words to own
 
@@ -109,27 +81,25 @@ REST solves it by designing a purpose-built endpoint: `GET /api/orders?include=s
 
 ### Tradeoffs and gotchas
 
-**Caching is REST's superpower and GraphQL's weakness.** `GET /api/menu` is one URL. A CDN can hold it, your browser can hold it, and M05's cache layers all work on it for free. Every GraphQL request is a `POST` with a different body, so none of that machinery applies and you have to build caching yourself, per field, inside the server.
+**Caching is REST's superpower and GraphQL's weakness.** `GET /api/menu` is one URL a CDN and a browser can both hold, so M05's cache layers work on it for free. Every GraphQL request is a `POST` with a different body, so you build caching yourself, per field, in the server.
 
-**An unprotected GraphQL endpoint is a loaded gun.** Depth limits, query cost limits and disabled introspection in production are not optional extras. A nested query asking for every order of every student, each with their orders again, is a valid query and a denial-of-service. If AI sets up GraphQL for you and never mentions depth or cost limits, it has given you a vulnerability, and M07 will make you fix it.
+**An unprotected GraphQL endpoint is a loaded gun.** Depth limits, cost limits and introspection off in production are not optional extras: a query asking for every order of every student, each with their orders again, is valid GraphQL and a denial-of-service.
 
-**gRPC does not work from a browser without extra machinery.** If AI suggests gRPC for your web frontend, it is wrong unless it also specified a proxy layer. Do not accept it.
+**gRPC does not work from a browser without extra machinery.** If AI suggests it for your web frontend without a proxy layer, reject it.
 
-**Three styles in one small project is a self-inflicted wound.** A REST endpoint here, a GraphQL endpoint there because one prompt mentioned it, and an RPC-shaped `POST /api/doThing` somewhere else. Each one has its own auth handling, its own error format and its own way of being wrong. On a team of three with four months, pick one and write it in your scope document.
-
-**"GraphQL is modern, REST is old" is not an engineering argument.** The real question is whether your clients need to vary what they fetch more often than you can deploy the server. For a three-person team shipping daily, they do not.
+**Pick one style and defend it with a number, not an adjective.** Three styles in one project means three auth handlings, three error formats and three ways of being wrong. And "modern versus old" is not an argument: the real question is whether your clients must vary what they fetch more often than you can deploy, which for a team shipping daily they do not.
 
 ### Verify it
 
-When AI proposes an API style, check five things.
+Five checks on any proposed API style.
 
-1. **Is one style used consistently across the project?** Grep your routes. If you find `/api/orders`, `/api/graphql` and `/api/getOrderDetails`, nobody is in charge of the design.
-2. **Count the round trips your worst screen needs.** Open the Network tab, load the heaviest screen, and count `fetch` rows. More than six for one screen on a mobile-first product is a design problem, whatever the style.
-3. **If it chose GraphQL, ask where the limits are.** Query depth limit, cost limit, introspection off in production, and a plan for the N+1 inside resolvers. No answer to all four means it has not actually done the job.
-4. **If it chose gRPC for a browser client, reject it.** Ask it directly: "can a browser call this without a proxy?" The honest answer is no.
-5. **Check that reads are cacheable.** A read that is a `POST` cannot be cached by anything, and in M05 you will wish it could.
+1. **Is one style used consistently?** Grep your routes; `/api/orders`, `/api/graphql` and `/api/getOrderDetails` together mean nobody designed this.
+2. **Count the round trips your worst screen needs.** Count `fetch` rows on your heaviest screen; more than six on a mobile-first product is a design problem.
+3. **If it chose GraphQL, ask where the limits are.** Depth limit, cost limit, introspection off, and a plan for N+1 in resolvers — anything missing means the job is not done.
+4. **If it chose gRPC for a browser client, reject it.** Ask directly: "can a browser call this without a proxy?" The answer is no.
+5. **Check that reads are cacheable.** A read sent as a `POST` cannot be cached by anything.
 
-Red flags: the recommendation arrives without being asked which screens exist; the words "flexible" and "modern" appear more often than any number; the AI switches style between two answers in the same conversation; a proposal to "expose the database directly through GraphQL so the frontend can query anything", which is chapter 14's nightmare wearing a tie.
+Red flags: a recommendation made without asking which screens exist; "flexible" and "modern" outnumbering any actual number; the AI switching style between two answers in one conversation; a proposal to "expose the database through GraphQL so the frontend can query anything" — chapter 14's nightmare wearing a tie.
 
 ## Walkthrough
 1. Pick the heaviest screen in your own product — the one that needs data from the most places. List every distinct piece of information it displays. Aim for a list of at least six.

@@ -4,7 +4,7 @@ module: m12-ship-apps-for-real
 slug: crash-reporting-mobile
 title: "Crash Reporting and Mobile Observability"
 order: 8
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,33 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your Play Store rating drops from 4.4 to 2.8 over nine days. The reviews are not detailed: "keeps closing", "not opening", "waste of time". One says "crashes when I press pay", which is the only useful sentence you have.
+Your Play Store rating drops from 4.4 to 2.8 over nine days. The reviews say "keeps closing", "not opening", "waste of time". One says "crashes when I press pay" — the only useful sentence you have. It works on your phone and your teammate's, because the crash happens on Android 10 on a particular manufacturer's build with 3 GB of RAM when the photo picker returns something your code did not expect. On a server you would have logs; on a phone you have nothing.
 
-You try it on your own phone. It works. You try it on your teammate's phone. It works. You cannot reproduce anything, because the crash happens on Android 10 on a specific manufacturer's build with 3 GB of RAM when the photo picker returns something your code did not expect, and you own none of those conditions.
-
-On your server you would have logs. On a phone you have nothing, because the phone is not your computer and nobody sends you its logs.
-
-So you install a crash reporter, and the reports start arriving. They look like this: a list of memory addresses and a frame called `anonymous`. No file name, no line number, nothing recognisable, because the JavaScript that shipped was minified and you never uploaded the map that translates it back. Eleven days of crash data that tells you nothing except that you are crashing.
-
-And then you fix it, you ship, and you cannot tell whether the fix worked — because nothing in your dashboard records which build each report came from.
+So you install a crash reporter, and the reports arrive as memory addresses and a frame called `anonymous`, because the JavaScript that shipped was minified and you never uploaded the map that translates it back. Then you fix it, ship, and cannot tell whether the fix worked, because nothing records which build each report came from.
 
 ### The idea
 
 **On mobile you cannot read the logs, so the app has to report its own failures — and a report is only useful if it names your code, names the build, and tells you how many people it happened to.**
 
-Those three properties are the whole chapter. Symbols turn addresses into file names and line numbers. A release tag ties each report to a specific version. And a rate — not a count — tells you whether this matters.
+Symbols turn addresses into file names and line numbers. A release tag ties each report to a version. And a rate, not a count, tells you whether it matters.
 
-The number to live by is **crash-free sessions**: the percentage of app opens that ended without a crash. Counts lie, because 200 crashes is terrible for 500 users and irrelevant for 500,000. A rate is comparable week to week and across releases.
+The number to live by is **crash-free sessions**: the percentage of app opens that ended without a crash. Counts lie — 200 crashes is terrible for 500 users and irrelevant for 500,000 — while a rate is comparable week to week and across releases.
 
 ### The analogy
 
-A canteen that only learns about problems when someone shouts at the counter learns about very few problems. Most people who get a bad plate simply do not come back and tell their friends instead.
+A canteen that only hears about problems when someone shouts at the counter hears about very few; most people with a bad plate just never come back. A complaints register by the exit gets the information — but an entry saying "food bad" is as useless as a stack trace with no symbols. You need the date, the counter, the dish and the batch. And the register must count plates served, because eleven complaints out of 2,000 is a different fact from eleven out of 30.
 
-A canteen with a complaints register placed where people leave gets the information. But a register entry saying "food bad" is as useless as a stack trace with no symbols. What you need is the date, the counter, the dish and the batch — which is a release tag, a screen name and a stack trace.
-
-And one more thing the register must do: count how many plates were served that day. Eleven complaints out of 2,000 plates is a different fact from eleven out of 30.
-
-**Where the analogy breaks:** a complaints register relies on a human choosing to write in it. A crash reporter fires automatically, from the user who would never have told you, which is exactly why it is worth more than all your reviews put together. The flip side is that automatic collection means you are collecting data about people who did not volunteer it — which is why the privacy half of this chapter is not optional.
+**Where the analogy breaks:** a register relies on a human choosing to write in it. A crash reporter fires automatically, from the user who would never have told you — which is why it beats all your reviews put together, and why the privacy half of this chapter is not optional.
 
 ### Picture it
 
@@ -72,23 +62,17 @@ And one more thing the register must do: count how many plates were served that 
 
 The phone sends an unreadable trace; the dashboard only turns it into a file name and a line number because your build pipeline uploaded the matching symbol files for that exact release.
 
-### What you are actually watching
-
-Three different kinds of failure, and they do not all look the same.
-
-**A native crash** kills the app process. The user sees it close. These appear in the crash dashboard and in Google Play's own Android vitals.
-
-**A JavaScript error** in React Native may crash the app or may just break one screen, leaving a white rectangle. These need the reporter's JavaScript integration and source maps, and they are the majority of what a React Native app produces.
-
-**An ANR** — Application Not Responding — is Android's complaint that your app stopped answering the main thread for several seconds. The user sees a frozen app and a system dialog. ANRs are not crashes and are easy to miss entirely, and on budget phones they are common.
-
-Google Play Console gives you **Android vitals**, which is field data from real users: crash rate, ANR rate, slow starts, excessive wakeups. This matters commercially as well as technically — exceed Google's bad-behaviour thresholds and your app can be demoted in Play Store search and recommendations. Your own crash reporter tells you *what* broke; Android vitals tells you how Google judges you for it.
-
 ### Where it lives
 
-The reporter is a library in your app plus a step in your build pipeline. The library part is five minutes. The pipeline part — uploading the symbol files on every release, automatically — is the part teams skip and then regret, and it belongs in the CI from M06 so that nobody has to remember.
+Three kinds of failure, which do not look the same:
 
-This is M07's error-tracking and observability chapter on a device instead of a server. The percentile thinking is the same; the difference is that you are measuring sessions on hardware you do not own. It also connects straight back to chapter 5: a crash reporter collects device identifiers and diagnostic data, so it must appear on your data safety declaration. And forward to chapter 6: the number you watch during a staged rollout, before widening from 5% to 20%, is the crash-free sessions rate you set up here.
+- **A native crash** kills the app process; the user sees it close.
+- **A JavaScript error** may crash the app or just break one screen, leaving a white rectangle. These need source maps and are the majority of what a React Native app produces.
+- **An ANR** (Application Not Responding) is Android's complaint that your app stopped answering the main thread for seconds. Not a crash, easy to miss, common on budget phones.
+
+Google Play Console also gives you **Android vitals**: field data from real users — crash rate, ANR rate, slow starts, excessive wakeups. Exceed Google's bad-behaviour thresholds and your app can be demoted in Play Store search. Your reporter tells you *what* broke; Android vitals tells you how Google judges you for it.
+
+The reporter is a library plus a step in your build pipeline. The library takes five minutes; uploading symbol files automatically on every release is what teams skip and then regret, so it belongs in M06's CI. A crash reporter collects device identifiers, so it must appear on chapter 5's data safety declaration, and crash-free sessions is the number you watch during chapter 6's staged rollout.
 
 ### Words to own
 
@@ -108,33 +92,29 @@ This is M07's error-tracking and observability chapter on a device instead of a 
 
 ### Tradeoffs and gotchas
 
-**A crash report with no symbols is close to worthless.** This is the single most common failure in this chapter. The upload of source maps and symbol files must happen automatically in your release pipeline, tied to the exact build, or it will be skipped on the release where it mattered. Verify it by deliberately crashing a release build and checking that the dashboard shows your file name.
+**A crash report with no symbols is close to worthless.** The upload of source maps and symbol files must happen automatically in your release pipeline, tied to the exact build, or it will be skipped on the release where it mattered.
 
-**No release tag means no learning.** Without a version on each report you cannot tell whether a crash is new, whether yesterday's fix worked, or whether the spike is from the 5% rollout. Tag the release and the build number, every time.
+**No release tag means no learning.** Without a version on each report you cannot tell whether a crash is new, whether yesterday's fix worked, or whether the spike came from the 5% rollout.
 
-**Breadcrumbs leak personal data by default.** Breadcrumbs often capture network requests, screen names and sometimes form content. If they record an email address, a phone number, a token or a UPI id, your crash dashboard has become a store of personal data you did not plan for, and a third party now holds it. Scrub them deliberately — and remember M07's consent rules and your chapter 5 declaration.
+**Breadcrumbs leak personal data by default.** They often capture network requests, screen names and sometimes form content. An email, a phone number, a token or a UPI id in there makes your crash dashboard a store of personal data held by a third party. Scrub them deliberately.
 
-**Free tiers have event quotas, so sample.** A crash loop can send tens of thousands of events in an hour and exhaust a free plan before you notice. Set a sampling rate for non-crash events, keep crashes at 100%, and check what your plan does when you hit the limit.
+**Free tiers have event quotas.** A crash loop can send tens of thousands of events in an hour: sample non-crash events, keep crashes at 100%.
 
-**Reports arrive late, usually on next launch.** A crash cannot be reported at the instant it happens because the app is dying. Expect a delay, especially from users who do not reopen quickly. Your dashboard is behind reality by hours.
+**Reports arrive late, usually on next launch**, so your dashboard is behind reality by hours. Development and simulator crashes will also outnumber real ones at first: separate the environments.
 
-**Development noise will drown the signal.** Crashes from your own development builds, from simulators and from your own testing will outnumber real ones at first. Separate environments so the production number stays honest.
-
-**ANRs need their own attention.** They do not appear as crashes and they happen most on the cheap phones your users carry. Watch the ANR rate in Android vitals specifically; it is usually a sign that something heavy is running on the main thread, which is chapter 9's subject.
+**ANRs need their own attention**, because they never appear as crashes. An ANR usually means something heavy is on the main thread — chapter 9's subject.
 
 ### Verify it
 
-**Red flag: a crash report with no symbols.** The test is simple and you should run it on purpose. Add a deliberate crash behind a hidden gesture in a release build, trigger it on a real phone, and look at the dashboard. If you see your own file name and line number, the pipeline works. If you see hex and `anonymous`, your symbol upload is broken, no matter what the setup guide said.
+**Red flag: a crash report with no symbols.** Add a deliberate crash behind a hidden gesture in a release build, trigger it on a real phone, and look at the dashboard. Your own file name and line number means the pipeline works; hex and `anonymous` means the symbol upload is broken, whatever the setup guide said.
 
-**Red flag: no release tag on reports.** Open any report and look for the version. If it is missing, blank, or the same string for every build, fix that before you ship anything else, because every conclusion you draw will be unattributable.
+**Red flag: no release tag on reports.** If the version is missing, blank or identical for every build, fix that first — every conclusion you draw will be unattributable.
 
-**Red flag: counts instead of rates.** If AI reports progress as "crashes went from 400 to 150", ask for crash-free sessions. A drop in count can simply mean fewer people opened your app. The rate is the number that corresponds to a user's experience, exactly as with p95 in M05.
+**Red flag: counts instead of rates.** If AI reports "crashes went from 400 to 150", ask for crash-free sessions. A drop in count can just mean fewer people opened your app. The rate is what corresponds to a user's experience, as with p95 in M05.
 
-**Red flag: personal data in breadcrumbs.** Trigger a crash while logged in, then read your own report line by line in the dashboard. Look for an email, a phone number, an auth token or anything identifying in the request URLs. Whatever you can see, your crash provider stores.
+**Red flag: personal data in breadcrumbs.** Trigger a crash while logged in, then read your own report line by line. Whatever you can see, your provider stores.
 
-**Red flag: a reporter installed but never tested.** A reporter you have never seen a report from is a reporter you cannot trust. The instrumentation itself must be verified on a real device before you depend on it, which is the same lesson as never trusting an AI's summary over running the check.
-
-**Red flag: AI telling you what to do about a crash before it has the stack trace.** Paste the symbolised trace and the breadcrumbs. If the suggestion arrives without them, you are getting pattern-matching on the word "crash", not diagnosis.
+**Red flag: AI telling you what to do about a crash before it has the stack trace.** Paste the symbolised trace and the breadcrumbs. Without them you are getting pattern-matching on the word "crash", not diagnosis.
 
 ## Walkthrough
 1. Add a crash reporting library to your Expo app and configure separate environments so your development crashes never mix with production.

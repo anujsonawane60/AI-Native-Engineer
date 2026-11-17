@@ -4,7 +4,7 @@ module: m15-content-social-automation
 slug: brand-voice-and-style
 title: "Brand Voice, Style Guides and Visual Consistency"
 order: 6
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,25 +22,34 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Three teammates run the accounts for three weeks. Then they scroll the feed together, in order, for the first time.
-
-Post 1: "Dear users, we are pleased to announce the launch of our new feature." Post 2: "guys this update is sooo good 🔥🔥 go check it out ✨". Post 3: "NEW UPDATE AA GAYA! Abhi try karo!!" Three voices, three people, one account.
-
-It gets worse below the words. Four accent colours, one of which is a violet nobody chose — it came with a template. Two fonts. Three different crops of the logo, one stretched. Screenshots in three different phone frames, one of an iPhone the users do not own. And the price appears as `Rs. 1800`, `₹1,800/-`, `1800 rupees` and `₹1800 per month` across four posts in the same week.
-
-Then a mentor asks a simple question — "what is the product called?" — and gets two different answers from two founders. The team has not been building a brand for three weeks. They have been building three.
+Three teammates run the accounts for three weeks, then scroll the feed together in order. Post 1: "Dear users, we are pleased to announce the launch of our new feature." Post 2: "guys this update is sooo good 🔥🔥 go check it out ✨". Post 3: "NEW UPDATE AA GAYA! Abhi try karo!!" Below the words it is worse: four accent colours, one a violet nobody chose because it came with a template, two fonts, three crops of the logo, and the price written as `Rs. 1800`, `₹1,800/-`, `1800 rupees` and `₹1800 per month` in one week. Then a mentor asks "what is the product called?" and gets two answers from two founders. The team has not been building a brand; they have been building three.
 
 ### The idea
 
 **A brand is a set of decisions, written down once, so that three people and one language model all make the same choice without asking.**
 
-M03 chapter 7 gave you `DESIGN.md` for the product's surface. This chapter's deliverable is its sibling: `VOICE.md`, covering how you sound and how your content looks everywhere outside the app. Both exist for the same reason — a decision that lives only in someone's head gets re-made differently every time, and a model that starts fresh every session will take the average unless you hand it the rules.
+M03 chapter 7 gave you `DESIGN.md` for the product's surface. This chapter's deliverable is its sibling, **`VOICE.md`**, covering how you sound and look everywhere outside the app. Both exist because a decision living only in someone's head gets re-made differently every time, and a model that starts fresh each session takes the average unless you hand it the rules. Eight sections, two screens — a twenty-page brand bible is a file nobody opens.
+
+| VOICE.md section | The decision it records | Example |
+|---|---|---|
+| Three voice traits | Each one a rule plus a do/don't pair | "Direct — the price in sentence one" |
+| Who we talk to | The single word for your reader | "Parents", never "users" |
+| Language policy | Which language, which script, when | Marathi captions, English site |
+| Naming and spelling | Exact product and feature names | Capitalised one way, forever |
+| Numbers and money | One format for price, time, date | `₹1,800`, `8:40 pm`, lakh not million |
+| Reading level and length | Ceilings per sentence and channel | Second-year student, second language |
+| Claims policy | What you may and may not assert | Ban "fastest in Nashik" in writing |
+| Eight bans | Prohibitions checkable by reading a draft | No emoji in headings, no ALL CAPS |
+
+Two rows carry most of the weight. Adjectives alone do nothing — "friendly" is the centre of the distribution, exactly like "modern" in M03 — so a trait is written as a rule with a pair: *Direct — we say the price in the first sentence. Do: "₹1,800 a month, delivered by 8 pm." Don't: "We're excited to share our affordable pricing!"* And the language policy names the one person who reads every non-English piece aloud before it ships, because machine translation produces grammatically correct sentences no real speaker would say.
+
+The visual half is more mechanical. Decide once: one accent colour from `DESIGN.md`, one typeface, one logo lockup, one screenshot treatment in a device frame your users actually hold. Then build one template per channel ratio — square and vertical for Instagram, vertical for Reels, wide for a link preview, fixed sizes for M12's store screenshots — with text inside the safe area away from platform controls.
 
 ### The analogy
 
-The canteen's handwritten price board. Same hand, same two marker colours, same layout for ten years: thali on the left, snacks on the right, prices in the same squared-off numerals with the rupee sign in the same place. You would recognise it from a photograph with the name cropped out. Nobody wrote a brand guide. One person wrote the board.
+The canteen's handwritten price board: same hand, same two marker colours, same layout for ten years — thali left, snacks right, prices in the same squared-off numerals. You would recognise it from a photograph with the name cropped out. Nobody wrote a brand guide; one person wrote the board.
 
-**Where the analogy breaks**, and it is the whole reason this chapter exists: that consistency came free because one hand did it. You have three hands and an AI collaborator whose memory resets with every conversation. Everything the canteen owner's hand did automatically, you have to externalise into written rules — otherwise your board is re-designed weekly by whoever is holding the marker.
+**Where the analogy breaks**, and it is the whole reason this chapter exists: that consistency came free because one hand did it. You have three hands and an AI collaborator whose memory resets every conversation, so everything that hand did automatically has to be externalised into written rules — otherwise your board is re-designed weekly by whoever holds the marker.
 
 ### Picture it
 
@@ -62,39 +71,9 @@ The canteen's handwritten price board. Same hand, same two marker colours, same 
 
 One written decision set feeds every surface, so the website, the social posts and the app-store listing agree on your name, your price format and your single accent colour without anyone having to remember.
 
-### What goes in VOICE.md
-
-Eight sections. The whole file should fit on two screens, because a twenty-page brand bible is a file nobody opens.
-
-**1. Three voice traits, each written as a rule with an example pair.** Adjectives alone do nothing — "friendly" is the centre of the distribution, exactly like "modern" in M03. Write it as: *Direct — we say the price in the first sentence. Do: "₹1,800 a month, delivered by 8 pm." Don't: "We're excited to share our affordable pricing!"* Three traits, three pairs.
-
-**2. Who we are talking to, and what we call them.** If your audience is parents, "users" is wrong. Pick the word and never vary it.
-
-**3. Language policy.** Which languages you publish in, in which script, and when. For example: English for the website, Marathi for Instagram captions in Nashik, Hinglish only where users actually speak it. And a rule with a name attached — one specific person reads every non-English piece aloud before it ships, because machine translation produces grammatically correct sentences no real speaker would say.
-
-**4. Naming and spelling.** Your product's exact name, exactly capitalised. What you call each feature, once, forever. What you never call it.
-
-**5. Numbers and money.** `₹1,800` — symbol, comma, no `/-`, no `Rs.`. Times as `8:40 pm`. Lakh and crore for Indian audiences, not million. Dates in one format. This is the most boring section and the one that fixes the most visible inconsistency.
-
-**6. Reading level and length ceilings.** "A second-year student reading in their second language." A sentence-length ceiling. A caption-length ceiling per channel.
-
-**7. Claims policy.** What you may say about the product and what you may not. "Fastest in Nashik" is a claim you cannot support, so ban it in writing before an AI generates it for you.
-
-**8. Eight bans.** Each checkable by reading a draft: no emoji in headings; no ALL CAPS; no exclamation marks in the website copy; no "revolutionary", "seamless" or "game-changing"; no superlative we cannot prove; never more than one accent colour; no stock photos of people; no abbreviation of the product name.
-
-### Visual consistency across channels
-
-The visual half is shorter and even more mechanical. Decide once: one accent colour, carried from `DESIGN.md`; one typeface, which should be the product's; one logo lockup with a minimum size and clear space; one screenshot treatment, in a device frame your users actually hold; one photographic look, if you shoot photos.
-
-Then the per-channel mechanics. Each surface has its own aspect ratios — square and vertical for Instagram, vertical for Reels and Shorts, wide for a link preview card, and specific fixed sizes for app-store screenshots from M12. Make a template for each ratio once, with the text inside a safe area away from the edges where platform controls sit. Keep one naming convention for files so that three people can find yesterday's asset.
-
-This is not decoration. It is the difference between a stranger recognising your second post because they saw your first, and your second post looking like a different company.
-
 ### Where it lives
 
-`DESIGN.md` from M03 chapter 7 covers the product's interface; `VOICE.md` covers everything else, and the two must agree on colour and type. M03 chapter 8's method — references, constraints, bans — is the same method applied to words here.
-
-Downstream, this file is an input to almost everything that follows. Chapter 5's briefs paste the bans. Chapter 7 generates imagery against the visual kit. Chapter 8's scheduler adapts one piece per channel while keeping the voice fixed. Chapter 9's repurposing is only safe because the voice does not change between formats. M12's store listing is one more surface this file governs. And at M11's checkpoint, "why does your brand sound like this?" has a real answer: because of these three traits, for these users, in these languages.
+`DESIGN.md` covers the product's interface, `VOICE.md` covers everything else, and the two must agree on colour and type. Downstream it feeds nearly everything: chapter 5's briefs paste the bans, chapter 7 generates imagery against the visual kit, chapter 8's scheduler adapts per channel while the voice stays fixed, and chapter 9's repurposing is only safe because the voice does not change between formats.
 
 ### Words to own
 
@@ -115,35 +94,29 @@ Downstream, this file is an input to almost everything that follows. Chapter 5's
 
 ### Tradeoffs and gotchas
 
-**Voice is constant; tone moves.** The same voice sounds different announcing a feature and apologising for four hours of downtime. If your voice document cannot express a sober apology, it is a costume rather than a voice.
+**Voice is constant; tone moves.** The same voice sounds different announcing a feature and apologising for four hours of downtime. A voice document that cannot express a sober apology is a costume.
 
-**Two screens, not twenty pages.** Length is the enemy of use. Everything in the file must be something a teammate will actually check against.
-
-**Adjectives without example pairs are decoration.** "Friendly, approachable, trustworthy" describes nearly every brand on earth and constrains nothing. The do/don't pair is the part that carries the instruction.
-
-**Consistency is not monotony.** Rules on format, naming, money and bans. Freedom inside them on what you actually say. If the file dictates sentence structure you will sound like a form.
+**Consistency is not monotony.** Rules on format, naming, money and bans; freedom inside them on what you actually say. A file that dictates sentence structure makes you sound like a form.
 
 **A regional language is a voice, not a translation.** Your Marathi presence needs its own example pairs, written by someone who speaks it. Translating your English voice word for word produces something stiff and faintly wrong.
 
-**Beware the template's defaults.** The violet nobody chose arrived with a free template, exactly as M03 chapter 8 described. Open every new template and replace its colours before you use it once.
+**Beware the template's defaults.** The violet nobody chose arrived with a free template, exactly as M03 chapter 8 described. Open every new template and replace its colours before using it once.
 
-**Review it after six weeks of real posting.** The first version is a guess. The second is informed by what you actually found yourself writing.
+**Review the file after six weeks of real posting.** The first version is a guess; the second is informed by what you found yourself writing.
 
 ### Verify it
 
-**Red flag: a voice document made only of adjectives.** If every line is a word like "friendly" and there is not a single do/don't pair, nothing in it is checkable and AI will ignore it.
+**Red flag: a voice document made only of adjectives.** Every line a word like "friendly" and not one do/don't pair means nothing in it is checkable, and AI will ignore it.
 
-**Red flag: the grid test fails.** Screenshot your last nine posts as a three-by-three grid. Cover the account name. Could a stranger tell these are one company? Then put a competitor's nine posts beside yours and check whether anyone could tell them apart.
+**Red flag: the grid test fails.** Screenshot your last nine posts as a three-by-three grid and cover the account name. Could a stranger tell these are one company? Count the distinct accent colours while you are there: more than one means the kit is being ignored.
 
 **Red flag: more than one way to write the price.** Search your own channels for your price and count the formats. Four formats means the file does not exist or nobody reads it.
 
-**Red flag: more than one accent colour.** Count the colours competing for attention across your last ten assets. More than one means the kit is being ignored.
-
-**Red flag: AI "applying your voice" by adding enthusiasm.** Give it a paragraph and your `VOICE.md` and ask for a rewrite. If the only change is more exclamation marks and a friendlier opener, it read your adjectives and skipped your rules. Ask it to cite which rule caused each change.
+**Red flag: AI "applying your voice" by adding enthusiasm.** Give it a paragraph and your `VOICE.md`. If the only change is more exclamation marks and a friendlier opener, it read your adjectives and skipped your rules. Ask it to cite which rule caused each change.
 
 **Red flag: a non-English post nobody read aloud.** If the person named in your language policy did not read it, it did not pass the gate.
 
-**Red flag: a claim you cannot support.** Search your own copy for superlatives — fastest, best, cheapest, only — and check each one against evidence you could show a user.
+**Red flag: a claim you cannot support.** Search your copy for superlatives — fastest, best, cheapest, only — and check each against evidence you could show a user.
 
 ## Walkthrough
 1. Collect your last fifteen published items — posts, captions, website sections, emails — into one document in the order they went out. Read them in sequence.

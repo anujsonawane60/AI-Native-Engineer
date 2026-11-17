@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: harnesses-compared
 title: "Harnesses Compared, and Rules Files, Skills, Sub-Agents and Hooks"
 order: 18
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: high
@@ -22,73 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A three-person team, three different harnesses. Every session, all three of them re-type the same three sentences: prices are stored in paise and never rupees, do not touch the student-facing menu page, run the test suite before claiming anything is done.
+A three-person team, three different harnesses. Every session all three re-type the same sentences: prices are in paise, not rupees; do not touch the student-facing menu page; run the tests before claiming to be done. Sometimes they forget, and a price displays as ₹0.40.
 
-Sometimes they forget. The agent then does the reasonable thing with the information it has, and a price displays as ₹0.40.
-
-The linter is worse. They ask for it every single time. It gets run maybe half the time, because an instruction in a conversation is a request and the agent has forty other things in its context by step twelve.
-
-Then one of them goes home for Diwali, and the other two discover that everything about how this project is worked on lived in that person's head and that person's chat history. Nothing was written down anywhere a new teammate — or a new session — could find it.
+The linter is worse: they ask every time and it runs maybe half the time, because an instruction in a conversation is a request. Then one of them goes home for Diwali, and the other two discover that everything about how this project is worked on lived in that person's head.
 
 ### The idea
 
-**Everything you repeat to an agent belongs in a file. Four kinds of file do four different jobs: rules are always loaded, skills load when relevant, sub-agents are scoped workers, and hooks are deterministic code that runs whether the agent cooperates or not.**
+**Everything you repeat to an agent belongs in a file. Four kinds do four jobs: rules are always loaded, skills load when relevant, sub-agents are scoped workers, and hooks are deterministic code that runs whether the agent cooperates or not.**
 
-The fourth one is the one that changes how you build. The first three are instructions, and instructions are requests. A hook is code, and code is a guarantee.
+The fourth changes how you build: the first three are instructions, and instructions are requests. A hook is code, and code is a guarantee.
 
 ### The analogy
 
-The canteen manages its knowledge four ways.
+The canteen manages knowledge four ways: **rules on the wall**, short and always visible; **procedure cards in a drawer**, pulled out the day the fryer needs cleaning; **a specialist called in for the sweets**, who never touches the gravies; and **a gas timer that cuts off at ten**, which is not a rule or a request.
 
-**Rules on the wall.** Short, always visible, everyone has read them. Wash hands. Prices as marked. No credit.
-
-**Procedure cards in a drawer.** Three pages on how to clean the deep fryer, pulled out on the day it needs cleaning. Nobody reads them daily, and nobody wants them on the wall.
-
-**A specialist called in for the sweets.** Comes for one job, with their own equipment, does not touch the gravies.
-
-**A gas timer that cuts off at ten.** Not a rule, not a request. It happens at ten whether anybody remembers, agrees or is even present.
-
-**Where the analogy understates the point:** staff can ignore the wall and skip the procedure card, and sometimes do. A gas timer cannot be argued with. That asymmetry is the whole reason hooks matter more than the other three combined for anything that must not be skipped.
-
-### Rules file: the persistent system prompt
-
-A file in your repository that the harness loads into every session. Chapter one's system prompt, made permanent and shared with your team.
-
-What belongs in it: the stack and versions; the exact commands for install, test, lint and run; conventions that are not guessable, like paise rather than rupees; the off-limits directories; and the definition of done — "run the test suite and the linter before reporting completion".
-
-What does not belong: everything. A four-thousand-word rules file has chapter one's contradiction problem and chapter five's cost problem at once, on every call. Keep it short enough that every line is tested and true. Most good ones are under a page.
-
-Two tiers are usually available: a **project** file committed to the repository, which is the team's shared agreement, and a **personal** file that is not, for your own preferences. Your taste for verbose explanations is not your team's convention.
-
-This is where M01's PRD lands. M00 promised the brief's CONTEXT and CONSTRAINTS would become a rules file so you stop retyping them; this is that file.
-
-### Skills: loaded when relevant
-
-A named bundle of instructions with a short description. The description is always visible; the body loads only when the task matches it. Progressive disclosure: the agent always sees "migrations — how this project changes the schema", and reads the three hundred words only when a migration is happening.
-
-This is what keeps your rules file small. Anything that is a *procedure used sometimes* — how you write a pull request description, how you run a migration, how you ingest a new document type from chapter nine — is a skill rather than a rule.
-
-The failure mode is a vague description. If it does not say clearly when to use this, it never loads, and you will conclude that skills do not work.
-
-### Sub-agents: chapter fifteen as configuration
-
-A named worker defined in a file: its own prompt, its own tool list, sometimes its own model. You are buying the same two things as in chapter fifteen — context isolation and tool scoping.
-
-The practical win is a reviewer sub-agent with read-only tools. It cannot change what it reviews, by construction, which beats asking it not to. Check the tool list you gave it; a sub-agent is easy to assume is more restricted than it is.
-
-### Hooks: the guarantee
-
-Code that fires on an event. The common ones: before a tool runs, after a file is edited, when a session ends, when the agent thinks it has finished.
-
-Three things hooks do that nothing else can.
-
-**They make a step unskippable.** A post-edit hook running the formatter runs every time. The linter problem from the opening story disappears permanently, with no instruction involved.
-
-**They can block.** A pre-tool hook can inspect a proposed command and refuse it — "no command containing `--force`", "no writes outside `src/`". That is chapter seven's structural defence, implemented at the precision you need.
-
-**They produce a record.** A hook appending every tool call to a log gives you the trace M07 wants, independent of the harness.
-
-Hooks are also the mechanism behind chapter nineteen. "The agent runs the test suite and must not report success unless it passes" is a hook, not a hope.
+**Where the analogy understates the point:** staff can ignore the wall and skip the card. A gas timer cannot be argued with, and that asymmetry is why hooks matter more than the other three combined.
 
 ### Picture it
 
@@ -112,35 +60,34 @@ Hooks are also the mechanism behind chapter nineteen. "The agent runs the test s
   └──────────────┘                       the agent's action
 ```
 
-Four surfaces, ordered by how certainly they take effect. Choose by that column: anything that must happen is a hook, and anything else can be text.
+Four surfaces, ordered by how certainly they take effect. Anything that must happen is a hook; the rest can be text.
 
-### Comparing harnesses
+| Surface | When it loads | What it is for |
+|---|---|---|
+| Rules file | Always | The stack, the exact commands, unguessable conventions, off-limits directories, the definition of done |
+| Skill | When its description matches | A procedure used sometimes: a migration, a pull request description |
+| Sub-agent | When invoked, with its own prompt and tools | Context isolation and tool scoping — a read-only reviewer cannot change what it reviews |
+| Hook | On an event, as code | Making a step unskippable, blocking a command, producing a record |
 
-Compare on axes, not features, because feature lists change monthly and the axes do not.
-
-**Where it runs** — terminal, inside an editor, or in the cloud on a pull request. This decides whether it can run unattended.
-
-**Permission granularity** — three buckets, or pattern matching on specific commands? The difference between a usable allowlist and approval fatigue.
-
-**Configuration surface** — which of the four does it have? A harness with hooks can enforce; one without can only ask.
-
-**MCP support** — can you bring chapter sixteen's servers, or only built-ins?
-
-**Automatability** — is there a non-interactive mode for CI? That is how chapter twelve's eval set and chapter nineteen's verification run without a human.
-
-**Committable configuration** — can the whole setup live in the repository, so three teammates get identical behaviour? If not, you are back to knowledge in heads.
-
-**Cost model** — per token, per seat, or a free tier with limits.
-
-### Tools today
-
-As this is written: Claude Code runs in the terminal and has the fullest configuration surface — rules, skills, sub-agents, hooks, MCP. Codex CLI is the terminal agent from OpenAI. Cursor is editor-first with strong inline editing and rules support. Gemini CLI is a terminal agent with a generous free tier. Several editors ship their own agent modes. All of these will have changed by the time you read this; the axes above will not.
+A rules file is chapter one's system prompt made permanent and shared, so keep it under a page: four thousand words carries chapter one's contradiction problem and chapter five's cost problem on every call. Hooks do three things nothing else can — a post-edit formatter hook runs *every* time, so the linter problem disappears; a pre-tool hook refuses any command containing `--force`; and a hook logging tool calls gives you M07's trace.
 
 ### Where it lives
 
-All four surfaces are files in your repository, reviewed in pull requests exactly as M01 taught. That is the point: your team's working agreement becomes a reviewable artefact rather than three people's habits.
+All four surfaces are files in your repository, reviewed in pull requests as M01 taught, so the team's working agreement becomes a reviewable artefact rather than three people's habits. Hooks bridge to chapter nineteen. Compare harnesses on axes, because feature lists change monthly and these do not.
 
-Hooks are the bridge to chapter nineteen, which builds the repository an agent can verify itself in. M06's CI is where the non-interactive mode runs.
+| Axis | The question |
+|---|---|
+| Where it runs | Terminal, editor, or cloud on a pull request — decides if it can run unattended |
+| Permission granularity | Three buckets, or patterns on specific commands? Allowlist versus approval fatigue |
+| Configuration surface | Which of the four? With hooks it can enforce; without, only ask |
+| MCP support | Can you bring chapter sixteen's servers, or only built-ins? |
+| Automatability | A non-interactive mode, so evals run in CI? |
+| Committable configuration | Can the setup live in the repo, so teammates behave identically? |
+| Cost model | Per token, per seat, or a limited free tier |
+
+### Tools today
+
+As this is written: Claude Code runs in the terminal with the fullest configuration surface — rules, skills, sub-agents, hooks, MCP. Codex CLI is OpenAI's terminal agent, Cursor is editor-first, Gemini CLI has a generous free tier, and several editors ship their own agent modes. All of this will have changed by the time you read it; the axes will not.
 
 ### Words to own
 
@@ -159,33 +106,24 @@ Hooks are the bridge to chapter nineteen, which builds the repository an agent c
 
 ### Tradeoffs and gotchas
 
-**A bloated rules file is worse than a short one.** Every line competes for attention and costs tokens on every call. If a line has never changed an outcome, delete it — measure by deleting, as chapter one taught.
+**A bloated rules file is worse than a short one.** Every line competes for attention and costs tokens on every call, so a line that never changed an outcome should go.
 
-**Skills with vague descriptions never load.** "Database stuff" does not trigger. "Use when adding or altering a table, or writing a migration" does. The description is the trigger, so write it as a condition.
+**Skills with vague descriptions never load.** "Database stuff" does not trigger; "use when adding or altering a table" does. The description *is* the trigger.
 
-**Slow hooks hurt, because hooks run often.** A post-edit hook running your whole test suite on every save makes the agent unusable. Format and lint on edit; test on completion.
+**Slow hooks hurt, because hooks run often** — format and lint on edit, test on completion. They are also a liability as well as a control: a hook in a repository runs on your teammate's machine, so review changes as seriously as a dependency bump.
 
-**Hooks are code, which makes them a liability as well as a control.** A hook in a repository runs on your teammate's machine when they open the project. Review hook changes as seriously as a dependency change.
-
-**Do not port your setup; port your files.** Switching harnesses is cheap if your knowledge is in rules, skills and hooks, and expensive if it is in a settings panel and your memory.
-
-**Configuration is not a substitute for the permission layer.** A rules file saying "never push to main" is text. A pre-tool hook that blocks it, plus branch protection from M01, is the real thing.
+**Do not port your setup; port your files.** And configuration is no substitute for the permission layer: "never push to main" is text, while a pre-tool hook plus branch protection is real.
 
 ### Verify it
 
-**The silent-session test, which is the only one that matters.** Start a brand-new session. Say nothing about your conventions. Ask for one small real change. Then check: did it use paise, did it stay out of the forbidden directory, did it run the tests and the linter before claiming to be done? Whatever it got right, your files taught it. Whatever it got wrong is still living in your head, and you have just found your next rules-file line.
+- **The silent-session test, the only one that matters.** Start a new session, say nothing about your conventions, ask for one small change. Did it use paise, avoid the forbidden directory, and run the tests before claiming to be done? What it got right, your files taught it; what it got wrong still lives in your head.
+- **Delete a line from your rules file and re-run the test.** No change means it was costing tokens for nothing.
+- **Check every hook fires.** Make a trivial edit and confirm the formatter ran; a typo in a matcher fails silently.
+- **Try the forbidden thing.** Ask for the command your pre-tool hook should block; if it runs, you have an instruction, not a control.
+- **Read your sub-agents' tool lists** and confirm the reviewer really is read-only.
+- **Hand the repository to a teammate on a different harness.** What survives is what was written down.
 
-**Delete a line from your rules file and re-run the test.** If nothing changes, that line was costing you tokens on every call for nothing.
-
-**Check every hook actually fires.** Make a trivial edit and confirm the formatter ran. A hook with a typo in its matcher fails silently, and you will trust a guarantee you do not have.
-
-**Try to do the forbidden thing.** Ask the agent to run the command your pre-tool hook should block. If it runs, you have an instruction, not a control.
-
-**Read your sub-agents' tool lists** and confirm the read-only reviewer is genuinely read-only.
-
-**Hand your repository to a teammate on a different harness.** What survives the switch is what was written down.
-
-Red flags: the same three conventions re-typed every session; a rules file nobody has read in two months; a rules file longer than a page; a skill that has never loaded; a hook that has never fired; a sub-agent with wider tools than you assumed; configuration that is not committed; and a critical rule that exists only as text when a hook could enforce it.
+Red flags: the same conventions re-typed every session; a rules file nobody has read, or longer than a page; a skill that has never loaded; a hook that has never fired; a sub-agent with wider tools than you assumed; uncommitted configuration; a critical rule left as text when a hook could enforce it.
 
 ## Walkthrough
 1. Open a chat history from the last week and list every instruction you typed more than once. That list is your configuration backlog, in priority order.

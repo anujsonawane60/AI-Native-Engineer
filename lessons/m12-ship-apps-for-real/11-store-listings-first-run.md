@@ -4,7 +4,7 @@ module: m12-ship-apps-for-real
 slug: store-listings-first-run
 title: "Store Listings, Screenshots and the First-Run Experience"
 order: 11
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: high
@@ -22,35 +22,27 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your app is live. Over a fortnight, 1,100 people reach your Play Store page. 44 install it.
+Your app is live. Over a fortnight 1,100 people reach your Play Store page and 44 install it.
 
-You look at the page for the first time as a stranger would. The title is your product name, which means nothing to anybody. The short description says "A React Native app for canteen ordering built with Supabase". The five screenshots are raw screen captures, in order: an empty list, the login screen, a settings page, a form with placeholder text, and one actual useful screen at position five, which nobody scrolled to. There is no feature graphic. The full description begins "In today's fast-paced world".
+Look at the page as a stranger would. The title is your product name, which means nothing to anybody. The short description says "A React Native app for canteen ordering built with Supabase". The screenshots are raw captures: an empty list, the login screen, a settings page, and one useful screen at position five that nobody scrolled to.
 
-Nothing on that page tells a hungry student that she can order her lunch without standing in the 1:10 pm queue.
-
-Then look at the 44 who did install. 31 of them never complete a single order. The app opens on a sign-up screen. Before showing anything at all it asks for a phone number, an OTP, a name, and notification permission. The first screen a new user sees after all that is an empty list saying "No orders yet", which is technically true and completely useless. They have given you four pieces of information and received nothing.
-
-Two separate funnels, both leaking, and neither leak is a code bug.
+Now the 44 who installed: 31 never complete an order. The app opens on a sign-up screen asking for a phone number, an OTP, a name and notification permission before showing anything, and the first screen after all that is an empty list saying "No orders yet". Two funnels, both leaking, and neither leak is a code bug.
 
 ### The idea
 
 **Your store listing and your first thirty seconds are one continuous funnel, and both are read by someone standing in a queue with one hand free.**
 
-That person gives your listing about four seconds before deciding to scroll on. She gives your first screen about ten more. In that time she is answering exactly one question — "will this do something for me?" — and every element that is not answering it is in the way.
-
-Two rules cover nearly everything:
+She gives your listing about four seconds before scrolling on, and your first screen about ten more, answering one question — "will this do something for me?" Everything else is in the way.
 
 **Lead with the user's outcome, in their words.** Not what the app is, not how it was built. "Order your canteen lunch, skip the queue" beats any sentence containing the word "platform".
 
-**Give before you ask.** The user should see your product working, with real content, before you request an account, a permission or a payment. Every ask moved after the first value raises completion dramatically.
+**Give before you ask.** The user should see your product working, with real content, before you request an account, a permission or a payment.
 
 ### The analogy
 
-The canteen's board outside answers one question for someone walking past: what can I eat, and for how much. Not "established 2019", not "a modern multi-cuisine dining solution". A photo of a thali and "₹60, ready in 2 minutes".
+The canteen's board answers one question for someone walking past: what can I eat, and for how much. Not "established 2019", not "a modern multi-cuisine dining solution" — a photo of a thali and "₹60, ready in 2 minutes". Then the counter: a good one puts a plate in your hand and takes your money after; a bad one asks for your student ID first.
 
-Then the first thirty seconds at the counter. A good counter puts a plate in your hand and takes your money after. A bad counter asks for your student ID, your registration number and your phone number before telling you what is available today.
-
-**Where the analogy breaks:** the board is seen by people already walking past the canteen, so they have some context. Your store page is seen by someone who has never heard of you, scrolling a list of nine similar apps, with no idea what category your product is in. You get less context and less patience than any physical signboard, which is why the first line has to do all the work.
+**Where the analogy breaks:** the board is read by people already walking past, so they have context. Your store page is read by someone who has never heard of you, scrolling nine similar apps — less context and less patience than any signboard, so the first line has to do all the work.
 
 ### Picture it
 
@@ -74,29 +66,18 @@ Then the first thirty seconds at the counter. A good counter puts a plate in you
 
 Two measurable drop-offs — install rate from the listing and activation rate inside the app — sit back to back, and each has a specific cause you can see by looking at the page and the first screen as a stranger.
 
-### What a listing is made of
-
-Both stores give you a small set of slots, and each has one job.
-
-**App name**, roughly 30 characters. Your name plus the outcome, if it fits: "Tiffin — Canteen Orders". This is also the strongest signal for store search, so the words a user would actually type belong here.
-
-**Short description**, about 80 characters on Play. This is the one line shown before anyone taps "read more", and it is the single highest-value piece of copy you will write in this module. One outcome, no adjectives.
-
-**Screenshots**, two to eight, and the first two are what almost everyone sees. Treat them as a comic strip: each one is a real screen with a short caption added above or below saying what the user achieves there. Never a raw capture, never the login screen, never an empty state. Screenshot one should be your product's single best moment.
-
-**Feature graphic** on Play, a wide banner. Many student teams skip it, and skipping it makes the page look abandoned.
-
-**Full description.** Read by a minority. Lead with three lines of outcome, then a short list of what it does, then the practical details — works on slow networks, works offline, available in Hindi and Marathi. Those last three are genuine selling points to your users and nobody else mentions them.
-
-**Localised listings.** You can supply the whole set per language. A Marathi-speaking user searching in Marathi will not find an English-only listing, which is a direct consequence of chapter 10's work.
-
 ### Where it lives
 
-The listing lives in the store console, which means chapter 5 is its neighbour: the same console, the same account, and a listing change can be submitted independently of a build. The screenshots must come from the accessible, localised, performant app you built in chapters 9 and 10, taken on a real device.
+The listing lives in the store console, so chapter 5 is its neighbour: same account, and a listing change can be submitted independently of a build. Each slot has one job:
 
-The first-run experience lives in your app, and it is where everything in this module meets. The deferred permission from chapter 7, the offline-tolerant first screen from chapter 4, and the notification ask from chapter 3 all belong *after* the first value, not before it.
+- **App name**, about 30 characters — your name plus the outcome: "Tiffin — Canteen Orders". Also the strongest store-search signal.
+- **Short description**, about 80 characters on Play — the line shown before "read more", and the highest-value copy in this module. One outcome, no adjectives.
+- **Screenshots**, two to eight, of which almost everyone sees the first two. A real screen plus a caption saying what the user achieves there. Never a login screen; screenshot one is your best moment.
+- **Feature graphic** on Play — skipping it makes the page look abandoned.
+- **Full description** — three lines of outcome, then what it does, then the practical details: slow networks, offline, Hindi and Marathi. Nobody else mentions those.
+- **Localised listings**, the whole set per language: chapter 10 paying off.
 
-And the numbers you create here are the input to M16. Store conversion and activation rate are the first two steps of the funnel that module teaches you to analyse properly; instrumenting them now means that in M16 you have real data instead of a blank dashboard.
+Screenshots come from the accessible, localised app of chapters 9 and 10, on a real device. The first run is where the module meets: chapter 7's deferred permission, chapter 4's offline-tolerant first screen and chapter 3's notification ask all belong *after* the first value. Store conversion and activation are also M16's first funnel steps.
 
 ### Words to own
 
@@ -115,33 +96,29 @@ And the numbers you create here are the input to M16. Store conversion and activ
 
 ### Tradeoffs and gotchas
 
-**Do not oversell in screenshots.** A screenshot showing features you do not have earns an install and then a one-star review, and your rating is far harder to repair than your install rate. Show your best real moment, not an imagined one.
+**Guest mode is usually right, and sometimes it is not.** Letting a user browse and reach value before signing up is the biggest first-run improvement most products have. If your product is personal from the first tap, ask for the minimum — one field, not four.
 
-**Guest mode is usually the right answer, and sometimes it is not.** Letting a user browse and reach value before signing up is the single biggest first-run improvement available to most products. But if your product is inherently personal from the first tap, the honest fix is different: ask for the minimum — one field, not four — and explain in one line what they get.
+**Ask for one thing at a time, in order of value received.** Account when they need to save something, notification permission after the first order, location when they tap "find nearest".
 
-**Ask for one thing at a time, in order of value received.** Account when they need to save something. Notification permission after their first order. Location when they tap "find nearest". Chapter 3 and chapter 7 both said this; the first-run screen is where it is most often violated.
+**Empty states are a teaching opportunity you are wasting.** "No orders yet" tells the user nothing. "You have not ordered yet — today's thali is ₹60, tap below" makes an empty screen the first useful thing they saw.
 
-**Empty states are a teaching opportunity you are wasting.** "No orders yet" tells the user nothing. "You have not ordered yet — today's thali is ₹60, tap below" turns an empty screen into the first useful thing they saw.
+**Never ask for a rating on first launch**, which reliably collects one-star ratings from people who have not used your product. Do reply to reviews, including angry ones: a reply naming the fix and its version is read by every future visitor.
 
-**Never ask for a rating on first launch.** It is the most reliable way to collect one-star ratings from people who have not used your product. Ask after a successful outcome, at most once, and never during.
-
-**Reply to reviews, including the angry ones.** Both stores let you reply publicly, and a specific reply naming the fix and the version it shipped in is read by every future visitor to your page. It is also, frequently, how you learn about the bug that chapter 8 should have caught.
-
-**Store policies on listing content change, and so do asset sizes.** Image dimensions, character limits, rules about what may appear in a screenshot, and restrictions on words like "best" or "free" all move. Read the console when you write the listing, which is why this chapter carries a high-volatility tag.
+**Listing policies and asset sizes change** — image dimensions, character limits, restrictions on words like "best" or "free". Read the console when you write the listing; hence the high-volatility tag.
 
 ### Verify it
 
-**Red flag: a listing written for the developer.** Scan your own copy for framework names, architecture words and anything a user would not say: "React Native", "platform", "solution", "seamless", "leveraging". Every one of those is a slot that should have held an outcome. Then run the real test: show the page to someone outside your team for four seconds, take it away, and ask what the app does. If they cannot say, the listing has failed regardless of how it reads to you.
+**Red flag: a listing written for the developer.** Scan your copy for framework names and words a user would not say: "React Native", "platform", "solution", "seamless". Then show the page to someone outside your team for four seconds, take it away, and ask what the app does.
 
-**Red flag: screenshots that are raw captures.** Check what your first two screenshots actually are. If either is a login screen, a settings page or an empty state, replace it. If none has a caption, add one to each — a short line saying what the user achieves there.
+**Red flag: screenshots that are raw captures.** If either of the first two is a login screen or an empty state, replace it, and give every one a caption.
 
-**Red flag: a first run that asks before it gives.** Count the number of taps, fields and permission dialogs between opening the app and the first moment the user gets something useful. Write that count down. If anything is being asked for before the first value, ask AI to move it after and explain what breaks.
+**Red flag: a first run that asks before it gives.** Count the taps, fields and permission dialogs between opening the app and the first useful moment. Anything asked before the first value moves after it.
 
-**Red flag: an AI stating current listing requirements as fact.** Character limits, image dimensions and content rules are volatile. Ask where in the console to confirm each one, exactly as in chapter 5.
+**Red flag: an AI stating current listing requirements as fact.** Character limits, image dimensions and content rules are volatile — confirm each in the console, as in chapter 5.
 
-**Red flag: no numbers.** If you cannot say what your store conversion rate and your activation rate are, you are guessing about both halves of this funnel. The console gives you page views and installs; your own analytics must give you installs-to-first-value. Instrument that before you start changing copy, or you will never know whether a change helped.
+**Red flag: no numbers.** Without a store conversion rate and an activation rate you are guessing about both halves of the funnel. The console gives page views and installs; your analytics must give installs-to-first-value.
 
-**Verify with a stranger and a real phone.** Hand your budget phone to someone who has never seen the product, with the app not installed, and say nothing. Watch them find it, install it and use it. Time how long until they achieve anything, and write down every moment they hesitated. Twenty minutes of this is worth more than any amount of discussion.
+**Verify with a stranger and a real phone.** Hand your budget phone to someone who has never seen the product, with the app not installed, and say nothing. Time how long until they achieve anything.
 
 ## Walkthrough
 1. Open your own store listing on a phone, as a stranger would. Screenshot exactly what is visible before any scrolling or tapping.

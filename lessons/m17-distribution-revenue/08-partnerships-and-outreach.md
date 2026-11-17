@@ -4,7 +4,7 @@ module: m17-distribution-revenue
 slug: partnerships-and-outreach
 title: "Partnerships, Communities and B2B Outreach"
 order: 8
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,13 +22,9 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team wants their lunch pre-ordering product in three colleges, so they send the same email to two hundred institutions. The subject line is "Revolutionary AI Platform for Campus Food Management". Zero replies. They conclude that cold outreach does not work in India, which is the wrong conclusion drawn from one badly designed experiment.
+A team wants their lunch pre-ordering product in three colleges, so they send the same email to two hundred institutions, subject line "Revolutionary AI Platform for Campus Food Management". Zero replies. They conclude that cold outreach does not work in India, which is the wrong conclusion from one badly designed experiment.
 
-A second team does better and still ends up with nothing. The secretary of a large student society loves their product, promises to promote it to eighteen hundred members, and means it. Nothing is written down. No date, no owner, no definition of "promote". Three weeks later the secretary has exams, the enthusiasm has evaporated, and the team has spent a month waiting for a channel that never existed. When they follow up, the reply is friendly and vague, which is the most expensive kind of reply.
-
-A third team signs a "partnership" with a college canteen and immediately agrees to build a feature the canteen asked for. Two weeks of work, one feature nobody else wants, and the canteen still has not started using the product.
-
-All three failed at the same thing: treating a relationship as a channel without writing down what each side actually does.
+A second team does better and still ends with nothing. The secretary of a large student society loves their product and promises to promote it to eighteen hundred members. Nothing is written down: no date, no owner, no definition of "promote". Three weeks later the secretary has exams, and the follow-up gets a friendly, vague reply — the most expensive kind. A third team agrees to build a feature to close a "partnership" with a canteen: two weeks of work, a feature nobody else wants, and the canteen still has not started. All three treated a relationship as a channel without writing down what each side does.
 
 ### The idea
 
@@ -38,13 +34,9 @@ Three conditions, and all three are required. Their incentive must be real and s
 
 ### The analogy
 
-The canteen wants its menu on the board inside the hostel mess.
+The canteen wants its menu on the board inside the hostel mess. The owner does not ask the warden for a favour: he notices the warden gets complaints every evening about students having nothing to eat after the mess closes, and offers something that reduces them — he prints the board himself, delivers it, and puts his own number on it so students call him and not the warden. They agree it runs for one month, then they look again. He led with the warden's problem, removed work rather than adding it, and put an end date on it so saying yes was cheap.
 
-The owner does not ask the warden for a favour. He notices that the warden gets complaints every evening about students having nothing to eat after the mess closes, and he offers something that reduces complaints: he prints the board himself, he delivers it, and he puts his phone number on it so students call him and not the warden. The warden's job gets easier. They agree it runs for one month and then they will look at it again.
-
-Everything in that paragraph is the model. He led with the warden's problem, he removed the work rather than adding it, he made the benefit concrete, and he put an end date on it so saying yes was cheap.
-
-**Where the analogy breaks:** the warden decides alone. An institution rarely does. There is usually a **champion** who loves your product and has no authority, a **decision-maker** who can say yes and has never heard of you, and a **gatekeeper** — an office, an administrator, a compliance person — who cannot say yes but can absolutely say no. The canteen owner's one conversation is, in an institution, three different conversations with three different arguments, and the commonest failure is spending six weeks delighting a champion who was never able to approve anything.
+**Where the analogy breaks:** the warden decides alone and an institution rarely does. There is usually a **champion** who loves your product and has no authority, a **decision-maker** who can say yes and has never heard of you, and a **gatekeeper** — an office, an administrator, a compliance person — who cannot say yes but can absolutely say no. One conversation becomes three, with three different arguments.
 
 ### Picture it
 
@@ -69,45 +61,23 @@ Everything in that paragraph is the model. He led with the warden's problem, he 
   then discovering nobody asked the gatekeeper
 ```
 
-Three different people with three different concerns, and a pitch aimed at only the enthusiastic one stalls before it reaches anyone who can approve it.
+Three people with three different concerns, and a pitch aimed only at the enthusiastic one stalls before it reaches anyone who can approve it.
 
-### The cold message that gets a reply
+A cold message is short, specific, and asks for one thing.
 
-Short, specific, and asking for one thing. Five lines, in this order.
+| Line | What goes in it |
+|---|---|
+| Why them | Something you observed about their situation that you could not have written to anybody else — this is the whole message |
+| What you do | Their outcome in their terms, not your category |
+| Proof | A number, however small: "sixty-one students used it twice last week" |
+| One ask | Fifteen minutes this week, or a reply to one question — never "let me know if you are interested" |
+| An easy exit | "If this is not relevant, no reply needed", which raises reply rates by removing the cost of saying no |
 
-**One line on why them, specifically.** Something you observed about their situation that you could not have written to anybody else. This is the whole message; everything after it is logistics.
-
-**One line on what you do, in their terms.** Not your category, their outcome.
-
-**One line of proof.** A number, however small. "Sixty-one students used it twice last week" is proof. "We are building an innovative platform" is not.
-
-**One ask, small and specific.** Fifteen minutes this week, or a reply to one question. Never "let me know if you are interested", which puts the work on them.
-
-**An easy exit.** "If this is not relevant, no reply needed" raises reply rates, because it removes the social cost of saying no.
-
-Then: send twenty, personally, to people you chose one at a time. Twenty messages that each name something specific will outperform two hundred that do not, and you will learn something from the replies instead of learning nothing from the silence. Keep a simple sheet — who, when, what you said, what came back — because the follow-up is where most replies actually come from, and you will not remember.
-
-### Communities: participate before you promote
-
-Reddit's India communities, Telegram groups, Discord servers, WhatsApp groups, campus societies. Each has rules about self-promotion, and more importantly each has a culture that notices extraction.
-
-The give-first rule is simple and it is not a trick: be genuinely useful in a community for a while before you mention your product at all. Answer questions in your area. When you do post about what you built, the post lands as a member sharing work rather than a stranger advertising. The alternative — posting a promotion in a group you have never contributed to — gets you removed, and in a student ecosystem where the same two hundred people run everything, being remembered as the person who spammed the group is a cost that lasts longer than your product.
-
-### B2B and institutional pilots
-
-If you are selling to a college, a hostel, a canteen or a small business, the unit of progress is a **pilot**: a small, time-boxed, clearly-scoped use of your product with a written success criterion.
-
-A good pilot has four things. A **scope** — one hostel, not the campus. An **end date** — four weeks, after which something is decided. A **success criterion** written in their terms and agreed before it starts: "at least forty students place an order in week four" or "the warden receives fewer than three complaints a week". And a **named owner on each side**, so there is one person to ask.
-
-A pilot without an end date is not a pilot, it is a free product with an audience of one. A pilot without a success criterion ends with both sides having different opinions about whether it worked, and the one holding the budget wins.
-
-Two traps. **Do not promise features to close a pilot.** One institution's requirement, built specially, is two weeks of work and a product that fits nobody else — the third team in the opening story. Say "not now, and here is what we will do instead." And **be careful about who owns the data**; the moment an institution's records are involved, chapter 10's questions arrive, and the gatekeeper is right to ask them.
+Send twenty of these, personally, to people you chose one at a time. Twenty messages that each name something specific outperform two hundred that do not. Keep a sheet — who, when, what you said, what came back — because most replies come from the follow-up and you will not remember.
 
 ### Where it lives
 
-Chapter 7's launch buys a spike; this chapter builds a channel that compounds, slowly. Chapter 1's position is what the cold message's second line says. Chapter 5's CAC applies here too and is usually ugly at first, because institutional outreach consumes founder hours — compute it anyway, per channel, or you will keep a channel that costs ₹900 a customer out of sentiment.
-
-M01's reachability test is the filter on all of it: you can reach the societies and the canteens at your own college, and you cannot reach two hundred colleges by email. Chapter 9 matters because an institutional partner's trust is lost in exactly one bad week. Chapter 10 is where the data and contract questions get answered, and chapter 11 is where you review whether any of this is working.
+Chapter 7's launch buys a spike; this chapter builds a channel that compounds slowly. Chapter 1's position is what the cold message's second line says. Chapter 5's CAC applies here too and is usually ugly at first, because institutional outreach consumes founder hours — compute it anyway, or you will keep a channel that costs ₹900 a customer out of sentiment. M01's reachability test is the filter: you can reach the societies and canteens at your own college, and you cannot reach two hundred colleges by email. Chapter 10 answers the data and contract questions; chapter 11 reviews whether any of this works.
 
 ### Words to own
 
@@ -127,33 +97,32 @@ M01's reachability test is the filter on all of it: you can reach the societies 
 
 ### Tradeoffs and gotchas
 
-**Partnerships are slow and they are not a substitute for talking to users.** An institutional conversation can take six weeks to produce nothing. Run it alongside direct acquisition, never instead of it.
+**With an institution, the unit of progress is a pilot.** Scope — one hostel, not the campus. An end date, four weeks, after which something is decided. A success criterion in their terms, agreed before it starts: "at least forty students place an order in week four". And a named owner on each side. A pilot with no end date is a free product with an audience of one; one with no success criterion ends with both sides holding different opinions, and the side holding the budget wins.
 
-**Enthusiasm is not a commitment.** "This is amazing, we would love to work together" is the beginning of a conversation, not the end of one. The next sentence out of your mouth should propose a specific small step with a date.
+**Do not promise features to close a pilot.** One institution's special requirement is two weeks of work and a product that fits nobody else. Say "not now, and here is what we will do instead". Be careful too about who owns the data, because the moment an institution's records are involved, chapter 10's questions arrive.
 
-**Write it down, even informally.** A two-line message summarising what you both agreed, sent afterwards, is enough: what each side does, by when, and who to ask. It is not legalistic, it is kind — it protects both sides from misremembering.
-
-**Beware the partner who wants exclusivity.** A college or a canteen asking to be your only partner is asking you to make your market smaller in exchange for a promise. At your stage the answer is almost always no, politely.
-
-**Revenue-sharing and affiliate deals need a number before they need a contract.** What percentage, of what, paid when, and who measures it. Vague revenue sharing becomes a dispute at exactly the moment there is money involved.
-
-**One owner per side, or it dies.** Shared responsibility across a committee means nobody follows up, and your partnership expires silently.
+| Gotcha | What to do about it |
+|---|---|
+| Participate before you promote | Communities have self-promotion rules and a culture that notices extraction — be useful first, so your post lands as a member sharing work |
+| Enthusiasm is not a commitment | "We would love to work together" starts a conversation; answer with a small step and a date, then send two lines recording what each side does by when |
+| Partnerships are slow | Run them alongside direct acquisition, never instead of it |
+| A partner who wants exclusivity | They are asking you to shrink your market in exchange for a promise; at your stage, politely no |
+| Revenue sharing | Needs a number before it needs a contract: what percentage, of what, paid when, measured by whom |
+| One owner per side, or it dies | Shared responsibility across a committee means nobody follows up and the partnership expires silently |
 
 ### Verify it
 
-**Red flag, the headline one: a partnership with no named owner and no date.** Ask two questions: who on their side is accountable, and what happens by when. If either answer is a group or "soon", you do not have a partnership.
+**Red flag, the headline one: a partnership with no named owner and no date.** Ask who on their side is accountable and what happens by when. If either answer is a group or "soon", you do not have a partnership.
 
-**Red flag: a pilot with no end date or no success criterion.** Both, in writing, agreed before it starts. Without them a pilot runs forever and is judged by whoever is in the room at the end.
+**Red flag: a pilot with no end date or no success criterion.** Both, in writing, before it starts. Without them a pilot runs forever and is judged by whoever is in the room at the end.
 
 **Red flag: outreach that leads with your product.** Check the first line. If it describes you rather than them, it is a broadcast with a greeting on it.
 
-**Red flag: a template with a merge field and nothing specific.** AI will happily generate two hundred personalised-looking emails. The thing that earns a reply is the observation that could only have been written to that one person, and that is the one thing it cannot invent for you.
+**Red flag: a template with a merge field and nothing specific.** AI will happily generate two hundred personalised-looking emails, but what earns a reply is the observation that could only have been written to that person — the one thing it cannot invent for you.
 
-**Red flag: a plan that only ever talks to the champion.** Ask who can actually approve this and who could block it. If nobody has asked the gatekeeper what would stop it, the answer is arriving in week six.
+**Red flag: a plan that only ever talks to the champion.** Ask who can approve this and who could block it. If nobody has asked the gatekeeper what would stop it, the answer arrives in week six.
 
-**Red flag: a feature promised to close a deal.** Count the users who want it besides this one partner. If the answer is zero, you are being paid in hope for two weeks of work.
-
-**Red flag: community promotion with no history of participation.** Check your own posting record in that community before you post. If there is nothing there, you are the spam.
+**Red flag: a feature promised to close a deal, or community promotion with no history of participation.** Count the users who want that feature besides this partner, and check your own posting record before you post.
 
 ## Walkthrough
 1. List every institution, society, club, shop or business you can reach *by name through someone you know*. Warm beats cold by a wide margin, so exhaust this list first.

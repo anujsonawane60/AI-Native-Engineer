@@ -4,7 +4,7 @@ module: m02-the-web
 slug: https-tls-cookies-cors
 title: "HTTPS, TLS and Certificates; Cookies, Sessions and CORS"
 order: 14
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,31 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team demos their canteen app on the college Wi-Fi. The login page is served over plain `http://`, because HTTPS "was not set up yet" and it worked fine locally.
+A team demos their canteen app on college Wi-Fi, login page on plain `http://` because HTTPS "was not set up yet". A mentor on the same network opens a free traffic tool and reads a student's password out of the air in front of the room — not decrypted, just read.
 
-A mentor on the same network opens a free traffic-inspection tool and reads a student's password out of the air in front of the room. Not decrypted — just read, because it was never encrypted. Shared Wi-Fi means everybody's traffic passes through equipment that anybody on that network can listen to.
-
-Two more problems surface the same afternoon. The session cookie has no `HttpOnly` flag, so any script that ends up on the page — including one injected through an unescaped dish name — can read it and send it elsewhere. And the staff dashboard, hosted on a different subdomain, had thrown a CORS error during development; the agent had "fixed" it by setting `Access-Control-Allow-Origin: *` together with credentials, which means any website on the internet could, in principle, make authenticated requests on a logged-in student's behalf.
-
-Three failures, all of them in the small print, none of them visible in any screenshot.
+Two more surface that afternoon: a session cookie with no `HttpOnly` flag, readable by any script that reaches the page, and a CORS error "fixed" with `Access-Control-Allow-Origin: *` plus credentials. Three failures in the small print, none visible in a screenshot.
 
 ### The idea
 
 **HTTPS makes the pipe unreadable and proves who is at the other end. Cookies are how a protocol with no memory remembers you. CORS is the browser's rule about which other websites may read your responses.**
 
-Three separate mechanisms that beginners routinely merge into one vague feeling of "security". Keeping them distinct is the whole chapter, because each one protects against something specific and is silent about everything else.
+Three mechanisms that beginners merge into one vague feeling of "security". Each protects against something specific and is silent about everything else.
 
 ### The analogy
 
-Three things at the canteen.
+**HTTPS is the sealed tiffin carrier**: nobody on the path can see inside or swap the contents without breaking a seal you would notice, and the stamp proves which canteen packed it. **A cookie is the ink stamp on your hand** — the counter cannot remember two thousand students, and whoever copies the stamp eats your lunch. **CORS is the rule that the hostel mess cannot collect food using your stamp.**
 
-**HTTPS is the sealed tiffin carrier.** The canteen packs your order, seals it with their own stamp, and sends it across campus. Nobody on the path can see what is inside, and nobody can swap the contents without breaking a seal you would notice. The stamp also proves it came from that canteen and not from someone who set up a table outside pretending to be them.
-
-**A cookie is the ink stamp on the back of your hand.** The counter cannot possibly remember two thousand students, so they stamp your hand when you pay. You show the stamp; you get served. The stamp *is* your proof of payment, which means anyone who can copy it can eat your lunch.
-
-**CORS is the rule that the hostel mess cannot send its own staff to collect food using your stamp.** Your stamp works at this canteen, with you presenting it. It does not authorise a different establishment to use it on your behalf.
-
-**Where the analogy breaks:** the seal protects the tiffin *on the journey*. Once it is opened at the counter, the canteen can do anything at all with the contents — cook them badly, write down what you ordered, sell that list. HTTPS is exactly the same: it says nothing whatsoever about whether the server at the other end is trustworthy. A phishing site can hold a perfectly valid certificate, and most do. The padlock means "this connection is private and goes to the name in the address bar", never "this website is safe".
+**Where the analogy breaks:** the seal protects the tiffin *on the journey*; once opened, the canteen can do anything with the contents. HTTPS says nothing about whether the server is trustworthy, and phishing sites hold valid certificates. The padlock means "this connection is private and goes to the name in the address bar", never "this site is safe".
 
 ### Picture it
 
@@ -62,13 +52,7 @@ Three things at the canteen.
 
 Over plain HTTP anyone sharing the network can read the traffic as text; over HTTPS they see only noise, and the certificate proves the server really is the name you typed.
 
-### How a stateless protocol remembers you
-
-Chapter 13 ended on a hard fact: HTTP has no memory. Every request arrives as a complete stranger. So how does the server know, on request number forty, that you logged in on request number three?
-
-You send the proof back every time. The server gives you a small value on login — a **cookie** — and the browser attaches it automatically to every subsequent request to that site. The server looks it up, finds your **session**, and knows who you are.
-
-Which means that value is your identity. Anyone who obtains it is you, until it expires. That is the entire reason the three flags below exist, and why "it's just a cookie" is the wrong instinct.
+HTTP has no memory, so the server gave you a **cookie** on login; the browser attaches it to every later request and the server looks it up to find your **session**. That value *is* your identity — whoever holds it is you.
 
 | Flag | What it does | What happens without it |
 |---|---|---|
@@ -76,13 +60,11 @@ Which means that value is your identity. Anyone who obtains it is you, until it 
 | `HttpOnly` | Not readable by page scripts | Any injected script can read and exfiltrate it |
 | `SameSite` | Not sent on requests from other sites | Another site can trigger authenticated actions as you |
 
-All three, always, on any cookie that represents a logged-in user. There is no interesting debate here.
+All three, always, on any cookie representing a logged-in user.
 
 ### Where it lives
 
-This chapter wraps the network box from M00 and reaches into both the client and the server. HTTPS is terminated at your hosting platform, which on every free tier worth using issues and renews the certificate for you once DNS is correct — which is why chapter 12 comes first. Cookies are set by the server and stored by the browser. CORS is enforced entirely inside the browser.
-
-M04 builds the real session and authorisation logic; M07 is where the security thinking becomes systematic. The job of this chapter is to make sure you can read these three mechanisms in the Network and Application panels and recognise when AI output has quietly weakened one of them.
+This chapter wraps M00's network box and reaches into client and server both. HTTPS is terminated at your hosting platform, which issues and renews the certificate once DNS is correct — hence chapter 12 first. Cookies are set by the server and stored by the browser; CORS is enforced entirely inside the browser. M04 builds the real session logic.
 
 ### Words to own
 
@@ -103,45 +85,25 @@ M04 builds the real session and authorisation logic; M07 is where the security t
 | CORS | The server's opt-in to let a named origin read it | A response header |
 | Preflight | A probing OPTIONS request before the real one | For non-simple requests |
 
-### CORS, explained once, properly
-
-A page loaded from one origin is not allowed by the browser to *read* the response from another origin. That is the **same-origin policy**, and it is the default.
-
-It exists for a narrow but vital reason: your browser attaches your cookies to requests automatically. Without the policy, any random site you visited could quietly request your bank's account page, receive it complete with your logged-in session, and read your balance. The policy is what stops that.
-
-**CORS** is how a server says "it is fine, this particular origin may read my responses" — a response header naming the allowed origin. So when your staff dashboard at one subdomain calls your API at another and the browser blocks it, the correct fix is for the API to name that origin.
-
-Three things follow, and the third is the one that matters most.
-
-The error appears in *your* browser but the fix is on the *server*, which is why it feels so confusing. A "preflight" OPTIONS request is sent first for anything non-trivial, so a CORS problem can show up as a failed request your code never made. And — the important one — **CORS is not a security control.** It restricts browsers. A script, a command-line tool or a server anywhere in the world can call your API and read every byte, because nothing is enforcing CORS on their side. CORS protects your *users' browsers* from other websites. It does not protect your API from anyone. Authorisation on the server is the only thing that does.
-
 ### Tradeoffs and gotchas
 
-**`Access-Control-Allow-Origin: *` with credentials is forbidden, and for good reason.** The specification refuses the combination, so an AI that "fixes" CORS this way either produces something that still does not work or has disabled credentials without telling you. Either way, naming the exact origins is the answer.
+**CORS is not a security control.** The browser's *same-origin policy* stops a page reading another origin's response — necessary because cookies travel automatically, so otherwise any site you visited could fetch your bank page. CORS is the server's opt-in, a header naming an origin that may read it, and it restricts browsers only: a command-line tool anywhere can call your API and read every byte. Only server-side authorisation protects it.
 
-**The padlock is not a safety rating.** Phishing sites hold valid certificates routinely, so "look for the padlock" teaches users something false.
+**The CORS error appears in your browser and the fix is on the server.** Non-trivial requests send a "preflight" OPTIONS first, so the failure can appear as a request your code never made. And `*` with credentials is forbidden by the spec, so an AI that "fixes" CORS that way either still fails or has silently disabled credentials.
 
-**An expired certificate takes your whole site down** with a full-page warning most users will not click past. Automatic renewal is the only acceptable arrangement, and it depends on DNS staying correct.
-
-**Mixed content breaks pages silently.** An HTTPS page loading one image over HTTP gets that resource blocked, and the symptom is a missing image with a console warning nobody read.
-
-**A token in `localStorage` is readable by any script on the page**, where an `HttpOnly` cookie is not readable at all. For a student project the cookie is the safer default, and M04 revisits the tradeoff.
-
-**`SameSite` interacts with third-party flows.** A payment provider redirecting back to your site can lose a `Strict` cookie, so people loosen it and forget to tighten it again. Decide deliberately and write down why.
+**The padlock is not a safety rating,** and an expired certificate takes the site down behind a warning nobody clicks past. Automatic renewal is the only acceptable arrangement.
 
 ### Verify it
 
-Everything here is checkable in the Network and Application panels in a few minutes.
+1. **Check the scheme on every page that takes input.** A login page on `http://` is a complete failure.
+2. **Read the cookie flags** in Application → Cookies. Missing `HttpOnly` turns script injection into a stolen account.
+3. **Click the padlock.** Certificate name matches; expiry in the team calendar.
+4. **Look for mixed-content warnings** in the Console: a blocked resource means a hardcoded `http://`.
+5. **Read the whole CORS error.** It names the origin and the missing header — that text is the fix.
+6. **Test your API from outside a browser.** Data returned with no authorisation means it is open to the world.
+7. **Try the wrong user.** A staff endpoint returning 200 to a student means server-side authorisation is missing.
 
-1. **Check the scheme on every page that takes input.** Any login, payment or personal-data page on `http://` is a complete failure, and on shared college Wi-Fi it is demonstrably exploitable.
-2. **Read the cookie flags.** DevTools, Application panel, Cookies. For your session cookie, confirm `Secure`, `HttpOnly` and a `SameSite` value are all present. Absent `HttpOnly` is the one that turns any script injection into a stolen account.
-3. **Click the padlock and read the certificate.** Check the name matches and note the expiry date. Then put that date in your team's calendar even if renewal is automatic.
-4. **Look for mixed-content warnings.** Console, on every page. One blocked resource is a visible bug and a signal that something still has a hardcoded `http://` address.
-5. **Read the actual CORS error, all of it.** It names the origin, the header that was missing and whether a preflight failed. That text is the fix, and it is routinely skipped in favour of guessing.
-6. **Test your API from outside a browser.** Ask the AI to show you the equivalent command-line request. If it returns data without any authorisation, your API is open to the world and CORS was never protecting it. This is the single most valuable check in the chapter.
-7. **Try the wrong user.** Log in as a student and request a staff-only endpoint directly. A 200 means authorisation is missing on the server, regardless of what the UI hides.
-
-Red flags in AI output: `Access-Control-Allow-Origin: *`; any suggestion to disable CORS, run the browser with security flags off, or use a proxy to "get around" it in production; cookies set without flags; tokens in `localStorage` with no discussion of the tradeoff; `http://` anywhere in a URL in your own code; a claim that an endpoint is safe because the UI does not link to it; and advice to use a self-signed certificate for anything users will open.
+Red flags: `Access-Control-Allow-Origin: *` · disabling CORS or proxying around it in production · cookies with no flags · tokens in `localStorage` with no discussion of the tradeoff · `http://` in your own URLs · an endpoint called safe because the UI does not link to it · a self-signed certificate for users.
 
 And one in reasoning: if an AI treats a CORS error as a security feature protecting your API, it has the central misconception, and every authorisation decision it has made on that basis needs re-checking.
 

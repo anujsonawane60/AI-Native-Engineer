@@ -4,7 +4,7 @@ module: m02-the-web
 slug: reading-a-page-devtools
 title: "Reading a Page You Did Not Write: View Source and DevTools"
 order: 3
-duration_min: 30
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student asks an agent to fix a button that does nothing. The agent replies: "Fixed — the click handler was not attached. The button now submits the order correctly."
+A student asks an agent to fix a button that does nothing. "Fixed — the click handler was not attached." They reload, click, nothing happens, type "still broken", and the agent rewrites a different file. Forty minutes later two things are broken and nobody knows what changed.
 
-The student reloads, clicks, and the page still does nothing. So they type "still broken" and wait. The agent rewrites a different file. Now two things are broken. Forty minutes later they have no idea what changed, which parts worked before, or what is actually failing.
-
-Everything they needed was on screen the whole time. The Console had one red line naming the exact problem. The Network panel showed that no request had ever been sent. The Elements panel showed the button was still there but covered by an invisible box, so the click never reached it. Three facts, available in under sixty seconds, and the student spent forty minutes negotiating with a machine instead of looking.
+Everything they needed was on screen all along: one red Console line naming the problem, a Network panel showing no request was ever sent, an Elements panel showing the button covered by an invisible box. Three facts, sixty seconds.
 
 ### The idea
 
 **Every browser ships with a complete inspection kit, and it turns M00's VERIFY step from an opinion into a measurement.**
 
-You are not going to debug code. You are going to answer small factual questions: is the element there, is it visible, did the request fire, what came back, how big was it, how long did it take. Those answers are what make your next instruction precise instead of "still broken".
+You are not going to debug code. You are going to answer small factual questions: is the element there, is it visible, did the request fire, what came back, how long did it take. Those answers make your next instruction precise instead of "still broken".
 
 ### The analogy
 
-The canteen kitchen has a serving window you can look through.
+The canteen kitchen has a serving window. You are not going to cook, but you can see the counter, hear the shouting, watch the delivery van at the back door, and look into the storeroom. That is the layout of DevTools: Elements is the counter, Console is the shouting, Network is the back door with every delivery's time and weight, Application is the storeroom of what was kept from earlier visits.
 
-You are not going to cook. But you can see what is on the counter right now, hear the shouting when something burns, watch the delivery van arrive at the back door, and look into the storeroom. Four different views, four different kinds of question answered.
-
-That is exactly the layout of DevTools. The Elements panel is the counter — what is there right now. The Console is the shouting — the errors nobody meant you to hear. The Network panel is the back door — every delivery in and out, with its time and weight. The Application panel is the storeroom — what has been kept from earlier visits.
-
-**Where the analogy breaks:** through a real window you can only look. In DevTools you can reach in — change a colour, delete an element, resize the screen to a phone, slow the network to 4G — and watch what happens, with none of it permanent. That is the part that makes it a thinking tool and not just a report. Reload and every experiment vanishes.
+**Where the analogy breaks:** through a real window you can only look. In DevTools you can reach in — change a colour, delete an element, shrink the screen to a phone — and none of it is permanent. Reload and every experiment vanishes. That is what makes it a thinking tool, not just a report.
 
 ### Picture it
 
@@ -63,23 +57,18 @@ That is exactly the layout of DevTools. The Elements panel is the counter — wh
 
 Each panel answers a different kind of factual question, and knowing which panel to open is most of the skill.
 
-### View source versus the Elements panel
-
-This distinction confuses more beginners than anything else in this module, and it is worth getting exactly right.
-
-**View source** shows the HTML text the server actually sent. It is the original document, before any JavaScript ran.
-
-**The Elements panel** shows the DOM as it is right now — the tree from chapter 2, after JavaScript has added, removed and rearranged things.
-
-On an old-fashioned page those two are nearly identical. On a modern app built with a framework (chapter 15) they can be wildly different: view source may show an almost empty `<div id="root"></div>` and nothing else, while Elements shows a thousand nodes. Neither is lying.
-
-Which do you trust? It depends on the question. "Why does Google not see my menu?" and "why is the first paint empty?" are view-source questions, because crawlers and the initial paint see the sent HTML. "Why is this button not clickable?" is an Elements question, because that is the tree the click actually travels through.
-
 ### Where it lives
 
-DevTools lives entirely in the client box from M00 — it sees the browser's side of everything and nothing of your server's internals. A 500 status in the Network panel tells you the server failed; *why* it failed is in server logs, which is M07's observability chapter.
+DevTools lives in the client box from M00 — the browser's side of everything, none of your server's internals. A 500 says the server failed; *why* is in server logs (M07). This chapter is the Director's Loop step 5, VERIFY, made concrete: "I checked" now means "I opened the Network panel".
 
-In the Director's Loop this chapter is step 5, VERIFY, made concrete. From here to the end of the programme, "I checked" should mean "I opened the Network panel", not "it looked right".
+The distinction that confuses everybody — neither view is lying:
+
+| View | Shows | Trust it for |
+|---|---|---|
+| View source (`Ctrl+U`) | The HTML text the server sent, before any JavaScript ran | "Why does Google not see my menu?", "why is the first paint empty?" |
+| Elements panel | The live DOM right now, after JavaScript added and rearranged things | "Why is this button not clickable?" |
+
+On a framework app (chapter 15) view source may be an empty `<div id="root"></div>` while Elements shows a thousand nodes.
 
 ### Words to own
 
@@ -99,32 +88,28 @@ In the Director's Loop this chapter is step 5, VERIFY, made concrete. From here 
 
 ### Tradeoffs and gotchas
 
-**DevTools edits are temporary, and that is a feature.** Changing a colour in the Elements panel changes nothing in your files. This is the cheapest way on earth to test an idea — try the change, see if it is right, *then* brief the AI with the exact value. But never report a DevTools edit as a fix.
+**DevTools edits are temporary, and that is a feature.** Changing a colour in Elements changes no file — the cheapest way to test an idea before briefing the AI with the value. Never report a DevTools edit as a fix.
 
-**An empty view source does not mean the page is broken.** It usually means the page is client-rendered. Chapter 16 covers why you might not want that.
+**Half the red lines in the Console are not yours.** Extensions, ad blockers and analytics shout into the same place. Check the file name on the right before chasing an error.
 
-**Half the red lines in the Console are not yours.** Browser extensions, ad blockers and analytics scripts all shout into the same place. Before you chase an error, check the file name on the right of it. If it comes from an extension, test again in a private window with extensions off.
+**Throttling is an approximation.** "Slow 4G" is a reasonable fake; a real ₹8,000 Android on Nashik 4G at 1pm is worse. Throttling says whether you have a problem, a real device says how bad.
 
-**Throttling is an approximation.** "Slow 4G" in DevTools is a reasonable fake, and a real ₹8,000 Android on a real Nashik 4G connection at 1pm is worse. Throttling tells you whether you have a problem; a real device tells you how bad it is. Do both, in that order.
+**Tick "Preserve log" before you submit anything,** or a form that redirects wipes the evidence of its own request.
 
-**"Preserve log" before you submit anything.** By default the Network panel clears on navigation, so a form that submits and redirects wipes the evidence of its own request. Tick the box first.
-
-**The element is there but nothing happens** is almost always one of four things: it is covered by another element, it is `pointer-events: none`, the handler is attached to a different element, or the handler threw an error on the first click. The Console and the Elements panel distinguish these in under a minute.
+**"The element is there but nothing happens"** is almost always one of four things: covered by another element, `pointer-events: none`, the handler on a different element, or the handler threw on first click. Console plus Elements separates them fast.
 
 ### Verify it
 
-This chapter *is* verification, so here the checklist is how to hold an AI to account for a claim.
+1. **Make the claim testable.** If no panel could prove "fixed", it was never a claim about the page.
+2. **Did the request fire at all?** Network, filtered to Fetch/XHR. No request means nothing about your server is relevant yet.
+3. **What is the status, and what is the body?** A 200 carrying `{"error": "..."}` is a failure the page may treat as success (chapter 13).
+4. **Is the element in the DOM, and is it visible?** Present-but-invisible, present-but-covered and absent are three different bugs.
+5. **Which CSS rule won?** Elements → Computed; the rule you expected may be struck through (chapter 4).
+6. **Does it survive a hard reload and a private window?** That separates real bugs from stale caches and extensions.
 
-1. **Make the claim testable before you accept it.** When an agent says "fixed", ask yourself which panel would prove it. If no panel can, the claim is not a claim about the page.
-2. **Did the request fire at all?** Network panel, with the filter set to Fetch/XHR. No request means the problem is in the browser, and nothing about your server is relevant yet. This halves your search space in five seconds.
-3. **What is the status, and what is the body?** A 200 with `{"error": "..."}` inside is a failure the page may be treating as a success — chapter 13 covers why that happens so often.
-4. **Is the element in the DOM, and is it visible?** Search the Elements panel. Present but invisible, present but covered, and absent entirely are three different bugs with three different fixes.
-5. **Which CSS rule actually won?** Elements → Computed. The rule you expected may be struck through, overridden by something more specific — chapter 4.
-6. **Does it survive a hard reload and a private window?** This separates real bugs from stale caches and misbehaving extensions. Do it before you report anything.
+Red flags in AI behaviour: "fixed" with no way to check it · a server-side fix when no request was sent · explaining a console error it was never shown, which means guessing · telling you to clear your cache, which hides the problem from you alone.
 
-Red flags in AI behaviour that this chapter lets you catch: an agent that says "fixed" without telling you how to check; an agent that proposes a fix for a server problem when no request was ever sent; an agent that explains a console error without having been shown it, which means it is guessing; and an agent that recommends clearing your cache as a fix, which hides the problem from you and nobody else.
-
-And the single most valuable habit: **paste the actual error text, the actual status code and the actual payload into your next message.** The difference in output quality between "it does not work" and "clicking Submit fires no network request, and the Console shows `TypeError: cannot read properties of null` from `order.js:42`" is larger than the difference between any two AI models.
+The habit that matters most: **paste the actual error text, status code and payload into your next message.** The gap between "it does not work" and "Submit fires no network request; Console shows `TypeError: cannot read properties of null` at `order.js:42`" is bigger than the gap between any two AI models.
 
 ## Walkthrough
 1. Open your team's current product page — whatever exists today, even one rough screen. If nothing is deployed yet, open a competitor or a site your users already use.

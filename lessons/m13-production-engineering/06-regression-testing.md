@@ -4,7 +4,7 @@ module: m13-production-engineering
 slug: regression-testing
 title: "Regression Testing and Test-Data Management"
 order: 6
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-M06 chapter 10 taught you that a test is an executable sentence, that unit, integration and end-to-end differ only in how much they cover, and — its strongest argument — that a test suite is what makes an agent trustworthy, because an agent cannot open a browser and look, so "it works" is a prediction unless something runnable returns pass or fail. It taught fixtures, mocks, flaky tests, coverage and the red-green habit. It promised M13 would go deep on test strategy. This is that chapter, and what is new is time: what happens to a suite after four months, two hundred tests, and a team that has started ignoring it.
+M06 chapter 10 taught you that a test is an executable sentence, that unit, integration and end-to-end differ only in coverage, and that a suite is what makes an agent trustworthy, because "it works" is a prediction unless something runnable returns pass or fail. What is new here is time: what happens to a suite after four months, two hundred tests, and a team that has stopped listening.
 
-Here is the shape of that failure. A team has 340 tests. Eleven of them fail roughly one run in four, for reasons nobody has investigated. So the habit becomes: see red, re-run it, and if it goes green, merge. Three weeks of that and the suite has become decoration. Then a real regression ships — the discount calculation from chapter 5 — and a test *did* catch it, in that same red run that somebody re-ran and merged anyway. The suite worked. The team had already stopped listening.
-
-Second failure, more serious. To make the end-to-end tests realistic, someone copies a slice of the production database into the test environment. It contains two thousand real student phone numbers and their order history. The test environment has no authentication, because it is only tests. Under India's data protection rules that is a reportable problem, and the fact that it was well-intentioned changes nothing. M06 chapter 12 told you preview and staging environments never hold real user data; this is the chapter that tells you what to put there instead.
+A team has 340 tests. Eleven fail about one run in four, so the habit becomes: see red, re-run, merge on green. Three weeks later chapter 5's discount bug ships — and a test *did* catch it, in a red run somebody re-ran. Someone had also copied two thousand real phone numbers into a test environment with no authentication. M06 chapter 12 said staging never holds real user data; this chapter says what to put there.
 
 ### The idea
 
 **A regression suite is the written memory of every way your product has already been wrong, and it is only worth having if the team believes it.**
 
-Belief is a technical property, not a cultural one. It comes from three things: every test is deterministic, so red always means something; every test is isolated, so order does not matter; and every flaky test is quarantined within days, so the failure rate of the suite itself stays at zero. The feature-adding tests from M06 prove the product works today. The regression tests prove it has not quietly gone back to being wrong.
+Belief is a technical property, not a cultural one: every test deterministic, so red always means something; every test isolated, so order does not matter; every flaky test quarantined within days, so the suite's own failure rate stays at zero.
 
 ### The analogy
 
-M06 gave you the canteen's three levels of tasting: the cook tasting dal from the pot, the assembled thali inspected on the tray, and a staff member queuing and eating a whole meal.
+M06 gave you the canteen's three levels of tasting, from dal in the pot to a staff member queuing for a whole meal. Now add the complaint book. Every complaint the canteen ever received is in it, and every morning somebody walks the counters checking each line: sambar cold on the 14th, so check the warmer. The book only grows. Then walking it starts taking longer than cooking, and the unreliable lines get ignored along with their neighbours.
 
-Add the complaint book. Every complaint the canteen has ever received is written in it, and every morning before service, somebody walks the counters with that book and checks each line: the sambar was cold on the 14th — check the warmer; the raita was sour last month — smell it. The book only grows. Nothing is ever removed, because a complaint that has happened once will happen again.
-
-Two things go wrong, and both will happen to you. The book grows until walking it takes longer than cooking, so people start skipping lines. And some lines are unreliable — "the chapati was hard" depends on the hour, so the checker marks it as a problem some days and not others, and after a fortnight everyone ignores that line and then starts ignoring the neighbouring ones.
-
-**Where the analogy breaks:** a human checker notices things not in the book — an unlisted smell, a wrong colour. A regression suite catches only what someone encoded, forever, exactly. This is M06's point and it matters more at this scale: a suite of 400 tests can give you total confidence about 400 things and none at all about the 401st, which is why your suite's coverage of *money, permissions and data loss* matters far more than its percentage.
+**Where the analogy breaks:** a human checker notices things not in the book. A suite catches only what someone encoded. Four hundred tests give total confidence about 400 things and none about the 401st, which is why coverage of *money, permissions and data loss* beats any percentage.
 
 ### Picture it
 
@@ -70,9 +64,13 @@ Every fixed bug becomes a test that failed before the fix, the suite grows by on
 
 ### Where it lives
 
-This builds on M06 chapter 10 and feeds three places. The CI gate is M06 chapter 12: a regression suite that is not a required check is a suggestion. Chapter 5's expand-contract migrations need regression tests at each step, because "the previous code still works against the new schema" is a claim that should be executable. And M10's agent-ready repository depends on this entirely: at this scale an agent cannot be trusted without a suite it can run and a suite the team believes, so your quarantine discipline is what makes autonomous work possible rather than reckless.
+This builds on M06 chapter 10 and feeds three places:
 
-Test data touches M07 chapter 2's rules about secrets and M06 chapter 12's rule about environments. The short version: production data does not leave production.
+- **The CI gate** is M06 chapter 12: a suite that is not a required check is a suggestion.
+- **Chapter 5's expand-contract migrations** need a test at each step, because "the previous code still works" should be executable.
+- **M10's agent-ready repository** depends on this: an agent cannot be trusted without a suite it can run and one the team trusts.
+
+Test data touches M07 chapter 2: production data never leaves production.
 
 ### Words to own
 
@@ -95,32 +93,27 @@ Test data touches M07 chapter 2's rules about secrets and M06 chapter 12's rule 
 
 ### Tradeoffs and gotchas
 
-**Every bug gets a test, and the test must fail before the fix.** This is the whole chapter in one rule. A test written after the fix, which passes immediately, proves nothing — it may be asserting the wrong thing entirely. Watch it go red, then fix, then watch it go green. M06 said break the code and watch it fail; this is that habit applied to every bug for the rest of the product's life.
+**Every bug gets a test, and the test must fail before the fix.** A test that passes immediately may be asserting the wrong thing entirely.
 
-**The four sources of flakiness are time, randomness, order and the network, and all four are fixable.** Time: freeze the clock, because a test that uses today's date will fail on the first of a month or at midnight in a different timezone. Randomness: seed it. Order: never let one test depend on data another created — wrap each test in a transaction that rolls back, or rebuild the schema per run. Network: no test in the gate may call a real external service, because that makes someone else's outage your red build.
+**The four sources of flakiness are time, randomness, order and the network.** Freeze the clock, seed the randomness, roll back each test's transaction, and let no gated test call a real external service.
 
-**Quarantine is a policy, not a feeling.** When a test flakes, it leaves the required-check list the same day, gets a named owner and a one-week deadline, and is either fixed or deleted. A deleted flaky test is better than a quarantined one that lives for six months, because the second one teaches the team that red is negotiable.
+**Quarantine is a policy, not a feeling.** A flaky test leaves the required checks the same day, with an owner and a one-week deadline, and is then fixed or deleted.
 
-**Never copy production data into a test environment.** Build data three ways instead. Factories for most tests: small functions that construct exactly the object the test needs, so the test reads as its own documentation. A small shared fixture for the handful of things every test needs. And for realistic volume, an *anonymised* snapshot where names, phone numbers, emails and payment references are replaced with generated values — generated, not scrambled, because scrambled real data is often reversible. Under India's data protection rules, a student's phone number in your test database is personal data wherever it sits.
+**Never copy production data into a test environment.** Use factories, one small fixture, and for volume an *anonymised* snapshot with generated values — scrambled real data is often reversible.
 
-**Coverage is a liar in both directions.** 90% coverage with no assertion on the order total tells you nothing, and a test suite that merely executes code without checking the result is worse than no suite because it produces a green tick. Ask a different question: is there a test for every path that moves money, grants permission, or deletes data? Mutation testing is the honest check — break a line on purpose and see whether anything goes red. A line nothing complains about is a line nobody is testing.
+**Coverage is a liar in both directions.** Ask whether every path that moves money, grants permission or deletes data has a test; code run without checked results just prints a green tick.
 
-**Snapshot tests rot.** A stored copy of an output is easy to write and very easy to update wrongly: when it fails, the fastest fix is to accept the new output, which silently accepts the bug too. Use them for things that genuinely should not change, read the diff every single time, and never let an agent regenerate snapshots as part of a fix.
-
-**Keep a runtime budget and defend it.** A suite that takes forty minutes will be skipped. Run the fast tests on every push and the full suite before merge, run them in parallel, and treat a slow test as a defect with an owner. Ten minutes is a budget a small team can hold.
+**Snapshot tests rot, and runtime budgets get breached.** Accepting a failed snapshot's new output accepts the bug too, and a forty-minute suite gets skipped.
 
 ### Verify it
 
-The specific thing AI gets wrong here is writing tests that assert *how* the code works rather than *what* it should do. Those tests pass, feel thorough, and break on every harmless refactor while catching no real bug.
+1. **Make it show you the test failing first.** Only a green run is no evidence the test tests anything.
+2. **Read the assertion and ask what it would catch.** Checking a function was called asserts implementation; checking the total is 11,800 paise asserts behaviour.
+3. **Run the suite twice, then in reverse order.** A test that changes result depends on time, order or shared state.
+4. **Search your test data for anything real** — phone numbers, emails, payment ids. One hit must be fixed now.
+5. **Break one line of money-handling code on purpose.** If nothing goes red, the coverage number is fiction.
 
-1. **Make it show you the test failing first.** For any bug fix, demand the red run before the fix. If you are shown only a green run, you have no evidence the test tests anything.
-2. **Read the assertion and ask what it would catch.** A test that checks a function was called is asserting implementation. A test that checks the total is 11,800 paise is asserting behaviour. Prefer the second always.
-3. **Run the suite twice in a row, and then in reverse order.** Any test that changes result has a hidden dependency on time, order or shared data. This single check finds most flakiness before it reaches CI.
-4. **Grep your test data for anything real.** Real phone numbers, real emails, real payment ids. One hit is a problem to fix today.
-5. **Break one line of production code on purpose and run the suite.** If nothing goes red, the coverage number is fiction for that area. Do this for the code that calculates money.
-6. **When a test changes in a diff, ask why.** The most dangerous pull request in this chapter is one where the test was edited to match the new behaviour. Behaviour changed deliberately, or the test was bent to fit a bug — and only you can tell which.
-
-Red flags: a test suite where red is routinely re-run; a test written after the fix that was never seen failing; `new Date()` or an unseeded random inside a test; tests that only pass in one order; real user data in a test fixture; a coverage percentage quoted with no assertion on money; a snapshot regenerated as part of a bug fix; and an agent that "fixed the failing test" without changing any production code.
+Red flags: red routinely re-run; a test written after the fix and never seen failing; `new Date()` or unseeded randomness; real user data in a fixture; an agent that "fixed the failing test" without touching production code.
 
 ## Walkthrough
 1. Count your tests, run the full suite, and write down the runtime in seconds. Then run it four more times and write down how many of those five runs were green. That ratio is your suite's real credibility.

@@ -4,7 +4,7 @@ module: m18-demo-day
 slug: live-debugging-under-questioning
 title: "Live Debugging Under Questioning"
 order: 3
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -20,33 +20,27 @@ last_reviewed: 2026-11-16
 
 ## Lesson
 
-### What happens in this block
-
-**You are given a defect in your own product and ten minutes, with your screen shared and people watching.** Sometimes it is a real issue from your own known-issues list. Sometimes a teammate has injected one into a branch you have not seen. You may use AI. You must talk the whole time.
-
-This is the hardest chapter in the module and the one that decides the most, because it is the only part of a defence that cannot be prepared in advance. A story can be rehearsed. A diagram can be drawn the night before. Ten minutes inside a system you did not fully build, with a problem nobody warned you about, is where it becomes undeniable whether you understood what was built. Fixing it is not the pass condition. **Visible, sound reasoning is.**
-
 ### The pain
 
-Three students, ten minutes each.
+Three students, ten minutes each, screen shared.
 
-The first starts typing immediately. Within four minutes they have raised a timeout, added a null check, and bumped a library version, and they have redeployed twice. Something is now worse. Asked which change caused it, they cannot say, because three changes went out together. They never read the error text; it was on screen the entire time.
+The first starts typing immediately: a timeout raised, a null check added, a library version bumped, two redeploys. Something is worse and they cannot say which change did it. They never read the error text; it was on screen the whole time.
 
-The second pastes their whole repository into an AI and types *my app is broken, fix it*. Ninety seconds later they have a change across nineteen files and they accept it. The panel asks what the error message said. They scroll back and read it for the first time: it was a 403 on one endpoint. Nineteen files were changed to address one refused request, and the student cannot say what any of it did. This is M11.4's lesson in reverse — accepting an unreviewable diff, under time pressure, on stage.
+The second pastes their whole repository into an AI, types *my app is broken, fix it*, and accepts a change across nineteen files. Asked what the error said, they read it for the first time: a 403 on one endpoint. Nineteen files for one refused request — M11.4 in reverse, on stage.
 
-The third reproduces the problem once on the live URL, reads the error out loud — *403 Forbidden on POST /api/orders* — and says: *403, not 401, so the session exists and something refused the role. That is authorization, not authentication, so I will not look at the login page at all. The cheapest test is to do the same action as a staff account; if that succeeds, the bug is in the role, not the endpoint.* Four minutes later it is fixed, in one file, and everybody in the room watched the reasoning happen.
+The third reproduces it once on the live URL, reads the error out loud — *403 Forbidden on POST /api/orders* — and says: *403, not 401, so the session exists and something refused the role. That is authorization, so I will not look at the login page. The cheapest test is the same action as a staff account.* Four minutes later it is fixed, in one file, and the room watched the reasoning.
 
 ### The idea
 
 **Debugging under questioning is one method run out loud: reproduce, read the exact error, isolate the layer, form one hypothesis, test it cheaply, confirm. The narration is not commentary on the work. It is the work being assessed.**
 
-Nobody can see your reasoning. If you type in silence for ninety seconds, a competent diagnosis and a lucky guess look exactly the same from the outside, and a panel has to assume the second.
+You get a defect in your own product and ten minutes — sometimes from your known-issues list, sometimes injected by a teammate into a branch you have not seen. You may use AI. You must talk the whole time. Fixing it is not the pass condition; **visible, sound reasoning is.** Nobody can prepare for this block, which is why it decides the most.
 
 ### The analogy
 
-The canteen's main burner will not light at 1 pm. One cook swaps the cylinder, adjusts the regulator and cleans the jet all at once. The flame comes back. Nobody knows why, and it happens again on Thursday. Another cook turns on the second burner on the same line first. It lights. In ten seconds that one cheap test has cut the problem in half: the gas line is fine, so the fault is in this burner.
+The canteen's main burner will not light at 1 pm. One cook swaps the cylinder, adjusts the regulator and cleans the jet at once; the flame returns, nobody knows why, and it fails again on Thursday. Another cook first lights the second burner on the same line. It works — and that cheap test has halved the problem: the gas line is fine, the fault is this burner.
 
-**Where the analogy breaks:** the cook has senses. Smell, hiss, flame colour — free, instant, continuous feedback from a system with about six parts. You have none of that. The error text, the log line and whatever you deliberately measure are your only inputs, across a dozen layers you cannot see. So reading replaces sensing, and narration replaces the fact that a cook working silently still visibly looks competent while you do not. A silent cook is obviously fine. A silent student is indistinguishable from a guesser.
+**Where the analogy breaks:** the cook has senses — smell, hiss, flame colour — free and continuous, from a system with six parts. Your only inputs are the error text, the log line and what you deliberately measure, across a dozen invisible layers. Reading replaces sensing, and narration replaces appearance: a silent cook is obviously fine, a silent student looks like a guesser.
 
 ### Picture it
 
@@ -66,37 +60,17 @@ The canteen's main burner will not light at 1 pm. One cook swaps the cylinder, a
   6 CONFIRM     re-run step 1's reproduction and watch it pass
 ```
 
-Six moves in order, with the only loop going back to isolation rather than forward into another change.
+Six moves in order, the only loop going back to isolation rather than forward into another change.
 
-Step 1 carries a hidden pass condition: **if you cannot reproduce it, say so and stop changing things.** "I cannot reproduce this; here is what I would collect — the request id from the error tracker, the user's role, and the time, and then I would search the logs for that window" is a complete answer. Guessing at a bug you cannot trigger is how the first student's ten minutes went.
+Step 1 carries a hidden pass condition: **if you cannot reproduce it, say so and stop changing things.** "I would collect the request id, the user's role and the time, then search the logs" is complete.
 
-Step 3 is the move students skip and the one that saves the most time. Splitting in half means one test that eliminates a whole layer: does the request even reach the server, does the row exist in the table, does the same call work from a terminal without the page. M06.11 called this bisecting a failure, and it is the same instinct as the second cook's second burner.
+Step 3 is the move students skip and the one that saves the most time. Splitting in half means one test that eliminates a whole layer: does the request reach the server, does the row exist, does the call work from a terminal without the page (M06.11's bisecting).
 
-### Narrating, concretely
-
-Keep cycling three sentences. *What I am looking at. What I think it means. What I will do next.* That is all narration is.
-
-Three habits make it sound like engineering rather than talking:
-
-**Say the exact text.** Read the status code and the message aloud. "403" and "500" lead to completely different next moves, and saying it out loud forces you to actually look.
-
-**Say what you have ruled out.** "The row is in the table, so this is not the save" is worth more to a listener than any amount of describing what you are about to try. It shows the search space shrinking.
-
-**Say when you are guessing.** "This is a guess, and the cheapest way to find out is…" is a strong sentence. It is honest, and it tells the panel you know the difference between a hypothesis and a fact.
-
-### Using AI on stage
-
-You are expected to. This whole program is about directing AI, and a defence where you refuse to use it proves nothing. The difference between the second student and a good one is entirely in the brief.
-
-*Fix my app* hands over the problem and the judgement. What works instead is M00.8's brief, compressed: the exact error, the one hypothesis, the single file or function in scope, and an explicit non-goal. *Here is the 403 from POST /api/orders. My hypothesis is that the role on the session is undefined for accounts created before the October migration. Look only at the middleware and tell me whether that is possible. Do not change any file.*
-
-Three rules under time pressure. **Paste the error, not the repository** — the whole repository invites a whole-repository answer. **Ask it to explain before you ask it to change** — an explanation you can check beats a diff you cannot. And **never accept a multi-file change in a ten-minute window**, because you cannot review it, which is exactly the failure M11.4 exists to prevent.
+Narration is three sentences, cycled: *what I am looking at, what I think it means, what I will do next.* Three habits make it engineering rather than talking. **Say the exact text**, because "403" and "500" lead to different moves. **Say what you have ruled out** — "the row is in the table, so this is not the save". **Say when you are guessing.**
 
 ### Where it lives
 
-The method is M06.11's: reproducing, reading a stack trace, bisecting a failure. The one-change rule is step 6 of M00.8's Director's Loop. Reverting rather than patching forward is M11.3. Not accepting unreviewable diffs is M11.4. Your inputs — structured logs, error tracking, traces — are M07.4 to M07.7, and the discipline of working an incident with people watching is M13.10. The route you travel is the trace you wrote in M18.1 section 4.
-
-Forward, this is the longest single block of M18.6, and the only one you cannot rehearse your way through.
+The method is M06.11's; the one-change rule is M00.8's Director's Loop; reverting rather than patching forward is M11.3; refusing unreviewable diffs is M11.4; logs and error tracking are M07.4–M07.7. The route you travel is M18.1 section 4's trace. Forward, this is the longest block of M18.6 and the only one you cannot rehearse.
 
 ### Words to own
 
@@ -115,29 +89,27 @@ Forward, this is the longest single block of M18.6, and the only one you cannot 
 
 ### Tradeoffs and gotchas
 
-**Never put real users' data on the projector.** Your logs and your table views contain phone numbers, emails and order histories. On a shared screen in front of thirty people that is a disclosure, it is irreversible, and under India's DPDP framework it is your responsibility. Seed a test account before the session, filter your log view, and rehearse opening both — M07.5 said keep personal data out of logs for exactly this reason.
+**Use AI, but brief it.** You are expected to; refusing proves nothing. The difference is in the brief: *here is the 403 from POST /api/orders; my hypothesis is the session role is undefined for pre-migration accounts; look only at the middleware; change no file.* Three rules: **paste the error, not the repository**; **ask it to explain before you ask it to change**; **never accept a multi-file change in ten minutes**, because you cannot review it.
 
-**Do not refactor on stage.** Rename nothing. Tidy nothing. The smallest change that answers the hypothesis, and nothing else.
+**Never put real users' data on the projector.** Your logs and table views hold phone numbers and order histories; on a shared screen that is an irreversible disclosure, and under DPDP it is yours.
 
-**Do not deploy to production during a defence unless you are asked to.** A scratch branch and a preview URL. The one thing worse than an unfixed bug is a second bug you shipped live while being watched.
+**Do not refactor on stage, and do not deploy to production unless asked.** And "it worked yesterday" is not a hypothesis — *what changed* is, and your deploy history answers that.
 
-**"It worked yesterday" is not a hypothesis.** It is the beginning of one. What changed since yesterday is a question you can actually answer: your deploy history, your merged changes, a provider's status page.
+**Time-box out loud.** At eight minutes, say what you ruled out, what you still suspect, and what another hour would buy. Running out of time with a clear account of the search is a good outcome.
 
-**Time-box out loud.** At eight minutes, stop and say where you are: what you ruled out, what you still suspect, what you would do with another hour. Running out of time with a clear account of the search is a good outcome. Silent flailing at minute nine is not.
-
-**Bluffing is the one unrecoverable move.** Say an invented thing confidently, have it collapse on one follow-up, and every answer you gave earlier becomes suspect — the panel has no way to tell which others were invented. "I do not know" costs one question. A bluff costs the whole defence.
+**Bluffing is the one unrecoverable move.** An invention that collapses on one follow-up makes every earlier answer suspect, because the panel cannot tell which others were invented. "I do not know, and here is how I would find out" costs one question; a bluff costs everything.
 
 ### Verify it
 
-You cannot practise this by reading. Five drills, each recorded.
+Five drills, recorded.
 
-1. **The blind bug.** A teammate breaks one thing on a branch you have not seen. Ten minutes, narrating, recorded. Do this at least three times with three different injected defects.
-2. **Listen back and count the silence.** Any stretch of more than about fifteen seconds of silent typing is a failure, however good the fix was.
-3. **Count your changes.** More than one change in flight at a time means you have lost the thread and cannot attribute the result.
-4. **Check whether you read the error aloud before touching anything.** If not, you were pattern-matching rather than diagnosing.
-5. **Do one drill you cannot win.** Have someone inject something genuinely beyond ten minutes, and practise ending with the honest unknown: what you ruled out, what you suspect, what you would collect next, how long it would take.
+1. **The blind bug.** A teammate breaks one thing on a branch you have not seen. Ten minutes, narrating. Three times, three defects.
+2. **Count the silence.** More than about fifteen seconds of silent typing is a failure, however good the fix was.
+3. **Count your changes.** More than one in flight means you cannot attribute the result.
+4. **Did you read the error aloud before touching anything?** If not, you were pattern-matching, not diagnosing.
+5. **Do one drill you cannot win.** Have someone inject something genuinely beyond ten minutes, and practise the honest-unknown ending: ruled out, still suspected, what you would collect next, how long it would take.
 
-The red flags, all visible from the back of a room: silent typing; three changes at once; a redeploy before a diagnosis; pasting the repository into an AI; accepting a multi-file diff under time pressure; real user data on screen; "it worked yesterday" said twice; and refusing to say "I do not know".
+The red flags, all visible from the back of a room: silent typing; three changes at once; a redeploy before a diagnosis; the repository pasted into an AI; real user data on screen; and refusing to say "I do not know".
 
 ## Walkthrough
 1. Write your own reproduction template and keep it on screen during drills: what I did, what I expected, what happened, the exact text, and whether it happens every time.

@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: servers-apis-contracts
 title: "What a Server Does; APIs, Endpoints and Request/Response Contracts"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,31 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Two members of a three-person team split the canteen app on a Tuesday. Priya takes the screen where a student taps "Place order". Rohit takes the part that saves the order.
-
-Priya's AI builds a screen that sends `POST /api/orders` with `{ "items": [...], "total": 240 }` and expects back `{ "order_id": 91, "eta_minutes": 12 }`.
-
-Rohit's AI builds a server that listens on `POST /api/order` — singular — reads a field called `cart`, ignores anything called `total`, and replies `{ "id": 91, "status": "PENDING" }`.
-
-Both of them tested their own half. Both halves work. On Thursday they connect the two and get a 404, then a crash, then an order with no total. They spend forty minutes arguing about whose AI was wrong. Neither AI was wrong. Nobody had written down what the two halves promised each other.
+Priya and Rohit split the canteen app on a Tuesday: she builds the "Place order" screen, he builds the part that saves it. Her AI sends `POST /api/orders` with `{ items, total }`; his listens on `POST /api/order` — singular — reads a field called `cart`, and replies `{ id, status }`. Both halves pass their own tests; connected on Thursday they produce a 404, then a crash, then an order with no total. Neither AI was wrong — nobody wrote down what the halves promised each other.
 
 ### The idea
 
 **A server is the one place in your app you actually control, and an API is the written promise of exactly what it will accept and exactly what it will send back.**
 
-Everything on the phone — the app, the browser, the JavaScript — runs on a device a stranger owns. They can edit it, replay it, or lie to it. The server is yours. So every decision that matters (what a thing costs, who is allowed to see it, what gets saved) has to happen there.
-
-The API is the seam between the two. If the seam is written down, two people can build either side at the same time. If it is not, you get Thursday.
+The phone runs on a device a stranger owns and can edit, replay or lie to. So every decision that matters — price, permission, what gets saved — happens on the server. The API is the seam, and a written seam lets two people build both sides at once.
 
 ### The analogy
 
-The canteen counter is an API.
+The canteen counter is an API. The menu board lists what you can ask for and the prices; you write your order on a slip in a fixed format and get back a numbered token. You cannot walk into the kitchen, nor price a samosa at ₹2 on your own slip. Board, slip, token, kitchen — API, request, response, server internals.
 
-There is a menu board listing exactly what you can ask for, and the prices. You write your order on a slip in a fixed format: dish, quantity. You hand the slip through the window and get a token with a number on it. You cannot walk into the kitchen, you cannot touch the gas, and you cannot decide the price of a samosa by writing ₹2 on your own slip.
-
-The menu board is the API. The slip is the request. The token is the response. The kitchen is the server's internals, and the fact that you are kept out of it is the entire point.
-
-**Where the analogy breaks:** a canteen worker will improvise. Ask for "the usual, less spicy" and a human fills in the gaps. A server does not improvise — it either matches the contract exactly or it refuses with an error. That rigidity feels unfriendly and is the reason two machines can trust each other at all.
+**Where the analogy breaks:** a canteen worker improvises — ask for "the usual, less spicy" and a human fills the gaps. A server matches the contract exactly or refuses with an error, and that rigidity is why two machines can trust each other at all.
 
 ### Picture it
 
@@ -72,17 +60,7 @@ The menu board is the API. The slip is the request. The token is the response. T
 
 A tap becomes a request with four parts — method, path, headers, body — and the server answers with two: a status code and a body. The five numbered checks inside the server are the work the phone is not trusted to do.
 
-### Where it lives
-
-In M00 you learned the four boxes: client, server, network, data. This chapter is the handshake between box one and box two, carried over box three.
-
-Notice what the server does that the client cannot. The client sent `items` and a `note`. It did **not** get to send the price. Step four of that diagram — "what is the real price?" — is the server looking up today's prices itself. This is the single most important habit in the whole module, and it comes straight from M00's rule that the client cannot be trusted. A student who edits the request to say the total is ₹2 gets charged the real amount anyway, because the server never read their number.
-
-You will meet this seam again everywhere. In M05 the cache sits in front of it. In M06 your tests call it. In M07 the OWASP checks are mostly about what the server failed to re-check. In M13 you will put a gateway in front of several of them.
-
-### Reading one endpoint as a contract
-
-Here is a contract written out in full. Not code — a promise.
+Written down, that seam is five lines — not code, a promise:
 
 ```
 POST /api/orders
@@ -93,11 +71,11 @@ POST /api/orders
             409 a listed item is sold out · 422 qty exceeds 10
 ```
 
-Five lines, and both halves of the team can now work in parallel for two days without talking. Every field name is fixed. Every failure has a number. `total_paise` tells you the server computes money in paise, so nobody writes `240.00` as a float and loses a rupee to rounding — the ₹ and paise rule you will use for the rest of this module.
+With that in the repo both halves work in parallel for two days without talking: every field name fixed, every failure numbered, money in integer paise. The status code is the verdict: `2xx` worked, `4xx` the caller erred, `5xx` the server broke. `401` is "I do not know who you are"; `403` is "I know who you are and you still cannot" — chapter 12.
 
-The method says what kind of action it is. `GET` reads and changes nothing. `POST` creates. `PUT` and `PATCH` change an existing thing. `DELETE` removes it. These are conventions, not laws — but breaking them means every tool, cache and proxy on the internet guesses wrong about your API.
+### Where it lives
 
-The status code is the headline of the response and the part beginners ignore. `2xx` worked. `4xx` means the caller made a mistake — wrong body, not logged in, not allowed. `5xx` means the server broke. The difference between `401` and `403` is the whole of chapter 12: `401` is "I do not know who you are", `403` is "I know exactly who you are and you still cannot".
+This is the handshake between M00's box one (client) and box two (server), carried over box three (network). Notice what the client sent: `items` and a `note`, and **not** the price — step four of the diagram is the server looking up today's prices itself, so a student who edits the request to claim ₹2 is charged the real amount anyway. The seam returns in M05 (caching), M06 (tests), M07 (OWASP) and M13 (a gateway).
 
 ### Words to own
 
@@ -116,26 +94,24 @@ The status code is the headline of the response and the part beginners ignore. `
 
 ### Tradeoffs and gotchas
 
-**The client cannot be trusted, and AI forgets this constantly.** Ask for a checkout endpoint and you will very often get one that accepts `total` from the phone and saves it. That is not a style issue; it is a free-food bug. Any number that affects money, stock or permissions must be recomputed server-side from your own data.
+**The client cannot be trusted, and AI forgets this constantly.** Ask for a checkout endpoint and you will often get one that accepts `total` from the phone and saves it. That is not a style issue; it is a free-food bug — any number affecting money, stock or permissions must be recomputed server-side.
 
-**A `200` with an error inside it is a lie.** AI output frequently returns `200 OK` with `{ "success": false, "message": "sold out" }`. Now every caller has to parse the body to find out whether it worked, retries behave wrongly, and your monitoring in M07 reports a perfectly healthy service while students cannot order. Failures belong in the status code.
+**A `200` with an error inside it is a lie.** `200 OK` with `{ "success": false }` forces every caller to parse the body, misleads retries, and lets M07's monitoring report a healthy service while nobody can order. Failures belong in the status code.
 
-**Verbs in paths are a smell.** `/api/getOrders`, `/api/createOrder` and `/api/deleteOrder2` are three endpoints doing what `GET`, `POST` and `DELETE` on `/api/orders` already express. It is not fatal, but it usually means nobody designed the API; it accreted one prompt at a time.
+**Verbs in paths are a smell.** `/api/getOrders` and `/api/createOrder` do what `GET` and `POST` on `/api/orders` already express; it usually means nobody designed the API.
 
-**Over-fetching costs real money on 4G.** An endpoint that returns every field of every order, including the full menu for each item, is fine on your laptop and painful on a budget Android phone in a hostel with two bars of signal. Decide what the screen actually needs and return that.
-
-**Renaming a field is a breaking change.** The moment a second person, a mobile app, or a deployed site depends on `total_paise`, changing it to `amount` breaks them. That is what chapter 4 on versioning exists for.
+**Renaming a field is a breaking change.** Once a deployed app depends on `total_paise`, changing it to `amount` breaks it. That is what chapter 4 exists for.
 
 ### Verify it
 
-When AI hands you an endpoint, four checks, in this order.
+Four checks, in this order.
 
-1. **Does the client's call match the server's route, character for character?** Singular versus plural, `/api/orders` versus `/orders`, `menu_item_id` versus `menuItemId`. Read both sides side by side. This is Thursday, prevented.
-2. **Does the server recompute anything that matters?** Search the server code for the word `total` or `price`. If it reads a price out of the request body instead of out of the database, reject the work and say so plainly.
-3. **Do the failures have the right status codes?** Try it logged out — you want `401`, not `200`. Send a garbage body — you want `400`, not `500`. Ask for an order that does not exist — `404`, not an empty `200`.
-4. **Is money in paise, and is it an integer?** `24000` not `240.00`. Floats on currency lose paise and the losses do not cancel out.
+1. **Does the client's call match the server's route, character for character?** `/api/orders` versus `/api/order`, `menu_item_id` versus `menuItemId`. Read both sides side by side — this is Thursday, prevented.
+2. **Does the server recompute anything that matters?** Grep the server for `total` and `price`; if a price comes from the request body rather than the database, reject the work.
+3. **Do the failures have the right status codes?** Logged out wants `401`, not `200`. A garbage body wants `400`, not `500`. A missing order wants `404`, not an empty `200`.
+4. **Is money an integer in paise?** `24000`, not `240.00` — floats lose paise and the losses do not cancel out.
 
-Red flags that mean stop and re-brief: the response has no status code discussed at all; the AI says "the frontend will validate that"; the endpoint accepts a `user_id` from the request body to decide who the order belongs to (it must come from the session, never from the caller); the explanation includes the phrase "for simplicity" next to anything about authentication.
+Red flags: no status codes discussed at all; "the frontend will validate that"; a `user_id` taken from the request body instead of the session; "for simplicity" next to anything about authentication.
 
 ## Walkthrough
 1. Open any real site you use on your phone's browser on a laptop — a college portal, a news site — and open the browser's developer tools, Network tab. Reload the page.

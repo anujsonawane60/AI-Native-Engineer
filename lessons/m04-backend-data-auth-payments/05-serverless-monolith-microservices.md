@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: serverless-monolith-microservices
 title: "Serverless Functions, Monoliths and Microservices"
 order: 5
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,33 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team builds the canteen app as one application. It works. In week nine someone reads an article about microservices and splits it into five services: orders, menu, payments, users, notifications.
+In week nine a three-person team reads an article about microservices and splits their working canteen app into five services: orders, menu, payments, users, notifications.
 
-Day one of the split: nothing can talk to anything. Day two: there are five deployments, five sets of environment variables, five free-tier accounts, and a bug where an order exists but the user does not, because the two writes happened in two services and the second one failed. Day four: a change that used to touch one file now touches three services and cannot be tested locally at all. Day six: they merge it all back and have lost a week they needed for the demo.
-
-A different failure, same week, different team. They host everything as serverless functions on a free tier. A student uploads a photo of the canteen menu and the function dies at ten seconds because image processing takes fourteen. Another function opens a database connection on every single call, and at lunch peak the database refuses new connections because 300 functions are each holding one. Both problems are invisible on a laptop with one user.
+By day four there are five deployments, five sets of environment variables, an order with no matching user because the second write failed in another service, and a change that used to touch one file now touching three. They merge it back on day six, having lost the week they needed for the demo.
 
 ### The idea
 
 **Your backend's shape should be chosen from your team size and your traffic, not from what large companies do at a thousand times your scale.**
 
-A **monolith** is one application, one deployment, one codebase. All the features live together.
+A **monolith** keeps all features in one deployable application; **microservices** split them into separate applications that talk over the network; **serverless** is a hosting model where idle code wakes per request and then exits.
 
-**Microservices** split features into separate applications that deploy independently and talk over the network.
-
-**Serverless functions** are a hosting model rather than a shape: your code sits idle, a request wakes a copy of it, it runs for a few seconds, and it disappears. You pay for execution, not for a machine that waits.
-
-These are not three points on a line from bad to good. Monolith and microservices answer "how do we divide the code?" Serverless answers "what runs it?" You can have a serverless monolith, and for a small team that is often exactly the right answer.
+The first two answer "how do we divide the code?"; serverless answers "what runs it?" So a serverless monolith is a real option, usually the right one.
 
 ### The analogy
 
-One canteen with one kitchen is the monolith. The cook who makes dal also makes rice. Communication is a shout across two metres. When it gets busy, everyone is in one room and it is chaotic, but nothing is ever waiting on a form.
+One kitchen is the monolith: the cook who makes dal also makes rice, and communication is a shout across two metres. Five stalls with their own kitchens, tills and stock are microservices — each rebuildable without closing the others, but a combo meal needs three to coordinate. Serverless is a kitchen with no permanent staff: a cook is summoned per order and leaves, so nothing idles overnight, though summoning takes a moment and the cook remembers nothing.
 
-Five separate food stalls, each with its own kitchen, its own till and its own stock, are microservices. Each can be rebuilt without closing the others. Each can hire its own staff. But a combo meal now needs three stalls to coordinate, the student queues three times, and if the rice stall shuts the thali is impossible.
-
-Serverless is a kitchen with no permanent staff. A cook is summoned when an order arrives, cooks it, and leaves. You pay per dish and nothing idles overnight. The catch: summoning takes a moment — the first student after a quiet hour waits while the cook walks in — and the cook remembers nothing from the last dish, so anything that must be remembered has to be written down somewhere outside the kitchen.
-
-**Where the analogy breaks:** real stalls fail independently and a student can see which one is closed. In software, the failures interleave invisibly. An order that exists in one service with no matching user in another is a state no physical canteen can reach, and cleaning it up is the real cost of splitting things.
+**Where the analogy breaks:** real stalls fail visibly; in software failures interleave invisibly. An order in one service with no matching user in another is a state no canteen can reach, and cleaning it up is the real cost of splitting.
 
 ### Picture it
 
@@ -76,25 +66,9 @@ One application with one database, four applications each with their own, and a 
 
 ### Where it lives
 
-This is the "server" box from M00's four boxes, zoomed in on how it is arranged and hosted.
+This is M00's "server" box, zoomed in on arrangement and hosting. The recommendation here is deliberate: **build a monolith, host it on a free serverless platform, use one managed database** — one codebase your team can read, one place to look when it breaks, no idle cost. Anything that pushes against the serverless limits moves into a background job.
 
-For this program, the recommendation is specific and deliberate: **build a monolith, host it on a free serverless platform, and use one managed database.** One codebase your whole team can read, one deployment in M06, one place to look when something breaks, and no idle cost.
-
-Everything that pushes against serverless limits — the fourteen-second image resize, the nightly report, the email that takes four seconds to send — moves out into a background job, which is chapter 16. That one pattern removes almost every reason a small team thinks it needs long-running servers.
-
-M05 picks up what happens when one instance is not enough: stateless servers, load balancers, replicas and connection pooling. M13 is where microservices become a reasonable conversation, because by then you will have a reason.
-
-### What serverless actually costs you
-
-Three constraints, and they are not negotiable by prompting harder.
-
-**Cold starts.** A function with no recent traffic has to be loaded before it runs. On free tiers that is commonly a few hundred milliseconds and occasionally a few seconds. Your canteen app at 11 a.m. is cold; the first student of the lunch rush waits. This is survivable and worth knowing before you call it a bug.
-
-**Timeouts.** Free tiers typically stop a function after about ten seconds. Anything slower — resizing a photo, generating a PDF, calling a slow third-party API, looping over 5,000 rows — must not live in a request handler. It gets queued.
-
-**No memory between calls.** Each invocation starts fresh. A counter in a variable resets. A file written to disk is gone. An in-memory session store loses every login the moment the platform scales to a second copy. Everything that must persist goes to the database or to object storage from chapter 15. This property is called being **stateless**, and in M05 it is also what makes scaling possible at all.
-
-A fourth, less obvious one: **database connections**. Each warm function instance may hold its own connection, and 200 instances at lunch can exhaust a free-tier database's limit of, say, 60. The fix is a connection pooler, which most managed database providers offer as a separate connection string. If AI never mentions it, your app will work in testing and fail at peak.
+Downstream: chapter 15 holds files · chapter 16 holds slow work · M05 adds load balancers and pooling · M13 is where microservices become reasonable.
 
 ### Words to own
 
@@ -113,29 +87,32 @@ A fourth, less obvious one: **database connections**. Each warm function instanc
 
 ### Tradeoffs and gotchas
 
-**Microservices trade a code problem for a network problem, and the network problem is harder.** In a monolith, two features calling each other is a function call: instant, reliable, and either both happen or neither. Across services it is an HTTP request that can be slow, can fail halfway, and can succeed while the caller times out and retries. You need retries, timeouts, idempotency and a way to repair half-finished state. That is M05 and chapter 17 of this module, as a tax on every interaction, forever.
+Serverless has three hard constraints plus one that appears only under load.
 
-**The real cost of splitting is human, not technical.** Three people cannot own five services. You will end up with one person per service, nobody able to review anyone else's work, and a change that requires three deployments in the right order. Monoliths are not a compromise at this size; they are correct.
+| Constraint | What it means | What it breaks |
+|---|---|---|
+| Cold start | Idle code loads before it runs: 200 ms to 3 s | the first student of the lunch rush waits |
+| Timeout | One execution is killed, ~10 s on free tiers | image resize, PDF, 5,000-row loop |
+| Stateless | Nothing survives between invocations | counters, disk files, in-memory sessions |
+| Connections | Each warm instance holds its own: 200 vs 60 | database refuses new connections at peak |
 
-**"We will split it later" is fine, and splitting later is much easier than you fear** — provided you kept clean module boundaries inside the monolith. Organise folders by feature, keep each feature's data access in one place, and the eventual split is a refactor rather than a rewrite.
+**Microservices trade a code problem for a network problem, and the network problem is harder.** In a monolith, two features calling each other is a function call: instant, all-or-nothing. Across services it is an HTTP request that can fail halfway — so you owe retries, timeouts, idempotency and state repair forever.
 
-**Serverless plus WebSockets is usually a mistake on a free tier.** Chapter 3's point, restated here: a connection that must stay open for an hour is a poor fit for a host that bills per short invocation.
+**The real cost of splitting is human.** Three people cannot own five services: nobody reviews anyone else's work, and a change needs three deployments in the right order. Keep each feature's folders and data access in one place and splitting later stays cheap.
 
-**Beware the architecture that matches the article rather than the project.** If AI proposes an event bus, a service mesh and separate databases per service for a three-person four-month student project, it is pattern-matching on blog posts. The correct response is to restate your team size and timeline as a hard constraint.
-
-**Free tiers change.** Specific limits in this chapter are illustrative. Read your platform's current limits page before you design against a number.
+**AI proposes the architecture from the article, not for your project.** An event bus and a database per service, for a three-person four-month project, is pattern-matching on blog posts. Restate team size and timeline as hard constraints.
 
 ### Verify it
 
-Five checks on any architecture AI proposes.
+Five checks on any proposed architecture.
 
-1. **Count the deployments.** More than one for a three-person project needs a written justification that survives the question "what breaks if we keep it together?"
-2. **Ask where the slow things go.** Name your slowest operation — image resize, report, bulk email — and ask directly whether it runs inside a request. If the answer is yes and your host times out at ten seconds, the design is already broken.
-3. **Look for in-memory state.** Search for any variable that holds a count, a cache, a session or a queue across requests. On a stateless host it is a bug that appears only under load, when a second instance exists and the two disagree.
-4. **Ask about connection pooling by name.** "At 200 concurrent invocations, how many database connections will exist, and what is my database's limit?" A design with no answer will fail at lunch peak and pass every test you run alone.
-5. **Test a cold start yourself.** Leave the app alone for twenty minutes, then load it and time the first request. Know your number rather than discovering it during a demo.
+1. **Count the deployments.** More than one for a three-person project needs a written answer to "what breaks if we keep it together?"
+2. **Ask where slow work goes.** A slow operation inside a request, on a host that times out at ten seconds, is already broken.
+3. **Look for in-memory state.** A variable holding a count, cache, session or queue across requests breaks once a second instance exists.
+4. **Ask about pooling by name.** "At 200 concurrent invocations, how many connections exist, and what is my limit?" No answer means solo tests pass, peak fails.
+5. **Test a cold start.** Leave the app idle twenty minutes, load it, time the first request.
 
-Red flags: the word "scalable" without a number anywhere near it; separate databases per service proposed for a student project; a design that cannot be run end to end on one laptop; "we'll use an event bus for communication between services" in a product with no users yet; any proposal to keep sessions in server memory, which is both a scaling bug and chapter 12's problem.
+Red flags: "scalable" with no number near it · a database per service for a student project · a design that cannot run on one laptop · an event bus with no users · sessions in server memory, a scaling bug and chapter 12's.
 
 ## Walkthrough
 1. Write down three numbers for your own project: team size, weeks remaining, and your honest peak concurrent users. These three numbers decide the architecture, and everything else is decoration.

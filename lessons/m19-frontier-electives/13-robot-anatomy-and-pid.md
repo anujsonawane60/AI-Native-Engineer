@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: robot-anatomy-and-pid
 title: "Robot Anatomy, Control Loops and PID"
 order: 13
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,25 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-The canteen gets an automatic gate for the service entrance, so trolleys can be pushed through without anyone letting go. It behaves in four distinct ways over four weeks, and each one teaches something.
+The canteen gets an automatic gate for the service entrance, so trolleys can be pushed through without anyone letting go. It behaves in four distinct ways over four weeks.
 
-In week one it slams. It drives at full speed until the sensor says the gate has arrived, by which point the gate is going too fast to stop, and it hits the end stop hard enough to crack a bracket. In week two, after the speed is reduced, it creeps — twenty seconds to open, and the trolley pusher starts leaning on it. In week three someone turns the response up, and the gate oscillates: past the mark, back, past it again, hunting back and forth and never settling. And in week four it almost works, except that after a heavy trolley holds it half-open for a minute, the moment the trolley is removed the gate flings itself wide with enormous force, as if it had been saving up.
+Week one it slams into the end stop at full speed and cracks a bracket. Week two, at reduced speed, it creeps: twenty seconds to open, and the trolley pusher leans on it. Week three someone turns the response up and it oscillates, hunting past the mark and never settling. Week four it almost works — except that after a heavy trolley holds it half-open for a minute, the moment the trolley is removed the gate flings itself wide, as if it had been saving up.
 
-Four symptoms, one subject. Slamming, creeping, oscillating and that last startling lunge are the four classic behaviours of a feedback controller, and the fourth one has a name — integral windup — which is why "just use PID" is not an answer.
+Those four are the classic behaviours of a feedback controller, and the fourth has a name — integral windup — which is why "just use PID" is not an answer.
 
 ### The idea
 
-**A robot is sense, decide, act, repeated at a fixed rate; a closed loop measures how wrong it is and corrects; and PID is three honest reactions to that one error number — how wrong now, how long it has been wrong, and how fast it is changing.**
+**A robot is sense, decide, act at a fixed rate; a closed loop measures how wrong it is and corrects; and PID is three reactions to that one error number — how wrong now, how long it has been wrong, how fast it is changing.**
 
-The error is the difference between where you want to be, called the setpoint, and where the sensor says you are, called the process variable. An open-loop controller ignores the sensor: run the motor for three seconds and hope. A closed loop reads the error every cycle and decides again.
+The error is the difference between where you want to be, the setpoint, and where the sensor says you are, the process variable. A closed loop reads that error every cycle and decides again; an open loop ignores the sensor, running the motor three seconds and hoping.
 
-The three reactions, in plain words. Proportional: push harder the further you are from the target. That alone usually leaves you slightly short, because near the target the push becomes too weak to finish the job. Integral: if you have been short for a while, keep adding more push until it is resolved. That clears the remaining gap and is also what causes the week-four lunge, because the "keep adding" does not stop while the gate is physically blocked. Derivative: if you are closing in fast, ease off early. That tames overshoot and amplifies any noise in the sensor, because a jittery measurement looks like rapid movement.
+The three reactions. Proportional: push harder the further you are from the target — which alone leaves you short, because near the target the push is too weak to finish. Integral: if you have been short a while, keep adding push — which clears the gap and causes the week-four lunge, because the adding does not stop while the gate is blocked. Derivative: closing in fast, ease off early — which tames overshoot and amplifies sensor noise, because jitter looks like rapid movement.
 
 ### The analogy
 
-A canteen worker filling a tall glass from a tap, aiming at a line drawn on the side. Proportional is opening the tap wider when the glass is nearly empty and narrowing it as the water rises. Integral is noticing that the level has been sitting just below the line for a while because the tap drips slowly, and opening a little more to finish. Derivative is seeing the water rushing up quickly and starting to close before reaching the line.
+A canteen worker fills a tall glass from a tap, aiming at a line on the side: open the tap wide while the glass is empty and narrow it as the water rises (proportional), open a little more when the level has sat just below the line because the tap drips slowly (integral), and start closing early when the water is rushing up (derivative).
 
-**Where the analogy breaks**, in three ways that are the engineering content. The worker sees the whole glass and anticipates; a controller sees one number and only reacts, with no idea what is coming. The worker notices when the glass is cracked and water is leaking out; a controller keeps pushing against a fault forever, which is windup. And the worker's eyes update continuously, while a controller samples at a fixed rate — and a loop sampling ten times a second cannot control something that moves meaningfully in a tenth of a second, no matter how well its three reactions are tuned.
+**Where the analogy breaks**, in three ways that are the engineering content. The worker sees the whole glass and anticipates; a controller sees one number and only reacts. The worker notices the glass is cracked and leaking; a controller pushes against a fault forever, which is windup. And the worker's eyes update continuously, while a controller samples at a fixed rate.
 
 ### Picture it
 
@@ -82,11 +82,9 @@ Integral windup happens when the controller keeps accumulating a push it cannot 
 
 ### Where it lives
 
-You have met control loops repeatedly without the vocabulary. M05's autoscaling is a control loop: setpoint is a target utilisation, process variable is measured load, actuator is the number of instances, and a badly tuned one oscillates between scaling up and down exactly like the week-three gate. Retry with backoff is a controller that eases off when the error is not closing. M13's alerting thresholds have the same deadband problem — alerts that fire and clear repeatedly are an oscillating loop with a human as the actuator. And M10's agent loops are the same shape with a model in the controller box and far less predictable behaviour.
+You have met control loops without the vocabulary. M05's autoscaling is one: setpoint is target utilisation, process variable is measured load, actuator is the instance count, and a badly tuned one oscillates exactly like the week-three gate. So are M13's alerts that fire and clear repeatedly.
 
-In a robot specifically: sensors are the position encoders, limit switches and inertial units; the actuators are motors and servos; the plant is the physical thing being moved, with its mass, friction and backlash; and the loop rate is the frequency at which all of it repeats. Low-level motor loops run at hundreds or thousands of cycles a second, while the navigation decisions in chapter 14 run at ten or twenty.
-
-Everything here can be explored free in a browser. Online PID simulators let you drag the three weights and watch the response curve, and free robot simulators give you a simulated line-follower whose controller you can detune into oscillation and back. Nothing requires a motor, a board or a budget.
+In a robot the sensors are encoders, limit switches and inertial units; the actuators are motors and servos; the plant is the thing being moved, with its mass, friction and backlash. Motor loops run at hundreds or thousands of cycles a second, while chapter 14's navigation runs at ten or twenty. Everything here is free in a browser: online PID simulators let you drag the three weights and watch the response curve, and free robot simulators give you a line-follower to detune into oscillation and back.
 
 ### Words to own
 
@@ -110,33 +108,27 @@ Everything here can be explored free in a browser. Online PID simulators let you
 
 ### Tradeoffs and gotchas
 
-**Too much proportional response oscillates.** This is the first thing you will see when tuning. The system reacts so strongly that it overshoots, then reacts strongly the other way.
+**Integral is the one that surprises you.** It fixes the last small gap and introduces windup, slow oscillation and a delayed lunge. Any serious implementation limits the accumulation.
 
-**Integral is the one that surprises you.** It fixes the last small gap and it introduces windup, slow oscillation and a delayed lunge after any prolonged obstruction. Any serious implementation limits the accumulation.
+**Sample rate and delay destabilise a perfectly tuned loop.** Gains tuned at 200 cycles a second may oscillate violently at 20. Any latency — a slow sensor, a network hop, a model inference — behaves like reacting to the past.
 
-**Derivative amplifies sensor noise.** A noisy position reading looks like rapid motion, so the controller reacts to noise. Filtering helps and adds delay, which is its own problem.
+**Tuning is empirical, and it has methods.** The classical procedure raises the proportional response until the system just oscillates, backs it off, then adds derivative and finally integral, recording each step. Named recipes such as Ziegler-Nichols are starting points for a tuning log, not formulas.
 
-**Sample rate and delay can destabilise a perfectly tuned loop.** Gains tuned at 200 cycles a second may oscillate violently at 20. Any latency in the loop — a slow sensor, a network hop, a model inference — behaves like reacting to the past.
-
-**Saturation is physics, not a bug.** A motor has a maximum. A controller asking for more than the actuator can deliver has effectively stopped controlling, and that is exactly when windup protection matters.
-
-**Tuning is empirical, and it has methods.** The classical procedure is to raise the proportional response until the system just oscillates, back it off, then add derivative and finally integral, recording each step. There are named recipes such as Ziegler-Nichols; all of them are starting points for a tuning log, not formulas that end the job.
-
-**Safety is not part of PID.** A tuned controller will still crush a hand. Limit switches, torque limits, a mechanical clutch and a physical emergency stop are separate protections that must hold even when the controller is wrong or the software has crashed.
+**Safety is not part of PID.** A tuned controller will still crush a hand. Limit switches, torque limits, a mechanical clutch and a physical emergency stop are separate protections that must hold when the software has crashed.
 
 ### Verify it
 
-**Red flag: a PID explanation with no mention of tuning or instability.** The diagnostic test of this chapter. If an answer presents the three reactions as a recipe and never says that the weights must be found experimentally and that bad weights oscillate, it has described half the subject.
+**Red flag: a PID explanation with no mention of tuning or instability.** The diagnostic test of this chapter. An answer that presents the three reactions as a recipe, without saying the weights must be found experimentally and that bad weights oscillate, has described half the subject.
 
-**Red flag: gains offered as universal constants.** Any specific set of three numbers is meaningless without the mass, friction, actuator and sample rate it was found for. Ask what system those numbers came from.
+**Red flag: gains offered as universal constants.** Three numbers are meaningless without the mass, friction, actuator and sample rate they were found for. Ask what system they came from.
 
-**Red flag: no sample rate.** Ask how often the loop runs and how much delay the sensor adds. A controller specification without a rate is incomplete, and rate is frequently what decides stability.
+**Red flag: no sample rate.** Ask how often the loop runs and how much delay the sensor adds; a controller specification without a rate is incomplete.
 
-**Red flag: no windup protection and no saturation handling.** Ask what happens when the actuator is already at maximum and the error persists. If the answer does not mention limiting the accumulation, expect the week-four lunge.
+**Red flag: no windup protection.** Ask what happens when the actuator is at maximum and the error persists. No mention of limiting the accumulation means the week-four lunge.
 
-**Red flag: the sensor assumed perfect.** Ask what the measurement noise is, what happens on a dropped reading, and what the controller does if the sensor fails entirely and reports a constant value. Chapter 14 makes this failure the main subject.
+**Red flag: the sensor assumed perfect.** Ask what the measurement noise is, and what the controller does if the sensor fails and reports a constant value.
 
-**Red flag: safety discussed only in software.** Ask which protection still works when the controller has crashed mid-motion. If every answer is a line of code, there is no safety system.
+**Red flag: safety discussed only in software.** Ask which protection still works when the controller has crashed mid-motion.
 
 ## Walkthrough
 1. Open a free in-browser PID simulator or a simulated line-following robot. Set the integral and derivative weights to zero so only the proportional response is active.

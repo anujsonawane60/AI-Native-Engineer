@@ -4,7 +4,7 @@ module: m13-production-engineering
 slug: advanced-release-engineering
 title: "Advanced Release Engineering: Blue-Green, Canary, Feature Flags, Rollback"
 order: 5
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,25 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-M06 chapter 12 taught you CI and CD: every push runs your checks on a clean machine, a red pull request cannot be merged, a preview deploy gives the team a URL to open, and a merge to main deploys. It mentioned rollback as a thing that exists. It then promised that M13 goes deep into release engineering — canaries, blue-green, feature flags. This is that chapter, and the gap between "we can deploy" and "we can deploy safely at 11 p.m. on a Friday" is what it covers.
+M06 chapter 12 taught you CI and CD: every push runs your checks on a clean machine, a red pull request cannot merge, and a merge to main deploys. It mentioned rollback, then promised M13 would go deep into canaries, blue-green and feature flags. This chapter covers the gap between "we can deploy" and "we can deploy safely on a Friday night".
 
-A team ships a change to the order total. It passes CI. It deploys to all users at once, because that is what their pipeline does. The change has a rounding bug that only appears when a discount applies, which is about one order in nine. For thirty-eight minutes, one student in nine is charged the wrong amount by a few rupees. Nobody is looking at a dashboard, because it is Friday evening. The first signal is a WhatsApp message from a user. By then there are nineteen wrong charges to refund by hand through UPI, and a trust problem that outlasts the refunds.
-
-Now the version with a canary, done badly. Same change, released to 5% of traffic. The p95 from M07 doubles and the error rate climbs within ninety seconds. The dashboard shows it clearly. Nobody is looking at the dashboard, because it is still Friday evening. Forty minutes later someone notices. The canary did its job perfectly and bought them nothing, because a canary with a human in the loop is just a slower full release.
+A team ships a change to the order total. It passes CI and deploys to everyone at once. The change has a rounding bug that only shows with a discount — one order in nine — and students are charged wrongly for thirty-eight minutes, until a user messages them. Behind a badly built canary the dashboard shows it in ninety seconds, to nobody.
 
 ### The idea
 
 **A release strategy is worth exactly as much as its automated rollback trigger. Everything else is ceremony.**
 
-Three mechanisms, and they solve different problems. **Blue-green** runs two complete environments and moves all traffic from one to the other at once; rollback is moving it back, which is seconds. **Canary** sends a small percentage of real traffic to the new version, watches a measured signal, and promotes or reverts automatically. **Feature flags** separate deploying the code from turning the feature on, so a release becomes a configuration change that does not require a deploy at all.
+Three mechanisms solve different problems. **Blue-green** runs two complete environments and moves all traffic at once, so rollback is moving it back. **Canary** sends a small share of real traffic to the new version, watches a measured signal, and promotes or reverts automatically. **Feature flags** separate deploying code from turning behaviour on, so a release needs no deploy.
 
 ### The analogy
 
-M06 gave you the canteen's tasting table, where a new dish is plated for staff rather than described.
+M06 gave you the canteen's tasting table, where a new dish is plated for staff rather than described. Now it goes on the board, three ways. Build a second counter behind a curtain and move the sign across in one motion — **blue-green**: two counters at once, rollback in seconds. Or serve the new recipe to every twentieth student, stopping after two grimaces: a **canary**. Or cook the dish, keep it in the warmer, and never write it on the board — a **feature flag**, deployed but not released.
 
-Now the dish is going on the board. Three ways. Build an entire second counter behind a curtain, cooking the new recipe, fully stocked; when it is ready, move the sign across in one motion, and if the first complaint arrives, move the sign back. That is **blue-green**: you pay for two counters at once and you get a rollback measured in seconds. Or keep one counter and serve the new recipe to every twentieth student, watching the faces; if two in a row grimace, stop. That is a **canary**. Or cook the new dish, keep it in the warmer, and simply not write it on the board until you are ready — the food is deployed, the dish is not released. That is a **feature flag**, and the board can be rubbed out again without touching the kitchen.
-
-**Where the analogy breaks:** a student's grimace is instant, obvious and free. Your canary has no face. It has a p95 and an error rate, and someone must have written down in advance which number, over which window, means stop — and automated the stopping. A canary with a human watcher is not a safety mechanism; it is a rota, and your rota is three students with exams.
+**Where the analogy breaks:** a grimace is instant, obvious and free. Your canary has no face. It has a p95 and an error rate, and someone must decide in advance which number means stop, then automate the stopping.
 
 ### Picture it
 
@@ -61,9 +57,13 @@ A canary splits traffic, compares the new version against written thresholds ove
 
 ### Where it lives
 
-This sits directly on M06 chapter 12's pipeline: CI decides whether a change *may* ship, and this chapter decides *how*. The thresholds come from M05 chapter 8 — your SLO and your error budget are what make "too many errors" a number instead of an opinion. The signals come from M07 chapter 6, which is why p95 and not the mean: a mean hides the one-in-nine case that started this chapter. Chapter 3's Deployment is one mechanism for the traffic split, and chapter 4 is where the split configuration lives so it is reviewed rather than clicked. Chapter 10 picks up when the automated rollback has fired and someone still has to work out why.
+This sits on M06 chapter 12's pipeline: CI decides whether a change *may* ship, this chapter decides *how*.
 
-Free paths exist for all three. Most hosting platforms keep the previous deployment and offer an instant revert, which is blue-green you already own. Canary traffic splitting is available free on several platforms and in chapter 3's cluster. Feature flags need no product at all for a small team: a row in your database read at request time, with a safe default, is a real flag.
+- **Thresholds** come from M05 chapter 8 — an SLO and an error budget make "too many errors" a number, not an opinion.
+- **Signals** come from M07 chapter 6, which is why p95 and not the mean.
+- **Chapter 3** splits traffic, **chapter 4** keeps that split reviewed rather than clicked, **chapter 10** starts where the rollback ends.
+
+Free paths exist for all three: your platform's instant revert is blue-green you already own, traffic splitting is free on several platforms, and a flag is one database row.
 
 ### Words to own
 
@@ -86,30 +86,22 @@ Free paths exist for all three. Most hosting platforms keep the previous deploym
 
 ### Tradeoffs and gotchas
 
-**The hardest part is not the deploy, it is the database.** A rollback reverts your code and does not revert your schema. If v8's migration dropped a column that v7 reads, you cannot roll back — you can only fix forward, under pressure, with users affected. The discipline is **expand-contract**: first deploy a migration that only *adds*, then deploy code that writes to both old and new, then backfill, then deploy code that reads only the new, and only in a later release remove the old column. Every step is individually reversible. It takes three releases instead of one and it is the difference between a bad ten minutes and a bad evening.
+**The hardest part is not the deploy, it is the database.** A rollback reverts your code, not your schema: if v8's migration dropped a column v7 reads, you can only fix forward under pressure. **Expand-contract** is the discipline: add the column, write to both, backfill, read the new, drop the old a release later.
 
-**A canary needs enough traffic to mean anything.** At 5% of two hundred daily users, your canary sees about ten requests in ten minutes, and ten requests cannot distinguish a 1% error rate from zero. If your traffic is small, blue-green with an instant revert and a human smoke test is the honest choice, and you should say so rather than build a canary that cannot detect anything. Knowing this is a mark of judgement, not a limitation.
+**A canary needs enough traffic to mean anything.** At 5% of two hundred daily users it sees ten requests in ten minutes, which cannot tell a 1% error rate from zero. With small traffic, blue-green and an instant revert is the honest choice, though it costs double during the switch.
 
-**Blue-green costs double for the duration of the switch, and that is a real number on a student budget.** It also has a sharp edge: anything shared between the two environments — the database, the cache, a queue — is not duplicated, so a change that corrupts shared state is not fixed by moving the sign back.
+**Every flag needs a safe default, and it is off.** A flag defaulting to on fails open: when the config store is unreachable, the feature you were nervous about turns itself on for everybody. Each flag also doubles the code paths chapter 6's suite must cover.
 
-**Every flag must have a safe default, and the safe default is off.** A flag whose default is on fails open: if the config store is unreachable, the feature you were nervous about turns itself on for everybody. Write the default down next to the flag.
-
-**Flags are debt with a due date.** Each one doubles the number of code paths in that area, which doubles what your chapter 6 regression suite must cover. Decide the removal date when you create the flag, write it in the decision log, and delete the flag when the decision is made. A codebase with forty stale flags cannot be reasoned about by a human or by an agent.
-
-**Decide in advance whether you revert or fix forward, and write the rule down.** Revert is the default because it is fast and known. Fix forward is correct when the problem is data already written, or when the previous version is also broken. Deciding this during an incident, at speed, is how teams spend thirty minutes debating instead of five minutes recovering.
-
-**"We can roll back" is a claim, not a capability, until you have done it in production.** Run a rollback deliberately, on a quiet afternoon, with a stopwatch. That number belongs in your runbook for chapter 10.
+**Decide in advance whether you revert or fix forward.** Revert is fast and known; fix forward is right when the problem is data already written. "We can roll back" is a claim until you have timed one in production.
 
 ### Verify it
 
-1. **Ask for the rollback trigger as a number, a window and an action.** "We monitor error rates during the canary" is not a trigger. "Error rate above 1% measured over 60 seconds reverts to the previous version automatically" is. If a human is in the trigger, there is no trigger.
-2. **Ask what happens if the canary is healthy but nobody promotes it.** A canary with no automatic promotion and no timeout quietly becomes a permanent two-version production, which is the hardest thing to debug in this chapter.
-3. **Ask for the rollback of the migration, specifically.** Make it state whether the previous code version still works against the new schema. If the answer is no, the release plan is wrong regardless of how good the deploy mechanism is.
-4. **Ask for every flag's default and what happens when the flag store is unreachable.** A flag that fails on is worse than no flag.
-5. **Check whether your traffic can support a canary at all.** Do the arithmetic: 5% of your real request rate over the bake time. If it is tens of requests, say so and pick blue-green.
-6. **Run the rollback yourself and time it.** Then confirm the old version is actually serving by checking a visible difference, not by reading the pipeline's green tick.
+1. **Ask for the rollback trigger as a number, a window and an action.** "We monitor error rates" is not a trigger; "error rate above 1% over 60 seconds reverts automatically" is. A human in the trigger means no trigger.
+2. **Ask what happens if the canary is healthy but nobody promotes it.** No automatic promotion and no timeout leaves two versions in production forever.
+3. **Ask for every flag's default and what happens when the flag store is unreachable.** A flag that fails on is worse than no flag.
+4. **Run the rollback yourself and time it,** then confirm the old version is serving by a visible difference, not a green tick.
 
-Red flags: a canary with no automated rollback trigger; thresholds based on the mean instead of p95; a bake time of thirty seconds; a rollback plan that does not mention the database; a flag with no default or a default of on; flags older than three months still in the code; "we will watch the dashboard" as the safety mechanism; and a deployment strategy chosen before anyone asked what the change risks.
+Red flags: a canary with no automated trigger; thresholds on the mean, not p95; a rollback plan that never mentions the database; a flag defaulting to on.
 
 ## Walkthrough
 1. Take the last five changes your team shipped and classify each: pure frontend, backend behaviour, schema change, or payment-related. Write next to each one what it would have cost you if it had been wrong for forty minutes, in rupees or in users.

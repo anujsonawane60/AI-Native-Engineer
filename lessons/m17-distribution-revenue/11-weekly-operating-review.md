@@ -4,7 +4,7 @@ module: m17-distribution-revenue
 slug: weekly-operating-review
 title: "Metrics That Matter and the Weekly Operating Review"
 order: 11
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team has four dashboards, two spreadsheets and a Slack channel that posts a chart every morning. In the month-four review they are asked a simple question: what changed last week, and what are you doing about it? The three of them look at each other.
+A team has four dashboards, two spreadsheets and a Slack channel that posts a chart every morning. At the month-four review they are asked what changed last week and what they are doing about it. The three of them look at each other. Everything was measured and nothing was reviewed: that month activation fell from 61% to 52% and inference cost per active user rose from ₹37 to ₹44, both on a dashboard the whole time. Nobody owned either, so nobody noticed, and together they took six points off gross margin.
 
-Everything was measured and nothing was reviewed. That month their activation rate had fallen from 61% to 52% and their inference cost per active user had risen from ₹37 to ₹44. Both numbers were on a dashboard the whole time. Nobody owned either, so nobody noticed either, and together they had quietly taken six points off gross margin.
-
-Another team has the opposite problem. Their WhatsApp group is a stream of good news: "200 signups!!", "we crossed 1000 users!". Signups only goes up, so it is the number they talk about. Meanwhile week-four retention is 11% and has been for two months, and cash in hand is under five weeks of burn. Nobody is lying; they have chosen the metrics that feel like progress over the ones that describe their situation.
+Another team has the opposite problem: their WhatsApp group is a stream of "200 signups!!" and "we crossed 1000 users!", because signups only goes up. Meanwhile week-four retention is 11% and cash in hand is under five weeks of burn. Nobody is lying; they have chosen the metrics that feel like progress over the ones that describe their situation.
 
 ### The idea
 
 **One north star, five to seven supporting numbers with one named owner each, reviewed on the same day every week by the same people, producing exactly one decision.**
 
-Every part of that sentence is doing work. **One** north star, because two means neither wins an argument. **One owner per metric**, because a number everybody watches is a number nobody watches. **The same day every week**, because a review that happens when someone remembers does not happen. And **exactly one decision**, because a review that ends with a list of concerns ends with nothing.
+Every part of that sentence works. **One** north star, because two means neither wins an argument. **One owner per metric**, because a number everybody watches is a number nobody watches. **The same day every week**, because a review that happens when someone remembers does not happen. And **exactly one decision**, because a review ending in concerns ends with nothing.
 
-The boundary with M16, stated once more: **M16 measures behaviour and builds the instrumentation; M17 turns it into money and into a weekly decision.** Your funnel, your activation definition, your retention curves and your experiment program live there. The scorecard reads from them and adds the three lines they do not contain — revenue, margin and cash.
+Your north star is the number that rises when a user genuinely gets what they came for: "weekly active orderers" is one, "total signups" is a counter. If no action can make it fall, it cannot tell you an action was wrong.
+
+The boundary once more: **M16 measures behaviour and builds the instrumentation; M17 turns it into money and into a weekly decision.** Your funnel, activation definition and retention curves live there. The scorecard reads from them and adds the three lines they do not contain — revenue, margin and cash.
 
 ### The analogy
 
-The canteen owner's Sunday hour with a notebook.
+The canteen owner spends an hour every Sunday with a notebook: plates sold each day, what he threw away, what ran out early. Then one page of arithmetic and exactly one change for the coming week — stop making the ₹80 paneer on Tuesdays, because for six Tuesdays running he has thrown half of it away. He changes one thing, so next Sunday he can tell whether it worked, and he does it every Sunday, which is why he knows things his competitor is still guessing about.
 
-Plates sold each day of the week. What he threw away. What ran out early and what nobody touched. Then one page of arithmetic, and then exactly one change for the coming week: stop making the ₹80 paneer on Tuesdays, because for six Tuesdays running he has thrown half of it away.
-
-He does not change five things. He changes one, so that next Sunday he can tell whether it worked. And he does it every Sunday, which is why he knows things his competitor across the road is still guessing about.
-
-**Where the analogy breaks:** his numbers are complete by nature. Every plate passed through his counter, so his data cannot have a hole in it. Your numbers are only whatever you instrumented — and a metric you never implemented reads as zero, and **zero looks exactly like a fact**. The team whose payment events were never tracked saw "0 payment failures" on a dashboard for three weeks. The canteen owner can never make that mistake; you can make it every week until someone checks.
+**Where the analogy breaks:** his numbers are complete by nature, because every plate passed his counter. Yours are only whatever you instrumented — and a metric you never implemented reads as zero, and **zero looks exactly like a fact**. The team whose payment events were never tracked saw "0 payment failures" for three weeks. He cannot make that mistake; you can make it weekly until someone checks.
 
 ### Picture it
 
@@ -68,47 +64,21 @@ He does not change five things. He changes one, so that next Sunday he can tell 
   runway at this burn      5 weeks             Ravi
 ```
 
-One page, eleven lines, last week's figure beside this week's, and a named person against every number.
+One page, eleven lines, last week's figure beside this week's, a named person against every number.
 
-Read it as a story rather than a list. Signups are up and activation is down, so the new users are worse or something broke for them. Inference cost per user is up and margin is down by six points. Support tickets have nearly doubled and the top tag has changed from confusion to payment. One sentence explains all of it: a launch brought a wave of users and the payment flow is failing for some of them. That sentence is what a review is for, and no single chart contains it.
+Read it as a story, not a list. Signups are up and activation is down, so the new users are worse or something broke for them. Inference cost is up and margin down six points. Tickets have nearly doubled and the top tag changed from confusion to payment. One sentence explains all of it: a launch brought a wave of users and the payment flow is failing for some. That sentence is what a review is for, and no chart contains it.
 
-### What goes on it, and what does not
+| The 45-minute review | What happens |
+|---|---|
+| First 15 minutes | Each owner reads their own lines aloud, this week against last week, with no discussion. Reading aloud sounds unnecessary and is the mechanic that makes the review work: a number you must say in front of two people is a number you have looked at |
+| Next 15 minutes | One thing that surprised us — not every anomaly, the one that matters. "Activation fell nine points while signups rose" is worth the whole fifteen minutes |
+| Last 15 minutes | Exactly one decision: what we will do, who owns it, by when, written in M01's decision log with the number that caused it |
 
-Three groups, and most teams build only the first.
-
-**Behaviour**, from M16: new signups, activation rate, retention at a fixed age, and your north star. **Money**, from chapters 4, 5 and 6: MRR, gross margin, and inference cost per active user. **Reality**: support tickets with the top tag, cash in hand, and runway.
-
-The cash line is the one students leave off and the one that ends programs. Runway is cash divided by monthly burn, and it is the only number on the page that cannot be improved by working harder.
-
-What does not go on it: anything that can only go up, anything nobody can act on, and anything whose denominator you cannot explain. Total registered users only rises, impressions cannot be acted on, and "engagement" has no denominator anyone agrees on.
-
-Your **north star** is the single number that rises when a user genuinely gets what they came for. "Weekly active orderers" is a north star; "total signups" is a counter. M01 asked you to choose one; this is where it gets used weekly rather than appearing on a slide once.
-
-**Leading versus lagging** matters as you read the page. Activation and support tickets move first; MRR and retention confirm later what the leading numbers already said. A team watching only lagging numbers hears about problems a month after they could have been fixed.
-
-### The 45-minute review
-
-Same day, same time, every week, all three of you, forty-five minutes, three parts.
-
-**Fifteen minutes: read the numbers out loud.** Each owner reads their own lines, this week against last week. No discussion yet. Reading aloud sounds unnecessary and is the single mechanic that makes a review work, because a number you must say in front of two people is a number you have looked at.
-
-**Fifteen minutes: one thing that surprised us.** Not every anomaly — the one that matters. "Activation fell nine points while signups rose" is worth the whole fifteen minutes.
-
-**Fifteen minutes: one decision.** What we will do, who owns it, by when, written in the M01 decision log with the number that caused it. One, so that next week you can tell whether it worked.
-
-Then stop. A ninety-minute review becomes a meeting people avoid, and that is worse than none, because it destroys the habit too.
-
-### Signal and noise at forty users
-
-With a hundred users, one person cancelling moves retention by a point. With forty, it moves it by two and a half. Most week-to-week movement at your scale is noise, and reacting to noise is how teams spend six months changing things at random.
-
-Three practical rules. **Watch direction over three weeks, not level over one** — one bad week is weather and three is a trend. **Check the denominator before you believe the percentage**; an activation rate that "improved" because you changed what counts as activated has not improved at all, and that specific mistake is the most common way a scorecard lies to the people who built it. And **a number you cannot explain is a research task, not a decision** — write it down, assign it, and do not act on it this week.
+Same day, same time, every week, all three of you — then stop. A ninety-minute review becomes a meeting people avoid.
 
 ### Where it lives
 
-This chapter reads from almost everything. M16 supplies behaviour and instrumentation; chapter 4 supplies MRR and churn; chapter 5 supplies gross margin and payback; chapter 6 supplies inference cost per active user, which stays on the page permanently because it moves on its own; chapter 7 supplies the channel table; chapter 9 supplies the ticket count and top tag. M07's events and M13's incident records are the substrate.
-
-Forwards, this is the document that makes M18 possible. The architecture walkthrough and the ten "what if" questions are answerable because you have twelve weeks of scorecards and a decision log. The team that cannot say what changed last week cannot tell the M18 story either, because it is the same story.
+This chapter reads from almost everything. M16 supplies behaviour and instrumentation; chapter 4 MRR and churn; chapter 5 gross margin and payback; chapter 6 inference cost per active user, which stays on the page because it moves on its own; chapter 9 the ticket count and top tag. Forwards, this is what makes M18 possible: the "what if" questions are answerable because you have twelve weeks of scorecards and a decision log.
 
 ### Words to own
 
@@ -128,35 +98,36 @@ Forwards, this is the document that makes M18 possible. The architecture walkthr
 
 ### Tradeoffs and gotchas
 
-**A dashboard is not a review.** Measuring is cheap and looking is not. The thirty-chart dashboard in the opening story contained both problems that cost the team their margin.
+Three groups of lines belong on the page, and most teams build only the first.
 
-**Do not change the shape of the scorecard every week.** The value is in comparability. Add or remove a line rarely, and never redefine a metric without writing the date on the page.
+| Group | Lines | Source |
+|---|---|---|
+| Behaviour | New signups, activation rate, retention at a fixed age, your north star | M16 |
+| Money | MRR, gross margin, inference cost per active user | Chapters 4, 5 and 6 |
+| Reality | Support tickets with the top tag, cash in hand, runway | Chapter 9, and your bank |
+| Never on the page | Anything that can only go up, anything nobody can act on, anything whose denominator you cannot explain | Total registered users, impressions, "engagement" |
+| Leading, then lagging | Activation and tickets move first; MRR and retention confirm later what they already said | Watch both, in that order |
+| A dashboard is not a review | Measuring is cheap and looking is not — the thirty-chart dashboard contained both problems that cost that team their margin | One decision means one |
+| Keep the shape fixed | Add or remove a line rarely, never redefine a metric without writing the date on the page | Comparability is the value |
+| Keep narration out | "I worked on the payment flow" is not a number; the first fifteen minutes is numbers only | Owners read lines, not updates |
+| Three decisions are none | You cannot attribute next week's movement to any of them — M16's experiment discipline, applied to your own operations | One, with an owner and a date |
+| The cash line ends programs | Runway is cash divided by monthly burn, the only number that cannot be improved by working harder; ₹14,200 and five weeks is uncomfortable to read aloud, which is why it must be | Put it on the page |
 
-**Do not let the review become a status update.** "I worked on the payment flow" is not a number. The first fifteen minutes is numbers only, and the temptation to narrate is strong.
-
-**One decision means one.** Three means next week you cannot attribute any change to any of them, which is M16's experiment discipline applied to your own operations.
-
-**Cash deserves its own line even when there is barely any.** ₹14,200 and five weeks is uncomfortable to read aloud, which is exactly why it must be read aloud.
-
-**A missing metric reads as zero.** Before trusting any line, confirm the event behind it fires. Once a month, verify one metric end to end by doing the thing yourself and watching the number move.
+**Most week-to-week movement at forty users is noise.** With a hundred users one cancellation moves retention a point; with forty, two and a half. Watch direction over three weeks rather than level over one — one bad week is weather, three is a trend. Check the denominator before believing a percentage, because an activation rate that "improved" when you changed what counts has not improved. And treat a number you cannot explain as a research task, not a decision.
 
 ### Verify it
 
-**Red flag, the headline one: a scorecard with no money line.** Usage without revenue, margin and cash describes activity, not a company. Ask where MRR, gross margin and runway are.
+**Red flag, the headline one: a scorecard with no money line.** Usage without revenue, margin and cash describes activity, not a company.
 
-**Red flag: a metric with no owner.** Put a name against each line. Any line with no name, or with "all of us", will not be read next week.
+**Red flag: a metric with no owner.** A line with no name, or "all of us", will not be read next week.
 
-**Red flag: week-over-week comparison with a changed denominator.** Ask whether the definition of activation, active user or churn changed. An improvement caused by a redefinition is the most flattering and most useless number on any page.
+**Red flag: week-over-week comparison with a changed denominator.** Ask whether the definition of activation, active user or churn changed. An improvement caused by a redefinition is the most flattering and most useless number on the page.
 
-**Red flag: a dashboard with thirty charts and a review with none.** The question is not what you can see; it is what you looked at and what you decided.
+**Red flag: a missing metric reading as zero.** Confirm the event behind a line fires: once a month, verify one metric end to end by doing the thing yourself and watching the number move.
 
-**Red flag: a north star that only goes up.** If no action can make it fall, it cannot tell you an action was wrong.
+**Red flag: benchmarks quoted without a source.** "Good activation is 40%" is attached to nobody's market; your own number from three weeks ago beats any industry average.
 
-**Red flag: benchmarks quoted without a source.** "Good activation is 40%" is repeated everywhere and attached to nobody's market. Ask for the source and the market; the absence of one is your answer. Your own number from three weeks ago beats anyone's industry average.
-
-**Red flag: a review that ends with concerns rather than a decision.** Check the decision log. If last week's entry is empty, the review did not happen even if the meeting did.
-
-**Red flag: an AI that interprets your scorecard without asking about sample size.** With forty users most movement is noise, and a confident narrative built on a two-point shift is a story, not a finding.
+**Red flag: a review that ends with concerns rather than a decision**, or an AI that interprets your scorecard without asking about sample size. If last week's decision-log entry is empty, the review did not happen even if the meeting did. And with forty users, a confident narrative built on a two-point shift is a story, not a finding.
 
 ## Walkthrough
 1. Choose your north star in one line: the number that rises when a user genuinely gets what they came for. If it can only go up, it is a counter and you need a different one.

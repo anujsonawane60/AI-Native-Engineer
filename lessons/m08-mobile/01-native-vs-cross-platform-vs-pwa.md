@@ -4,7 +4,7 @@ module: m08-mobile
 slug: native-vs-cross-platform-vs-pwa
 title: "Native vs Cross-Platform vs PWA vs Hybrid, and How to Choose"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,33 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Week two of the Sprint. A team of three has a working idea — a page where hostel students see what the canteen has left before they walk over — and they spend eleven days arguing about whether it should be "an app".
-
-They settle on a real mobile app, because that is what products are. One member spends four days on a cross-platform toolchain. Another discovers that the App Store needs a Mac they do not have and a developer account costing about ₹8,500 a year. The third gets bored of waiting and builds a web page in an afternoon.
-
-At demo day the "app" is a 38 MB download that four people installed and one still has. The web page has been used 200 times, because the link fits in a WhatsApp message. Nobody made a bad engineering decision. They made a bad *framing* decision: they chose the route before they knew what the product needed from the device, then spent their only scarce resource — eleven days of three people — defending it.
+A team of three spends eleven days arguing about whether their canteen page "should be an app". They settle on cross-platform, lose four days to a toolchain, then learn the App Store wants a Mac they do not have and ₹8,500 a year. At demo day the 38 MB "app" has one surviving install; the web page a teammate built in an afternoon has been used 200 times, because the link fits in a WhatsApp message. They chose the route before knowing what the product needed from the device.
 
 ### The idea
 
 **There are four ways to put software on a phone, and the right one is decided by two questions: what does this product need from the device, and how hard is it to get installed?**
 
-Everything else — language, framework, which YouTube tutorial is nicest — follows from those two answers. The four routes are a web page, an installable web app (a PWA), a cross-platform app, and a native app written once per operating system. A fifth, hybrid, is a web page wearing an app's clothes.
+The routes: a web page, an installable web app (a PWA), a cross-platform app, and a native app written twice. The honest default for a student product in India is the web, made installable; you move off it only when a named capability forces you. Only three qualify.
 
-The honest default for a student product in India is the web, made installable. You move off it when a specific capability forces you to, and you should be able to name that capability out loud.
+- **Background work** — code that must run while your app is closed: a step counter, an alarm, a location trail.
+- **Hardware the browser does not expose** — Bluetooth, NFC tap payments, raw telephony, fingerprint-gated secure storage.
+- **Reliable push on iPhones** — iOS web push works only for a PWA already added to the home screen, and the rules have moved across versions.
+
+Camera, photos, location, file upload, offline use and UPI payments all work from a modern mobile browser.
 
 ### The analogy
 
-The canteen can reach a hungry student in four ways.
+The canteen can reach a hungry student four ways: a **walk-up counter** where anyone arrives, nothing is installed, and the menu changes the moment the cook changes it (the web); a **membership card with the counter's exact location on it**, so regulars come straight back to the same counter (a PWA); **one small outlet per hostel block from one central kitchen** (cross-platform); or **two separate kitchens**, each built to its block's gas line and inspector, twice the cost forever (native).
 
-It can serve at the **walk-up counter**: anyone can arrive, nothing is installed, and the menu changes the moment the cook changes it. That is the web.
-
-It can give regulars a **membership card with the counter's exact location on it**, so they come straight back without searching. Nothing new is built; the counter is the same counter. That is a PWA.
-
-It can open **one small outlet per hostel block, from the same central kitchen**, with one delivery boy per block who knows that block's rules. That is cross-platform: one codebase, two platforms, a thin adapter each side.
-
-Or it can build **two separate kitchens**, each designed to that block's gas line, staff and inspector. Best possible food, twice the cost, two of everything forever. That is native.
-
-**Where the analogy breaks:** no landlord reviews the canteen's menu before students may read it. App stores do. Every native, cross-platform and hybrid release passes through a review queue owned by someone else, which turns a ten-minute fix into a two-day wait. The web has no gatekeeper, and for a team shipping weekly that is not a small detail — it is often the deciding one.
+**Where the analogy breaks:** no landlord reviews the canteen's menu before students read it. App stores do. Every native, cross-platform and hybrid release passes someone else's review queue, turning a ten-minute fix into a two-day wait.
 
 ### Picture it
 
@@ -65,37 +57,11 @@ Or it can build **two separate kitchens**, each designed to that block's gas lin
 
 The four routes trade install friction and release speed against how deeply you can reach into the phone, and the cost column is roughly how much of your three-person team the route consumes.
 
-### What each route actually is
-
-**Web page.** HTML, CSS and JavaScript over HTTPS, opened in Chrome. No install, no store, no review. Shareable as a link — which in India means shareable on WhatsApp, the single most effective distribution channel a student team has.
-
-**PWA (Progressive Web App).** The same web page plus three additions: HTTPS, a manifest file describing its name and icons, and a service worker — a small script the browser keeps, which can answer requests when the network does not. Chrome on Android then offers "Install app", and afterwards it has a home-screen icon, opens without browser chrome, and can work offline. That is chapter 5.
-
-**Cross-platform.** One codebase, usually React Native with Expo or Flutter, compiled into a real Android app and a real iOS app. You get the full device API surface and a store listing, plus two build pipelines, store accounts, review queues and a native debugging problem every few weeks.
-
-**Native.** Kotlin for Android, Swift for iOS, written twice. Chosen when the product *is* the device integration — a camera app, a maps app, something that runs for hours in the background.
-
-**Hybrid / WebView.** A thin native shell whose whole screen is a browser view pointed at your web app. On Android, a Trusted Web Activity is the modern form: your PWA, listed on the Play Store, with no separate UI code. It buys store presence without a second codebase, and very little extra device access.
-
-### The three capabilities that genuinely force you off the web
-
-Most "we need an app" arguments collapse under one question: which capability, specifically? Only a short list survives.
-
-**Background work.** Code that must run when your app is closed — a fitness tracker counting steps all day, an alarm, a location trail. The web gets almost nothing here.
-
-**Hardware the browser does not expose.** Bluetooth peripherals, NFC for tap payments, raw telephony, fingerprint-gated secure storage. Some of this is arriving on the web; most of it is not dependable on a two-year-old Android.
-
-**Reliable push on iPhones.** Web push exists on iOS, but only for a PWA the user has added to their home screen, and the behaviour has moved repeatedly across versions. If notifications are the core of your product and iPhone users matter, that is a real reason to ship a native app.
-
-Camera, photos, location, file upload, payments and offline use are all available to a modern web app. UPI works from a web page: the payment app opens via a link. None of these is a reason to leave.
-
 ### Where it lives
 
-On M00's four boxes, this chapter is a decision about the shape of the **client** box. The server, the network and the data boxes do not change — the same API serves a web page, a PWA and a React Native app. That is worth internalising, because it makes the route a reversible decision and your backend work is never wasted.
+On M00's four boxes this chapter decides the shape of the **client** box only. The server, network and data boxes do not change — the same API serves a web page, a PWA and a React Native app — so the route is reversible and your backend work is never wasted. Your M01 PRD already constrains the choice: a persona holding a ₹8,000 Android with 2 GB of RAM, storage 90% full and a prepaid data pack counted in megabytes makes a 40 MB install anything but neutral.
 
-Your choice is also already written down. In M01 your PRD took its constraints from your persona's device: if that persona has a ₹8,000 Android with 2 GB of RAM, storage already 90% full, and a prepaid data pack they count in megabytes, then a 40 MB install is not a neutral ask. The PRD decides the route; the route does not decide the PRD.
-
-This module is the **overview**. You learn to choose, and in chapter 5 you make your own product installable. The practicum lives at the Build tier: **M12 is where you actually ship to the stores** — Expo and React Native, Play Store and App Store submission start to finish, over-the-air updates, native device APIs, crash reporting and performance budgets on real devices. Nothing in M08 asks you to create a developer account or submit anything for review.
+**M08 is how to choose, plus how to ship a PWA** in chapter 5. **M12 is where you actually ship to the stores** — Expo and React Native, store submission, over-the-air updates, native device APIs. No developer account here.
 
 ### Words to own
 
@@ -113,31 +79,27 @@ This module is the **overview**. You learn to choose, and in chapter 5 you make 
 
 ### Tradeoffs and gotchas
 
-**Play Store dominance changes the maths in India.** Roughly nine in ten Indian phones run Android. A team that builds Android-only is reaching most of its market; a team that insists on iOS parity from day one has doubled its work for the minority. This is the opposite of the advice written for an American audience, and it is written for your users.
+**Play Store dominance changes the maths in India.** Roughly nine in ten Indian phones run Android, so insisting on iOS parity from day one doubles your work for the minority.
 
-**Install friction is a tax you pay on every single user, forever.** A link costs a tap. An install costs a store search, a 38 MB download on a metered data pack, 90 MB of storage the phone may not have, and a permission screen. Each step loses people. A product used twice a week rarely survives that tax; a product used daily sometimes earns it.
+**Install friction is a tax you pay on every user, forever.** A link costs a tap; an install costs a store search, a 38 MB download on a metered pack, 90 MB of storage the phone may not have, and a permission screen — each step loses people.
 
-**App Store access costs money and a Mac.** The Apple developer programme is roughly ₹8,500 a year and building for iOS realistically wants macOS; Google Play is a one-time fee of around ₹2,000. On a free-tier course that is a genuine constraint, and another reason the web is the default here.
+**App Store access costs money and a Mac.** Apple's programme is roughly ₹8,500 a year and iOS builds realistically want macOS; Google Play is a one-time ₹2,000.
 
-**"We will add a native app later" is usually true and usually fine.** The API you build in M04 does not care which client calls it. Choosing the web now is not a dead end; choosing native now and discovering nobody installs it is much closer to one.
-
-**Do not pick a route to impress a jury.** In M11's checkpoints and M18's defence you are asked *why* you chose what you chose. "A PWA, because our persona's phone has 400 MB free and our feature list needs nothing beyond the camera" is a strong answer. "A React Native app, because apps are more professional" is not.
+**Do not pick a route to impress a jury.** In M11 and M18 you are asked *why*. "A PWA, because our persona's phone has 400 MB free and nothing we ship needs more than the camera" is a strong answer; "React Native, because apps are more professional" is not.
 
 ### Verify it
 
-Ask any AI "should I build a mobile app?" and you get a confident recommendation in seconds. Here is how to tell whether it reasoned or pattern-matched.
+**Demand the capability list before the recommendation.** A framework named before a capability is a guess; the right first answer is a table of device features needed and which the web cannot do.
 
-**Demand the capability list before the recommendation.** The correct first response is a question or a table: which device features this product needs, and which of them the web cannot do. If it names a framework before it names a capability, it is guessing.
+**Red flag: native for a product that is a form, a list and a payment.** That is a web app — ask which measured number improves on a 2 GB phone.
 
-**Red flag: a native recommendation for a product that is a form, a list and a payment.** That is a web app. If the AI justifies native with "better performance" or "native feel", ask which measured number improves and by how much on a 2 GB phone. The honest answer is usually that a 38 MB install made things worse.
+**Red flag: silence about install size and storage.** A store route needs a download size set against your persona's free storage.
 
-**Red flag: silence about install size and storage.** Any store route should come with an estimated download size and a sentence about the user's free storage. An answer that never mentions megabytes has not thought about your persona.
+**Red flag: "PWAs work everywhere, including push on iOS" with no caveat.** iOS web push needs a home-screen install first; this is the commonest factual error in the topic.
 
-**Red flag: "PWAs work everywhere, including push on iOS" with no caveat.** iOS web push requires a home-screen install first, and the rules have changed more than once. Unqualified claims about iOS PWA support are the commonest factual error in this topic.
+**Red flag: a plan assuming a Mac or a paid developer account.** Your constraint line says free tier — M00's missing-context failure in a new costume.
 
-**Red flag: a plan that assumes a Mac or a paid developer account.** Your constraint line says free tier. If the plan quietly spends ₹8,500, it ignored the brief — M00's missing-context failure in a new costume.
-
-Then do the cheapest check of all: write "we are choosing X because our product needs Y, which the web cannot do". If you cannot fill in Y, you have your answer.
+Then write "we are choosing X because our product needs Y, which the web cannot do". If you cannot fill in Y, you have your answer.
 
 ## Walkthrough
 1. Open your team's PRD from M01 and copy out the persona's device line: phone price, RAM, free storage, and how they pay for data. If that line does not exist, you have found the real gap — write it today.

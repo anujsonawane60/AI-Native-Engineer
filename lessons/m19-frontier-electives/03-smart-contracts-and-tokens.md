@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: smart-contracts-and-tokens
 title: "Smart Contracts, Tokens, Wallets and Gas"
 order: 3
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,27 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team decides the canteen loyalty points should be a token. It sounds modern, the pitch deck looks sharper, and a mentor nods. Four weeks later they have numbers.
+A team decides the canteen loyalty points should be a token. It sounds modern and the pitch deck looks sharper. Four weeks later they have numbers.
 
-Every single point award is a transaction, and every transaction costs a fee paid in the chain's native currency. At a busy lunch that is 400 fee-paying writes an hour, each one costing somewhere between a fraction of a rupee and several rupees depending on how congested the network happens to be that afternoon — a number they do not control and cannot predict. Every student's full purchase history is now publicly readable by anyone with the wallet address, including the competitor across the road. Two students have lost their seed phrases and their points are gone with no recourse. One student discovered that the moment he converts points to anything of value, a 30% tax on gains and a 1% deduction at source enter his life. And a bug in the award logic, deployed to a live network, cannot be edited.
+Every point award is a transaction, and every transaction costs a fee in the chain's native currency. At a busy lunch that is 400 fee-paying writes an hour, each costing a fraction of a rupee to several rupees depending on congestion they neither control nor predict. Every student's purchase history is publicly readable by anyone with the wallet address, including the competitor across the road. Two students have lost their seed phrases and their points with them. And a bug in the award logic, live on the network, cannot be edited.
 
-Meanwhile the canteen already accepts UPI, which costs nothing per transaction, settles in two seconds, and has a dispute process with a human at the end of it.
+Meanwhile the canteen already accepts UPI, which costs nothing per transaction, settles in two seconds, and has a human at the end of its dispute process.
 
 ### The idea
 
 **A smart contract is a program deployed to a ledger: its code is public, its data is public, it runs only when someone pays for each step, and once deployed you cannot change it.**
 
-Those four properties are the whole chapter. Public code means anyone can read your business logic. Public state means anyone can read your balances. Metered execution means the chain charges per unit of computation — that charge is called gas — and the user pays it, in real money, win or lose. And immutability means the thing you deployed is the thing you have forever, unless you deliberately built in an admin who can swap it, which quietly puts a trusted referee back in the design you adopted to avoid trusted referees.
+Those four properties are the whole chapter. Public code means anyone can read your business logic; public state means anyone can read your balances. Metered execution means the chain charges per unit of computation — that charge is gas — and the user pays it in real money, win or lose. Immutability means what you deployed is what you have forever, unless you built in an admin who can swap it, which quietly puts a trusted referee back into a design adopted to avoid them.
 
-A token is nothing more exotic than a row in one such contract's state: a mapping of address to amount, with rules about who may change it.
+A token is nothing more exotic than a row in such a contract's state: a mapping of address to amount, with rules about who may change it.
 
 ### The analogy
 
-The canteen installs a vending machine inside a sealed glass case. The rules are printed on the inside of the glass where everyone can read them, and so is the running total of every coin it has taken. There is no keyhole. You press a button and a coin is consumed by the mechanism whether or not the snack drops.
+The canteen installs a vending machine inside a sealed glass case. The rules are printed on the inside of the glass, and so is the running total of every coin it has taken. There is no keyhole. You press a button and a coin is consumed whether or not the snack drops. That is a smart contract: readable by all, operated by all, changeable by none, charging per press.
 
-That is a smart contract. Readable by all, operated by all, changeable by none, and charging per press.
-
-**Where the analogy breaks** in two important ways. First, a real vending machine can be unplugged, unlocked and refilled by the company that installed it — a deployed contract genuinely cannot be amended, and the only escape hatch is to deploy a new one and persuade everybody to use that instead. Second, a vending machine knows its own stock. A contract knows nothing about the outside world: it cannot read today's milk price, a fridge temperature or whether a thali was actually served. Anything from outside must be fed in by a trusted reporter called an oracle, and that oracle is a trusted referee with a different job title.
+**Where the analogy breaks** in two ways. A real vending machine can be unlocked and refilled by the company that installed it, while a deployed contract cannot be amended — the only escape hatch is to deploy a new one and persuade everybody to use it. And a vending machine knows its own stock, while a contract knows nothing of the outside world: not the milk price, not whether a thali was served. Outside facts must be fed in by a trusted reporter called an oracle, which is a referee with a different job title.
 
 ### Picture it
 
@@ -72,9 +70,9 @@ Any real product built on a contract still needs an oracle to bring outside fact
 
 ### Where it lives
 
-Map it onto what you already have. The contract is your business logic and your database schema from M04, except both are world-readable and the schema can never be migrated. The wallet is authentication from M04, except the credential is unrecoverable and there is no password reset, no email OTP and no support team. The RPC endpoint you talk to is ordinary HTTP over TLS from M02, usually run by a company, which means your "decentralised" app typically has a single commercial dependency at the exact point users touch it. Gas is M17's unit economics with a new name, and unlike a cloud bill it is set by an open market you do not control.
+The contract is M04's business logic and schema, except world-readable and never migratable. The wallet is M04's authentication, except the credential is unrecoverable. The RPC endpoint is M02's HTTPS, usually run by a company, so your "decentralised" app has one commercial dependency at the point users touch it. Gas is M17's unit economics, priced by a market you do not control.
 
-The Indian regulatory position matters and you should be able to state it. Virtual digital assets are legal to hold and trade but are not legal tender, and no Indian regulator will help you if a counterparty vanishes. Gains are taxed at a flat 30% with no deduction of expenses other than cost of acquisition, losses cannot be set off against anything, and a 1% tax is deducted at source on transfers above the threshold. Exchanges operating in India are reporting entities under anti-money-laundering rules. Marketing a token to Indian retail users is therefore a compliance project, not a feature, and this is the chapter where a founder should notice that before the pitch and not after.
+The Indian regulatory position matters and you should be able to state it. Virtual digital assets are legal to hold and trade but are not legal tender, and no Indian regulator will help you if a counterparty vanishes. Gains are taxed at a flat 30% with no deduction of expenses other than cost of acquisition, losses cannot be set off, and a 1% tax is deducted at source on transfers above the threshold. These rules move, so verify the current position rather than trusting this paragraph. Marketing a token to Indian retail users is a compliance project, not a feature.
 
 ### Words to own
 
@@ -96,29 +94,27 @@ The Indian regulatory position matters and you should be able to state it. Virtu
 
 ### Tradeoffs and gotchas
 
-**Everything is public, forever.** Balances, timings, counterparties and your logic. Competitors read it, and so does anyone profiling a user. Personal data on a chain conflicts directly with the DPDP Act's expectation that you can erase it.
+**Everything is public, forever.** Balances, timings, counterparties and your logic. Personal data on a chain conflicts directly with the DPDP Act's expectation that you can erase it.
 
 **A failed transaction still costs money.** Users who are not already crypto users find this unforgivable, and they are right to.
 
-**No password reset, ever.** A lost seed phrase is a lost account. Custodial wallets fix this by holding the key for the user, which reintroduces exactly the trusted intermediary the architecture was chosen to avoid.
+**No password reset, ever.** A lost seed phrase is a lost account. Custodial wallets fix this by holding the key, which reintroduces the trusted intermediary the architecture was chosen to avoid.
 
-**Approvals are the main way people lose funds.** Granting a contract permission to move your tokens is a standing authorisation that most users never revoke, and a malicious or compromised contract drains the lot. This is M07's excessive-agency problem with money attached.
+**Approvals are the main way people lose funds.** Permission for a contract to move your tokens is a standing authorisation most users never revoke, and a compromised contract drains the lot.
 
-**Upgradeability is a trust decision in disguise.** The patterns exist, they work, and they all mean somebody holds a key that can replace the code under your users. That is fine — but then say honestly that your system has an administrator.
-
-**Gas prices are a market.** A design whose unit economics work at a quiet hour can be unusable during congestion, and you have no lever.
+**Upgradeability is a trust decision in disguise.** Every pattern means somebody holds a key that can replace the code under your users. That is fine — but then say your system has an administrator.
 
 ### Verify it
 
-**Red flag: no gas cost per user action.** Ask for a table: every action a user takes, how many transactions it needs, and the cost in rupees at a low and a high gas price. If the AI will not produce numbers, it has not designed anything.
+**Red flag: no gas cost per user action.** Ask for a table: every user action, the transactions it needs, and the rupee cost at a low and a high gas price. No numbers means nothing was designed.
 
 **Red flag: "no backend needed".** Ask where the frontend gets a user's history, where outside facts come from, and who runs the RPC endpoint. Every honest answer names an indexer, an oracle and a provider.
 
-**Red flag: personal data written on chain.** Names, phone numbers, Aadhaar numbers, even an email hash that can be checked against a guess. Ask what happens when a user exercises a deletion right. The answer is that you cannot comply.
+**Red flag: personal data written on chain.** Names, phone numbers, Aadhaar numbers, even a checkable email hash. Ask what happens when a user exercises a deletion right; you cannot comply.
 
-**Red flag: silence on the irreversible cases.** A correct design document says what happens when a user sends to the wrong address, loses a seed phrase, or when a bug is found after deployment. If those three are absent, the design has not met reality.
+**Red flag: silence on the irreversible cases.** A correct design says what happens when a user sends to the wrong address, loses a seed phrase, or finds a bug after deployment.
 
-**Red flag: no mention of Indian tax or legal status** in a product aimed at Indian users. 30% on gains, 1% deducted at source, losses not set off, not legal tender. An AI that proposes a consumer token for an Indian campus without raising this is giving you an American answer.
+**Red flag: no mention of Indian tax or legal status** in a product for Indian users. A campus token proposed without raising the 30% rate, the 1% deducted at source and the fact that it is not legal tender is an American answer.
 
 ## Walkthrough
 1. Install a free browser wallet in a throwaway browser profile. Write the seed phrase on paper. Note that the app refuses to show it again casually, and write down why.

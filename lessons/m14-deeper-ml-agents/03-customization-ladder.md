@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: customization-ladder
 title: "The Customization Ladder: Prompt, RAG, Fine-Tune, Train"
 order: 3
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -19,30 +19,23 @@ last_reviewed: 2026-11-16
 - Catch a fine-tune proposed where the real problem was a fact, a tool or a prompt
 
 ## Lesson
-
 ### The pain
 
-M09 chapter 11 gave you a four-rung ladder — better prompt, examples in the prompt, retrieval, then fine-tuning — and one load-bearing rule: retrieval fixes facts, fine-tuning fixes behaviour. It said you would almost never need the top rung, and that this module is where the climbing is practised. This chapter extends the ladder to the rungs a Build-tier team actually faces, and adds the axis M09 left out: what each rung costs you *forever*, not what it costs to build.
+M09 chapter 11 gave you a four-rung ladder — prompt, examples, retrieval, fine-tuning — and one rule: retrieval fixes facts, fine-tuning fixes behaviour. New here are the rungs below and above those four, and the axis M09 left out: what each rung costs forever, not what it costs to build.
 
-Here is why that axis matters. A team's assistant gives wrong fee amounts. Someone says "let us fine-tune it on our handbook." Two weekends later they have a model that sounds exactly like their handbook and still gives wrong fee amounts, because the fee changed in September and the training file was built in July. They now carry three permanent burdens: a model to retrain whenever a fee changes, a hosting bill, and a dependency on a base model the provider will deprecate within a year. The original problem is untouched.
-
-The reverse failure is quieter. A team pushes prompts for six weeks because fine-tuning sounds frightening, when their actual problem — output that must match a rigid internal format on every call, after eleven prompt attempts — is exactly what the fourth rung is for.
+A team's assistant gives wrong fee amounts, so someone says "let us fine-tune it on our handbook." Two weekends later the model sounds exactly like the handbook and still gives wrong fees: the fee changed in September, the file was built in July. They now carry a retrain per fee change and a hosting bill.
 
 ### The idea
 
 **Climb one rung at a time, and justify each rung by what the one below it provably could not do.**
 
-Every rung is judged on four numbers, not one. **Build cost**: hours and rupees to get it working. **Per-request cost**: what every user interaction now costs, forever. **Maintenance cost**: what breaks it, and how often you must redo it. **Reversibility**: how long it takes to undo if it was wrong. Students almost always compare rungs on build cost alone, which is the one axis where the higher rungs look cheapest relative to their appeal.
+Judge every rung on four numbers. **Build cost**: hours and rupees. **Per-request cost**: what every interaction now costs, forever. **Maintenance**: what breaks it and how often. **Reversibility**: how long to undo it. Students compare build cost alone — the one axis where higher rungs look best.
 
 ### The analogy
 
-The canteen's dal is too salty for the hostel students and fine for everyone else.
+The canteen's dal is too salty for the hostel students and fine for everyone else. Rung one: tell the cook each morning — free, instant, depends on remembering. Rung two: pin a note above the pot. Rung three: a card index of each group's preferences. Rung four: retrain the cook's hands, so every dish changes, including the ones that were fine.
 
-Rung one: tell the cook each morning, "less salt in the hostel batch". Free, instant, and it depends on somebody remembering. Rung two: pin a note above the pot with the exact quantity. Rung three: keep a card index of each group's preferences and have the cook look up today's groups. Rung four: retrain the cook's hands so less salt is their default — weeks of practice, and now every dish is slightly different, including the ones that were fine.
-
-The note costs nothing to change. Retrained hands cannot be undone on Tuesday because students complained the dal is now bland, and they changed dishes nobody asked about.
-
-**Where the analogy breaks.** A cook whose hands you retrained still remembers the recipe for everything else. A fine-tuned model can quietly get worse at tasks you never tested, because the new training pulls all its weights, not only the salty-dal ones. That is **catastrophic forgetting**, and the canteen has no equivalent of it.
+**Where it breaks.** Retrained hands still remember every other recipe. A fine-tuned model can quietly get worse at tasks you never tested, because training pulls all its weights. That is **catastrophic forgetting**.
 
 ### Picture it
 
@@ -56,28 +49,11 @@ The note costs nothing to change. Retrained hands cannot be undone on Tuesday be
   2  TOOLS + STRUCTURE      anything computable, schemas, routing
   1  PROMPT + EXAMPLES      wording, role, few-shot, caching
   0  PICK A DIFFERENT MODEL often the whole answer
-
         ▲ build cost, per-request cost, maintenance, lock-in
         │ all rise together as you climb
 ```
 
 The ladder runs from choosing a different model up to training one yourself, with a line between retrieval and fine-tuning most student teams should never cross.
-
-### What each rung is actually for
-
-**Rung 0 — a different model.** M09 chapter 13 made this a mission for a reason. A quality problem that disappears on a model swap was never a customization problem. Try it first; an afternoon, fully reversible.
-
-**Rung 1 — prompt and examples.** System prompt, role, constraints, few-shot examples, and the stable-prefix layout from M10 chapter 6 so the cost stays low. This is M10 chapters 1 and 5. The honest test of whether rung 1 is exhausted: can you show eleven distinct prompt versions and the eval score of each?
-
-**Rung 2 — tools and structure.** Anything that can be computed should be computed, not generated: totals, dates, availability, permissions. A JSON schema makes format failures impossible rather than unlikely. M10 chapters 3 and 4. An enormous share of "the model keeps getting it wrong" is a missing tool.
-
-**Rung 3 — retrieval.** Facts that are yours, current, private or permissioned. M10 chapters 8 to 12. Changing a fact means editing one document, which is the cheapest maintenance story on the ladder, and it is why retrieval beats fine-tuning for anything that can change.
-
-**Rung 4 — supervised fine-tuning.** Teaching behaviour: a house style, a rigid output shape, a domain's phrasing, a classification judgement you have thousands of examples of. Chapter 4 runs one. Fine-tuning does not teach facts reliably and cannot be updated by editing a document.
-
-**Rung 5 — preference tuning.** When answers are all correct but some are better, and the difference is a matter of judgement you can express only by choosing between pairs. Chapter 5.
-
-**Rung 6 — continued pretraining.** Feeding a large volume of unlabelled domain text to a base model so it learns a field's vocabulary. Real, occasionally correct, far outside a student budget. **Rung 7 — from scratch.** As M09 chapter 2 said: you will never pretrain a model, and you do not need to.
 
 ### The four costs, side by side
 
@@ -91,13 +67,16 @@ The ladder runs from choosing a different model up to training one yourself, wit
 | 5 preferences | 2–3 weeks | same as rung 4 | redo per base version | weeks |
 | 6 pretraining | months | dedicated serving | continuous | not really |
 
-The maintenance column is the one that decides real projects. Rungs 4 and above create an artefact that must be rebuilt every time the base model you built on is retired — and M09 chapter 13's glossary already warned you that deprecation is routine.
+The maintenance column decides real projects: rungs 4 and up must be rebuilt whenever your base model retires.
 
 ### Where it lives
 
-This chapter is the decision gate for chapters 4 to 7 of this module. It is also an M01 decision-log entry: which rung you are on, what you tried below it, the number that proved the lower rung insufficient, and what would make you climb down again.
+The decision gate for chapters 4 to 7, and an M01 decision-log entry.
 
-Downwards it leans on M10: rungs 1 to 3 are that module's entire content, and chapter 12's eval set is what makes "rung 1 was exhausted" a measurement instead of a feeling. Upwards it leans on M17 chapter 6, because a rung-4 decision changes your cost per user per month and therefore your margin.
+- Chapter 4 — rung 4, a supervised fine-tune
+- Chapter 5 — rung 5, preference pairs
+- M10 chapters 1 to 12 — rungs 1 to 3, plus the eval set that makes "rung 1 was exhausted" a measurement
+- M17 chapter 6 — rung 4 changes cost per user, so it changes margin
 
 ### Words to own
 
@@ -116,30 +95,26 @@ Downwards it leans on M10: rungs 1 to 3 are that module's entire content, and ch
 
 ### Tradeoffs and gotchas
 
-**"Fine-tune it" is the most common wrong answer in this subject.** The reason is that it sounds like the serious option. Ask one question first: is the thing wrong a *fact* or a *behaviour*? Facts go to retrieval. Formats and style go to fine-tuning. If the answer is "both", you need rung 3 and possibly rung 4, in that order, measured separately.
+**"Fine-tune it" is the most common wrong answer in this subject**, because it sounds serious. Ask first: is the thing wrong a *fact* or a *behaviour*? Facts go to retrieval, formats and style to fine-tuning. If both, rung 3 then rung 4, measured separately.
 
-**Fine-tuning and retrieval are not alternatives.** The strongest setup is often a small fine-tuned model that reliably produces your format, reading retrieved facts at request time. Teams present these as a choice because the ladder looks like a staircase; it is better read as layers.
+**Fine-tuning and retrieval are not alternatives.** The strongest setup is often a small tuned model that reliably produces your format, reading retrieved facts at request time. Layers, not a staircase.
 
-**A fine-tune is a hostage to a base model's lifecycle.** When the provider retires the version you tuned, your artefact stops being servable and the work must be redone against a new base. Open-weight models you host yourself avoid this and swap the problem for an inference bill, which is chapter 7.
+**A fine-tune is a hostage to a base model's lifecycle.** Retire the base and the artefact stops being servable; hosting open weights trades that for an inference bill — chapter 7.
 
-**You cannot evaluate a rung you have not instrumented.** Climbing without M10 chapter 12's eval set means never knowing whether rung 4 beat rung 3, and the usual outcome is a team that believes the expensive thing helped because it cost more.
-
-**Write the exit criterion at the same time as the decision.** "We will drop the fine-tune if retrieval plus a prompt reaches within two points of it on our 40 cases" is a sentence that saves a future month. Without it, a rung-4 decision becomes permanent by inertia.
-
-**Cost per request can invert the ranking.** Hosting your own small fine-tuned model is sometimes dramatically cheaper per request than a large general model with a long prompt, which makes rung 4 the economical choice at volume even when a lower rung works. That is a legitimate reason to climb — and it is a cost argument, so it needs M09 chapter 14's arithmetic, not a vibe.
+**Write the exit criterion with the decision,** with a number in it. Otherwise rung 4 becomes permanent by inertia.
 
 ### Verify it
 
-The AI will tell you which rung to use, confidently, in its first reply. Make it earn that.
+The AI will name a rung confidently in its first reply. Make it earn that.
 
-1. **Make it classify your problem before proposing anything.** Fact, behaviour, format, capability, or cost. Those five words map onto the ladder, and the mapping is the whole decision.
-2. **Demand the evidence that the rung below failed.** Specifically: how many prompt versions, what the eval score was for each, and which failure cases survived. "Prompting did not work" without numbers means rung 1 was not attempted.
-3. **Ask for the maintenance story, not the build plan.** What breaks this, who notices, and how often must it be redone? If the answer does not mention base-model deprecation for rungs 4 and above, the plan is incomplete.
-4. **Ask for the exit criterion in a sentence.** No exit criterion means no decision, just a direction.
-5. **Ask what gets worse.** Fine-tuning for your format often degrades general reasoning or multilingual handling. Demand a named list of capabilities to re-test after tuning.
-6. **Check the per-request cost both ways.** A rung-4 answer that is cheaper per request is a real argument; a rung-4 answer that doubles cost needs a quality number to justify it.
+1. **Make it classify the problem first:** fact, behaviour, format, capability, or cost.
+2. **Demand evidence the rung below failed** — prompt versions, scores, surviving cases.
+3. **Ask for the maintenance story, not the build plan.** For rungs 4 and up it must mention base-model deprecation.
+4. **Ask for the exit criterion in one sentence.**
+5. **Ask what gets worse,** and for a list of capabilities to re-test after tuning.
+6. **Check per-request cost both ways.**
 
-Red flags: a fine-tune proposed for data that changes; a fine-tune proposed before any eval set exists; "we need more training data" when the problem was a missing tool call; a plan with no base-model version recorded; no list of capabilities to re-test; a model swap never tried; and a rung chosen because it is more impressive to describe at demo day.
+Red flags: a fine-tune for data that changes; a fine-tune before any eval set exists; "more training data" when the problem was a missing tool call; a model swap never tried.
 
 ## Walkthrough
 1. Write down your single worst AI quality failure as a specific example: the input, what came out, and what should have come out. One case, not a category.

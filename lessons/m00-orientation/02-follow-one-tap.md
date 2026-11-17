@@ -4,7 +4,7 @@ module: m00-orientation
 slug: follow-one-tap
 title: "Follow One Tap: An Order from Phone to Database and Back"
 order: 2
-duration_min: 25
+duration_min: 15
 is_free: true
 mission: false
 volatility: low
@@ -22,25 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-You now know there are four boxes. That is not yet enough to debug anything, because the interesting question is never "what are the parts" — it is **"what happened, in what order, and where did it stop?"**
-
-A senior engineer joining a new company does not read all the code. They pick one action a user can take, and they follow it all the way down and all the way back. Two hours later they understand the system better than someone who read documentation for a week. This chapter teaches you that habit, on the smallest possible example: one tap.
+Knowing the four boxes is not enough to debug anything, because the interesting question is never "what are the parts" — it is **"what happened, in what order, and where did it stop?"** A senior engineer joining a new company does not read all the code. They pick one user action and follow it all the way down and back, and two hours later they understand the system better than someone who read the docs for a week.
 
 ### The idea
 
 **Any action in any app can be understood by following one request through every hop it makes, and asking at each hop: what arrived, what decided, what changed, what left.**
 
-Four questions, repeated at each stop. That is the whole technique. It works on the canteen app, it works on UPI, and it will work in eight years on whatever has replaced today's stack.
+Four questions at each stop. That is the whole technique, and it will still work in eight years on whatever replaces today's stack.
 
 ### The analogy
 
-A student hands a chit through the canteen window. Follow the chit, not the canteen.
+A student hands a chit through the canteen window. Follow the chit, not the canteen. Whoever is at the window checks it is legible and that she has a meal pass, then shouts the order to the cook. The cook checks the ingredients. Someone marks the register. A plate comes out with a token, the token is called, she collects. One action, six steps in sequence, each of which could fail — and most of the elapsed time was not work, it was queueing between steps.
 
-The chit is taken by whoever is at the window. They check it is legible. They check the student has a meal pass. They shout the order to the cook. The cook checks the ingredients are there. Someone marks it in the register. A plate comes out with a token number. The token is called. The student collects.
-
-Notice that the student performed **one** action — handing over a chit — and at least six different things happened in sequence, each of which could fail. Notice also that most of the elapsed time was not work; it was waiting in queues between the steps.
-
-**Where the analogy breaks:** in the canteen you can see the whole process. In software each hop is invisible, so engineers add logs, metrics and traces to make the chit visible as it moves. That is what M07 is about, and it exists purely because you cannot watch the chit.
+**Where the analogy breaks:** in the canteen you can watch the whole process. In software each hop is invisible, so engineers add logs and traces to make the chit visible as it moves.
 
 ### Picture it
 
@@ -81,21 +75,17 @@ One tap becomes roughly twelve steps. The server's own thinking takes about five
 
 ### Where it lives
 
-Look at the numbers in that diagram and one thing should jump out: **the two network crossings and the database dominate everything else.** The server's logic — the part that feels like "the app" — is a rounding error.
+One thing jumps out of those numbers: **the two network crossings and the database dominate everything else.** The server's logic — the part that feels like "the app" — is a rounding error. That explains most of the decisions you will meet later:
 
-This single observation explains most of the decisions you will meet later in the program:
+- **Caching** (M05) skips steps 8–10 when the answer has not changed.
+- **CDNs** (M02, M05) shorten steps 4 and 12 with a copy closer to the student.
+- **Indexes** (M04) make step 9 take 5 ms instead of 500 ms.
+- **Queues** (M04) move slow work out of this path, so the response arrives now.
+- **Rate limiting** (M05) exists because each run costs real money.
 
-- **Caching** (M05) exists to skip step 8–10 entirely when the answer has not changed.
-- **CDNs** (M02, M05) exist to shorten steps 4 and 12 by putting a copy physically closer to the student.
-- **Indexes** (M04) exist to make step 9 take 5 ms instead of 500 ms.
-- **Queues** (M04) exist to move slow work out of this path so the student gets a response now and the slow part happens later.
-- **Rate limiting** (M05) exists because this whole sequence costs real money, and someone will run it ten thousand times.
+Every one answers "which hop is slow?" — unanswerable until you see the hops.
 
-Every one of those is an answer to "which hop is slow?" You cannot evaluate any of them until you can see the hops.
-
-### One tap, many requests
-
-A beginner's mental model is one tap, one request. Reality is messier. Opening the canteen app's home screen might fire:
+One tap is also rarely one request. The canteen home screen might fire:
 
 | Request | Why |
 |---|---|
@@ -105,7 +95,7 @@ A beginner's mental model is one tap, one request. Reality is messier. Opening t
 | `GET /banner` | today's announcement |
 | 14 image requests | one per dish photo |
 
-That is eighteen round trips for one screen. If each takes 100 ms and they happen one after another, the screen takes 1.8 seconds. If they happen at the same time, it takes about 150 ms. This is why "does it run in parallel?" is one of the highest-value questions you can ask about a slow page — and it is a question AI frequently gets wrong unless you ask.
+Eighteen round trips for one screen. Sequential at 100 ms each, the screen takes 1.8 seconds; in parallel, about 150 ms. "Does it run in parallel?" is one of the highest-value questions about a slow page, and AI often gets it wrong unless you ask.
 
 ### Words to own
 
@@ -123,25 +113,23 @@ That is eighteen round trips for one screen. If each takes 100 ms and they happe
 
 ### Tradeoffs and gotchas
 
-**Averages lie.** "The menu loads in 200 ms on average" can hide that one student in twenty waits four seconds. You will learn to ask for p95 — the time the slowest 5% experience — in M07. At 1:10 pm, the average student is not the one complaining.
+**Averages lie.** "200 ms on average" hides one student in twenty waiting four seconds. Ask for p95 — the time the slowest 5% experience. At 1:10 pm, the average student is not the one complaining.
 
-**The first request is much more expensive than the rest.** DNS and TLS only happen once per connection, so your very first action in an app can take three times longer than the identical action thirty seconds later. Students often "fix" a performance problem that was just a cold start.
+**The first request costs far more than the rest.** DNS and TLS happen once per connection, so your first action can take three times longer than the identical action thirty seconds later. Students often "fix" a cold start.
 
-**A hop can succeed and still lose.** Step 9 can write the order and step 12 can vanish. The server logged success; the student saw failure. Any operation that charges money or creates something must therefore be safe to retry — the concept is called idempotency and it is the whole reason M04's payments chapter exists. You met the symptom in chapter 1; now you can see exactly which hop caused it.
+**A hop can succeed and still lose.** Step 9 writes the order, step 12 vanishes: the server logged success, the student saw failure. Anything that charges money must be safe to retry — that property is called idempotency.
 
-**More hops than you think are not yours.** Payment gateways, SMS providers, map tiles and AI model APIs are all extra round trips to someone else's server, with their own failures and their own bills. When you add an AI feature in M10, you are adding a hop that costs money per call and can take two full seconds.
+**More hops than you think are not yours.** Payment gateways, SMS providers, map tiles and AI model APIs are round trips to someone else's server, with their own failures and their own bills. An AI feature adds a hop that costs money per call.
 
 ### Verify it
 
-The habit to build: before accepting any AI-built feature, make it show you the trace.
+Before accepting any AI-built feature, make it list the hops. Then check three things.
 
-Ask it to list the hops. Then check three things:
+1. **Count the round trips.** If one screen needs nine sequential requests, ask why they are not parallel, or why one request does not return everything.
+2. **Find the slowest hop before optimising.** AI will happily cache the fastest part of your system. Ask: "which step is slowest, and how do you know?"
+3. **Ask what happens if a hop fails halfway.** "If the database write succeeds but the response is lost, what does the user see, and what if they retry?" If the answer is "charged twice", you found a real bug before shipping.
 
-1. **Count the round trips.** If a single screen needs nine sequential requests, ask why they are not parallel, or why there is not one request that returns everything.
-2. **Find the slowest hop before optimising anything.** AI is very willing to add caching to the fastest part of your system. Ask: "Which of these steps is slowest, and how do you know?"
-3. **Ask what happens if a hop fails halfway.** Specifically: "If the database write succeeds but the response is lost, what does the user see, and what happens if they retry?" If the answer is "they get charged twice", you have found a real bug before shipping it.
-
-You do not need to read code to do any of this. You need to know the hops exist.
+You need no code reading for any of this. You need to know the hops exist.
 
 ## Walkthrough
 1. Open any website you use in a desktop browser. Press F12 to open DevTools, then click the **Network** tab. Reload the page.

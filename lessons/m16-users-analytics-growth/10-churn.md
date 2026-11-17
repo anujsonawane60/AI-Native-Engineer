@@ -4,7 +4,7 @@ module: m16-users-analytics-growth
 slug: churn
 title: "Churn: Measuring It, Predicting It, Reducing It"
 order: 10
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team reports monthly churn of 12% and everyone nods, because 12% sounds survivable.
+A team reports monthly churn of 12% and everyone nods, because 12% sounds survivable. Then somebody asks for the denominator: users who had placed at least two orders, people who had already proved they liked it.
 
-Then somebody asks what the denominator was. The number was computed over users who had placed at least two orders — people who had already proved they liked it. Of six hundred signups, a hundred and seventy ever reached value, and twenty-one of those stopped last month. Twelve per cent is arithmetically correct and it describes twenty-eight per cent of the people who arrived.
-
-The four hundred and thirty who never got anywhere do not appear in it at all. They are the largest group in the business and the number is built so that it cannot see them. In M18 a panel found this with one question, and the team had no answer, because the number had never been wrong — only incomplete.
+Of six hundred signups, a hundred and seventy ever reached value, and twenty-one stopped last month. Twelve per cent is arithmetically correct and describes twenty-eight per cent of the people who arrived. The four hundred and thirty who never got anywhere are the largest group in the business, and the number cannot see them.
 
 ### What M07 covered, and what is new here
 
-M07's chapter eight gave churn one paragraph: the share of a cohort that stopped, meaningless without a window attached, and be careful in a product with seasons because a canteen app loses everybody during exam break and that is a holiday rather than churn. All of that is correct and assumed here.
-
-New in this chapter: the denominator problem above, which is where almost every student churn number goes wrong; defining lapsed when there is no cancel button; leading indicators you can compute by hand; why a prediction model is not available to you at this size; exit interviews with people who have already left; and win-back, measured honestly.
+M07 gave churn one paragraph: the share of a cohort that stopped, meaningless without a window. New here is the denominator problem, defining lapsed when there is no cancel button, rules instead of a model, and talking to people who left.
 
 ### The idea
 
 **Churn is a pair of numbers, not one: the share who never reached value at all, and the share who reached it and then stopped. Report both, with the denominator and the window stated, or you are describing a fraction of your users and calling it the business.**
 
+In a paid product churn has a moment: the cancellation. In a free product there is none, so a user who lost interest and a user who is busy this week look identical, and you must choose a rule — a multiple of chapter four's natural frequency, such as no active event for fourteen days for a daily product or four weeks for a weekly one. What matters more than the multiple is writing it in the taxonomy and never changing it. A lapsed user is not necessarily gone: resurrection is this person returning.
+
 ### The analogy
 
-The canteen manager notices that the boy who came every single day for a month has not been in for two weeks. There was no cancellation form and no announcement. She noticed an absence.
+The canteen manager notices that the boy who came every day for a month has not been in for two weeks. No cancellation form, no announcement. She noticed an absence.
 
-**Where the analogy breaks:** she knows faces, so absence is visible to her without any effort. Your product has no faces. Nobody on your team will ever notice that a particular user stopped, because there is nothing to notice — a user who leaves simply does not appear. So absence has to be defined as a rule and computed deliberately, and if you do not build that list, silent churn is invisible until the totals start falling months later.
+**Where the analogy breaks:** she knows faces, so absence is visible to her for free. Your product has no faces, and nobody will notice that a particular user stopped, because a user who leaves simply does not appear. Absence must be defined as a rule and computed deliberately, or silent churn stays invisible until the totals fall.
 
 ### Picture it
 
@@ -61,49 +59,11 @@ The canteen manager notices that the boy who came every single day for a month h
 
 Number two is what teams report and number one is usually the larger failure, which is why both belong on the same slide with their denominators written beside them.
 
-### Defining lapsed, because nobody cancels
-
-In a paid product with subscriptions, churn has a moment: the cancellation. In a free product there is no such event, so a user who has lost interest and a user who is busy this week look identical. You have to choose a rule.
-
-The usual rule is a multiple of your natural frequency from chapter four. A daily product might define lapsed as no active event for fourteen days; a weekly product as four weeks. What matters more than the multiple is writing it down in the taxonomy and not changing it later.
-
-Two consequences. A lapsed user is not necessarily gone — chapter four's resurrection is this person returning — so "lapsed" is a state, not a verdict. And because the rule has a lag built in, your churn number always describes a period that ended some time ago, which is the price of measuring silence.
-
-### Leading indicators, and why you do not get a model
-
-You want to know who is about to leave while you can still do something. Three signals are computable from events you already have.
-
-**Falling frequency.** Someone who ordered three times a week and now orders once is on their way out. The slope matters more than the level.
-
-**A failed last session.** If a user's most recent session contained an error, a payment failure or a dead-end, there is a reasonable chance that session is why they stopped. This is the most actionable of the three because it names the cause and a person at the same time.
-
-**A long gap relative to their own pattern.** A weekly user absent for three weeks is a stronger signal than a monthly user absent for three weeks. Compare each user against their own rhythm, not against an average.
-
-Now the blunt part. At a few hundred users, a churn prediction model has almost nothing to learn and every reason to fit noise — twenty-one lapsed users in a month is not a training set, and the model's confident output cannot be checked by anybody. A list produced by three readable rules is better on every dimension that matters: you can explain it, you can act on each row, and you can tell when it is wrong. Ask for the model and you will get one; it will be theatre.
-
-### Talking to the people who left
-
-Chapter four warned about survivorship: the users who talk to you are the ones who stayed. The thirty who left have the information and no reason to answer. Get it anyway, and WhatsApp is why this is possible for an Indian student product in a way it would not be elsewhere.
-
-Message twenty lapsed users individually. Expect three to five replies, and treat them as the most valuable data in the module. The question matters, and M01's method applies unchanged: do not ask "why did you stop using it?", which invites politeness or silence. Ask about the last time instead — "the last time you needed lunch between labs, what did you actually do?" — because that produces a fact rather than a verdict.
-
-What you are listening for is the workaround they went back to. That tells you whether you lost to a competitor, to the old habit, or to a bug on their last session.
-
-### Reducing it, and measuring the reduction honestly
-
-Three levers, in order of return at your size.
-
-**Fix the thing that broke on their last session.** Cheapest and most direct. The failed-last-session list from above is a list of specific repairs.
-
-**Attack the never-activated pool instead.** Four hundred and thirty people who never reached value is a larger prize than twenty-one who left, and chapter six is the whole method. Most teams spend their effort on the smaller pool because the churned feel like a loss and the never-activated feel like strangers.
-
-**Win-back, once, measured separately.** One personal message to lapsed users, with a reason to return that is not a discount. Keep the responders in their own cohort, because — as chapter four warned — an uptick caused by your own message is your message, not your product, and letting it into your retention curve corrupts the one number you most need to trust.
-
-If you have payments, there is a fourth: **involuntary churn**, where a user intended to stay and a failed UPI mandate or an expired card ended it. That is M17's dunning work, and it is usually the cheapest churn to recover because the intent never went away.
+Three signals of leaving are computable from events you already have: **falling frequency** against the user's own pattern, where the slope matters more than the level; **a failed last session**, whose error names a cause and a person at once; and **a gap long for that user's own rhythm**.
 
 ### Where it lives
 
-Chapter four is the same measurement from the other side, and the two must agree: if retention flattens at 30%, churn among activated users cannot be 60% a month. Chapter six owns the never-activated pool. Chapter three finds the bug on the last session and chapter five shows it to you. M17 turns churn into lifetime value, and M18 is where the denominator question gets asked.
+Chapter four is the same measurement from the other side, and the two must agree: if retention flattens at 30%, churn among activated users cannot be 60% a month. The levers sit on other chapters' ground: fix what broke on their last session, which chapter three finds and chapter five shows you; attack the never-activated pool, chapter six's method and usually several times larger; run win-back once, with a reason that is not a discount, keeping responders in their own cohort. With payments there is a fourth, **involuntary churn**, where a failed UPI mandate ends something the user meant to keep — M17's dunning work.
 
 ### Words to own
 
@@ -122,30 +82,25 @@ Chapter four is the same measurement from the other side, and the two must agree
 
 ### Tradeoffs and gotchas
 
-**Churn with no window is not a number.** "Our churn is 12%" says nothing until you add "in twenty-eight days, among users who had activated". Both halves, every time.
+**You do not get a prediction model at this size.** Twenty-one lapsed users is not a training set and nobody can check the output. Three readable rules give you a list you can explain, act on, and correct. Ask for a model and you will get one; it will be theatre.
 
-**A blended churn rate hides the segment that is failing.** Split it by chapter one's acquisition channel and by device class. Users recruited in a classroom and users who tapped a link at midnight do not churn at the same rate, and the blend tells you about neither.
+**The people who left have the information and no reason to answer.** Message twenty lapsed users individually on WhatsApp; expect three to five replies. Do not ask "why did you stop?", which invites politeness — ask "the last time you needed lunch between labs, what did you actually do?", because the fact you want is the workaround they went back to.
 
-**Seasons are not churn.** Exam weeks, vacations and placement season empty a campus product. Mark those windows and say so, rather than reporting a holiday as a collapse.
+**A blended rate hides the failing segment.** Split by acquisition channel and device class, state n beside each rate, and mark windows that overlap exam weeks, because a holiday is not a collapse.
 
-**Do not change the lapsed rule because a number got ugly.** Moving from fourteen days to twenty-eight halves your churn rate overnight and changes nothing real. If you must change it, every earlier figure needs a dated note.
-
-**Small numbers still bite here.** Twenty-one of a hundred and seventy is readable; three of twelve is not. State n beside the churn rate exactly as you do for retention.
-
-**Chasing the churned is usually the wrong priority.** The never-activated pool is normally several times larger and far more tractable. Work out both sizes before deciding where the week goes.
+**Do not change the lapsed rule because a number got ugly.** Fourteen days to twenty-eight halves your churn rate overnight and changes nothing.
 
 ### Verify it
 
 Ask AI for a churn analysis and you will get a confident percentage with an invisible denominator.
 
-1. **Ask what the denominator is, explicitly.** **A churn number that excludes the users who never activated** is the central error of this chapter, and it makes a product look healthy while most arrivals go nowhere.
-2. **Ask for the window and the lapsed rule in one sentence each.** No window means no number; no lapsed rule means somebody chose one silently.
-3. **Check it against chapter four's retention.** If churn and the flattening point tell different stories, one of them has a different definition of active, and finding out which is the task.
-4. **Refuse any churn prediction model at your size.** **A model trained on a few hundred users and twenty lapsed examples** cannot be validated and cannot be explained; ask for three rules and a named list instead.
-5. **Check whether a win-back campaign is inside the retention curve.** An uptick produced by your own message presented as product retention is a serious misreport, and it is usually accidental.
-6. **Read the exit-interview questions before they are sent.** If they ask for opinions about your product rather than what the person did the last time they had the problem, they will produce politeness.
+1. **Ask what the denominator is, explicitly.** A churn number that excludes the never-activated is this chapter's central error.
+2. **Ask for the window and the lapsed rule in one sentence each.** No window means no number.
+3. **Refuse any churn prediction model at your size** and ask for three rules and a named list.
+4. **Check whether a win-back campaign is inside the retention curve.** An uptick produced by your own message is not product retention.
+5. **Read the exit-interview questions before they are sent.**
 
-Red flags: a churn rate with no denominator; the lapsed rule changed in the week the number improved; churn blended across channels; a churn model with a confidence score; a win-back uptick called retention; exit interviews run only with people who still like you; and a churn number that counts signups from the last three days as retained.
+Red flags: a churn rate with no denominator; a lapsed rule changed in the week the number improved; a churn model with a confidence score.
 
 ## Walkthrough
 1. Write your lapsed rule in one sentence, derived from the natural frequency you recorded in chapter four, and put it in the taxonomy file.

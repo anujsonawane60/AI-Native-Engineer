@@ -4,7 +4,7 @@ module: m13-production-engineering
 slug: infrastructure-as-code
 title: "Infrastructure as Code: Terraform, State, Drift and GitOps"
 order: 4
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -22,25 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-M06 chapter 13 taught you what infrastructure as code is and then told you not to use it. That advice was right for three people with four resources: a committed `STACK.md` listing every resource, its owner, its region and its non-default settings delivered most of the value for a tenth of the work. It also promised that M13 would do this properly, with state files, plans and modules. You are here because your product now has more resources than a text file can honestly track, and because the text file has started lying.
+M06 chapter 13 taught you what infrastructure as code is and then told you not to use it. For three people with four resources that was right: a committed `STACK.md` gave most of the value for a tenth of the work. It promised M13 would do this properly, with state files, plans and modules. You are here because the text file has started lying — a teammate's 11 p.m. console bucket was never in it, so a cleanup of unidentified resources broke every dish photo.
 
-Here is how it lies. A teammate adds a storage bucket in a console at 11 p.m. to unblock a demo. It is not in `STACK.md`. Three weeks later someone cleans up unidentified resources and deletes it. Every dish photo breaks. The `STACK.md` was accurate when written and has been quietly wrong ever since, because a document that reality is not required to match is a document reality will not match.
-
-Now the failure that comes *with* the tool, which is worse. A team adopts Terraform. The state file sits on one laptop, because that is where it appeared. A second teammate runs the same code from their machine, Terraform finds no state, concludes nothing exists, and creates a second database. Later the first teammate runs it and Terraform, holding a state that no longer matches, offers to destroy things. Somebody types yes without reading, because the output was forty lines long and the demo was in ten minutes. The production database is gone, and the most recent backup has never been restored — which is chapter 9's chapter and chapter 9's nightmare.
+The tool's own failure mode is worse. State lives on one laptop, a second teammate runs the same code, the tool finds no state and creates a second database. Later the first teammate applies, the tool offers to destroy things, and somebody types yes.
 
 ### The idea
 
-**Infrastructure as code gives you one thing no console can: a reviewable diff before a change, and the state file is the price you pay for it.**
+**Infrastructure as code gives you one thing no console can — a reviewable diff before a change — and the state file is the price you pay for it.**
 
-Your resources are described in text files in git. The tool compares three things — what your code says, what the state file remembers, and what the cloud actually has — and prints the difference as a plan. The plan is the review surface, exactly like M01's `git diff`. Apply makes reality match. The state file is what links a line of your code to a real resource id, which is why losing it, duplicating it, or committing it are the three ways this goes badly wrong.
+Your resources live in text files in git. The tool compares your code, the state file's memory and the cloud's reality, then prints the difference as a plan — your review surface, exactly like M01's `git diff`. State links a line of code to a real resource id, which is why losing, duplicating or committing it are the three ways this goes wrong.
 
 ### The analogy
 
-M06 gave you the canteen's recipe binder: the layout, supplier list and counter arrangement written down so the next manager does not reconstruct it from rumour.
+M06 gave you the canteen's recipe binder: layout, suppliers and counters written down so the next manager does not work from rumour.
 
-The binder has a page you did not need before. It is the inventory page, and it records *which specific physical things* currently exist — not "three warmers" but "warmer serial 4471 at counter 2, warmer serial 4472 at counter 3". The recipe pages say what should exist. The inventory page says what does. The manager's job before every change is to read a single sheet that compares the two: these two warmers already match, this one will be moved, this one will be thrown out.
+The binder has a page you did not need before — the inventory page, recording which specific physical things exist. Not "three warmers" but "warmer serial 4471 at counter 2". The recipes say what should exist, the inventory says what does, and before any change the manager reads a sheet comparing them.
 
-**Where the analogy breaks:** an inventory page that is wrong is harmless, because the warmers are right there and anyone can look. A wrong state file makes the tool act on a false belief at full speed. If the state says a database does not exist, the tool creates a second one. If the state says a database exists that was deleted by hand, the tool may try to modify a ghost. The binder is a record; the state file is a weapon, and it is pointed at your production data.
+**Where the analogy breaks:** a wrong inventory page is harmless, because the warmers are right there. A wrong state file makes the tool act on a false belief at full speed, creating a second database or modifying a ghost.
 
 ### Picture it
 
@@ -67,11 +65,12 @@ The plan is produced by comparing your code, the state file's memory and the clo
 
 ### Where it lives
 
-This chapter sits under almost everything else in M13. Chapter 3's cluster should be created this way rather than clicked. Chapter 5's release pipeline is where an apply actually runs, so no human laptop is the source of truth. Chapter 9's second region is only tolerable if it is a module you can instantiate twice instead of a console session you repeat by hand. Chapter 11's least-privilege permissions are resources too, and reviewing a permission change as a diff is far easier than finding it in a console.
+This sits under almost everything else in M13:
 
-It also closes a loop from M06 chapter 7: a resource created in code has an owner, a region and a tag, which is how surprise bills stop being mysteries. And M01 is the whole mechanism — a plan reviewed in a pull request is the same workflow as a code review, with the same benefit.
-
-GitOps is one more step on the same idea: the git repository is declared to be the desired state, and a process in the cluster continuously pulls and reconciles, so a hand change in the console is not just discouraged but automatically undone. That is the control loop from M06 chapter 9, applied to infrastructure instead of pods.
+- **Chapter 3's** cluster should be created this way, not clicked; **chapter 5's** pipeline is where an apply runs.
+- **Chapter 9's** second region is only tolerable as a module you instantiate twice, and **chapter 11's** permissions are resources too.
+- It closes M06 chapter 7's loop: a resource created in code has an owner, a region and a tag, so surprise bills stop being mysterious.
+- **GitOps** goes further: the repo is the desired state and a job reconciles it, undoing clicks.
 
 ### Words to own
 
@@ -94,31 +93,26 @@ GitOps is one more step on the same idea: the git repository is declared to be t
 
 ### Tradeoffs and gotchas
 
-**Never commit the state file.** It contains resource ids and, for many providers, generated passwords and connection strings in plain text. Committing it is a secret leak under M07 chapter 2's rules, which means revoke first and clean history afterwards. State belongs in a remote backend with locking. Free options exist: the vendor's own free tier for small teams, or an object store with a lock table. Pick one on day one, because migrating state later is the most nerve-wracking hour in this chapter.
+**Never commit the state file.** It holds resource ids and often generated passwords in plain text — a secret leak under M07 chapter 2's rules. Put state in a remote backend with locking: a vendor free tier, or an object store with a lock table. Choose on day one.
 
-**Read the destroy count before anything else.** The plan output is long and the dangerous line is one word. Train yourself to look for `destroy` and `must be replaced` first, then work backwards. "Must be replaced" on a database means delete and recreate — an empty database with a new address, which is an outage and a data loss in one step.
+**Read the destroy count before anything else.** The plan is long and the dangerous line is one word: `destroy`, or `must be replaced` — which on a database means an empty database with a new address.
 
-**Put a destroy guard on everything stateful.** Databases, storage buckets, anything holding user data. A lifecycle rule that makes a destroy plan *fail* turns your worst accident into an error message. It is two lines and it is the highest-value thing in this chapter.
+**Put a destroy guard on everything stateful:** a lifecycle rule that makes a destroy plan *fail* turns your worst accident into an error message.
 
-**Apply from a pipeline, not a laptop.** Two people with the same code and different local credentials, versions and environment variables produce different results. Chapter 5's pipeline runs plan on every pull request and apply only on merge, which means every change is reviewed and no change depends on whose laptop it was.
+**Apply from a pipeline, not a laptop.** Chapter 5 runs plan on every pull request and apply only on merge, so no change depends on whose credentials were loaded.
 
-**Do not put the whole cloud in one file.** One state for everything means one lock, one blast radius, and a twelve-minute plan nobody reads. Split by lifecycle: things that change weekly separate from things that must never change.
-
-**Drift has two correct responses and you must choose deliberately.** Either the code is right and you apply to overwrite reality, or reality is right and you update the code to match. What you must never do is both at random. And when you find a resource the state has never heard of, the answer is `import`, not recreate.
-
-**Free-tier resources are still real resources.** Declaring a free database in code and running apply twice because the first run half-failed is how a free tier becomes two free tiers and then a bill. Chapter 7's lesson from M06 stands: set the budget alert before your first apply, not after.
+**Drift has two correct responses, chosen deliberately:** apply over reality, or update the code to match it — never both at random. A resource the state never heard of needs `import`, and free-tier resources are still real: set the budget alert before your first apply.
 
 ### Verify it
 
-The entire discipline of this chapter is one habit: **nobody applies anything they have not read the plan for.** Five checks.
+**Nobody applies anything whose plan they have not read.**
 
-1. **Demand the plan as output, not as a description.** "This will add a bucket" is a summary. The plan text with its three counts is evidence. If AI hands you an apply command without a plan step, that alone is a reject.
-2. **Count the destroys yourself.** Read the `Plan:` summary line, then find each destroyed or replaced resource in the body and say out loud what data is inside it.
-3. **Confirm where the state lives.** Ask directly: which backend, is it locked, who else can read it, and is it in `.gitignore`. A `terraform.tfstate` file sitting next to your code in git is an incident.
-4. **Check for a destroy guard on every stateful resource.** If the database has no lifecycle protection, add it before anything else.
-5. **Look for real credentials in the `.tf` files.** They must come from variables backed by the platform's secret store, never from a literal in a file you are about to commit.
+1. **Demand the plan as output, not a description.** The plan text with its three counts is the evidence.
+2. **Count the destroys yourself,** then say what data each destroyed or replaced resource holds.
+3. **Confirm where state lives:** which backend, is it locked, is it in `.gitignore`.
+4. **Look for real credentials in the `.tf` files.** They come from variables backed by a secret store, never a literal.
 
-Red flags: Terraform applied without reviewing the plan; a state file in the repository; a plan containing `must be replaced` on a database, accepted anyway; credentials written as literals; `terraform destroy` offered as a cleanup suggestion with no mention of what it removes; one monolithic state for the entire account; and resources created in a console and never imported, which is drift you have chosen to keep.
+Red flags: applying without reading the plan; a state file in the repository; `must be replaced` on a database, accepted anyway; credentials as literals; one monolithic state for the whole account.
 
 ## Walkthrough
 1. Inventory honestly. List every cloud resource your team owns, including the ones created by clicking at 11 p.m. Mark each one: in `STACK.md`, or not. The unmarked ones are why you are here. Then pick the smallest safe starting point — a DNS record, or a free-tier object store bucket. Not the database.

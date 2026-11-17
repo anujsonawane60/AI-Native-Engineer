@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: oauth-sso-passkeys-2fa
 title: "OAuth, SSO, Passkeys and 2FA"
 order: 13
-duration_min: 30
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -22,35 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-The canteen team adds "Sign in with Google" in forty minutes and it feels like the best forty minutes of the project. No passwords, no reset emails, no forgotten-password support. Students tap once and they are in.
-
-Three problems arrive over the next two weeks.
-
-The first is chapter 12's, and it is the reason this chapter follows that one: the team believes they have added security. They have added *identity*. Google told them who the student is. Google said nothing about whether that student may open the admin page, and the admin page is still open.
-
-The second is identity collision. A student signs in with Google on Monday using `priya@college.edu`. On Friday, on a friend's phone, she uses the email-and-OTP option with the same address. The app creates a second account. Her orders are split across two accounts and she is certain the app lost her data. Nobody decided what should happen when the same human arrives by two doors.
-
-The third shows up at the demo. A judge asks how staff accounts are protected, because a staff account can mark any dish sold out and read every student's phone number. The honest answer is "a Google password that might be `priya2003`". Nothing protects it beyond that.
+The canteen team adds "Sign in with Google" in forty minutes. Then the admin page turns out to be still open, because Google said who the student is and nothing about what she may do. A student who signs in two ways with the same address gets a second account. And a judge asks what protects a staff account that reads 400 phone numbers: a Google password that might be `priya2003`.
 
 ### The idea
 
 **OAuth lets a user prove their identity to you using an account they already have somewhere else, without ever giving you their password — and that is all it does.**
 
-The flow is a redirect dance. Your app sends the student to Google. Google authenticates them and asks whether they consent to sharing their name and email with you. Google redirects back to your app with a short-lived **code**. Your *server* exchanges that code, plus your client secret, for a token, and reads the identity from it. At no point do you see the password.
-
-**SSO** (single sign-on) is the same machinery used across an organisation so one login works for many applications. **2FA** adds a second, different kind of proof — something you have, not just something you know. **Passkeys** replace the password entirely with a key held in your device's secure hardware, unlocked by your fingerprint or face.
+A redirect dance: your app sends the student to Google, which authenticates them, asks consent, and redirects back with a short-lived **code**. Your *server* exchanges that code plus your client secret for a token and reads the identity from it — you never see the password.
 
 ### The analogy
 
-A student wants a canteen tab without the canteen holding her documents.
+A student wants a canteen tab without handing over her documents. She takes its slip to the registrar, who checks her, asks consent, and gives her a sealed one-time chit. The manager never opens the chit — he sends it to the registrar himself, who confirms "Priya Sharma, roll 4471".
 
-She walks to the college registrar's office with the canteen's request slip. The registrar checks her thoroughly — the canteen never sees how — asks "may I confirm your name and roll number to the canteen?", and on her yes hands her a sealed one-time chit.
-
-She brings the chit to the canteen. The canteen manager does not open it in front of her; he sends it to the registrar's office himself, with his own stamped letterhead, and the registrar confirms: this is Priya Sharma, roll 4471. The canteen opens a tab in her name and has never seen a document.
-
-Notice what the chit does not say: nothing about whether Priya may open the cash box. The registrar does not know and does not care. Permissions are the canteen's business.
-
-**Where the analogy breaks:** the chit can be stolen between offices. That is why the exchange happens server-to-server with the canteen's own letterhead — a secret the student's hands never touch — and why the chit expires in seconds. The physical version has no equivalent of a stolen redirect, which is the thing the protocol is mostly designed to prevent.
+**Where the analogy breaks:** the chit can be stolen between offices, so the real exchange is server-to-server with a secret the student never touches, and expires in seconds.
 
 ### Picture it
 
@@ -80,27 +64,7 @@ Google proves who the student is and hands back a short-lived code; your server 
 
 ### Where it lives
 
-OAuth sits at the authentication gate from chapter 12 and replaces only that gate. Every interior door — the role check, the ownership check — is still yours, unchanged, and still the thing that actually protects data.
-
-The box in the middle of that diagram is the whole lesson. When the token comes back, your server does three things Google has no opinion about: finds or creates a user row, assigns a role, and starts your own session. **The role is assigned by your code, from your database, never from anything in the token.** An identity provider that could grant admin rights in your app would be a strange and dangerous thing.
-
-Forward: chapter 14 builds the roles and row-level policies this hands off to. Chapter 15's signed URLs lean on the session this creates. In M07 these flows meet OWASP, secret handling and the DPDP Act — because the moment you receive a student's name, email and phone from Google, you are processing personal data and you owe them a reason, a retention period and a way to delete it.
-
-### Second factors, and which ones work in India
-
-2FA means two different *kinds* of proof. Something you know (a password), something you have (a phone, a key), something you are (a fingerprint). Two passwords is not 2FA.
-
-| Factor | How it works | Honest verdict for your users |
-|---|---|---|
-| SMS OTP | A code texted to the phone | Familiar everywhere in India, works on any handset, and the weakest option — SIM swap and delivery delays on bad networks |
-| Authenticator app | A 6-digit code from a shared secret, rotating every 30 seconds | Strong, free, works offline, needs the user to install an app and keep a backup |
-| Email OTP | A code sent to the inbox | Only as strong as the email account; fine as a fallback |
-| Passkey | A key in the device's secure hardware, unlocked by fingerprint or face | Strongest and the best experience; needs a reasonably modern phone and good platform support |
-| Push approval | A prompt in an app you already run | Excellent and requires an app you do not have |
-
-For a student product the sensible split is: ordinary users get social login or OTP and no mandatory second factor, and **anyone with staff or admin powers gets a real second factor.** The asymmetry is deliberate — the account that can read 400 phone numbers deserves more protection than the one that can order a samosa.
-
-Note the Indian texture. SMS OTP is culturally the default: UPI, banking, IRCTC and Aadhaar have trained everyone to expect it. It also costs money per message, arrives slowly on a weak network, and fails entirely in a hostel basement. Passkeys are genuinely better and some budget Android devices still handle them poorly. Offer a fallback, always, and never make the fallback weaker than the primary — that is where attackers go.
+OAuth replaces chapter 12's authentication gate and nothing else; every interior door is still yours. The box in that diagram is the lesson — your server finds or creates the user row, assigns a role, and starts its own session, and **the role comes from your database, never from the token.** Next: 14 builds those roles; M07 adds the DPDP Act, since you now hold personal data.
 
 ### Words to own
 
@@ -119,36 +83,36 @@ Note the Indian texture. SMS OTP is culturally the default: UPI, banking, IRCTC 
 
 ### Tradeoffs and gotchas
 
-**Social login solves authentication and zero percent of authorization.** If you take one thing from this chapter: adding Google login does not protect a single endpoint. Chapter 12's six attacks must still all pass.
+Second factors, judged against real phones:
 
-**Decide account linking before you ship.** The rule most teams want: match on verified email and link the new method to the existing user rather than creating a second account. Write it down, because the alternative is a student with two half-filled accounts and no way to merge them. Be careful with *unverified* email — linking on an address someone does not control is an account takeover.
+| Factor | How it works | Honest verdict for your users |
+|---|---|---|
+| SMS OTP | A code texted to the phone | Familiar everywhere in India, works on any handset, and the weakest option — SIM swap and delivery delays on bad networks |
+| Authenticator app | A 6-digit code from a shared secret, rotating every 30 seconds | Strong, free, works offline, needs the user to install an app and keep a backup |
+| Email OTP | A code sent to the inbox | Only as strong as the email account; fine as a fallback |
+| Passkey | A key in the device's secure hardware, unlocked by fingerprint or face | Strongest and the best experience; needs a reasonably modern phone and good platform support |
+| Push approval | A prompt in an app you already run | Excellent and requires an app you do not have |
 
-**The client secret belongs on the server, always.** In frontend code it is public, and anyone can impersonate your application. This is M07's secrets chapter arriving early.
+**Social login solves authentication and zero percent of authorization.** Chapter 12's attacks must all still pass.
 
-**Redirect URIs must be exact and allow-listed.** A loose or wildcard redirect lets an attacker have the code delivered to their own site — the most-exploited OAuth misconfiguration, prevented in the provider's console.
+**The client secret stays server-side; redirect URIs must be exact.** In the browser the secret is public, and a wildcard redirect sends the code to the attacker.
 
-**An email from a provider is not automatically verified.** Check the `email_verified` claim.
+**Decide account linking before you ship.** Match on *verified* email and link to the existing user; linking an unverified address is account takeover.
 
-**Social login alone excludes people.** A student without a smartphone, on a shared device, or with a college account that blocks third-party apps needs another route in.
-
-**2FA needs recovery, and recovery is the attack surface.** Single-use codes shown once, and a human process for staff who lose a phone. A reset weaker than the login defeats the 2FA.
-
-**Do not implement OAuth by hand.** The failure modes — state parameter, PKCE, nonce checks, token validation — are subtle, and hand-rolled implementations are reliably wrong in ways that look fine.
-
-**Provider UIs change.** Button names, console layouts and free-tier limits in this area churn every few months. Follow current provider documentation rather than any screenshot, including any you find in an AI answer.
+**Match protection to power, and keep a fallback.** Staff need a second factor, students do not; recovery must never be weaker than the login, and someone without a smartphone still needs a route in.
 
 ### Verify it
 
-Six checks. The first three are chapter 12's attacks, repeated because social login does not remove them.
+Six checks; the first three are chapter 12's attacks, because social login does not remove them.
 
-1. **Sign in with Google as an ordinary student, then type the admin URL.** The page must refuse. Then call the admin endpoint directly with that session. It must return `403`.
-2. **Change an id in a URL to another user's record** while signed in via Google. You must get `403` or `404`.
+1. **Sign in with Google as an ordinary student, then type the admin URL.** The page must refuse; then call the admin endpoint directly with that session — `403`.
+2. **Change an id in a URL to another user's record** while signed in via Google: `403` or `404`.
 3. **Call a protected endpoint with no session.** `401`, every time.
-4. **Sign in with Google, log out, then sign in with the email OTP method using the same address.** Count the rows in your users table. Two rows is the collision bug, and it is much cheaper to find today than after the demo.
-5. **Search your frontend bundle for your client secret.** Open dev tools, search the loaded JavaScript for the string. Finding it means rotating the secret today.
-6. **Read the role assignment code.** Confirm the role comes from your own database, not from anything in the provider's token, and that a brand-new user cannot be created as an admin. Then confirm `email_verified` is actually checked.
+4. **Sign in with Google, log out, sign in by email OTP with the same address.** Two rows in your users table is the collision bug.
+5. **Search your frontend bundle for your client secret.** Finding it means rotating the secret today.
+6. **Read the role assignment code.** The role must come from your database, a new user must not be creatable as admin, and `email_verified` must be checked.
 
-Red flags: a flow where the token exchange happens in the browser; a redirect URI set to a wildcard or to `localhost` in production; a role read from the provider's response; no `email_verified` check; 2FA offered to students but not to admins; SMS OTP as the only second factor with no fallback; recovery codes that can be regenerated without re-authenticating; and any claim that "Google handles security for us".
+Red flags: a token exchange in the browser; a redirect URI set to a wildcard or `localhost` in production; a role read from the provider's response; no `email_verified` check; 2FA for students but not admins; SMS OTP as the only factor, no fallback; recovery codes regenerated without re-authenticating; "Google handles security for us".
 
 ## Walkthrough
 1. List the login methods your product will offer, and who uses each. Name at least one route in for someone who cannot use social login.

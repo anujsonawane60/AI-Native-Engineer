@@ -4,7 +4,7 @@ module: m02-the-web
 slug: ip-dns-domains-ports
 title: "IP Addresses, DNS, Domains and Ports"
 order: 12
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,31 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team buys `canteen-nashik.in` the night before their first checkpoint demo. They point it at their deployment, open it, and get nothing. They spend four hours convinced the deploy is broken.
+A team buys `canteen-nashik.in` the night before their demo, points it at their deployment, gets nothing, and spends four hours convinced the deploy is broken.
 
-The deploy was fine. Three separate things were happening. The record they created pointed at an address that had changed two days earlier, because they had copied it from an old screenshot. The old record's TTL was 24 hours, so even after they corrected it, their own laptops kept using the cached wrong answer. And one teammate's phone, on mobile data with a different resolver, started working forty minutes in — which convinced everybody that the site was "sometimes up", and sent them hunting for a server problem that did not exist.
-
-Meanwhile the app had been running perfectly the whole time at `localhost:3000` on one laptop, which the team kept pointing at as proof it worked. It was not on the internet at all.
+The deploy was fine. Their record pointed at an address copied from an old screenshot. The old record's TTL was 24 hours, so even after the fix their laptops served the cached wrong answer — while one teammate's phone, on a different resolver, started working, which convinced everybody the site was "sometimes up". Meanwhile the app ran perfectly at `localhost:3000` on one laptop, which the team kept offering as proof. It was not on the internet at all.
 
 ### The idea
 
 **Machines on the internet are found by number, people remember names, and DNS is the lookup that converts the second into the first. A port then says which program on that machine should answer.**
 
-Three layers, three failure modes, and almost every "the site is down" that is not actually a code problem is one of them: the name resolves to the wrong number, the answer is cached somewhere you cannot reach, or nothing is listening on the port.
+Three layers, three failure modes: the name resolves to the wrong number, the answer is cached somewhere you cannot reach, or nothing is listening on the port. Almost every "the site is down" that is not a code problem is one of those.
 
 ### The analogy
 
-The canteen on a large campus.
+The **IP address** is the physical location: Building C, ground floor, west wing — precise and useless in conversation. The **domain name** is "the canteen". The **directory board** at the gate saying "Canteen → Building C" is **DNS**: a lookup table somebody maintains, which can be wrong or stale. The **ports** are the windows — coupons at window 1, food at window 2, staff entrance at window 3, kept shut.
 
-The **IP address** is the physical location: Building C, ground floor, west wing. Precise, unambiguous, and useless for conversation — nobody says "meet me at Building C ground floor west wing", they say "meet me at the canteen".
-
-The **domain name** is "the canteen". Human, memorable, and not actually a location at all.
-
-The **directory board** at the campus gate, which says "Canteen → Building C", is **DNS**. It is a lookup table maintained by somebody, and it can be wrong, and it can be out of date.
-
-The **ports** are the windows. Window 1 sells coupons, window 2 serves food, window 3 is the staff entrance and is kept shut. The building is one address; what you get depends entirely on which window you go to.
-
-**Where the analogy breaks:** the campus directory board is one board, and when you repaint it, it is repainted. DNS is thousands of copies, cached in your phone, your browser, your college's network, your mobile operator's resolver and several layers above that, each holding its own copy for as long as the TTL said it could. When you change a record you are not updating a board — you are waiting for thousands of independent copies to expire. You cannot force them. That is why "it works on my phone but not on my laptop" is a completely normal mid-change state, and why what people call "propagation" is really just caching running down.
+**Where the analogy breaks:** repaint the board and it is repainted. DNS is thousands of copies — your phone, browser, college network, operator's resolver and layers above — each holding its own for as long as the TTL allowed. You cannot force them to expire. That is why "it works on my phone but not my laptop" is a normal mid-change state, and why "propagation" is really just caching running down.
 
 ### Picture it
 
@@ -69,19 +59,11 @@ The **ports** are the windows. Window 1 sells coupons, window 2 serves food, win
 
 Your device asks a resolver for the name, the resolver asks the domain's nameservers unless it already has a cached answer, and the returned number is then connected to on a specific port.
 
-### Ports, and why localhost is not the internet
-
-A single machine runs many programs that all want to talk to the network, so each one listens on a numbered **port**. Port 80 is where plain HTTP traffic is expected, 443 is HTTPS, 5432 is where a Postgres database usually listens. Development servers typically use 3000, 5173 or 8080 — numbers chosen because nothing important uses them.
-
-`localhost` and `127.0.0.1` both mean **this machine, and only this machine**. A server at `localhost:3000` is reachable from your laptop and from nowhere else on earth. Not from your phone on the same Wi-Fi, not from your teammate sitting next to you, not from a mentor. This is a deliberate safety default, and it is also the cause of an entire genre of "but it works on my machine" conversations in the live session.
-
-The related error you will meet in week one is "port already in use", which means a previous run of your app is still alive and holding port 3000. The honest fix is to stop the old process, not to move to port 3001 and forget.
-
 ### Where it lives
 
-This chapter is the **network** box from M00's four boxes, and it sits between every client and every server. A request cannot even begin until the name has been resolved, which is why a DNS problem looks exactly like a dead server from the browser's point of view.
+This chapter is the **network** box from M00's four boxes. A request cannot begin until the name resolves, which is why a DNS problem looks exactly like a dead server. M06 is where you point a domain at a deployment and issue certificates — and a certificate needs DNS resolving first, which is why DNS mistakes delay deploys rather than merely breaking them.
 
-M06 is where you actually point a domain at a deployment and where HTTPS certificates get issued — and a certificate can only be issued once DNS resolves correctly, which is why DNS mistakes delay deploys rather than just breaking them. M05's CDN discussion relies on DNS to send users to a nearby server. And chapter 14's certificates are issued for a *name*, which is why the name and the machine have to agree.
+A machine runs many programs, so each listens on a numbered **port**: 80 for HTTP, 443 for HTTPS, 5432 for Postgres, 3000 or 5173 for development servers. `localhost` and `127.0.0.1` mean **this machine only** — a server at `localhost:3000` is reachable from your laptop and nowhere else on earth, not even your own phone on the same Wi-Fi.
 
 ### Words to own
 
@@ -103,33 +85,27 @@ M06 is where you actually point a domain at a deployment and where HTTPS certifi
 
 ### Tradeoffs and gotchas
 
-**Lower the TTL *before* you change the record, not after.** This is the one operational trick in this chapter and it is worth memorising. Drop the TTL to 300 seconds, wait for the old long TTL to expire, then make the actual change — now the world picks it up in five minutes instead of a day. Doing it in the other order means the low TTL is itself stuck behind the old cache.
+**Lower the TTL *before* you change the record, not after.** Drop it to 300 seconds, wait for the old long TTL to expire, then make the change — the world picks it up in five minutes instead of a day. In the other order the low TTL is itself stuck behind the old cache.
 
-**You cannot force other people's caches to clear.** You can flush your own device's cache and your browser's, and that is the end of your power. Anyone telling you to "just wait for propagation" is describing caching honestly, even if the word is wrong.
+**You cannot force other people's caches to clear.** Your own device and browser are the end of your power, and during a change two users correctly see two different sites.
 
-**During a change, two users will correctly see two different sites.** This is not a bug and it is not intermittent failure. It is what a mid-change DNS state looks like, and knowing that saves the four hours from the pain story.
+**A CNAME traditionally cannot sit on the apex.** `www.canteen-nashik.in` can be a CNAME; the bare domain historically cannot, which is why platforms offer an apex IP or their own flattening. An AI will hand you an apex CNAME without mentioning it.
 
-**A CNAME traditionally cannot sit on the apex.** `www.canteen-nashik.in` can be a CNAME; `canteen-nashik.in` historically cannot, which is why hosting platforms offer either a specific IP for the apex or their own flattening feature. An AI will often hand you a CNAME for the apex without mentioning this.
+**One typo costs a day:** a trailing dot, a hostname from memory, an A record holding a name. Paste from the platform's instructions. And set a renewal reminder — an expired domain takes your site, email and certificates with it.
 
-**One typo costs a day.** A trailing dot, a missing dot, the platform's hostname spelled from memory, the record type set to A when the value is a hostname. Copy and paste the value from the platform's own instructions, and read it back character by character before saving.
-
-**`.in` and `.co.in` domains are cheap and renew.** Set a calendar reminder for renewal. An expired domain takes your site, your email and your certificates with it, and recovering one is slow.
-
-**Do not expose your database's port.** A database listening on `0.0.0.0:5432` with a weak password is found by automated scanners within hours. M07's security chapter covers this properly; the habit to form now is that ports are doors and most should not open onto the street.
+**Do not expose your database's port.** A database on `0.0.0.0:5432` with a weak password is found by scanners within hours. Ports are doors; most should not open onto the street (M07).
 
 ### Verify it
 
-DNS verification is the one place in this module where you leave the browser.
+1. **Ask what the name resolves to from the command line.** `nslookup` or `dig` gives the answer your machine has right now, with no browser cache in the way.
+2. **Check it from a second network.** Two different answers means a change in flight; two matching wrong answers means the record is wrong.
+3. **Read the TTL before changing anything.** It tells you how long you will wait afterwards.
+4. **Check whether anything is listening on the port.** Name resolving but connection refused means DNS is fine and the server is not.
+5. **Never accept `localhost` as evidence.** Ask for a URL you can open on your phone, on mobile data.
+6. **Confirm the apex and the `www` version both work.** Teams set up one and forget the other; users type both.
+7. **Check the registrar's nameservers match where you edit records.** Editing in a platform dashboard while the nameservers point at the registrar's default is a silent, common failure.
 
-1. **Ask what the name resolves to, from the command line.** `nslookup canteen-nashik.in` on Windows, or `dig canteen-nashik.in` elsewhere, tells you the answer your machine is getting right now, with no browser cache in the way. Compare it against what you intended.
-2. **Check it from a second network.** Your laptop on college Wi-Fi and your phone on mobile data use different resolvers. Two different answers means a change is in flight; two matching wrong answers means the record itself is wrong.
-3. **Read the TTL on the current record before changing anything.** It tells you how long you will be waiting afterwards. This is a thirty-second check that sets your expectations correctly.
-4. **Check whether anything is listening on the port.** If the name resolves correctly and the connection is refused, DNS is fine and the server is not running or not listening where you think. These are two completely different problems and distinguishing them is most of the diagnosis.
-5. **Never accept `localhost` as evidence.** If a teammate or an AI shows you something working at `localhost:3000`, that is a statement about one machine. Ask for a URL you can open on your phone, on mobile data.
-6. **Confirm the apex and the `www` version both work.** Teams routinely set up one and forget the other, and users type both.
-7. **Check the registrar's nameservers match where you are editing records.** Editing records in a platform's dashboard while the domain's nameservers still point at the registrar's default is a surprisingly common and completely silent failure.
-
-Red flags in AI output and advice: an IP address quoted from memory rather than from the platform's current instructions; a CNAME proposed for the apex with no mention of the limitation; "wait for propagation" offered as a diagnosis rather than as a description; advice to flush your DNS cache as a fix for other people's problem; a database or admin port exposed publicly; and any claim that something works, evidenced only by `localhost`.
+Red flags: an IP quoted from memory rather than the platform's instructions · an apex CNAME with no mention of the limitation · "wait for propagation" as a diagnosis rather than a description · flushing your DNS cache offered as a fix for other people's problem · a database or admin port exposed publicly · a claim of working evidenced only by `localhost`.
 
 ## Walkthrough
 1. Open a terminal and run `nslookup` against a site you use daily — `nslookup flipkart.com` or similar. Read the answer: the resolver that replied, and the address or addresses returned.

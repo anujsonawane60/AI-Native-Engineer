@@ -4,7 +4,7 @@ module: m06-cloud-linux-devops-testing
 slug: containers-and-dockerfiles
 title: "Containers: Images, Dockerfiles, Compose and Registries"
 order: 8
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,31 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team's canteen app works on two laptops and not on the third. The third teammate has a different version of the language runtime. Two evenings disappear into this. The fix is "install exactly this version", and it holds until the next person joins.
+A team's canteen app works on two laptops and not the third: that teammate has a different version of the language runtime. Then the deploy fails: the build server has yet another version and needs a system package nobody there can install. Then the demo breaks with identical code: the difference is in a machine that is written down nowhere.
 
-Then the deploy fails, because the build server has yet another version, and a library the app depends on needs a system package that nobody installed there. Nobody can install it, because they do not control the build server's operating system.
-
-Then the demo breaks. The code is identical to what worked an hour ago. The difference is somewhere in the machine, and the machine is not written down anywhere.
-
-Every one of these is the same problem: the project is only half described. The code is in git. The environment the code needs — the runtime version, the system packages, the paths, the user it runs as — lives in three people's memories and three different states.
+All three are one problem: the code is in git, but the environment it needs — runtime version, system packages, paths, the user it runs as — lives in three people's memories.
 
 ### The idea
 
 **A container image is your application plus the entire environment it needs, written down as a file and built into one sealed artefact that runs identically everywhere.**
 
-An **image** is the sealed artefact: a read-only stack of file-system layers plus a command to run. A **container** is one running copy of an image, with its own file system, its own process list and its own network view. The recipe that produces the image is a **Dockerfile**, and it is plain text that lives in your repository next to the code — which means the environment is finally under version control alongside everything else.
+An **image** is the sealed artefact: a read-only stack of file-system layers plus a command to run. A **container** is one running copy of it, with its own file system, process list and network view. The recipe is a **Dockerfile**, plain text in your repository next to the code — which finally puts the environment under version control.
 
 ### The analogy
 
-The canteen's samosa is famous, and the recipe card is specific: this flour, this brand of oil, fried at this temperature for this long. The recipe card is the Dockerfile. Hand it to any kitchen and you get the same samosa.
+The canteen's samosa recipe card is specific: this flour, this oil, this temperature, this long. The card is the Dockerfile — hand it to any kitchen and you get the same samosa. The sealed tiffin box is the image: everything needed, portioned and closed. Three boxes from one batch are three identical meals that do not affect each other — three containers. The market where boxes are handed out is the registry.
 
-The sealed tiffin box is the image. Everything needed, portioned and closed. A courier can carry it anywhere without knowing what is inside, and it arrives as it left.
-
-A container is one opened box being eaten right now. Opening three boxes from the same batch gives you three identical meals that do not affect one another.
-
-The wholesale market where boxes are collected and handed out is the registry: build once, push, and any kitchen in the city pulls the exact same box.
-
-**Where the analogy breaks:** a tiffin box is genuinely sealed, and a container is not nearly as isolated as it looks. It shares the host machine's kernel, it can be given access to host folders, and anything baked into the image is readable by anyone who pulls it. The isolation is a convenience boundary, not a safe. This is precisely why a secret written into a Dockerfile is not hidden — it is published.
+**Where the analogy breaks:** a tiffin box is sealed; a container is not nearly as isolated as it looks. It shares the host's kernel, can be given host folders, and anything baked into the image is readable by anyone who pulls it. A secret written into a Dockerfile is not hidden — it is published.
 
 ### Picture it
 
@@ -69,10 +59,6 @@ The wholesale market where boxes are collected and handed out is the registry: b
 
 A text recipe builds into a sealed image, the image is pushed to a shared registry, and anything that pulls it gets byte-identical containers wherever they run.
 
-### Reading a Dockerfile
-
-You will never write one from memory. You will read them constantly, because an agent will generate them and you have to judge whether what it produced is sane. Here is one for a typical web app, with every instruction doing one visible job.
-
 ```
 FROM node:20-alpine            start from a known base image
 WORKDIR /app                   all later paths are relative to here
@@ -87,27 +73,11 @@ CMD ["node", "server.js"]      what to run when a container starts
 
 Each line in a Dockerfile builds one layer of the image, and the order of the lines is what makes rebuilds fast or slow.
 
-Three things in that file are not obvious and are worth understanding.
-
-**Why copy `package.json` before the source.** Each instruction's result is cached, and a layer is rebuilt only if its inputs changed. Dependencies change rarely; your source changes constantly. Copying the dependency list first means the slow install step is reused on every build where you only edited code. Reverse those two lines and every build reinstalls everything — a difference of minutes per push, every push.
-
-**`USER node`.** Without it the container runs as root, which chapter 1 told you not to do. Agents omit this line very often.
-
-**`node:20-alpine` is a *pinned* base.** Not `node:latest`. A floating tag means today's build and next month's build may differ, which destroys the one property you wanted.
-
-### Compose, registries, and what you do not need yet
-
-**Compose** describes several containers that run together — your app, a database, a cache — in one file, started with one command. Its honest value for a student team is local development: one command gives every teammate an identical database on their own machine, with no install and nothing to uninstall. It is not how you run things in production in this program.
-
-A **registry** stores built images. Your platform almost certainly has one and uses it without telling you. You will meet it by name in chapter 12, where CI builds an image and pushes it, and in chapter 9, where a cluster pulls it.
-
-And the honest part: **on a zero-config platform you may not need a Dockerfile at all.** The platform detects your framework and builds a container for you. Writing one anyway buys you two things — the environment becomes explicit and reviewable, and you keep the option to move providers, which is the portability chapter 6 told you to protect. Both are real. Neither is urgent on day three.
-
 ### Where it lives
 
-Containers sit between your code and every place it runs. Chapter 5's PaaS puts your app in a container whether or not you asked. Chapter 9's Kubernetes orchestrates containers across machines, and does nothing at all without them. Chapter 12's CI builds the image and runs your tests inside it, which is how CI results become trustworthy. Chapter 10's tests run in a container so that they fail the same way on your laptop and in CI.
+Containers sit between your code and every place it runs. Chapter 5's PaaS puts your app in one whether or not you asked; chapter 9's Kubernetes orchestrates containers across machines and does nothing without them; chapter 12's CI builds the image and runs your tests inside it, which is how CI results become trustworthy; and M10's agent-ready repository is largely one where the environment is in a file.
 
-In M10, an agent-ready repository is substantially a repository where the environment is described in a file, because an agent cannot ask a teammate which version of the runtime to install.
+**Compose** describes several containers that run together in one file and one command; its value here is local development, not production. A **registry** stores built images; your platform probably uses one without telling you. On a zero-config platform you may not need a Dockerfile at all; writing one anyway makes the environment explicit and keeps your exit open.
 
 ### Words to own
 
@@ -128,27 +98,18 @@ In M10, an agent-ready repository is substantially a repository where the enviro
 
 ### Tradeoffs and gotchas
 
-**A secret in a Dockerfile is in the image, permanently, for anyone who pulls it.** `ENV DATABASE_PASSWORD=...` or `COPY .env .` puts the value into a layer. Deleting it in a later instruction does not remove it from the earlier layer — exactly like M01's point about a secret committed to git. Secrets are supplied at *run* time, as environment variables from the platform's secret store, never at build time. This is the single most important line in this chapter.
-
-**A container's file system disappears when the container stops.** Anything your app writes — uploads, a SQLite file, logs — is gone on the next deploy unless it is in a volume or, better, in object storage and a managed database. Students discover this by losing their demo data the night before a checkpoint.
-
-**Containers are not a security boundary you should lean on.** Shared kernel, and a container run with elevated privileges or a mounted host folder has reach. M07 covers this; for now, treat "it is in a container" as no reason to relax.
-
-**Images get large, and large images are slow everywhere.** A 1.2 GB image pulls slowly on every deploy and burns build minutes and egress from chapter 7. Starting from a slim or alpine base and not copying `node_modules` or `.git` into the image — which is what a `.dockerignore` file is for — usually cuts it by most of its size.
-
-**Your laptop's processor architecture may not match the server's.** An image built on an ARM laptop can fail to run on an x86 server with a baffling "exec format error". Worth knowing by name so you recognise it rather than debugging it from scratch.
+- **A secret in a Dockerfile is in the image, permanently, for anyone who pulls it.** `ENV DATABASE_PASSWORD=...` or `COPY .env .` writes the value into a layer, and deleting it later does not remove the earlier layer. Secrets are supplied at *run* time, from the platform's secret store, never at build time.
+- **A container's file system disappears when the container stops.** Uploads, a SQLite file, logs: gone on the next deploy unless they live in a volume or in object storage and a managed database.
+- **Large images are slow everywhere.** A 1.2 GB image pulls slowly on every deploy and burns build minutes and egress. A slim base plus a `.dockerignore` excluding `node_modules` and `.git` removes most of that.
+- **Your laptop's architecture may not match the server's.** An ARM-built image can fail on an x86 server with "exec format error".
 
 ### Verify it
 
-An agent will happily write you a Dockerfile. Five checks, in order of how much damage they prevent.
-
-1. **Search it for secrets.** Any `ENV` or `ARG` holding a password, token or key, and any `COPY` that could pull in `.env`, is a published secret. This is a reject, not a revision. Then check that `.dockerignore` excludes `.env`, `.git` and `node_modules`.
-2. **Is the base image pinned to a specific version?** `:latest` means your build is not reproducible, which removes the entire point.
-3. **Does it drop root?** A `USER` instruction should appear before `CMD`. If not, ask for it.
-4. **Is the dependency file copied before the source?** If not, every build is a full reinstall. Ask why, and accept no answer other than fixing it.
-5. **Ask it to explain each line, then check two claims yourself.** Build it, run it, and `curl` the port from chapter 4. A Dockerfile that has never been built is a guess, however well-formed it looks.
-
-Red flags: `ENV` with a credential in it; `COPY .env`; `FROM node:latest`; no `USER`; `sudo` inside a Dockerfile, which is meaningless because the build already runs as root; and an agent that adds a Dockerfile to a project already deploying fine on a zero-config platform without being asked and without explaining what it buys you.
+1. **Search it for secrets.** Any `ENV` or `ARG` holding a password or key, and any `COPY` that could pull in `.env`, is a published secret — a reject, not a revision. Check `.dockerignore` excludes `.env` and `.git`.
+2. **Is the base image pinned to a version?** `:latest` means your build is not reproducible, which removes the entire point.
+3. **Does it drop root?** A `USER` instruction before `CMD`. Agents omit it very often.
+4. **Is the dependency file copied before the source?** Layers are cached, so copying the dependency list first reuses the slow install on code-only builds. Reversed, every push reinstalls everything.
+5. **Build it and run it,** then `curl` the port from chapter 4. A Dockerfile never built is a guess.
 
 ## Walkthrough
 1. Find out whether your project already runs in a container. Open your platform's build log and look for a base image name or a build pack. Write down what you find.

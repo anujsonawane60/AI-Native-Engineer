@@ -4,7 +4,7 @@ module: m15-content-social-automation
 slug: technical-seo
 title: "Technical SEO: Sitemaps, Schema, Canonicals and Core Web Vitals"
 order: 3
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -22,23 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team's site has 60 pages. Google has indexed 4. They spend two weeks rewriting headlines, which changes nothing, because not one of the problems was about words.
-
-The audit, when they finally run it, finds five separate plumbing faults. Their `robots.txt` still carries `Disallow: /` from the week they put the site behind a staging password. Their sitemap lists 19 URLs, of which 7 return 404 and 5 carry a `noindex` tag — so the file is simultaneously incomplete and lying. Every page renders entirely in the browser, so the crawler's first fetch returns an empty shell with a spinner. The same product page is reachable at `/p`, `/P`, `/p/` and `/p?ref=wa`, which Google treats as four pages that each look thin. And on a real ₹9,000 Android phone on 4G, the largest element on screen takes 6.2 seconds to appear.
-
-Every one of those five is a yes-or-no question with a free tool that answers it. None of them is a matter of opinion. That is what makes this chapter the most mechanical in the module and the highest-return hour in it.
+A team's site has 60 pages. Google has indexed 4. They spend two weeks rewriting headlines, which changes nothing, because none of the problems was about words. The audit finds five plumbing faults: `robots.txt` still carries `Disallow: /` from the staging week; the sitemap lists 19 URLs of which 7 return 404 and 5 carry a `noindex`; every page renders in the browser, so the crawler's first fetch is an empty shell; one product page is reachable at `/p`, `/P`, `/p/` and `/p?ref=wa`, which Google treats as four thin pages; and on a ₹9,000 Android the largest element takes 6.2 seconds. Every one is a yes-or-no question with a free tool that answers it.
 
 ### The idea
 
-**Technical SEO is not a ranking trick. It is making sure a machine can reach your page, read your page, and keep exactly one copy of it — and every part of that is a binary check you can run yourself.**
+**Technical SEO is not a ranking trick. It is making sure a machine can reach your page, read it, and keep exactly one copy of it — and every part is a binary check you can run yourself.**
 
-Chapter 2 gave you four stages: discover, crawl, index, rank. This chapter is the control panel for the first three. Each stage has its own mechanism, and using the wrong mechanism is the most common mistake in the whole field.
+Chapter 2's four stages have a control panel, and this chapter is the first three of it: `sitemap.xml` for discovery, `robots.txt` for crawl permission, and `rel=canonical`, redirects and `noindex` for the index. Using the wrong control for a stage is the commonest mistake in the field.
 
 ### The analogy
 
-Back to the campus clerk who files notices. `robots.txt` is the sign at the department gate: "staff rooms, do not enter". The sitemap is the typed list you hand him: "here are the 42 boards worth photographing". The canonical tag is the line at the bottom of each photocopy saying "the official version of this notice is on the main board" — so he files one notice, not four. A 301 redirect is a permanent card on the empty board saying "this notice now lives at the library entrance". And a `noindex` tag is a note saying "read this, but do not put it in the register".
+Back to the campus clerk who files notices. `robots.txt` is the sign at the department gate: "staff rooms, do not enter". The sitemap is the list you hand him: "these 42 boards are worth photographing". The canonical line on each photocopy says "the official version is on the main board", so he files one notice instead of four.
 
-**Where the analogy breaks** in two important ways. The gate sign is obeyed strictly — if you say do not enter, he does not enter, and therefore never sees the "do not file this" note inside, which is exactly why `Disallow` plus `noindex` is a contradiction that backfires. But the list and the canonical line are only *hints*: he may photograph boards that are not on your list, and he may decide your "official version" claim is wrong and pick a different one. Permissions are rules; the rest is advice.
+**Where the analogy breaks:** the gate sign is obeyed strictly, so if you say do not enter he never sees the "do not file this" note inside — exactly why `Disallow` plus `noindex` backfires. But the list and the canonical line are only *hints*: he may photograph boards not on your list, and may reject your "official version" claim. Permissions are rules; the rest is advice.
 
 ### Picture it
 
@@ -52,11 +48,7 @@ Back to the campus clerk who files notices. `robots.txt` is the sign at the depa
                                            └──────────────┘
 ```
 
-Four URL variants and one retired URL all point at a single canonical page, so the links, impressions and relevance that would otherwise be split five ways accumulate on one page instead.
-
-### Crawl permission is not index permission
-
-This single distinction causes more wasted weeks than anything else in technical SEO.
+Four URL variants and one retired URL point at a single canonical page, so signals that would be split five ways accumulate on one.
 
 ```
   Can the bot FETCH it?        Can the bot KEEP it?
@@ -70,41 +62,11 @@ This single distinction causes more wasted weeks than anything else in technical
   allowed  ──▶ read         ──▶ noindex obeyed, dropped
 ```
 
-A URL blocked in `robots.txt` is never fetched, so a `noindex` tag inside it is never seen — and the URL can still appear in results from third-party links; to remove a page you must let the bot in and tell it `noindex`.
-
-So: use `robots.txt` to save crawl effort on things like internal search results or filter permutations. Use `noindex` to keep a page out of the index. Never both on the same URL.
-
-### The five mechanisms, and what each controls
-
-**`sitemap.xml`** — discovery. A list of the canonical URLs you want crawled, with a last-modified date. It must contain only URLs that return 200, are indexable, and are canonical. A sitemap full of 404s and redirects trains the crawler to trust it less.
-
-**`robots.txt`** — crawl permission and crawl effort. One line of carelessness here can delete your entire search presence, which is why it is the first thing to check after any deploy.
-
-**`rel=canonical`** — consolidation. Every page declares its own true URL. Tracking parameters, uppercase variants, trailing slashes and printer versions all point home.
-
-**Redirects** — moving. M02's status codes matter here and the distinction is not academic. `301` is permanent, and search engines transfer signals to the destination. `302` and `307` are temporary, and they do not. A permanent move served as a `302` keeps the old URL alive in the index for months.
-
-**`noindex`** — index control, for pages that must exist but must not rank: thank-you pages, internal search results, staging routes, thin filter combinations.
-
-One more for Indian sites: **`hreflang`** tells the engine that your English, Hindi and Marathi versions of a page are alternates of each other rather than duplicates. Get it wrong and your Marathi page competes with your English one.
-
-### Structured data, honestly
-
-Structured data is machine-readable facts added to a page — usually JSON-LD — describing what the page is: a product with a price, a local business with opening hours, a recipe, an FAQ, a review. It can earn **rich results**: star ratings, prices or a map card in the SERP, which lifts click-through even without a ranking change. For a local Indian business, `LocalBusiness` with the real address, phone and hours is the single highest-value piece you can add.
-
-The rule that matters: **the markup must describe what a human actually sees on the page.** Rating markup with no visible reviews, a price in the markup different from the price on the page, or FAQ markup for questions nobody asked is spam, it is detected, and the penalty is losing rich results sitewide. Mark up what is true and visible. Nothing else.
-
-### Core Web Vitals, on the phones your users own
-
-M02 defined them: **LCP** is when the biggest thing on screen finishes appearing, **INP** is how long the page takes to respond to a tap, and **CLS** is how much the layout jumps while loading. The targets are roughly LCP under 2.5s, INP under 200ms, CLS under 0.1.
-
-Two numbers exist for each, and students confuse them constantly. **Lab data** is a simulated run on a tool's machine — fast, repeatable, and not your users. **Field data** is collected from real Chrome users on real devices and networks, which for you means budget Androids on congested 4G in Maharashtra. Field data is the one search uses. A lab score of 98 and a field LCP of 6.2 seconds is a completely normal combination, and it means you are failing.
-
-Core Web Vitals are a small ranking factor. They are a large *conversion* factor: a page that takes 6 seconds loses most of its visitors before chapter 10 can even count them.
+Crawl permission is not index permission: a blocked URL is never fetched, so its `noindex` is never seen and it can still be listed from others' links. To remove a page, let the bot in and tell it `noindex` — never both.
 
 ### Where it lives
 
-This chapter is M02 applied: rendering decides whether the crawler sees text, status codes decide whether a move is permanent, CDN and image work decides your LCP. M11 deployed the site this audit runs against. Chapter 4 generates hundreds of pages, every one of which needs a correct canonical and a sitemap entry, so getting the mechanism right here is what makes that chapter safe. M06's scheduled jobs are how you regenerate a sitemap automatically instead of by hand.
+This chapter is M02 applied: rendering decides whether the crawler sees text, status codes decide whether a move is permanent, image work decides your LCP. Chapter 4 generates hundreds of pages that each need a canonical and a sitemap entry, and M06's scheduled jobs regenerate that sitemap for you.
 
 ### Words to own
 
@@ -116,50 +78,40 @@ This chapter is M02 applied: rendering decides whether the crawler sees text, st
 | noindex | "Read it, do not list it" | On a thank-you page |
 | 301 | Permanent redirect; signals transfer | Old URL to new URL |
 | 302 / 307 | Temporary redirect; signals do not transfer | A maintenance page |
-| Soft 404 | Says 200 but shows "not found" | An empty results page |
 | Crawl budget | How much crawling your site gets | Wasted on filter URLs |
 | Structured data | Machine-readable facts on the page | JSON-LD LocalBusiness |
-| Rich result | A SERP listing with extra detail | Price and stars shown |
-| hreflang | Declares language alternates | `hi-IN` and `en-IN` versions |
-| LCP | When the biggest element appears | 2.1s on 4G |
-| INP | Delay before the page reacts to a tap | 180ms |
-| CLS | How much the layout jumps | 0.04 |
+| hreflang | Declares language alternates | `mr-IN` and `en-IN` versions |
+| LCP · INP · CLS | Biggest element appears · tap response · layout jump | 2.1s · 180ms · 0.04 |
 | Field data | Real users' measurements | Budget Android on 4G |
 | Lab data | A simulated test run | A laptop score of 98 |
 
 ### Tradeoffs and gotchas
 
-**`robots.txt` is the most dangerous file you own.** One stray `Disallow: /` removes you from search. Check it after every deploy, as a habit, forever.
+**`robots.txt` is the most dangerous file you own.** One stray `Disallow: /` removes you from search, so check it after every deploy.
 
-**Do not block what you want removed.** Blocking plus noindex means the noindex is never read. Let it be crawled, then noindex it.
+**A permanent move must return 301.** `302` and `307` are temporary and transfer no signals, keeping the old URL indexed for months. Ask for the number, never the word "redirect".
 
-**Client-side rendering is a crawl risk, not a crawl ban.** Google does render JavaScript, but it costs crawl budget, it is delayed, and other crawlers — including several social preview bots from chapter 8 — do not do it at all. Server-rendered HTML for anything you want found is simply safer.
+**A canonical is a hint, and a sitemap is only discovery.** If every internal link points at `/p?ref=wa`, the engine may pick that over your canonical. A sitemap must carry only URLs that are 200, indexable and canonical, and a thin page stays thin after you add it. `hreflang` stops your Marathi page competing with your English one.
 
-**A canonical is a hint.** If your canonical says `/p` but every internal link points at `/p?ref=wa`, the engine may pick the parameter version. Make your internal links agree with your canonicals.
+**Client-side rendering is a crawl risk, not a ban.** Google renders JavaScript, but at a cost and a delay, and several social preview bots from chapter 8 do not render at all.
 
-**Sitemaps do not make pages rank.** They help discovery only. A page that is thin stays thin after you add it to the sitemap.
+**Field data is the only vitals number that counts.** Lab data is a simulated run on a tool's machine; field data comes from real Chrome users on budget Androids on congested 4G. A lab score of 98 beside a field LCP of 6.2s is normal — and means you are failing. Target field LCP under 2.5s, INP under 200ms, CLS under 0.1.
 
-**Chasing a lab score of 100 is a waste of your term.** Get LCP under 2.5s in field data on a mid-range Android and stop. The next ten points cost more than they return.
-
-**Schema that overstates is worse than no schema.** Losing rich results sitewide for faking reviews is a real and common outcome.
+**Schema that overstates is worse than no schema.** `LocalBusiness` with your real address, phone and hours is the highest-value markup an Indian local business can add, but it must describe what a human sees. Invented ratings lose you rich results sitewide.
 
 ### Verify it
 
-Technical SEO is where AI output is most confidently wrong, because it will happily generate a plausible file that does not match your actual site.
+**Red flag: a sitemap listing pages that 404.** Fetch every sitemap URL and record its status code. Any non-200 is a defect, as is any URL that redirects, is noindexed, or is not its own canonical. Highest-value check here.
 
-**Red flag: a sitemap listing pages that 404.** Fetch every URL in your sitemap and record its status code. Any non-200 is a defect, and so is any URL that redirects, is noindexed, or is not its own canonical. This is the fastest, highest-value check in the chapter.
+**Red flag: generated config never checked against reality.** AI will produce a confident `robots.txt` referencing `/wp-admin/` on a site that is not WordPress. Every rule must name a path you have.
 
-**Red flag: generated config that was never checked against reality.** AI will produce a confident `robots.txt` referencing `/wp-admin/` on a site that is not WordPress. Every rule must point at a path you actually have.
+**Red flag: `Disallow` and `noindex` on the same URL.** The contradiction above, which keeps the page listed.
 
-**Red flag: `Disallow` and `noindex` on the same URL.** A contradiction that keeps the page in the index.
+**Red flag: schema whose values do not appear on the page.** Compare every field against the rendered page. A price in markup only is a fabrication.
 
-**Red flag: schema whose values do not appear on the page.** Open the rendered page beside the markup and compare every field. A phone number or price in markup only is a fabrication.
+**Red flag: a lab score quoted as proof.** Demand mobile field data. "No field data yet" is honest; substituting the lab number is not.
 
-**Red flag: a lab score quoted as proof.** Ask for field data for mobile. If there is not enough traffic for field data yet, say so honestly rather than substituting the lab number.
-
-**Red flag: 302 for a permanent move.** Ask for the status code by number, not the word "redirect".
-
-**Red flag: "indexed" claimed without inspection.** Only the URL inspection tool decides that. Not the AI, and not you.
+**Red flag: "indexed" claimed without inspection.** Only the URL inspection tool decides that — not the AI, and not you.
 
 ## Walkthrough
 1. Open `yourdomain.com/robots.txt` in a browser. Read every line aloud and confirm each path exists and is meant to be blocked. Look especially for a leftover `Disallow: /`.

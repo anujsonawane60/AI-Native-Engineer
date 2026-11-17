@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: api-docs-openapi-versioning
 title: "API Docs, OpenAPI and Versioning"
 order: 4
-duration_min: 30
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,31 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Three weeks into the canteen project, the API has eleven endpoints. Nobody can list them.
-
-Priya asks what `GET /api/orders` returns. Rohit opens the file, reads for two minutes, and says "an array of orders". She asks whether each order includes the items. He is not sure, so he calls it, looks at the output, and says yes — but only for orders placed after Tuesday, because something changed on Tuesday and he does not remember what.
-
-Meanwhile Priya's AI session, which has not seen the server code, has been confidently generating client calls against the API it imagined in week one. Half of them are wrong in small ways: a field renamed, a status code different, a date format that used to be a timestamp and is now a string.
-
-The project has no bug. It has eleven undocumented contracts and three people guessing. On Friday Rohit renames `total` to `total_paise` to follow the money rule — a genuinely good change — and the deployed app shows ₹0 for every order, because nobody knew who was reading that field.
+Three weeks in, the canteen API has eleven endpoints and nobody can list them. Priya asks what `GET /api/orders` returns; Rohit reads the file for two minutes and says "an array of orders" — probably with the items, but only for orders placed after Tuesday, and he cannot remember what changed. Meanwhile Priya's AI, which never saw the server code, keeps generating client calls against the API it imagined in week one. On Friday he renames `total` to `total_paise` and the deployed app shows ₹0 for every order, because nobody knew who was reading that field.
 
 ### The idea
 
 **The spec is the single source of truth for your API, and it is a document, not a side-effect of the code.**
 
-An API specification lists every endpoint, every field, every type, every status code. OpenAPI is the standard format for writing that down — a structured file, machine-readable, which tools turn into browsable documentation, test clients and type definitions.
-
-Two properties make it worth the hour it costs. It lets two people build opposite sides of a seam at the same time. And in this program it is something more valuable still: it is a brief AI cannot drift away from, because you paste it into every session.
+An API specification lists every endpoint, field, type and status code; OpenAPI is the standard format for it. It lets two people build opposite sides of a seam at once — and here it is more valuable still as a brief AI cannot drift away from, because you paste it into every session.
 
 ### The analogy
 
-The canteen's menu board is the spec.
+The canteen's menu board is the spec: on the wall, saying exactly what exists and what it costs. Raise the price of a samosa without changing the board: students bring ₹12, the cashier wants ₹15, and the board has drifted from reality while remaining what everyone trusts. The fix is to make changing the board part of changing the price.
 
-Written on the wall, visible to everyone, it says exactly what exists and what it costs. A new student can walk in and order correctly on day one without talking to the staff. A new cook can read it and know what they must be able to produce.
-
-Now imagine the canteen raises the price of a samosa and does not change the board. Students bring ₹12 and the cashier wants ₹15. Nobody did anything wrong at the till; the board drifted from reality, and the board is what everyone trusts. The fix is not "tell people to ask the cashier" — it is to make changing the board part of changing the price.
-
-**Where the analogy breaks:** a menu board is read by humans who can cope with ambiguity. "Rice plate — ₹40" is enough for a person and nowhere near enough for a program, which needs to know whether `price` is rupees or paise, an integer or a string, and whether it can ever be null. API specs are tediously precise because the reader cannot infer anything.
+**Where the analogy breaks:** a board is read by humans who cope with ambiguity. "Rice plate — ₹40" is enough for a person and useless to a program, which must know whether `price` is rupees or paise, an integer or a string, and whether it can be null. Specs are tediously precise because the reader cannot infer anything.
 
 ### Picture it
 
@@ -74,33 +62,7 @@ One spec file in the repo feeds the team's docs, every AI brief, and the server 
 
 ### Where it lives
 
-The spec sits beside your PRD from M01, in the repository, under version control, and it changes through pull requests like anything else. A reviewer reading a PR that changes the spec is reviewing a product decision, not a formatting change.
-
-Downstream it feeds a lot. In M06 your tests assert the shapes the spec promises, so a drift becomes a failing build rather than a surprise on Friday. In M07 the spec is the list of routes a security review has to cover — an endpoint absent from the spec is an endpoint nobody audited. In M13 an API gateway is configured from one.
-
-And in this program specifically, it is the most reliable way to stop two AI sessions inventing two different APIs. "Here is our OpenAPI spec. Implement the `POST /api/orders` operation exactly as specified, and change nothing else" is a brief with no room to drift.
-
-### Breaking versus safe changes
-
-This is the distinction that matters most, and it is learnable in five minutes.
-
-| Change | Breaking? | Why |
-|---|---|---|
-| Add a new optional field to a response | No | Old clients ignore it |
-| Add a new endpoint | No | Nothing was reading it |
-| Add an optional request field | No | Old callers omit it |
-| Rename a response field | **Yes** | Old clients read the old name |
-| Remove a field | **Yes** | Something was using it |
-| Make an optional request field required | **Yes** | Old callers do not send it |
-| Change a type: integer paise to "₹240.00" | **Yes** | Parsing breaks, money breaks |
-| Change a success code from 200 to 204 | **Yes** | Clients branch on the code |
-| Tighten validation, e.g. max qty 10 | **Yes** | Requests that worked now fail |
-
-The rule behind the table: **adding is safe, changing and removing are not.** Anything a client could already be depending on is frozen the moment a second person depends on it.
-
-Which brings up versioning. The common approach is a prefix in the path: `/api/v1/orders`, and when a breaking change is unavoidable you publish `/api/v2/orders` and run both for a while. Alternatives exist — a version header, a date-based version like the one Stripe uses — but a path prefix is the one your whole team can see, and that visibility is worth more than elegance.
-
-Here is the part most courses skip: **for a three-person project with a single web client you deploy yourself, you do not need versioning yet.** You can make a breaking change and update both sides in the same pull request. Versioning becomes necessary the moment you have a client you cannot update in lockstep — a published mobile app on students' phones from M08, or another team consuming your API. Put `/api/v1/` in the path on day one because it costs nothing, and do not build version negotiation machinery until something forces you to.
+The spec sits beside your PRD from M01, in the repository, changing through pull requests like anything else. It feeds M06 (tests assert the shapes it promises, so drift becomes a failing build), M07 (an endpoint absent from the spec is one nobody audited) and M13 (gateways configured from one). Versioning lives here too: put `/api/v1/` in the path on day one because it costs nothing, but build no versioning machinery until you have a client you cannot update in lockstep — a published mobile app from M08.
 
 ### Words to own
 
@@ -119,28 +81,36 @@ Here is the part most courses skip: **for a three-person project with a single w
 
 ### Tradeoffs and gotchas
 
-**A spec that nobody updates is worse than no spec.** No spec makes people ask. A stale spec makes them confidently wrong, which is how the ₹12 samosa happens. The rule that actually holds: the pull request that changes behaviour changes the spec, or it does not merge. M01's PR review is where you enforce it.
+| Change | Breaking? | Why |
+|---|---|---|
+| Add a new optional field to a response | No | Old clients ignore it |
+| Add a new endpoint | No | Nothing was reading it |
+| Add an optional request field | No | Old callers omit it |
+| Rename a response field | **Yes** | Old clients read the old name |
+| Remove a field | **Yes** | Something was using it |
+| Make an optional request field required | **Yes** | Old callers do not send it |
+| Change a type: integer paise to "₹240.00" | **Yes** | Parsing breaks, money breaks |
+| Change a success code from 200 to 204 | **Yes** | Clients branch on the code |
+| Tighten validation, e.g. max qty 10 | **Yes** | Requests that worked now fail |
 
-**Generated-from-code docs describe what is, not what was agreed.** Deriving the spec automatically from the running server guarantees they agree, which sounds ideal. It also means a sloppy change silently rewrites the contract, and the spec stops being a decision anyone made. For a learning team, writing the spec first — as a design step — is worth more than the automation.
+**Adding is safe; changing and removing are not.** Anything a client could already depend on is frozen the moment a second person depends on it.
 
-**Do not version endpoints individually.** `/api/v1/orders` with `/api/v3/menu` beside it is a maze. Version the whole surface or none of it.
+**A spec that nobody updates is worse than no spec.** No spec makes people ask; a stale spec makes them confidently wrong — the ₹12 samosa. The rule that holds: the pull request that changes behaviour changes the spec, or it does not merge.
 
-**AI will happily write a 400-line spec for four endpoints.** Every field gets a description, examples, an `operationId`, and three error schemas nobody will use. Ask for the minimum that makes the contract unambiguous. If nobody reads it, it will not be maintained, and see gotcha one.
+**Generated-from-code docs describe what is, not what was agreed.** They cannot drift, but a sloppy change silently rewrites the contract, so write the spec first.
 
-**Dates and money are where types quietly break.** A timestamp that was a Unix integer and is now an ISO string looks identical in a screenshot and crashes a client. Pin them in the spec: money is integer paise, timestamps are ISO 8601 in UTC. Write it once, repeat it in every brief.
-
-**Removing a field is not a cleanup task.** It is a release with notice. Mark it deprecated, say when it goes, and check who reads it first.
+**AI will happily write a 400-line spec for four endpoints.** Ask for the minimum that makes the contract unambiguous; an unread spec is an unmaintained one.
 
 ### Verify it
 
-Four checks, and the third is the one people skip.
+Four checks; the third is the one people skip.
 
-1. **Can a teammate build a client against the spec with zero questions?** Hand it over and watch. Every question they ask is a hole in the spec; write the answer into the file rather than into the chat.
-2. **Does every operation list its error responses, not just its success?** A spec with only `200` responses is half a contract and guarantees the client has no error handling.
-3. **Do the spec and the server actually agree, right now?** Call the endpoint. Compare the live JSON to the spec field by field: names, types, whether nulls appear, and the exact status code. This is the only check that catches drift, and it is the reason the ₹0 bug lived until Friday.
-4. **Is the money integer paise and are the timestamps ISO 8601 UTC everywhere?** Mixed conventions across endpoints will cost you an afternoon in M11.
+1. **Can a teammate build a client against the spec with zero questions?** Hand it over and watch; every question is a hole in the spec.
+2. **Does every operation list its error responses, not just its success?** A spec with only `200` responses is half a contract, and the client gets no error handling.
+3. **Do the spec and the server agree right now?** Call it and compare the live JSON field by field: names, types, nulls, status code. This is the only check that catches drift.
+4. **Is money integer paise and are timestamps ISO 8601 UTC everywhere?** Mixed conventions cost you an afternoon in M11.
 
-Red flags in AI-written specs: a response schema where every field is optional, which promises nothing; `type: object` with no properties, which is a shrug in YAML; examples that contradict the schema, such as `"price_paise": 240.5`; a `PUT` operation documented without saying whether omitted fields are cleared or left alone; and a spec that mentions authentication nowhere, which means chapter 12's failure is already in your design.
+Red flags: every response field marked optional, which promises nothing; `type: object` with no properties, a shrug in YAML; examples that contradict the schema (`"price_paise": 240.5`); a `PUT` documented without saying whether omitted fields are cleared; authentication mentioned nowhere, which means chapter 12's failure is already in your design.
 
 ## Walkthrough
 1. List every endpoint your project has today, on paper, from memory. Then open the code and list them again. The difference between the two lists is what nobody on the team knows.

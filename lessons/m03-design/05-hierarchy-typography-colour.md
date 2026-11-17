@@ -4,7 +4,7 @@ module: m03-design
 slug: hierarchy-typography-colour
 title: "Visual Hierarchy, Typography and Colour"
 order: 5
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,23 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team's canteen menu looks, at first glance, quite good. Then you take the phone outside at 2 pm in Nashik in April and you cannot read it. The dish names are light grey on white, 13 pixels, in a thin weight. The price is smaller than the description. The "Sold out" label is red text on a dark red tint, which two students in the batch cannot distinguish at all. The heading, the dish name, the price and the footer are all within two pixels of the same size, so the screen has no shape — your eye lands nowhere and has to read everything to find anything.
-
-None of this is a taste problem. Every single item is a measurable failure with a number attached, and every one of them is fixable in a single sentence of direction once you know what to measure.
+A team's canteen menu looks fine until you take the phone outside at 2 pm in April and cannot read it: dish names light grey on white at 13 px, thin weight, the price smaller than the description, "Sold out" in red on a dark red tint two students cannot distinguish. None of this is taste — each item is a measurable failure with a number.
 
 ### The idea
 
 **Hierarchy is the deliberate ordering of attention, built from four tools: size, weight, colour and space.**
 
-Typography and colour are not decoration layered on at the end. They are the mechanism by which hierarchy exists at all. A screen where everything is the same size has no hierarchy no matter how nice the font is, and a screen with perfect hierarchy works even in one colour.
+Typography and colour are not decoration added at the end; they are the mechanism by which hierarchy exists. Everything at one size has no hierarchy, however nice the font.
 
 ### The analogy
 
-Look at the canteen's price board. The dish names are large and dark. The prices are large too, right-aligned so your eye runs down the column. "Today's special" is bigger than everything. The small print about timings is small, at the bottom, and nobody reads it, which is correct — it is the least important thing on the board.
+The canteen price board has large dark dish names, prices right-aligned so the eye runs down the column, and timings small at the bottom where nobody reads them — correctly, since they matter least. It was designed for sixty students at four metres, not from a theory.
 
-Nobody designed that board with a theory. They designed it under pressure: sixty students, two minutes each, read from four metres away, in daylight that comes in sideways through the door. Those constraints produced the hierarchy.
-
-**Where the analogy breaks:** the board is one fixed size, viewed at one distance, lit by one room. Your interface is read at arm's length on a 5-inch screen, on a 6.7-inch screen, in a hostel at midnight, and in direct sun on a bus. The board can be tuned to its conditions; your design must survive a range of them. That is why you work in a *scale* and a *system* rather than picking sizes one at a time.
+**Where the analogy breaks:** the board is one size, one distance, one room. Your screen is read at midnight in a hostel and in sun on a bus. Hence a *scale*, not sizes picked one at a time.
 
 ### Picture it
 
@@ -58,9 +54,7 @@ Nobody designed that board with a theory. They designed it under pressure: sixty
 
 On the left every element has the same weight, so the eye has to read all of it to find anything; on the right size, weight and colour put the dish name first, the price second and the action third, and the timing last where it belongs.
 
-### A type scale, not a pile of font sizes
-
-Pick sizes from a short fixed list and never improvise one. A workable mobile-first scale:
+Pick sizes from a fixed list, never improvised:
 
 | Role | Size | Weight | Use |
 |---|---|---|---|
@@ -71,19 +65,14 @@ Pick sizes from a short fixed list and never improvise one. A workable mobile-fi
 | Small | 14 px | regular | Metadata, timings |
 | Caption | 12 px | regular | Legal, hints. Rarely. |
 
-Three rules that matter more than the exact numbers.
+Four rules matter more than the exact numbers:
 
-**16 px is the floor for anything a user must read.** Not 14, not 13. On a budget Android phone held at arm's length by someone who has been looking at screens since 7 am, 14 px body text is a tax. Mobile Safari and Chrome also zoom the page when an input's font is under 16 px, which breaks your layout as a bonus.
+- **16 px is the floor** for anything a user must read
+- **Three levels per screen, not six**
+- **45–75 characters per line**, line height 1.5
+- **A system font stack** — zero bytes on 4G, correct Devanagari, extra line height for matras
 
-**Use three levels per screen, not six.** Display, subheading, body is a complete hierarchy. Every extra level dilutes the distinction between the others.
-
-**Line length between 45 and 75 characters.** Longer and the eye loses its place returning to the left edge. On a phone this is automatic; on a tablet or desktop a full-width paragraph becomes a 140-character line that nobody finishes. Line height around 1.5 for body text, tighter for headings.
-
-Two context-specific notes for an Indian product. First, Devanagari needs more vertical room than Latin — Hindi and Marathi text at the same font size and line height will look cramped and may clip the matras above the line. Brief for it explicitly if you support those languages. Second, a system font stack is almost always the right call: it is free, it is already on the device, it costs zero bytes on slow 4G, and it renders Devanagari correctly without you shipping a 400 KB font file.
-
-### Colour as roles, not favourites
-
-The mistake is choosing colours. The method is naming roles and then choosing a colour for each role.
+Colour the same way: name roles, then pick a colour per role.
 
 | Role | What it is for | Rule |
 |---|---|---|
@@ -95,15 +84,17 @@ The mistake is choosing colours. The method is naming roles and then choosing a 
 | Danger | Destructive or failed | Never alone |
 | Border | Separation between things | Low contrast on purpose |
 
-Two numbers you should know by heart, both from WCAG, which chapter 9 covers properly. Normal text needs a contrast ratio of at least **4.5:1** against its background. Large text — 24 px, or 19 px bold and above — needs **3:1**. These are not preferences; they are measurable, and a checker will tell you the number in two seconds.
-
-Light grey text on white is the single most common AI design output and it fails 4.5:1 almost every time. In bright Nashik sunlight it fails far worse than the number suggests, because the phone's effective contrast drops with ambient light. Design for sun, not for your hostel room at night.
-
-And the rule that catches the most people: **colour must never be the only carrier of meaning.** Roughly one in twelve men has some form of colour vision deficiency — in a batch of sixty students that is several people. A sold-out dish shown only by turning it red is invisible to them. Pair every colour signal with a second cue: a word ("Sold out"), a shape, an icon, a line through the price, a reduced opacity. The test is simple — turn the screen greyscale and check you can still tell everything apart.
+Two WCAG numbers to know: normal text needs **4.5:1** contrast, large text (24 px, or 19 px bold) needs **3:1**. And **colour must never carry meaning alone** — one man in twelve has a colour vision deficiency, so pair it with a word or an icon.
 
 ### Where it lives
 
-This chapter is the first half of hi-fi. Chapter 6 adds spacing, grids and states, which is the other half. Chapter 7 turns all these decisions into tokens, which is how they stop being per-screen choices and become a system. Chapter 8 is where you give AI the style direction that stops it defaulting to the same purple gradient everyone else has. Chapter 9 makes contrast and non-colour cues a hard requirement rather than good practice. In M02 you met CSS variables, which is literally where these values will end up. M15 extends this into brand consistency across every surface you publish.
+This chapter is the first half of hi-fi.
+
+- **Chapter 6** — spacing, grids and states, the other half
+- **Chapter 7** — these decisions become tokens
+- **Chapter 8** — direction that avoids the default purple gradient
+- **Chapter 9** — contrast and non-colour cues as hard requirements
+- **M02** — CSS variables hold these values
 
 ### Words to own
 
@@ -122,28 +113,28 @@ This chapter is the first half of hi-fi. Chapter 6 adds spacing, grids and state
 
 ### Tradeoffs and gotchas
 
-**More hierarchy levels means less hierarchy.** Six text sizes on one screen is the same as one. If you cannot say which of two elements is more important, they should be the same size — and if you can, make the difference obvious rather than subtle. A 2 px difference reads as a mistake.
+**More levels means less hierarchy.** Six text sizes is the same as one; a 2 px difference reads as a mistake.
 
-**Thin fonts look premium and read badly.** A 300-weight font at 14 px on an LCD budget phone in sunlight is close to invisible. Keep body text at 400 and above.
+**Thin fonts look premium and read badly.** 300-weight at 14 px in sunlight is invisible.
 
-**Pure black on pure white is harsh, but near-black is not an excuse.** `#111` on `#fff` is comfortable and passes easily. `#999` on `#fff` is 2.8:1 and fails. The gap between "softened" and "unreadable" is where most AI output lands.
+**Near-black is not an excuse for grey.** `#111` on `#fff` passes; `#999` is 2.8:1 and fails, and most AI output lands in that gap.
 
-**Dark mode is a second colour system, not an inverted one.** Flipping the values gives you pure white text on pure black, which smears on OLED screens, and your brand colour will often fail contrast on a dark surface. Treat it as its own set of role values or do not ship it.
+**Dark mode is a second colour system, not an inversion.** Flipped values smear on OLED and brand colours fail on dark surfaces. Give it its own role values or skip it.
 
-**Semantic colour is cultural, partly.** Green for success and red for danger carry over reasonably well, but do not lean on colour alone to communicate anything money-related. In a payment flow, say the words.
+**Semantic colour is partly cultural.** Green and red travel well enough, but in anything about money, say the words.
 
 ### Verify it
 
-Six checks on any screen AI gives you. All of them take under a minute and none require a tool you do not have.
+Six checks, each under a minute.
 
-1. **Squint or shrink to thumbnail.** Name the first three things you can still make out. If that order is not the order you intended, hierarchy failed. Fix it by changing size and weight, not by adding colour.
-2. **Count distinct text sizes.** More than four on one screen means the scale was improvised. Ask for the scale to be stated explicitly and reapplied.
-3. **Measure contrast on the three worst pairs** — secondary text, placeholder text, and any text sitting on your primary colour. Use a contrast checker and record the actual number. Never accept "this has good contrast" as an answer; ask for the computed ratio and verify it yourself.
-4. **Screenshot it and make it greyscale** on your phone's photo editor. Can you still tell sold out from available, error from success, selected from unselected? Anything that disappears was carried by colour alone.
-5. **Take the phone outside.** Not a metaphor. Read the screen in direct sunlight. This single check catches more real problems for an Indian product than any theory in this chapter.
-6. **Check the smallest text you must read.** If any required information is under 16 px, ask for it to be raised and something else lowered instead.
+1. **The squint test.** At thumbnail size, the first three things you can make out must be the three you meant.
+2. **Count distinct text sizes** — over four means the scale was improvised.
+3. **Measure contrast on the worst three pairs**: secondary text, placeholders, text on your primary.
+4. **The greyscale test.** What you can no longer tell apart was carried by colour alone.
+5. **The sunlight test.** Take the phone outside and read it.
+6. **Check the smallest text you must read** — under 16 px, raise it.
 
-Red flags: light grey body text; a thin font weight anywhere in body copy; five or more text sizes; status shown only by colour; placeholder text used as the only label for an input; a contrast claim with no number attached; and a design that was clearly built and judged on a desktop screen.
+Red flags: light grey body text; thin body weights; five or more text sizes; status shown only by colour; placeholder text as a label; a contrast claim with no number.
 
 ## Walkthrough
 1. Take one existing screen of your product and screenshot it on a real phone, at the real size. Everything below happens on that screenshot, not on a laptop mockup.

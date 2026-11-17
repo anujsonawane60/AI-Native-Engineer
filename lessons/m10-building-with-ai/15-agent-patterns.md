@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: agent-patterns
 title: "Agent Patterns and Multi-Agent Orchestration"
 order: 15
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,53 +22,27 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team builds a weekly competitor report. Their design has seven agents: a planner, a researcher, a writer, a critic, a fact-checker, a formatter and a quality-assurance agent that reviews the whole thing.
+A team builds a weekly competitor report with seven agents: a planner, a researcher, a writer, a critic, a fact-checker, a formatter and a quality-assurance agent over the whole thing.
 
-It costs eleven times a single call. It takes forty seconds. The critic's verdict is "looks good" every single time, on every output, including the one with a fabricated statistic. The fact-checker and the researcher both fetch the same three pages, separately, and bill for both. And when the final report contains the wrong number, nobody can say which agent introduced it, because there is no single trace — each agent has its own.
-
-Two days later one well-briefed agent with four tools, a fifteen-step cap and a real checklist produces a better report in nine seconds. They had built an organisation chart, not a system.
+It costs eleven times a single call and takes forty seconds. The critic's verdict is "looks good" every time, including on the output with a fabricated statistic. The fact-checker and the researcher both fetch the same three pages and bill for both. And when the report carries the wrong number, nobody can say which agent introduced it, because each has its own trace. Two days later one well-briefed agent with four tools and a real checklist produces a better report in nine seconds. They had built an organisation chart, not a system.
 
 ### The idea
 
-**Agent patterns are a small set of named shapes. Multi-agent is the most expensive of them. It buys you exactly three things — parallelism, context isolation and per-role tool scoping — and it charges you a new class of failure: coordination.**
+**Agent patterns are a small set of named shapes, and multi-agent is the most expensive of them. It buys exactly three things — parallelism, context isolation and per-role tool scoping — and charges you a new class of failure: coordination.**
 
-If you cannot name which of the three you are buying, you are not buying anything.
+If you cannot name which of the three you are buying, you are buying nothing. **A multi-agent system where one agent would do is a red flag, not a sign of sophistication.**
 
-### Single-agent patterns, in order of reach
-
-**Plan then execute.** The agent writes a numbered plan and stops. You read it, change it, approve it. Then it executes step by step. The value is entirely in that pause: a bad plan costs you thirty seconds of reading instead of twenty wasted steps. For anything consequential this is the default, and it is M00's Director's Loop with the ARCHITECT step made mechanical.
-
-**Reflection with a critic.** Generate, critique, revise. This works *only* when the critique has external criteria. "Does the test suite pass?" is a real critic. "Does the output validate against this schema?" is a real critic. "Is this good?" is not — the same model, asked whether its own work is good, says yes, which is the opening story's broken critic. Write the criteria as a checklist a stranger could apply, and prefer criteria that are code.
-
-**Evaluator-optimiser.** Reflection with a *number*: generate, score against your eval set from chapter twelve, keep the better version, repeat up to a cap. Powerful, and it needs a real score to be anything other than reflection with extra steps.
-
-**Router.** Chapter thirteen's rung three, still the most underused shape in this module.
-
-Most teams reach for multi-agent while never having tried plan-then-execute, which costs nothing and prevents most of what they are worried about.
-
-### What multi-agent actually buys
-
-**Parallelism.** Five genuinely independent subtasks — read five competitors' pages, summarise five complaint threads — run at once instead of in sequence. This is wall-clock time, not accuracy, and it only applies when the subtasks truly do not depend on each other.
-
-**Context isolation.** This is the strongest and least-discussed reason. Each worker starts with a small, clean context containing only its own subtask. Chapter five's distractors, chapter five's poisoning and the transcript growth from chapter fourteen all shrink dramatically. One agent doing ten subtasks accumulates everything; ten agents doing one each accumulate nothing.
-
-**Per-role tool scoping.** The researcher gets read tools and no write tools. The one agent allowed to write gets nothing that fetches. That is least privilege from M00, now enforceable per role, and it is a genuine security gain rather than a tidiness one.
-
-### What it costs
-
-**Coordination failures.** Two workers do the same job. A subtask is dropped silently. Two workers return contradictory facts and nothing decides between them, so the orchestrator loops. The rice is for two hundred people and the gravy is for fifty.
-
-**Multiplied cost.** Each agent sends its own context, and the orchestrator pays again to read every worker's output. Chapter fourteen's growth problem, once per agent.
-
-**Lost attribution.** With one trace you can find the step that went wrong. With seven traces and no correlation id you cannot, and your debugging degrades to re-running things and hoping.
-
-**Latency that gets worse.** Fan-out helps only if the work is actually parallel. A sequential chain of five agents is five times the wait, and that chain is almost always a workflow wearing a costume.
+| What multi-agent buys | What it charges |
+|---|---|
+| Parallelism — independent subtasks at once | Coordination failures: duplicated, dropped or contradictory work |
+| Context isolation — each worker starts small and clean | Multiplied cost: every agent sends its own context |
+| Per-role tool scoping — the researcher reads, one writer writes | Lost attribution: seven traces, no correlation id |
 
 ### The analogy
 
-A wedding function at the canteen: three hundred plates, six dishes. One cook cannot do it. So there is someone on the tandoor, someone on gravies, someone on rice, and the manager who fixes the menu, sets the timings and plates the final thali. It works because the stations are genuinely independent and one person owns the plate.
+A wedding function at the canteen: three hundred plates, six dishes. One cook cannot do it, so there is someone on the tandoor, someone on gravies, someone on rice, and the manager who sets timings and plates the final thali. It works because the stations are genuinely independent and one person owns the plate.
 
-**Where the analogy breaks:** real cooks talk constantly and overhear everything. Somebody notices that the rice is sized for three hundred and the gravy for fifty, and says so. Agents never overhear. Every shared fact — the guest count, the deadline, what another worker already found — must be explicitly passed in writing, or it does not exist. All the ambient coordination a human kitchen gets for free becomes your design work.
+**Where the analogy breaks:** real cooks overhear everything, so somebody notices that the rice is sized for three hundred and the gravy for fifty. Agents never overhear. Every shared fact — the guest count, the deadline, what another worker found — must be passed explicitly in writing, or it does not exist.
 
 ### Picture it
 
@@ -94,29 +68,28 @@ A wedding function at the canteen: three hundred plates, six dishes. One cook ca
             written rule, then writes once
 ```
 
-Workers run in parallel, each isolated, each read-only, each returning a schema. Only the orchestrator writes, and conflicts are resolved by a rule you wrote rather than by whoever answered last.
+Workers run in parallel, each isolated and read-only, each returning a schema. Only the orchestrator writes, and conflicts are resolved by a rule you wrote rather than whoever answered last.
 
-### The sub-agent contract
+Most teams reach for this shape without trying the single-agent patterns, which cost nothing and prevent most of their worries.
 
-A sub-agent is not a personality. It is a function, and it needs the same contract any function needs, written down before it exists.
-
-**Input:** exactly what it receives, and nothing more — because anything extra is a distractor and a token cost.
-
-**Output:** a schema from chapter three. Not prose. An orchestrator parsing its workers' paragraphs is the opening story's bug.
-
-**Tools:** the minimum list, read-only unless there is a specific reason.
-
-**Budget:** its own step cap, cost cap and timeout from chapter fourteen. Without per-worker budgets, one stuck worker spends the whole run.
-
-**Stopping and failure:** what it returns when it cannot do the job. A worker that fails silently removes a subtask from the output with no trace.
-
-Two rules on top. **Single writer:** exactly one component — the orchestrator, or better, deterministic code — commits results. Two agents writing the same row is a race condition with a language model in it. And **independence:** if worker B needs worker A's output, they are not parallel workers, they are two steps of a workflow, and chapter thirteen tells you to write them down.
+- **Plan then execute.** The agent writes a numbered plan and stops; you read it, change it, approve it. A bad plan then costs thirty seconds of reading instead of twenty wasted steps. M00's Director's Loop made mechanical, and the default for anything consequential.
+- **Reflection with a critic** — generate, critique, revise, but only when the critique has *external* criteria. "Does the suite pass?" is a real critic; "is this good?" is the broken critic in the opening story.
+- **Evaluator-optimiser.** Reflection with a *number*: score against chapter twelve's eval set, keep the better version, repeat to a cap.
+- **Router.** Chapter thirteen's rung three, the most underused shape in this module.
 
 ### Where it lives
 
-Patterns are shapes you impose in your own code around the loop from chapter fourteen, or configure inside a harness — chapter eighteen's sub-agents are this chapter's idea as a product feature.
+Patterns are shapes you impose around chapter fourteen's loop, or configure inside a harness — chapter eighteen's sub-agents are this idea as a product feature. M05's queues are how fan-out runs; M07's tracing is what makes attribution possible, given one correlation id per run.
 
-M05's queues are how fan-out actually runs. M07's tracing is what makes attribution possible: one correlation id threaded through every agent's trace, or you have seven unrelated logs. Chapter twelve's eval set is the only thing that can tell you whether the complexity earned its place, and M14's practicum takes multi-agent into production.
+A sub-agent is not a personality. It is a function, and it needs a contract written before it exists:
+
+- **Input** — exactly what it receives; anything extra is a distractor and a token cost
+- **Output** — a schema from chapter three, never prose
+- **Tools** — the minimum list, read-only unless there is a reason
+- **Budget** — its own step cap and timeout, or one stuck worker spends the whole run
+- **Failure** — what it returns when it cannot do the job, since a silent failure drops a subtask
+
+Two rules on top. **Single writer:** one component commits results, because two agents writing one row is a race condition with a language model in it. And **independence:** if worker B needs worker A's output, they are two steps of a workflow.
 
 ### Words to own
 
@@ -135,33 +108,26 @@ M05's queues are how fan-out actually runs. M07's tracing is what makes attribut
 
 ### Tradeoffs and gotchas
 
-**A critic that always approves is worse than no critic.** It costs a call and manufactures the appearance of review. Give it a checklist, a schema or a test suite; if it cannot fail your output, it is theatre.
+**A critic that always approves is worse than none.** It costs a call and manufactures the appearance of review. Give it a checklist, a schema or a test suite; if it cannot fail your output, it is theatre.
 
-**Named agents create an illusion of competence.** "QAAgent" sounds like quality assurance. It is one prompt. Name your components by what they receive and return, and the design conversation gets honest fast.
+**Named agents create an illusion of competence.** "QAAgent" sounds like quality assurance; it is one prompt. Name components by what they receive and return instead.
 
-**Sequential multi-agent is a workflow.** If the shape is A then B then C with fixed handoffs, write it as code and keep the testability. Chapter thirteen, every time.
+**Sequential multi-agent is a workflow.** If the shape is A then B then C with fixed handoffs, write it as code.
 
-**The orchestrator's context grows worst of all.** It reads every worker's output. Make workers return tight schemas, not essays, or you have moved the context problem rather than solved it.
+**The orchestrator's context grows worst of all**, because it reads every worker's output. Tight schemas rather than essays.
 
-**Measure against the single-agent baseline or do not ship it.** One agent with good tools and a plan-then-execute pattern is the number to beat. If the multi-agent version is not better on your eval set, it is more expensive and more fragile for nothing.
-
-**Debate patterns rarely pay.** Two agents arguing produces longer, more confident output and little more accuracy, at double the cost. Spend that money on retrieval quality or an eval set.
+**Measure against the single-agent baseline or do not ship it.** Debate patterns rarely pay: two agents arguing produce longer, more confident output and little more accuracy, at double the cost.
 
 ### Verify it
 
-**Name what you are buying before you build.** Parallelism, context isolation, or tool scoping. If the honest answer is "it seems more capable", stop and use plan-then-execute instead.
+- **Name what you are buying before you build** — parallelism, context isolation, or tool scoping. If the honest answer is "it seems more capable", use plan-then-execute.
+- **Run the baseline first and record it:** one agent, good tools, plan-then-execute, with score, cost and latency on your eval set. Every later design must beat that row.
+- **Try to attribute one real failure.** Find the agent behind a wrong output; if you cannot in five minutes, add the correlation id first.
+- **Check whether your critic can fail you.** Feed it a fabricated number, an invalid schema, a failing test.
+- **Look for duplicated and dropped work in the traces** — the same fetch twice, or a subtask missing from the output.
+- **Confirm exactly one writer.** Grep the tool lists.
 
-**Run the baseline first and record it.** One agent, good tools, fifteen-step cap, plan-then-execute. Score, cost and latency on your eval set. This is the row every later design must beat.
-
-**Try to attribute one real failure.** Take a wrong output and find the agent that caused it. If you cannot in under five minutes, add the correlation id before adding anything else.
-
-**Check whether your critic can fail you.** Feed it output you know is wrong — a fabricated number, an invalid schema, a failing test. If it approves, the critic is not real.
-
-**Look for duplicated and dropped work in the traces.** Count tool calls across all workers and look for the same fetch twice. Then check that every subtask the orchestrator assigned appears in the final output; silently dropped subtasks are the most common coordination failure.
-
-**Confirm there is exactly one writer.** Grep the tool lists. If two agents can write the same resource, fix that before anything else.
-
-Red flags: a critic that has never rejected anything; agents named for job titles rather than inputs and outputs; workers returning prose instead of a schema; no per-worker step budget; more than one component able to write; no correlation id across traces; a sequential handoff chain described as multi-agent; and no single-agent baseline to compare against.
+Red flags: a critic that has never rejected anything; agents named for job titles rather than inputs and outputs; workers returning prose instead of a schema; no per-worker step budget; more than one component able to write; no correlation id; a sequential handoff chain called multi-agent; no single-agent baseline.
 
 ## Walkthrough
 1. Pick one genuinely open-ended task in your product — something with independent parts, such as summarising several sources or checking several rules.

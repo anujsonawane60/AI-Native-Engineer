@@ -4,7 +4,7 @@ module: m00-orientation
 slug: why-ai-gets-things-wrong
 title: "Why AI Gets Things Wrong, and How You Catch It"
 order: 7
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,46 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student asks an AI to add "login with Google" to the canteen app. It produces clean, well-organised, confidently-explained code. It works — they log in successfully.
+A student asks an AI to add "login with Google" to the canteen app. It produces clean, confidently-explained code, and it works.
 
-Three weeks later anyone can log in as the canteen manager. The code checked that Google said "this is a real person" and never checked *which* person, or whether that person was staff. The AI was not sloppy. It answered the question asked ("add login") rather than the question meant ("let only staff into the admin page"), and it answered in the same confident tone it uses when it is right.
-
-You cannot avoid this by being careful with prompts alone. You avoid it by knowing the shapes that errors come in, and checking for them on purpose.
+Three weeks later anyone can log in as the canteen manager. The code checked that Google said "this is a real person" and never checked *which* person, or whether they were staff. The AI was not sloppy: it answered the question asked ("add login") rather than the question meant ("only staff reach the admin page").
 
 ### The idea
 
-**The model produces fluent text whether or not it has grounds for it, because fluency and correctness are produced by the same process.**
+**The model produces fluent text whether or not it has grounds for it, because fluency and correctness come out of the same process.**
 
-There is no internal flag that says "I am unsure here." A guess and a certainty come out written in the same voice. Every verification habit in this program exists because of that one fact.
+There is no internal flag saying "I am unsure here" — a guess and a certainty are written in the same voice. Every verification habit in this program follows from that.
 
 ### The analogy
 
-A brilliant, fast, extremely well-read intern on their first day.
+A brilliant, extremely well-read intern on their first day. They have read every textbook, they write beautifully, they never say "I don't know" — and they have never seen your product, do not know your users, and cannot tell what they remember from what they are inferring. You would not merge that work unreviewed; you would also be foolish not to use them. Delegate freely, review always.
 
-They have read every textbook in the field. They write beautifully. They are eager and they never say "I don't know". They have never seen your product, do not know your users, were not in the meeting where you decided to support UPI only, and cannot tell the difference between what they remember and what they are inferring.
-
-You would not merge that intern's work unreviewed on day one. You would also be foolish not to use them — they are genuinely fast and genuinely knowledgeable. The relationship you want is exactly that: delegate freely, review always.
-
-**Where the analogy breaks:** an intern learns. Tell them about the UPI decision and they remember it next Tuesday. A model starts fresh every conversation unless you put the context back in front of it. This is why the rules files and decision logs in M10 exist — they are the memory the intern does not have.
-
-### The five ways it goes wrong
-
-These are genuinely distinct, with different causes and different fixes. Lumping them together as "AI makes mistakes" is why people fail to catch them.
-
-**1. Hallucination — it invents something that does not exist.**
-A function, a configuration option, a library, an API endpoint, a citation. The invented thing is always plausible, because plausibility is what the model optimises for. *Catch it:* anything named gets checked against real documentation. Invented things usually fail immediately and loudly, which makes this the least dangerous failure on the list.
-
-**2. Missing context — it answers correctly for a project that is not yours.**
-It does not know you are on a free tier with a 500 MB limit, that your users are in India, that you already have a `users` table with a different shape. The answer is textbook-correct and wrong here. *Catch it:* this is the most common failure by far, and the fix is upstream — put the constraints in the brief.
-
-**3. Outdated knowledge — it is confidently describing last year.**
-Training data has a cutoff. Library versions move, APIs are deprecated, pricing changes, free tiers shrink. *Catch it:* for anything versioned or priced, check the current docs. Never trust a quoted price or a free-tier limit.
-
-**4. Answering the question asked instead of the question meant.**
-The Google login story. "Add login" was satisfied. "Only staff reach the admin page" was never requested and so was never built. *Catch it:* state what must be *true* when it is done, not what to add. This is the whole purpose of acceptance criteria in the next chapter.
-
-**5. Plausible-but-wrong reasoning — the steps look sound and the conclusion is not.**
-The most dangerous, because it survives a casual read. It will explain why an approach is correct, fluently, and be wrong about a tradeoff that matters at scale. *Catch it:* ask for two approaches and the argument against each. Comparison exposes what assertion hides.
+**Where the analogy breaks:** an intern learns. A model starts fresh every conversation unless you put the context back in front of it — which is why rules files exist.
 
 ### Picture it
 
@@ -86,9 +61,17 @@ CORRECT            WRONG — but in one of five ways:
 
 Confidence is on the branch above the split, not inside either side of it. This is why "it sounded sure" is never evidence.
 
+The five shapes:
+
+1. **Hallucination** — an invented function, option, library or price, always plausible because plausibility is what the model optimises for.
+2. **Missing context** — textbook-correct for a project that is not yours: not your free tier, not your existing `users` table. The most common by far.
+3. **Outdated knowledge** — confidently describing last year, because versions, APIs and free tiers all move after the training cutoff.
+4. **The question asked, not the question meant** — the Google login story.
+5. **Plausible-but-wrong reasoning** — sound-looking steps, wrong conclusion. The most dangerous, since it survives a casual read.
+
 ### Where it lives
 
-These five map onto specific traps in later modules, which is worth knowing now so you recognise them when they arrive:
+These map onto specific traps later:
 
 | Failure | Where it bites hardest |
 |---|---|
@@ -97,20 +80,6 @@ These five map onto specific traps in later modules, which is worth knowing now 
 | Outdated knowledge | M06 — deploy configuration for a platform version that changed |
 | Plausible-but-wrong | M05 — caching advice that is fine at 10 users and wrong at 10,000 |
 | Hallucination | M10 — invented model names, parameters and pricing |
-
-### The AI-specific security pattern
-
-One category deserves singling out, because it produces real harm rather than inconvenience: **AI defaults to the shortest path that satisfies the request, and secure defaults are rarely the shortest path.**
-
-The recurring shapes, all of which you will meet again in M07:
-
-- The API key placed in frontend code, where any user can read it
-- Authentication without authorization — it checks *who* you are, never *what you may do*
-- Inputs trusted because the form validated them, forgetting the form is on the user's device
-- Error messages that return the database error verbatim, including table names
-- Permissions enforced by hiding a button
-
-None of these are exotic. All of them appear routinely in AI-generated code, and all of them pass a casual "does it work?" test — because they do work. They just also work for the attacker.
 
 ### Words to own
 
@@ -127,24 +96,32 @@ None of these are exotic. All of them appear routinely in AI-generated code, and
 
 ### Tradeoffs and gotchas
 
-**Do not over-correct into doing it yourself.** The point is not that AI is unreliable and you should type the code. It is faster and often better than you at producing the code. The division of labour is: it produces, you decide and verify. Distrusting it into uselessness wastes the actual advantage.
+**AI defaults to the shortest path, and secure defaults are rarely the shortest path.** The recurring shapes, all returning in M07:
 
-**It will agree with you when you are wrong.** Push back on a correct answer and it will frequently fold and produce a worse one. This is the single most underestimated failure mode, because it feels like you won the argument. Ask "am I wrong about this?" rather than "that's not right, fix it" — and watch whether it defends a position it should defend.
+- An API key in frontend code, where any user can read it
+- Authentication without authorization — *who* you are, never *what you may do*
+- Inputs trusted because the form validated them, but the form is on the user's device
+- Error messages returning the database error verbatim, table names included
+- Permissions enforced by hiding a button
 
-**Working is not the same as correct.** The broken Google login worked. Every one of the security patterns above works. "I tested it and it ran" tells you about the happy path only. Test the empty case, the huge case, the wrong-user case, and the twice-in-a-row case.
+All of these pass a casual "does it work?" test, because they do work — for the attacker too.
 
-**Long conversations drift.** Thirty messages in, the constraints you set at message two have been pushed out of the window and it is contradicting things it agreed to. Restating constraints is not nagging; it is how the tool works. If a thread has gone sideways, start fresh with a clean brief rather than arguing.
+**It will agree with you when you are wrong.** Push back on a correct answer and it often folds into a worse one — and folding feels like you won the argument. Ask "am I wrong about this?" instead.
+
+**Working is not the same as correct.** The broken Google login worked. "I tested it and it ran" covers the happy path only. Test the empty case, the huge case, the wrong-user case and the repeat case.
+
+**Long conversations drift.** Thirty messages in, the constraints from message two are out of the window. Restating them is how the tool works; if a thread has gone sideways, start fresh.
 
 ### Verify it
 
-The habit, in four steps. It takes a few minutes and catches most of what matters.
+The habit:
 
-1. **Does it exist?** Every library, function, option and price gets checked against real documentation. Fastest step, catches hallucination outright.
-2. **Does it fit my situation?** Re-read your constraints — free tier, existing data, your users, your region — and confirm each one survived. This catches the most common failure.
-3. **Does it satisfy what I meant?** Go back to your acceptance criteria and test each one, specifically including the one you did not ask for. Try to break it as the wrong kind of user.
-4. **Can it explain itself consistently?** "Walk me through why this approach rather than the alternative, and tell me where it would stop working." Inconsistency here is a stronger signal of guessing than the output itself.
+1. **Does it exist?** Every library, function, option and price checked against real docs.
+2. **Does it fit my situation?** Re-read your constraints — free tier, existing data, users, region — and confirm each survived.
+3. **Does it satisfy what I meant?** Test every acceptance criterion, including the one you did not ask for, as the wrong kind of user.
+4. **Can it explain itself consistently?** "Why this approach rather than the alternative, and where would it stop working?" Inconsistency signals guessing more strongly than the output does.
 
-**Then give feedback that fixes rather than restarts.** The difference is large:
+Then give feedback that fixes rather than restarts:
 
 | Weak | Strong |
 |---|---|
@@ -153,7 +130,7 @@ The habit, in four steps. It takes a few minutes and catches most of what matter
 | "That's wrong" | "This assumes Postgres; I'm on the Supabase free tier. Does that change your answer?" |
 | "Do it properly" | "Fix only the quantity calculation. Do not change anything else." |
 
-Symptom, expected versus actual, one change at a time. The same discipline that makes a good bug report to a human makes a good correction to an agent — and "one change at a time" matters more with agents, because an agent asked to fix three things will often touch thirty files.
+Symptom, expected versus actual, one change at a time. The last matters more with agents: one asked to fix three things will touch thirty files.
 
 ## Walkthrough
 1. Ask an AI something you already know the answer to and that is specific enough to be checkable — a detail of your college's rules, the fee structure of a scheme you know, a fact about your city. Note how confident the wrong answer sounds.

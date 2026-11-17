@@ -4,7 +4,7 @@ module: m18-demo-day
 slug: demo-day-present-and-defend
 title: "Demo Day: Present and Defend"
 order: 6
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -20,33 +20,27 @@ last_reviewed: 2026-11-16
 
 ## Lesson
 
-### What the day is
-
-**Thirty minutes each, alone, from a machine that is not yours, on the live URL.** Three students from one group means three separate defences of about ninety minutes in total, in front of mentors and at least one person from outside the cohort. The product is shared. Nothing else about the half hour is.
-
-This is the last assessed thing in the program. Everything in the five preceding chapters is a block of it, and the whole half hour runs to a clock.
-
 ### The pain
 
 Three defences, same cohort, same afternoon.
 
-The first student spends nine of their first twelve minutes on slides and never opens the product. The panel's first question is *can we actually see it?* The demo that follows is unstructured, because the structured part was the slides, and the debugging block starts eight minutes late.
+The first spends nine of their first twelve minutes on slides, never opens the product, and starts the debugging block eight minutes late.
 
-The second opens the product on college wifi at 2 pm. The free-tier database is cold and the first load takes forty seconds. They refresh four times, apologise for three minutes, say the wifi is bad, and move on. The product works perfectly. Nobody in the room ever saw it work, and there was no recording.
+The second opens the product on college wifi at 2 pm. The free-tier database is cold and the first load takes forty seconds. They refresh four times, apologise for three minutes, blame the wifi. The product works perfectly; nobody saw it work, and there was no backup recording.
 
-The third hits the same cold start and says: *this is a cold start on the free tier — about twenty seconds the first time, under two after that. I will let it load and meanwhile show you the recorded version of the same path so we do not lose the time.* They lose nine seconds, and the room learns something true about the product's hosting.
+The third hits the same cold start and says: *that is a cold start on the free tier — twenty seconds the first time, under two after. I will let it load and meanwhile show the recorded version of the same path.* They lose nine seconds, and the room learns something true about the hosting.
 
 ### The idea
 
 **Demo day is an operations problem, not a performance problem. Decide in advance what is live, what is recorded, what you will say when something fails, and what you will say when a question lands on a part you did not build.**
 
-The content was settled over six months. What the half hour decides is whether any of it becomes visible.
+**Thirty minutes each, alone, from a machine that is not yours, on the live URL.** Three students from one group means three separate defences, ninety minutes in total, before mentors and at least one outsider. The product is shared; nothing else about the half hour is. The content was settled over six months — these thirty minutes decide whether any of it becomes visible.
 
 ### The analogy
 
-The canteen on inspection morning. The food was decided months ago. What decides the morning is whether the cylinder is full, the price list is readable, the floor is dry and the licence is on the wall. And when the mixer trips the fuse halfway through, the owner who says *that is the known fault, the workaround is to run it before the fridge, and here is the electrician's quote* comes out ahead of the one who pretends nothing happened.
+The canteen on inspection morning. The food was decided months ago; what decides the morning is whether the cylinder is full, the price list readable and the licence on the wall. And when the mixer trips the fuse, the owner who says *that is the known fault, the workaround is to run it before the fridge* comes out ahead of the one who pretends otherwise.
 
-**Where the analogy breaks:** the inspector can taste the food. Quality is self-evident in one bite, independently of how the owner talks. Nobody in your room can taste your product. They can only watch what you show them and listen to how you answer — which means, for the purposes of that half hour, the showing and the answering **are** the product.
+**Where the analogy breaks:** the inspector can taste the food. Nobody in your room can taste your product — they can only watch what you show and hear how you answer, so for this half hour the showing and answering **are** the product.
 
 ### Picture it
 
@@ -63,48 +57,13 @@ The canteen on inspection morning. The food was decided months ago. What decides
 
 Five blocks with a clock on each, where the longest single block is the one you cannot rehearse.
 
-### Live or recorded
+One rule decides what the room sees: **show live whatever you control; have recorded whatever depends on something you do not.** Live is the live URL, M18.4's single path, one failure state, your dashboard, your documents. Recorded is anything needing a third party — a payment confirming, a notification arriving — or anything slower than thirty seconds. The rule that cannot be bent: **never show a recording while letting the room believe it is live.** A recording announced is professional; one discovered ends your credibility for the remaining twenty minutes. Practically: a tested phone hotspot, recordings **downloaded**, the product warmed before you begin.
 
-One rule: **show live whatever you control; have recorded whatever depends on something you do not.**
-
-Live: the live URL, the single path from M18.4's third beat, one failure state, your analytics dashboard, your architecture document, your handover. Recorded: anything that needs a third party to act — a payment confirmation, a push notification arriving, an app-store build installing — anything that takes longer than about thirty seconds, and anything on a device you cannot hold up.
-
-And the rule that cannot be bent: **never show a recording while letting the room believe it is live.** Say it. *This is a recording, because the payment webhook takes up to a minute in test mode.* A recording announced is professional. A recording discovered is the end of your credibility for the remaining twenty minutes.
-
-The practical layer is specific to where you are presenting. College wifi at 2 pm is contended; have your phone as a hotspot, with data on it, tested once that morning. Keep the recording **downloaded** on the laptop, not streaming. Expect a cold start on a free tier and warm the product by loading it two minutes before you begin. If part of your defence is mobile, hold a budget Android phone, which is what M12.9 measured on anyway.
-
-### When it fails on stage
-
-It will, at least once, for somebody in the room. Four moves, in order.
-
-**Name it.** "That is a cold start." "That is a 500 — not what I expected here."
-**Say what you expected.** This is the difference between a surprise and a bug you know about.
-**Offer the fallback.** The recording, the second account, the known workaround from M18.5.
-**Keep moving.** The clock is not paused for your apology.
-
-And if it turns out to be a genuine defect, you are not in trouble — you are in M18.3. Reproduce, read, isolate, one hypothesis, narrate. A panel would rather watch a real diagnosis than a flawless demo, and several of the strongest defences in any cohort are the ones where something broke.
-
-What not to do: apologise for three minutes; blame the network without evidence; refresh six times in silence; or start fixing the product live when nobody asked you to. M11.7 said it already — the demo is a measurement, and changing the thing while measuring it loses both.
-
-### The questions that follow
-
-Three kinds, and each has a shape.
-
-**About a number.** Open the dashboard and show it. M18.4 is why every number in your story has a source you can reach in sixty seconds.
-
-**About a limit.** Use the five moves from M18.2: what breaks first, how you would know, the first hour, the real fix and its cost, what you would refuse to do.
-
-**About a part you did not build.** This is the question this module exists for, and it has an honest three-part answer: what the part does, what **you personally verified** about it, and who directed it.
-
-*My teammate directed the push notifications. I reviewed that change and I tested that a user who mutes them stops receiving them. I cannot tell you how the token refresh works — I have not read that file.*
-
-That is a strong answer. "I built all of it" is not, and a panel establishes otherwise within two follow-ups. The risk the reviewer of this program named is exactly this: one strong developer carrying the engineering while three people collect the same certificate. Honest partial knowledge is what distinguishes a member of a team from a passenger, and it is scored that way.
+Something will fail. Four moves, in order. **Name it** — "that is a cold start", "that is a 500, not what I expected". **Say what you expected**, the difference between a surprise and a bug you know about. **Offer the fallback** — the recording, the second account, the M18.5 workaround. **Keep moving**; the clock is not paused for your apology. A genuine defect is not trouble, it is M18.3, and a panel would rather watch a real diagnosis than a flawless demo.
 
 ### Where it lives
 
-Every block is a chapter you have already done: M18.1 the architecture, M18.2 the questions, M18.3 the debugging, M18.4 the story, M18.5 the handover. The ancestor is M11.7's ten-minute technical demo at Checkpoint 4 — this is three times the length, individual, with live debugging and an operational handover added. M11.6 gave you the domain and the monitoring you are presenting on; M12.9 the device you hold.
-
-After this there is no further gate. What survives is your portfolio from M01.10, and the recording of this half hour is its strongest single item.
+Every block is a chapter you have done: M18.1 the architecture, M18.2 the questions, M18.3 the debugging, M18.4 the story, M18.5 the handover. The ancestor is M11.7's ten-minute Checkpoint 4 demo — this is three times the length, individual, with live debugging and a handover added. After this there is no gate: a recording of this half hour is the strongest item in your M01.10 portfolio.
 
 ### Words to own
 
@@ -122,29 +81,27 @@ After this there is no further gate. What survives is your portfolio from M01.10
 
 ### Tradeoffs and gotchas
 
-**Change nothing in the twenty-four hours before.** No deploys, no dependency updates, no "one small fix". The most common cause of a broken demo is a change made to improve it.
+**Questions come in three kinds.** *About a number* — open the dashboard and show it. *About a limit* — use M18.2's five moves. *About a part you did not build* — the question this module exists for, answered in three parts: what the part does, what **you personally verified**, who directed it. *My teammate directed the push notifications. I reviewed that change and tested that a user who mutes them stops receiving them. I cannot tell you how the token refresh works.* That is strong. "I built all of it" is not, and a panel establishes otherwise within two follow-ups. Honest partial knowledge distinguishes a team member from a passenger, and is scored so.
 
-**Do not present from your own laptop.** It is the red flag M11.2 and M11.7 both tested for, and here it is individually fatal: a defence that needs your machine is a defence of something only you can run.
+**Change nothing in the twenty-four hours before.** No deploys, no updates, no "one small fix". The commonest cause of a broken demo is a change meant to improve things.
 
-**Slides are optional. The product is not.** If you use slides, they carry the story beat and nothing else. Four blocks out of five happen in a browser.
+**Do not present from your own laptop.** A defence that needs your machine defends something only you can run. And slides are optional where the product is not — four blocks of five happen in a browser.
 
-**Rehearse the handover block, because it is the one everyone loses.** It is last, it is three minutes, and an overrun anywhere earlier eats it. Practise saying costs, access and known issues in one hundred and eighty seconds.
+**Rehearse the handover block, because everyone loses it.** It is last, three minutes, and an overrun earlier eats it.
 
-**Guard the debugging block above all.** If the story runs long, cut the story. Ten minutes of visible reasoning is worth more than any extra traction number.
-
-**Record your own defence.** It is the last artefact of the program and the most useful one you will ever have: thirty minutes of you explaining a system you directed, under questioning.
+**Guard the debugging block above all.** If the story runs long, cut the story. Ten minutes of visible reasoning beats any traction number.
 
 ### Verify it
 
 Two full dress rehearsals, minimum, and five checks.
 
-1. **The whole thirty minutes, timed, from a machine that is not yours**, nothing installed, clean browser profile, on the live URL, recorded.
-2. **Do one rehearsal with the wifi turned off at minute three.** Switch to the hotspot, or to the recording, out loud, without stopping. If that sequence is not practised it will not happen.
-3. **Have your stand-in panel ask one question of each kind** — a number, a limit, and a part you did not build — and answer all three without notes.
-4. **Watch the recording and check for personal data.** Any real name, phone number, email or order belonging to a real user is a disclosure, and on a projector it is irreversible.
-5. **Time each block from the recording.** Whichever one overran is the one you cut, and it is almost never the one you expect.
+1. **The whole thirty minutes, timed, from a machine that is not yours**, clean browser profile, live URL, recorded.
+2. **Do one rehearsal with the wifi turned off at minute three.** Switch to the hotspot or the recording, out loud, without stopping. Unpractised, it will not happen.
+3. **Have your stand-in panel ask one question of each kind** — a number, a limit, a part you did not build — answered without notes.
+4. **Watch the recording and check for personal data.** A real user's name, phone number or order is an irreversible disclosure on a projector.
+5. **Time each block from the recording.** Whichever overran is the one you cut, and it is rarely the one you expect.
 
-The red flags, in the order a panel notices them: presenting from your own laptop; no recorded backup; a bookmark pointing at localhost; real users' data on screen; a product changed the night before; a student who can describe only the parts they personally built; a number that cannot be reached from the dashboard; and three defences from one group that are indistinguishable from each other.
+The red flags: your own laptop; no recorded backup; a bookmark pointing at localhost; real users' data on screen; a product changed the night before; a student who can describe only what they built; and three indistinguishable defences from one group.
 
 ## Walkthrough
 1. Book a thirty-minute slot and write the five block times on a card you keep beside the laptop. The card is allowed; notes for your answers are not.

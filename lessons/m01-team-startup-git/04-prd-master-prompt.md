@@ -4,7 +4,7 @@ module: m01-team-startup-git
 slug: prd-master-prompt
 title: "The PRD Is the Master Prompt"
 order: 4
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team finishes their user interviews with good evidence and a clear persona. Then they start building, and the evidence stays in their heads.
+A team finishes their interviews with good evidence and a clear persona, then starts building — and the evidence stays in their heads.
 
-Every AI conversation begins from nothing. One member briefs an agent assuming a ₹60 price ceiling; another assumes payments are out of scope entirely. The agent is told three different things about the same product in one week and produces three incompatible pieces, each internally sensible. By week three they are arguing about what they agreed, and nobody can prove anything because it was never written down.
-
-The fix is one page. Not a document nobody reads — a page you paste into every brief for the next six months.
+Every AI conversation begins from nothing. One member briefs an agent assuming a ₹60 price ceiling; another assumes payments are out of scope. The agent is told three different things about one product in a week and builds three incompatible pieces. By week three they are arguing about what they agreed, and nobody can prove anything.
 
 ### The idea
 
 **A PRD is the Director's Brief from M00, written once for the whole product instead of once per task.**
 
-Same fields, same purpose, larger scope. Its job is to stop you re-explaining your product from scratch twenty times, and to stop the AI inventing the parts you did not mention.
+Same fields, larger scope. Its job is to stop you re-explaining your product twenty times, and to stop AI inventing the parts you did not mention.
 
 ### The analogy
 
-A canteen stall has a board behind the counter that nobody shows to customers: today's menu, the prices, which items are limited, what the stall does not do.
+A canteen stall has a board behind the counter that no customer sees: today's menu, the prices, the limited items, what the stall does not do. With the board, a new helper is useful in five minutes. Without it they guess at prices and confidently tell a student the stall does home delivery, because that seemed reasonable. An AI agent is that helper, arriving fresh every conversation. The PRD is the board.
 
-A new helper arrives for lunch rush. If that board exists, they are useful in five minutes. If it does not, they must ask about every order, they will guess at prices, and they will confidently tell a student the stall does home delivery because it seemed like a reasonable thing to offer.
-
-An AI agent is that new helper, arriving fresh every single conversation. The PRD is the board.
-
-**Where the analogy breaks:** a human helper eventually learns the stall and stops needing the board. An agent never does. The board has to be pasted in every time — which is exactly why it must fit on one page, and why in M10 you will turn it into a rules file the agent reads automatically.
+**Where the analogy breaks:** a human helper eventually learns the stall. An agent never does, so the board gets pasted in every time — which is why it fits on one page, and why in M10 you turn it into a rules file the agent reads automatically.
 
 ### Picture it
 
@@ -61,77 +55,29 @@ An AI agent is that new helper, arriving fresh every single conversation. The PR
                      revised when evidence changes
 ```
 
-Facts flow in from the interviews, get written once, and flow out into every brief anyone writes. The PRD is a cache for your product decisions — and like any cache, it goes stale and must be invalidated deliberately.
+Facts flow in from the interviews, get written once, and flow out into every brief anyone writes. The PRD is a cache for your product decisions, and like any cache it must be invalidated deliberately.
 
-### The one-page PRD
-
-Seven sections. Each one blocks a specific failure you already know about.
+Each section blocks a known failure: USER and CONSTRAINTS block missing context, MUST HAVE blocks three people building different products, NON-GOALS blocks an agent rewriting what you never asked about, SUCCESS blocks shipping something that works and changes nothing.
 
 ```
-PROBLEM      One or two sentences, no solution in it. From PROBLEM.md.
-
-USER         Your evidence-based persona. Money, time window, current
-             substitute. Every line traceable to a quote.
-
-GOAL          What the product does, in one sentence a stranger gets.
-
-MUST HAVE     Numbered. The smallest set without which the product is
-              pointless. If you have more than six, you are not scoping.
-
-CONSTRAINTS   Stack, free tier, device, network, money, legal, language.
-              Everything true about your situation that AI would
-              otherwise invent.
-
-NON-GOALS     What this product does NOT do, and what nobody may touch.
-              The longest section in a good PRD.
-
-SUCCESS       How you will know it worked, with a number and a date.
+PROBLEM      Two sentences, no solution in it. From PROBLEM.md.
+USER         Your persona: money, time window, current substitute.
+GOAL         What it does, in one sentence a stranger gets.
+MUST HAVE    Numbered. More than six means you are not scoping.
+CONSTRAINTS  Stack, free tier, device, network, money, legal, language.
+NON-GOALS    What it does NOT do, and what nobody may touch.
+SUCCESS      How you know it worked: a number and a date.
 ```
-
-| Section | Blocks |
-|---|---|
-| USER, CONSTRAINTS | missing context — the most common AI failure |
-| MUST HAVE | scope creep, and three people building different products |
-| NON-GOALS | an agent helpfully rewriting things you did not ask about |
-| SUCCESS | building something that works and changes nothing |
-
-### Facts, not adjectives
-
-The single biggest difference between a PRD that works and one that reads nicely.
-
-| Adjective version | Fact version |
-|---|---|
-| Users are budget-conscious | Users have ₹40–60 per day; delivery apps are unusable below ₹150 minimum |
-| Must be fast | Must be usable on 4G in under 3 seconds on a ₹8,000 Android phone |
-| Should feel simple | A first-time user completes an order in under 60 seconds without help |
-| Must be secure | Only users with role=staff can change availability; prices are recalculated server-side |
-| Mobile-friendly | Usable one-handed at 320px wide, no horizontal scroll |
-
-The left column is agreeable and gives an AI nothing. The right column makes decisions on your behalf for the next six months, which is what a specification is for.
-
-### Non-goals are the most valuable section
-
-Beginners write one line of non-goals and six lines of must-haves. Experienced teams do the opposite.
-
-Three kinds belong here:
-
-**Not now.** Features you have deliberately deferred. "No group ordering in v1." Writing them down stops the weekly argument and reassures whoever wanted them that they were heard rather than ignored.
-
-**Not ever.** Things that are off-strategy. "We do not do delivery." This prevents the slow drift into becoming a different, worse product.
-
-**Do not touch.** The scope limit for agents, which becomes critical the moment you have a real codebase. "Do not modify the auth flow", "do not change the schema without a migration." You learned this in M00 as the NON-GOALS line in a brief; at product level it is what keeps a one-hour task from becoming a three-hour recovery.
 
 ### Where it lives
 
-The PRD is the CONTEXT section of every brief you write from now on. Practically, you paste it in — or by M10, your agent reads it from a rules file automatically, which is the same idea with less typing.
+The PRD is the CONTEXT section of every brief from now on. You paste it in; by M10 your agent reads it from a rules file. It feeds forward:
 
-It also feeds forward concretely:
-
-- **M03** — the persona's device, network and money decide your design constraints
-- **M04** — MUST HAVE decides your data model; a feature not in the PRD should not be in the schema
-- **M05** — SUCCESS numbers tell you what load to plan for
+- **M03** — the persona's device, network and money become design constraints
+- **M04** — MUST HAVE decides the data model; a feature not in the PRD is not in the schema
+- **M05** — SUCCESS numbers set the load you plan for
 - **M11** — Checkpoint 1 is the PRD plus an architecture diagram
-- **M16/M17** — the SUCCESS metric is what you actually measure against
+- **M16/M17** — SUCCESS is what you measure
 
 ### Words to own
 
@@ -149,30 +95,38 @@ It also feeds forward concretely:
 
 ### Tradeoffs and gotchas
 
-**One page, hard limit.** A ten-page PRD does not get pasted into briefs, does not get read by your teammates, and will be out of date in a fortnight. If it does not fit, your MUST HAVE list is a wish list.
+**Facts, not adjectives.** The left column is agreeable and gives an AI nothing; the right makes decisions on your behalf for six months, which is what a specification is for.
 
-**MUST HAVE is not "everything we will eventually build."** The test: remove any one item. If the product still delivers the core value, that item is a nice-to-have. Apply this ruthlessly and most teams go from eleven items to four.
+| Adjective version | Fact version |
+|---|---|
+| Users are budget-conscious | Users have ₹40–60 per day; delivery apps are unusable below ₹150 minimum |
+| Must be fast | Must be usable on 4G in under 3 seconds on a ₹8,000 Android phone |
+| Should feel simple | A first-time user completes an order in under 60 seconds without help |
+| Must be secure | Only users with role=staff can change availability; prices are recalculated server-side |
+| Mobile-friendly | Usable one-handed at 320px wide, no horizontal scroll |
 
-**Write SUCCESS before MUST HAVE.** The same inversion as acceptance-before-requirements in M00. Starting from "twenty students place a repeat order within two weeks of launch" tells you which features are actually required, and usually shortens the list.
+**NON-GOALS holds three kinds of line, and beginners write one where experts write six.** *Not now* ends the weekly argument about deferred features. *Not ever* stops the drift into a worse product. *Do not touch* is the agent's scope limit — "do not change the schema without a migration" — and keeps a one-hour task from becoming a three-hour recovery.
 
-**A number without a date is not a target.** "Twenty repeat orders" is a hope. "Twenty repeat orders by 15 February" is checkable, and in M11 you will be checked against it.
+**One page, hard limit.** A ten-page PRD never gets pasted into a brief and is stale in a fortnight. If it does not fit, MUST HAVE is a wish list.
 
-**Revise it, with history.** Your PRD will be wrong — you will learn something in week five that invalidates a must-have. Change it and commit the change. The diff is evidence of learning, and in M18's defence "we changed this because of what we measured" is a far stronger answer than a PRD that never moved.
+**Write SUCCESS before MUST HAVE, with a number and a date.** The same inversion as acceptance-before-requirements in M00: working backwards from "twenty repeat orders by 15 February" turns eleven must-haves into four.
 
-**Do not let AI write your PRD from nothing.** Ask it to draft from your interview notes and it will do a reasonable job of structuring what you supply. Ask it to invent a PRD for "a canteen app" and you get the generic product you specifically avoided in M00 — a plausible average of every similar product, built for nobody you interviewed. Supply the facts; let it structure and critique them.
+**Revise it, with history.** Week five will invalidate a must-have. Change it and commit — "we changed this because of what we measured" beats a PRD that never moved.
+
+**Do not let AI write it from nothing.** Ask for a PRD for "a canteen app" and you get the generic product you avoided in M00. Supply the facts; let it structure and critique them.
 
 ### Verify it
 
-Before you accept your own PRD, six checks.
+Six checks before you accept your own PRD.
 
 1. **Does it fit on one page?** If not, cut MUST HAVE.
-2. **Is every USER line traceable to a quote?** Anything else is your imagination hardening into a requirement.
-3. **Are there any adjectives doing a fact's job?** Search for fast, simple, easy, secure, intuitive, seamless. Replace each with a number or a testable statement.
+2. **Is every USER line traceable to a quote?** Anything else is imagination hardening into a requirement.
+3. **Are any adjectives doing a fact's job?** Search for fast, simple, easy, secure, intuitive, seamless.
 4. **Could you remove any must-have and still have a product?** Then move it.
-5. **Does SUCCESS have both a number and a date?**
-6. **Does NON-GOALS include at least one "do not touch"?** Without it, your first agent task on a real codebase will be unbounded.
+5. **Does SUCCESS have a number and a date?**
+6. **Does NON-GOALS include a "do not touch"?** Without it your first agent task is unbounded.
 
-Then run the real test: **hand your PRD to someone outside the team and ask them to describe what you are building and who for.** If they get it wrong, your AI will get it wrong in the same way — and unlike the AI, the human will tell you which sentence confused them.
+Red flag: an outsider reads it and describes a different product. Your AI will get it wrong the same way, but only the human will tell you which sentence misled them.
 
 ## Walkthrough
 1. Open your `PROBLEM.md` and your persona from the last chapter. Everything in the PRD comes from these two, plus your constraints. Nothing new gets invented here.

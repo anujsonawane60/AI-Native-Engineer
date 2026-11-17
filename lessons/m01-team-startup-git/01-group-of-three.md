@@ -4,7 +4,7 @@ module: m01-team-startup-git
 slug: group-of-three
 title: "A Group of Three: Splitting Product, Tech and Growth"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Three students form a group. All three are interested in the technology, because that is what the program is about. So all three build.
+Three students form a group, all three are interested in the technology, so all three build. By week two they have three half-finished versions of the same login screen, no idea who their user is, and nobody has spoken to a single person outside the group. By week four the fastest one has quietly taken over everything and the other two are watching.
 
-By week two they have three half-finished versions of the same login screen, no idea who their user is, and nobody has spoken to a single person outside the group. By week four one of them — the fastest — has quietly taken over everything, and the other two are watching. At demo day one person can explain the product and two cannot.
-
-Both of those failures are structural, not personal. They come from dividing work by *task* instead of by *decision*, and they are entirely avoidable with one conversation in week one.
+Both failures are structural, not personal. They come from dividing work by *task* instead of by *decision*, and one conversation in week one prevents them.
 
 ### The idea
 
 **Each of the three owns a domain of decisions, not a pile of tasks. Everyone still builds.**
 
-The split is about who has the final word when there is disagreement and no time to debate. It is not a split of the work, and it is certainly not a split of the learning — all three of you walk the same 200-plus concept map and all three direct AI daily.
+The split decides who has the final word when there is disagreement and no time to debate. It is not a split of the work, and certainly not of the learning — all three of you walk the same concept map and all three direct AI daily.
 
 ### The analogy
 
-A three-person canteen stall.
-
-**Product** decides what is on the menu. Which dishes, at what price, for whom. They are the one who notices that students want a ₹30 option and that nobody is buying the ₹90 thali. They do not own the kitchen, but when there is an argument about whether to add a new dish, they decide.
-
-**Tech** decides how it gets made. The equipment, the process, what can be prepped in advance, what breaks at 1:10 pm. When there is an argument about whether something is feasible by Friday, they decide.
-
-**Growth** decides how anyone finds out it exists. The board outside, the WhatsApp group, the deal with the hostel. When there is an argument about where to spend the week's attention, they decide.
-
-All three cook during lunch rush. The division is of judgement, not of labour.
+A three-person canteen stall. **Product** decides what is on the menu — which dishes, at what price, for whom; they are the one who notices nobody is buying the ₹90 thali. **Tech** decides how it gets made: the equipment, what can be prepped in advance, what breaks at 1:10 pm. **Growth** decides how anyone finds out it exists — the board outside, the WhatsApp group, the deal with the hostel. All three cook during lunch rush. The division is of judgement, not of labour.
 
 **Where the analogy breaks:** a canteen's menu is fairly stable, so Product is a part-time job. In a startup the product changes weekly because you keep learning your users were different from what you assumed. Product is the busiest of the three in week one and stays busy.
 
@@ -75,19 +65,9 @@ Three decision domains at the top, one shared practice at the bottom. The arrows
 
 ### Where it lives
 
-In M00 you learned the four technical responsibilities — client, server, data, infrastructure. Those do not map onto these three people, and trying to force it is a mistake worth naming.
+M00's four technical boxes — client, server, data, infrastructure — do not map onto these three people. Tech owns the *decisions* about all four, but a schema decision with pricing implications is a Product decision wearing a technical costume, and "should we store the user's phone number" is a privacy question before it is a database one. So **Tech does not pick the data model alone**; you will feel this in M04.
 
-Tech owns the *decisions* about all four boxes. But a schema decision with pricing implications is a Product decision wearing a technical costume, and "should we store the user's phone number" is a Growth and privacy decision before it is a database one. The boxes describe the system; these roles describe who decides.
-
-Practically: **Tech does not get to pick the data model alone**, because the data model encodes what the product believes about its users. You will feel this in M04 when you design your schema.
-
-### Everyone still directs AI
-
-This is the part that makes the program work, and the part most likely to quietly decay.
-
-Each of you writes your own Director's Briefs. Each of you reviews diffs. Each of you submits your own mission evidence — and the platform enforces this, because a mission is completed by *your* submission under *your* account, not your group's. Three people on one product still means three sets of artefacts.
-
-If Growth has not written a brief in two weeks, something has gone wrong even if the product is going well. They will reach demo day unable to answer a question about their own system, and in M18 the defence is individual.
+The shared practice at the bottom of the diagram is what decays quietest. Each of you writes your own briefs, reviews diffs, and submits your own mission evidence — the platform completes a mission under *your* account, not your group's. If Growth has not written a brief in two weeks, something has gone wrong even if the product is going well, because in M18 the defence is individual.
 
 ### Words to own
 
@@ -104,26 +84,24 @@ If Growth has not written a brief in two weeks, something has gone wrong even if
 
 ### Tradeoffs and gotchas
 
-**A role is not a silo.** "That's Tech's problem" is how a group of three becomes three people working alone in the same room. The owner decides; everybody contributes and everybody must understand. If only one of you can explain how authentication works, your bus factor is one and your demo day is going to be uncomfortable.
+**A role is not a silo.** "That's Tech's problem" is how a group of three becomes three people working alone in the same room. If only one of you can explain how authentication works, your bus factor is one.
 
-**The fastest person is the biggest risk.** It feels efficient to let them do everything, and it produces exactly the failure described at the top. If you are that person, your job is to hand work over and review it, which is slower and is the actual skill being trained. If you are not, you have to ask for work rather than wait for it.
+**The fastest person is the biggest risk.** Letting them do everything feels efficient and produces exactly the failure at the top of this chapter. If that is you, your job is to hand work over and review it — slower, and the actual skill being trained.
 
-**Rotate once, deliberately.** Around the halfway point, swap one role. It is briefly inefficient and it is the cheapest way to discover what each role actually involves — and whether your documentation is good enough for someone else to pick up.
+**Decide the tie-break rule before you need it.** Not "we'll discuss it" — you will be discussing it at 11 pm with a deadline. Product decides scope, Tech decides feasibility and sequencing, Growth decides channel priority, anything touching money or user data needs all three.
 
-**Decide the tie-break rule before you need it.** Not "we'll discuss it" — you will be discussing it at 11 pm with a deadline. Write down: Product decides scope, Tech decides feasibility and sequencing, Growth decides channel priority, and anything touching money or user data needs all three.
+**Write the agreement down in week one, and rotate one role at the halfway point.** Unwritten agreements are the ones that get violated. The rotation is briefly inefficient and is the cheapest way to find out whether your documentation is good enough for someone else to pick up.
 
-**Write the agreement down in week one.** Six lines is enough: who owns what, how fast we review each other's work, when we meet, where decisions get recorded, what we do when someone disappears for exams, how we handle a disagreement. Unwritten agreements are the ones that get violated.
-
-**If you are temporarily solo**, nothing changes except that you hold all three domains and must schedule them. The real risk is that Product and Growth silently lose to Tech, because building is more fun than talking to users. Block time for them explicitly. Everything in this program is completable alone; it is just easier to fool yourself.
+**If you are temporarily solo**, you hold all three domains and must schedule them. The risk is that Product and Growth silently lose to Tech, because building is more fun than talking to users.
 
 ### Verify it
 
-Four checks you can run on your own group at the end of any week. They take five minutes and they catch decay early.
+Four checks on your own group at the end of any week.
 
-1. **Can each of you name your own domain and give one decision you made in it this week?** If someone cannot, they are doing tasks, not owning a domain.
-2. **Has every member written a brief and reviewed someone else's work this week?** This is the individual-evidence check, and it is the one that fails first.
-3. **Can the two non-Tech members each explain one part of the architecture without help?** Pick a different part each week. If the answer is consistently no, you have a bus factor problem that demo day will expose.
-4. **Is there anything nobody owns?** Infrastructure and data are the usual orphans, exactly as in M00. Unowned work does not get done; it gets discovered.
+1. **Can each of you name your domain and one decision you made in it this week?** If not, that person is doing tasks, not owning a domain.
+2. **Has every member written a brief and reviewed someone else's work this week?** This is the check that fails first.
+3. **Can the two non-Tech members each explain one part of the architecture without help?** Pick a different part each week; a consistent no is a bus-factor problem demo day will expose.
+4. **Is there anything nobody owns?** Infrastructure and data are the usual orphans, as in M00. Unowned work gets discovered, not done.
 
 ## Walkthrough
 1. Get the three of you in one room, or one call, with something to write on that everyone can see afterwards.

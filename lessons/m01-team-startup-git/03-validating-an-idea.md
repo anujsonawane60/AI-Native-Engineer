@@ -4,7 +4,7 @@ module: m01-team-startup-git
 slug: validating-an-idea
 title: "Users, Personas and Validating an Idea in One Week"
 order: 3
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,33 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team describes their idea to twelve classmates. Eleven say it sounds useful. Two say they would definitely use it. One offers to help.
+A team describes their idea to twelve classmates. Eleven say it sounds useful, two say they would definitely use it. They record this as validation and build for two months. At launch nobody signs up — including the two who said "definitely."
 
-The team records this as validation and builds for two months. At launch, nobody signs up — including the two who said "definitely."
-
-Nobody lied. They were asked a question humans cannot answer accurately: *would you use this?* People are bad at predicting their own future behaviour, and they are polite to someone who is visibly excited. Twelve conversations produced zero information, and the team felt more confident afterwards, which is worse than feeling nothing.
+Nobody lied. They were asked a question humans cannot answer accurately: *would you use this?* Twelve conversations produced zero information and left the team more confident, which is worse than nothing.
 
 ### The idea
 
 **Ask what people did last week, not what they would do next month.**
 
-Past behaviour is a fact and is checkable. Future intention is a guess delivered under social pressure. A week of five honest conversations about the past tells you more than fifty people agreeing with your pitch.
+Past behaviour is a checkable fact; future intention is a guess delivered under social pressure. Five honest conversations about the past beat fifty people agreeing with your pitch.
 
 ### The analogy
 
-You want to know whether a pre-order window would work at the canteen.
+Would a pre-order window work at the canteen? The useless question is "if there was a way to skip the queue, would you use it?" — everyone says yes, because you described a world with no cost and they are being kind. The useful one is "tell me about the last time you skipped lunch. What did you do instead?"
 
-**The useless conversation:** "If there was a way to pre-order and skip the queue, would you use it?" Everyone says yes. Of course they do — you have described a world with no cost and no effort, and they are being kind.
-
-**The useful conversation:** "Tell me about the last time you skipped lunch. What happened? What did you do instead? What did that cost you? Have you ever asked a friend to get food for you? When was the last time?"
-
-Now you are collecting facts. You learn that three of five skipped lunch last week, that two have a standing WhatsApp arrangement with a friend, that one pays ₹20 extra to a senior who brings food up, and that the real constraint is not the queue — it is that the mess shuts at 1:30 and their lab ends at 1:25.
-
-The last fact changes the product. You would never have found it by asking whether they liked your idea.
-
-**Where the analogy breaks:** at a canteen you can also just stand and watch the queue, which is better than any interview. Watching behaviour beats asking about it. Where you can observe instead of interviewing, observe.
-
-### The four questions that waste a conversation
+Now you collect facts: three of five skipped lunch last week, one pays ₹20 to a senior who brings food up, and the real constraint is not the queue — the mess shuts at 1:30 and their lab ends at 1:25. That last fact changes the product, and no question about your idea would have found it.
 
 | Do not ask | Because | Ask instead |
 |---|---|---|
@@ -57,9 +45,9 @@ The last fact changes the product. You would never have found it by asking wheth
 | "How much would you pay?" | Hypothetical money is imaginary | "What do you currently spend on this?" |
 | "What features would you want?" | Makes them design for you | "Walk me through the last time it happened." |
 
-The pattern: every good question points at a specific past event. "The last time" is the most useful phrase in the list.
+Every good question points at a past event. One hard rule: **do not describe your solution until the end.** The moment they know what you built, they start being supportive instead of informative.
 
-And one rule that is hard and worth it: **do not describe your solution until the end.** The moment they know what you have built, they start being supportive instead of informative, and the conversation is over even though it continues.
+**Where the analogy breaks:** at a canteen you can just stand and watch the queue, which beats any interview. Where you can observe instead of asking, observe.
 
 ### Picture it
 
@@ -83,31 +71,13 @@ And one rule that is hard and worth it: **do not describe your solution until th
    it last week  different     in a month
 ```
 
-Note that the questions change mid-week. The point of conversation two is partly to improve conversation four.
-
-### Reading the answers
-
-Five conversations will not give you statistics. They will give you three kinds of signal, and they are easy to tell apart once you know what to look for.
-
-**Strong signal — they already pay a cost.** Money, time, or social favours. "I pay a senior ₹20" is the strongest sentence you can hear, because it proves the pain exceeds the price of a workaround. Anyone who has built a workaround is telling you the problem is real.
-
-**Weak signal — agreement, enthusiasm, suggestions.** "That sounds great", "you should add X", "I'd use that." All pleasant, all worthless. If your notes consist mostly of this, you asked the wrong questions.
-
-**The most valuable signal — you were wrong about something.** The timing was different, the person was different, the real blocker was elsewhere. This feels like failure and is the entire return on the week. A set of interviews that changes nothing in your understanding almost certainly means you were pitching rather than listening.
-
-### A persona is a summary, not an invention
-
-Once you have five conversations, write one persona — a short description of the person you are building for, assembled from what you actually heard.
-
-The rule: **every line must be traceable to something somebody said.** Not "Priya is tech-savvy and values convenience", which is horoscope writing. Instead: "Priya's lab ends at 1:25 and the mess shuts at 1:30. She skipped lunch twice last week. She has asked a friend to bring food up on four occasions this month. She has ₹40 to ₹60 a day and does not use food delivery apps because the minimum order is ₹150."
-
-Every sentence there is a fact, and every fact constrains your product. The second version tells you the price ceiling, the time window and the competitor. The first tells you nothing.
+The questions change mid-week: conversation two exists to improve conversation four. You get no statistics, but three kinds of signal. **Strong signal** is a cost they already pay — "I pay a senior ₹20" proves the pain exceeds the price of a workaround. **Weak signal** is agreement and feature suggestions. **The best signal is that you were wrong**, which feels like failure and is the entire return on the week.
 
 ### Where it lives
 
-This week's output feeds directly into the next two chapters. The persona and the facts become the CONTEXT section of your PRD, which is the master brief you hand AI for the rest of the program. "Users are students on budget Android phones with ₹40 to spend in a five-minute window" is a constraint that will shape your design in M03, your data model in M04, and whether you need offline support in M08.
+Write one persona from the five conversations, where **every line traces to something somebody said.** Not "Priya is tech-savvy and values convenience", which is horoscope writing, but "Priya's lab ends at 1:25, the mess shuts at 1:30, she skipped lunch twice last week, has ₹40–60 a day and does not use delivery apps because the minimum order is ₹150." Each fact constrains the product: a price ceiling, a time window, a competitor.
 
-It also sets up the measurement you will do much later. The behaviour you recorded this week — twice last week, four times this month — is your baseline. In M16 you will measure whether your product actually changed it.
+That persona becomes the CONTEXT section of your PRD in chapter 4, the master brief you hand AI from here on. It shapes your design in M03, your data model in M04 and whether you need offline support in M08. It is also your baseline: in M16 you measure whether the product changed it.
 
 ### Words to own
 
@@ -124,24 +94,24 @@ It also sets up the measurement you will do much later. The behaviour you record
 
 ### Tradeoffs and gotchas
 
-**Five is enough to decide, not enough to be sure.** You are looking for a clear signal to continue, change or drop — not a statistically valid result. If all five say the problem does not happen to them, you have learned enough. If three describe a workaround they built, you have learned enough.
+**Five is enough to decide, not enough to be sure.** You want a clear signal to continue, change or drop. All five saying it never happens is enough; three describing a workaround is enough.
 
-**Interview strangers, not only friends.** Friends protect your feelings. At minimum, get two of the five from outside your immediate circle. If every conversation is with someone who wants you to succeed, you have gathered encouragement rather than evidence.
+**Interview strangers, not only friends.** Get two of the five from outside your circle, or you gathered encouragement rather than evidence.
 
-**Write notes during, not after.** Quote exact sentences. "I pay a senior ₹20 on Thursdays" is evidence you can revisit in month four; "seemed keen" is a memory you will misremember in your own favour.
+**Write notes during, not after, with exact quotes.** "I pay a senior ₹20 on Thursdays" is evidence you can revisit in month four; "seemed keen" is a memory you will bend in your own favour.
 
-**Beware your own excitement.** You will want to explain the solution. Every minute you spend explaining is a minute of data you do not collect. Keep the solution for the last two minutes, and then ask "what would stop you using this?" rather than "would you use this?"
+**Beware your own excitement.** Every minute explaining your solution is a minute of data lost.
 
-**Do not run these interviews with AI.** It is useful for drafting your questions, for role-playing a practice conversation, and for finding patterns in your notes afterwards. It is not a substitute for a real person, because it will produce a plausible, agreeable, fictional user — which is precisely the failure you are trying to avoid. Use it to prepare and to analyse, never as the respondent.
+**Do not run these interviews with AI.** It produces a plausible, agreeable, fictional user — precisely the failure you are avoiding. Use it to critique questions, role-play practice and find patterns in your notes; never as the respondent.
 
 ### Verify it
 
-Before you accept your own validation, check five things.
+Five checks before you accept your validation.
 
-1. **Does every persona line trace to a quote?** Anything that does not is your imagination, and it will mislead you for six months.
-2. **Did at least two of five describe a workaround?** Workarounds are the strongest available evidence short of money.
-3. **Did you learn something that surprised you?** If not, you were probably pitching. Look back at your notes for a moment where you moved on quickly from something you did not expect.
-4. **Can you state the decision in one sentence with a number?** "Three of five skipped lunch last week because of lab timings, so we continue with a timing focus rather than a queue focus."
+1. **Does every persona line trace to a quote?** Anything else is imagination that will mislead you for six months.
+2. **Did at least two of five describe a workaround?** The strongest evidence short of money.
+3. **Did you learn something that surprised you?** If not, you were probably pitching.
+4. **Can you state the decision in one sentence with a number?** "Three of five skipped lunch last week, so we continue with a timing focus."
 5. **Did you talk to anyone who does not care about you?** If not, add one before deciding.
 
 ## Walkthrough

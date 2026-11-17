@@ -4,7 +4,7 @@ module: m05-scale-reliability
 slug: the-cache-layers
 title: "The Cache Layers: Browser to CDN to App to Redis to Database"
 order: 2
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,35 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your team reads the last chapter, finds the bottleneck, and adds caching. The AI writes it in four minutes. The menu page is now fast on your laptop.
-
-Then three things happen. A student who was logged in as Priya sees Rahul's name in the header, because the page got cached at the edge with Priya's greeting baked into it. The chef marks paneer sold out and the menu keeps showing it available for eleven minutes, with no way to force it. And when your free host restarts the server at 2 am, the first forty requests of the morning are slow again, because the cache was living in that server's memory and memory forgets on restart — exactly the point M00 made about why servers are stateless.
-
-Each of those is the same mistake: the data was cached in the wrong layer. Caching is not one technique. It is five different techniques that share a name, and choosing between them is the entire skill.
+Your team adds caching and the AI writes it in four minutes. Then Priya, logged in, sees Rahul's name in the header, because the page was cached at the edge with Priya's greeting baked in. The chef marks paneer sold out and the menu keeps offering it for eleven minutes. A 2 am restart makes the first forty requests slow again, because the cache lived in that server's memory. Three bugs, one mistake: the wrong layer.
 
 ### The idea
 
 **A cache is a copy of an answer kept closer to whoever keeps asking — and the layer you put it in decides who can see it, how fast it is, and whether you can ever take it back.**
 
-The five layers run from the user outward: the browser on their phone, the CDN at the edge of the network, your app server's own memory, a shared cache like Redis that all your servers talk to, and finally the database itself, which is not a cache but the truth everything else is a copy of.
-
-Closer to the user means faster and cheaper. It also means less control, because a copy sitting on somebody's phone in Nashik is not something you can reach in and delete.
+Five layers run from the user outward: the browser, the CDN at the edge, your app server's own memory, a shared cache like Redis that all your servers use, and the database, the truth everything else copies. Closer to the user is faster and cheaper, and gives you less control: a copy on a phone in Nashik is not something you can delete.
 
 ### The analogy
 
-The canteen keeps copies of the menu in five places, and each one behaves differently.
+A student photographs the menu board: the **browser cache**, instant, private, beyond the canteen's reach. A copy pinned at the hostel gate: the **CDN**, shared by one area, updated only when somebody replaces the sheet. A cashier's apron note of today's specials: the **in-process cache**, fastest in the building and different in every apron. The whiteboard every cashier reads: **Redis**, one version for all the staff, wiped when the kitchen says so. The kitchen's stock ledger: the **database**, slow, and the only thing actually right.
 
-A student photographs the menu board and keeps it in their phone gallery. That is the **browser cache**: instant, free, completely private — and utterly beyond the canteen's reach. If prices change, that student is wrong until they look again.
-
-A copy of the board is pinned up at the hostel gate, so three hundred residents can read it without walking to the canteen. That is the **CDN**: near the users, shared by everyone in that area, and updated only when somebody walks over and replaces the sheet.
-
-Each cashier keeps a scribbled note in their apron pocket of today's six specials. That is the **in-process cache**: the fastest thing in the building, and different in every apron. Ask two cashiers and you may get two answers.
-
-Behind the counter is a whiteboard every cashier reads before answering. That is **Redis**, a shared cache: one version of the truth for all the staff, one short walk away, wiped and rewritten whenever the kitchen says so.
-
-And the kitchen's stock ledger is the **database**. Slow to consult, but it is the only thing that is actually right.
-
-**Where the analogy breaks:** a samosa taken from the warmer is gone, while a cached value can be served a million times without being used up — caches have no stock problem, only a truth problem. And food announces when it has gone off. Stale cached data looks absolutely fresh, which is why the entire next chapter is about expiry.
+**Where the analogy breaks:** food announces when it has gone off, and stale cached data looks absolutely fresh — which is why the next chapter is about expiry.
 
 ### Picture it
 
@@ -66,9 +50,7 @@ And the kitchen's stock ledger is the **database**. Slow to consult, but it is t
 
 A request walks left to right only as far as it has to: whichever layer has a usable copy answers immediately, and only a complete miss all the way along reaches the database.
 
-### What belongs in which layer
-
-This table is the actual decision you will make, over and over, for the rest of the program.
+Which layer a thing belongs in is the decision you will keep making:
 
 | Layer | Good for | Never put here |
 |---|---|---|
@@ -78,15 +60,11 @@ This table is the actual decision you will make, over and over, for the rest of 
 | Redis / shared | Sessions, rate-limit counters, query results, computed feeds | The only copy of anything you cannot recreate |
 | Database | The truth | — |
 
-Two rules do most of the work. **Personalised data never goes in a shared or public layer** — that is the Priya-and-Rahul bug, and it is a security incident, not a caching bug. And **anything that must be identical on every server does not go in process memory**, because you will run more than one server the first time you scale, and the chapter on load balancers explains why you cannot predict which one a student lands on.
+One rule does most of the work: **personalised data never goes in a shared or public layer.** That is the Priya bug, and it is a security incident rather than a caching one.
 
 ### Where it lives
 
-On M00's four-box map, caches sit in the gaps. The browser cache removes the network hop entirely. The CDN shortens it. Redis replaces a slow database hop with a fast one. The database is the one thing that is not a copy.
-
-You have already met three of these layers without the word "cache" attached. M02's rendering chapter put your static files behind a CDN. M04 put uploaded images in object storage, which is served through a CDN. M07 will show you cache hit rate as a metric worth a dashboard. And M10 applies the identical idea to language-model calls: prompt caching reuses the expensive part of a long prompt, and semantic caching returns a stored answer when a new question means roughly the same thing as an old one. Same layer logic, different payload.
-
-The practical arrangement for a student project on free tiers is small and boring: static files and images on the CDN your host already gives you, a single shared cache instance for the three or four expensive queries that actually hurt, and nothing at all in process memory. That is enough for every traffic level you will see this year.
+Caches sit in the gaps of M00's four boxes: the browser removes a network hop, the CDN shortens it, Redis replaces a slow database hop with a fast one. You have met three already: M02's static files on a CDN, M04's uploads in object storage, M07's hit rate on a dashboard. For a student project: static files and images on the CDN your host gives you, one shared cache for the few queries that hurt, nothing in process memory.
 
 ### Words to own
 
@@ -105,29 +83,22 @@ The practical arrangement for a student project on free tiers is small and borin
 
 ### Tradeoffs and gotchas
 
-**Every cache is a second copy of the truth, and two copies disagree eventually.** That is not a flaw you can engineer away, only one you can bound. Adding a cache always trades correctness for speed; the question is how much staleness your feature can survive. A dish photo can be a day old. A "sold out" flag cannot be eleven minutes old. A UPI payment status cannot be stale at all.
+**Every cache is a second copy of the truth, and two copies disagree eventually.** You can only bound it: a dish photo can be a day old, a sold-out flag cannot be eleven minutes old, a UPI status cannot be stale at all.
 
-**Caching the wrong thing costs more than not caching.** A cache lookup is not free: it is a network hop, a serialisation step, and code someone has to understand. If the thing you cached took 2 ms to compute, you have added complexity and latency. Cache what is slow and asked for often. Something slow but asked once a week is not a caching problem.
+**Caching the wrong thing costs more than not caching.** A lookup is a hop, a serialisation step and code to maintain: cache what is slow *and* asked for often.
 
-**In-process caches are a trap specifically because they work on your laptop.** One process, one cache, perfectly consistent, beautifully fast. Deploy two instances and half your users see one answer and half see another, intermittently, in a way that is miserable to debug. If you cannot say out loud why the data is safe to differ per server, do not put it there.
+**In-process caches are a trap because they work on your laptop.** With two instances, half your users see one answer and half another, intermittently.
 
-**A cache is not storage.** Redis free tiers evict data when they fill up and can be wiped on restart. Anything you cannot recompute from the database must not live only in a cache. Session tokens are the classic near-miss: losing them logs everybody out, which is survivable; losing an order is not.
-
-**Public caching of a logged-in page is a real-world outage pattern.** It has happened to large retailers, who cached HTML at the CDN and served one customer's basket to another. The rule is absolute: if the response depends on who is asking, it does not go in a shared layer unless the cache key includes the user.
+**A cache is not storage.** Free tiers evict when full and can be wiped on restart, so anything you cannot recompute must not live only in a cache. And public caching of a logged-in page is a real outage pattern: large retailers have served one customer's basket to another.
 
 ### Verify it
 
-**Ask which layer, and why that one.** The first question to put to an AI is never "add caching" but "for each of these five pieces of data, tell me which of the five layers it belongs in, what could go wrong in each of the other four, and how stale it is allowed to be". If it answers with one layer for everything, it has not engaged with your problem.
-
-**Red flag: a personalised response cached in the CDN or in Redis without the user in the key.** Read the cache key out loud. If it is `dashboard` rather than `dashboard:user:42`, you are one request away from showing somebody else's data. This is the most expensive caching mistake there is and AI makes it routinely, because the fast version and the correct version look almost identical.
-
-**Red flag: caching in process memory with no mention of multiple servers.** Ask directly: "what happens to this cache when I run three instances behind a load balancer, and what happens when the host restarts one?" A good answer names both the inconsistency and the cold start. A bad answer says it will be fine.
-
-**Red flag: caching the step that was never slow.** The recurring one from the last chapter. Make the AI state which measured step the cache removes and how many milliseconds that step cost. If it cannot, you are adding a layer for decoration.
-
-**Red flag: a cache with no removal story.** Every cached thing needs an answer to "how does this get updated when the underlying data changes?" If the only answer is "it expires", that needs to be a deliberate choice with a number attached, not a shrug. That is the next chapter.
-
-Then prove the hit rather than trust it. Load the page twice and compare the timings; check that the second one is dramatically faster. Look at the response headers for a cache status. And log hits and misses so you have a hit rate, not a feeling. Write the layer choice into your M01 decision log — "menu JSON in Redis, 60 s, because the chef's sold-out flag must land within a minute" is a textbook decision-log entry, and in M11 somebody will ask you why.
+- **Ask which layer, and why that one:** per piece of data, which of the five, what breaks in the other four, how stale it may be. One layer for everything means it has not engaged.
+- **Red flag: a personalised response cached without the user in the key.** `dashboard` rather than `dashboard:user:42` leaks somebody's data, and AI does this routinely.
+- **Red flag: process memory with no mention of multiple servers.** A good answer names the inconsistency and the cold start.
+- **Red flag: caching the step that was never slow.** Make it name the step removed and its cost in milliseconds.
+- **Red flag: a cache with no removal story.** "It expires" has to be a deliberate number, not a shrug.
+- Prove the hit: load twice and compare timings, read the headers for a cache status, log hits and misses. Then log the choice: "menu JSON in Redis, 60 s, because the chef's sold-out flag must land within a minute".
 
 ## Walkthrough
 1. Open your deployed app, open developer tools, and reload with the Network tab open. Find a static file — a font, a logo, your JS bundle — and look at its size and time.

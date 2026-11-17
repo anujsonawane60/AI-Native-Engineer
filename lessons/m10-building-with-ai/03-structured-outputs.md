@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: structured-outputs
 title: "Structured Outputs and JSON Schemas"
 order: 3
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,25 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team builds an order extractor. A student types "2 idli aur ek chai bhejo", and the model replies: "Sure! Here's the order: 2 idli and 1 chai, total ₹70."
-
-Their code finds the numbers with string splitting. It works most of the time, and the failures are the worst kind — silent. "₹70" is read as 70, but the database stores paise, so a ₹70 order is saved as 70 paise. "ek chai" has no digit, so quantity becomes zero and the chai disappears. One evening the model wraps its answer in a code fence and the parser throws an exception on every order for forty minutes before anyone notices.
-
-Not one of these is a model failure. The model answered the question. The team asked for a sentence and then treated it as a data structure.
+A team builds an order extractor. A student types "2 idli aur ek chai bhejo" and the model replies "Sure! Here's the order: 2 idli and 1 chai, total ₹70." Their code finds the numbers by splitting strings, and the failures are silent: "₹70" becomes 70 paise in a database that stores paise, and "ek chai" has no digit, so the chai vanishes at quantity zero. Then a reply arrives wrapped in a code fence and the parser throws for forty minutes. They asked for a sentence and treated it as data.
 
 ### The idea
 
 **Stop asking for text you have to parse. Declare the exact shape you need as a schema, and have the provider guarantee the reply matches it.**
 
-Most APIs now accept a JSON Schema and constrain generation so the output is valid against it. Your code receives an object with the fields you named, of the types you named. The parsing problem disappears, and with it an entire class of bug.
+Most APIs now accept a JSON Schema and constrain generation so the output is valid against it. Your code receives an object with the fields and types you named, and a whole class of bug disappears with the parsing.
 
 ### The analogy
 
-The canteen has two ways to take an order. A helper can scribble a note, or they can fill in the printed slip: dish name, quantity box, table number, a tick for veg or non-veg, and a signature.
+The canteen has two ways to take an order: scribble a note, or fill in the printed slip — dish, quantity box, table number, a veg tick. The slip cannot be filled in creatively: nowhere to write a greeting, a number in the quantity box, and a day's slips total up without interpreting handwriting.
 
-The slip cannot be filled in creatively. There is nowhere to write a greeting. The quantity box takes a number. The veg tick is one of two boxes. Anyone collecting slips at the end of the day can total them without interpreting anybody's handwriting.
-
-**Where the analogy breaks:** a slip guarantees shape, never truth. A helper can tick "veg" on a chicken biryani and write 999 in the quantity box, and the slip is still perfectly valid. Schema validity means your code will not crash. It says nothing at all about whether the order is right. That distinction is the single most misunderstood thing about structured outputs, and it is what the Verify it section is for.
+**Where the analogy breaks:** a slip guarantees shape, never truth. A helper can tick "veg" on a chicken biryani and write 999 in the quantity box, and the slip is still perfectly valid. Schema validity means your code will not crash; it says nothing about whether the order is right.
 
 ### Picture it
 
@@ -65,11 +59,7 @@ The slip cannot be filled in creatively. There is nowhere to write a greeting. T
         ▼  validate, then your code does the money
 ```
 
-With a schema the model fills in named fields and your own code computes the total from your own prices. Without one, you are parsing a sentence and trusting a number the model invented.
-
-### A small schema, read not written
-
-You will not write JSON Schema by hand — you will brief AI to produce it and then read it critically. This is what you are reading for.
+With a schema the model fills in named fields and your code computes the total from your own prices. You will not write JSON Schema by hand — you will brief AI and read the result critically.
 
 ```
 {
@@ -95,21 +85,16 @@ You will not write JSON Schema by hand — you will brief AI to produce it and t
 }
 ```
 
-Four design choices are doing all the work here, and each one makes a specific wrong answer impossible to express.
+Four design choices do all the work here.
 
-**`dish_id` is an enum, not a string.** The model cannot invent "paneer tikka" because there is no slot for it. An enum built from your actual menu table is the cheapest hallucination defence in this entire module.
-
-**`qty` is a bounded integer.** No decimals, no zero, no 999. The order that broke their database cannot be represented.
-
-**There is no `total` field.** Money is not the model's job. Your code multiplies your prices by the quantities, in paise, as integers. Never ask a model for an amount you can compute yourself.
-
-**`unresolved` and `needs_human` exist.** "Ek special dena" goes into `unresolved` and sets `needs_human` to true. Without these, the model has no legal way to be uncertain, so it will guess — and a guess inside a valid schema looks exactly like a fact.
+- **`dish_id` is an enum, not a string.** The model cannot invent "paneer tikka" — there is no slot for it. The cheapest hallucination defence in this module.
+- **`qty` is a bounded integer.** No decimals, no zero, no 999.
+- **No `total` field.** Money is not the model's job; your code multiplies your own prices in paise.
+- **`unresolved` and `needs_human` exist.** Without a legal way to be uncertain the model guesses, and a guess inside a valid schema looks exactly like a fact.
 
 ### Where it lives
 
-The schema sits exactly on the boundary between the model and your code, which is the same place M04 put API contracts. It *is* a contract: the model promises a shape, your code promises to validate it. Field names should match your database columns, so nothing needs translating on the way in.
-
-Chapter four is this same mechanism pointed the other way: a tool definition is a schema describing the arguments a model may send to one of your functions. Chapter twelve's eval sets compare structured answers field by field, which is only possible because the answer has fields. And in chapter nineteen, your schema file is one of the things a linter can check automatically.
+The schema sits on the boundary between the model and your code, where M04 put API contracts — and it *is* a contract: the model promises a shape, your code validates it, and field names match your database columns. Chapter four is this mechanism reversed; chapter twelve's evals compare answers field by field, which only works because the answer has fields.
 
 ### Words to own
 
@@ -128,33 +113,25 @@ Chapter four is this same mechanism pointed the other way: a tool definition is 
 
 ### Tradeoffs and gotchas
 
-**A valid shape is not a true answer.** This bears repeating because teams genuinely conflate the two. Constrained decoding removes parse errors and invented field names. It does not remove wrong quantities, mislabelled items or confidently fabricated identifiers.
+**A valid shape is not a true answer.** Constrained decoding removes parse errors and invented field names, not wrong quantities, mislabelled items or fabricated identifiers.
 
-**Never let a model produce an identifier.** Not an order id, not a user id, not a payment reference. It will produce something that looks perfect and refers to nothing, and your foreign key will fail at the worst moment. The model may *select* an id from a list you supplied; it may never mint one.
+**Never let a model produce an identifier or an amount.** It will produce something that looks perfect and refers to nothing. It may *select* an id from a list you supplied; never mint one. Money stays integer paise in your code.
 
-**Money as a float is a bug waiting for a demo.** `34.50` cannot be stored exactly in binary floating point, and a three-way split of ₹340 will drift. Integers in paise, always, and the arithmetic in your code — which is where M04's payment chapter and chapter thirteen of this module meet.
+**Deep nesting degrades quality.** Thirty fields five levels deep fill in worse than two flat calls; split it.
 
-**Deep nesting degrades quality.** A schema five levels deep with thirty fields gets filled in worse than two flat calls with eight fields each. If the model has to populate everything to populate anything, split the call.
+**A free-text field is still free text.** `notes: string` is an open door: what the user wrote may later be read by an agent as an instruction. Prefer enums, bound your strings, never concatenate it into a later prompt unmarked.
 
-**A free-text field is still free text.** `notes: string` inside a beautiful schema is an open door: whatever the user wrote arrives in your system and may be read later by an agent as an instruction. Chapter seven is about that, and the mitigation starts here — prefer enums, bound your strings, and never concatenate a free-text field into a later prompt without marking it as data.
-
-**Enums drift.** You add a dish to the menu and forget the enum, so real orders land in `unresolved` and nobody notices because nobody is watching that field. Generate the enum from the database at request time rather than typing it into the schema by hand.
-
-**Strict mode is not always available.** On some free tiers you get "please reply in JSON" rather than a hard guarantee, which means fenced code blocks, trailing commentary and occasional prose. Validate in your own code regardless, retry once with the validation error appended, and fail loudly on the second attempt rather than writing a half-parsed row.
+**Strict mode is not always available.** On some free tiers you get "please reply in JSON" rather than a guarantee. Validate anyway, retry once with the validation error appended, then fail loudly.
 
 ### Verify it
 
-**Validate every single response, in code, before it touches your database.** Not sometimes. Log every failure with the raw text. The failure rate is a number you should be able to quote, and if you cannot, you are not validating.
+- **Validate every response in code before it touches your database**, and log failures with the raw text. You should be able to quote your failure rate.
+- **Read the schema for fields that should not exist** — `total`, `price`, `order_id`. Anything the model invents that your code already knows is a future wrong number.
+- **Check the escape hatch fires.** Send "ek special dena" and "do plate". If `needs_human` stays false, the model is guessing.
+- **Count what lands in the catch-all, weekly.** If `unresolved` absorbs a tenth of your traffic your enum is stale — generate it from the database at request time.
+- **Round-trip one example.** Render the output back into a sentence and compare it with what the student typed.
 
-**Read the schema for fields that should not exist.** A `total`, a `price`, an `order_id`, a `created_at` — anything the model is being asked to invent that your code already knows. Each one is a future wrong number.
-
-**Check there is an escape hatch, and that it fires.** Send three deliberately ambiguous inputs: "ek special dena", "wahi jo kal liya tha", "do plate". If `needs_human` stays false on all three, the model is guessing and your schema is hiding it.
-
-**Count what lands in the catch-all.** If `unresolved` or an `other` enum value is absorbing a tenth of your traffic, your enum is stale or your categories are wrong. This is a weekly check, not a one-time one.
-
-**Round-trip one real example.** Take the structured output, render it back into a human sentence, and compare it with what the student actually typed. Anything dropped on the way in shows up immediately.
-
-Red flags: code that splits strings on model output; money in a float or rupees rather than paise integers; a model-generated identifier used as a key; an enum typed by hand instead of generated from your data; no `needs_human` equivalent anywhere in the schema; a schema validated only in testing; and a free-text field whose contents get concatenated into a later prompt.
+Red flags: code that splits strings on model output; money as a float or in rupees; a model-generated identifier used as a key; a hand-typed enum; no `needs_human` equivalent; a schema validated only in testing; a free-text field concatenated into a later prompt.
 
 ## Walkthrough
 1. Pick one AI call in your product whose output your code consumes. Write down, as a list of field names and types, exactly what your code needs from it.

@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: workflow-vs-agent
 title: "Workflow vs Agent, and When Deterministic Wins"
 order: 13
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team builds "an agent" for order intake. It handles a WhatsApp message end to end: read the message, work out the items, look up prices, compute the total, create the order, send a confirmation. Six steps, every time, in that order.
+A team builds "an agent" for order intake: read the message, work out the items, look up prices, total it, create the order, confirm. Six steps, every time, in that order — and they hand the model all six as tools and let it choose the sequence.
 
-They give the model all six as tools and let it decide the sequence. What they get back is a system that sometimes skips the price lookup and invents a total, occasionally calls order creation twice so the student gets charged twice, takes between four and nineteen seconds, costs several times what they budgeted, and — when an order goes wrong — offers no way to tell which step failed, because there were no steps.
-
-Two days later they rewrite it as one model call that extracts items into chapter three's schema, followed by about fifteen lines of perfectly ordinary code. It runs in under a second, costs a fraction, double-creates nothing because the insert has an idempotency key, and every failure names the line it happened on.
-
-Nothing was wrong with the model. They used an agent for a problem that had no decisions in it.
+What comes back sometimes skips the price lookup and invents a total, sometimes creates the order twice, and cannot say which step failed, because there were no steps. Two days later they rewrite it as one extraction call plus fifteen lines of ordinary code: under a second, a fraction of the cost. They had used an agent for a problem with no decisions in it.
 
 ### The idea
 
-**If you can write the steps down in advance, it is a workflow. An agent is for when you genuinely cannot — when the next action depends on what the last one found, in ways you could not enumerate. An agent costs you determinism, and you should make it earn that.**
+**If you can write the steps down in advance, it is a workflow. An agent is for when you genuinely cannot — when the next action depends on what the last one found, in ways you could not enumerate. An agent costs you determinism, and it should have to earn that.**
 
-The instinct that an agent is the sophisticated choice has this exactly backwards. Choosing the simplest structure that solves the problem is the sophisticated choice. Reaching for an agent because it sounds advanced is how a one-second feature becomes a fourteen-second one.
+The instinct that an agent is the sophisticated choice has it backwards. Choosing the simplest structure that solves the problem is the sophisticated choice.
 
 ### The analogy
 
-Thali service at the canteen is a workflow. Five items, five compartments, same order, two hundred times. A new helper learns it in ten minutes, every plate looks the same, and when the plates stop coming you know exactly which station is stuck.
+Thali service is a workflow: five items, five compartments, same order, two hundred times. A new helper learns it in ten minutes, and when plates stop coming you know which station is stuck. Catering a wedding is not: the guest count moved, three families are Jain, and somebody has to decide.
 
-Catering a wedding is not a workflow. The guest count moved, three families are Jain, the hall has one gas point, and somebody must decide what to cook less of. That needs a person making judgement calls as information arrives.
-
-A canteen that treats thali service as a judgement call serves two hundred different thalis and runs out of rice by one o'clock.
-
-**Where the analogy breaks:** a human doing a repetitive job still notices the rice is running low and says something. A deterministic pipeline notices nothing it was not told to check. So a workflow needs its error paths written out explicitly — what happens when the price lookup returns nothing, when the message is in a language you cannot parse, when the insert fails. The agent's one genuine advantage is handling the case you did not anticipate, and your workflow has to pay for that with explicit handling instead.
+**Where the analogy breaks:** a human doing a repetitive job still notices the rice running low. A deterministic pipeline notices nothing it was not told to check, so a workflow needs its error paths written out — empty price lookup, unparseable language, failed insert. The agent's one real advantage is the case you did not anticipate; your workflow pays for that with explicit handling.
 
 ### Picture it
 
@@ -70,39 +62,18 @@ A canteen that treats thali service as a judgement call serves two hundred diffe
   6  MULTI-AGENT   several agents, each with a role
 ```
 
-Six rungs of increasing power and decreasing predictability. Climb one rung only when the rung below has demonstrably failed on your own eval set.
+Six rungs of increasing power and decreasing predictability. Climb one only when the rung below has demonstrably failed on your eval set.
 
-### The three questions
-
-**Can you write the steps down in advance?** If you can list them on paper, it is a workflow. Write them as code.
-
-**Is the number of steps bounded and known?** "Always exactly six" is a workflow. "Between two and forty, depending on what it finds" is agent territory — and that unbounded number is also your cost risk, which chapter fourteen caps.
-
-**Does the next action genuinely depend on the content of the last result, in a way you cannot enumerate?** This is the real test. "If the message is a complaint, do the complaint thing" is a *router* — a model making one choice among known branches, after which everything is fixed. That is rung three, not rung five, and it covers an enormous number of features teams build agents for.
-
-If all three answers point to workflow, an agent will be slower, dearer, less testable and no more capable.
-
-### What deterministic code must always own
-
-Some things never belong to a model, no matter how good it gets. Not because of accuracy — because of accountability.
-
-**Money arithmetic.** Prices, totals, discounts, splits, rounding, tax. Integers in paise, in your code, every time. Chapter three said never ask for a total; this is the same rule at the system level.
-
-**Permission checks.** Whether this student may cancel that order. A model's cooperation is not an authorisation decision, as chapter four's wrong-user test showed.
-
-**The ordering of writes.** What is inserted before what, what is inside a transaction, what has an idempotency key. The double-charged student in the opening story is this failure exactly.
-
-**Anything that must be byte-identical every time.** An invoice number. A receipt. A compliance log. "Mostly the same" is not a property you can build on.
-
-The clean division is: the model handles the **unstructured** part — reading a message, understanding a document, writing a sentence — and your code handles the **consequential** part. Chapter three's schema is the boundary between them.
+Three questions decide the rung. **Can you write the steps down in advance?** Then write them as code. **Is the number of steps bounded?** "Always six" is a workflow; "two to forty, depending what it finds" is agent territory, and that unbounded number is your cost risk. **Does the next action genuinely depend on the last result in a way you cannot enumerate?** That is the real test: "if the message is a complaint, do the complaint thing" is a *router* — one model choice among known branches. Rung three, not rung five.
 
 ### Where it lives
 
-A workflow is ordinary application code in M04's sense, with model calls at named points. It can run in a request, or as a queued job, and every step can be logged, retried and tested individually with M06's test suite.
+A workflow is ordinary application code with model calls at named points, so every step can be logged, retried and tested on its own. An agent is the loop in chapter fourteen. Most real products converge on a **deterministic workflow with an agent inside one step**, with the money, the permissions and the writes outside it. Four things never belong to a model:
 
-An agent is the loop in chapter fourteen. The design most real products converge on is a **deterministic workflow with an agent inside one step** — a bounded place where open-ended work happens, with the money, the permissions and the writes safely outside it. That shape is also what makes the permission model from M00 workable: you only need a gate around the one step that can act.
-
-And remember chapter two's build-time trick. An agent exploring a problem once, while you watch, producing a workflow you then run deterministically forever, is often the best of both.
+- **Money arithmetic** — prices, totals, discounts, splits, rounding, in integer paise in your code
+- **Permission checks** — a model's cooperation is not an authorisation decision
+- **The ordering of writes** — what is inside a transaction, what has an idempotency key
+- **Anything that must be byte-identical** — an invoice number, a receipt, a compliance log
 
 ### Words to own
 
@@ -121,33 +92,23 @@ And remember chapter two's build-time trick. An agent exploring a problem once, 
 
 ### Tradeoffs and gotchas
 
-**An agent whose trace is identical every run is a workflow you are overpaying for.** Log ten real runs and compare the tool sequences. If they match, you have discovered a workflow. Write it down and delete the loop.
+**An agent whose trace is identical every run is a workflow you are overpaying for.** Log ten runs and compare the tool sequences; if they match, write the workflow down and delete the loop.
 
-**Non-determinism is a liability, not a feature.** It means you cannot reproduce a bug, cannot write a test that passes twice, and cannot tell a user why something happened. For anything touching money or permissions that is disqualifying, regardless of accuracy.
+**Non-determinism is a liability, not a feature.** You cannot reproduce a bug, write a test that passes twice, or tell a user why something happened.
 
-**Routers are the most underused rung.** One cheap classification call, then four fixed paths. You get the flexibility people want agents for, with full testability, because each branch is ordinary code you can test independently.
+**Routers are the most underused rung.** One cheap classification call, then four fixed paths: the flexibility people want from agents, with every branch testable as ordinary code.
 
-**Workflows fail silently if you skip the error paths.** The agent's real advantage is coping with the unexpected. If you choose a workflow, you must write out what happens on every failure — empty result, wrong language, failed insert, timeout — or you have simply moved the unpredictability into production.
-
-**Cost is bounded in a workflow and open-ended in an agent.** Six steps is six calls. "Until it is done" is however many it takes, and a loop that cannot decide when to stop is a bill. Chapter fourteen exists for this.
-
-**Nobody is impressed by an agent that is slower.** Demo day rewards a feature that works in one second. "We used an agent" is not a result; "it handles a Marathi voice note in under two seconds for under a rupee" is.
-
-**Do not let the word creep.** Teams call any model call an agent, and then cannot reason about it. If the model is not choosing its next action, it is not an agent. Use the words from the ladder and your design conversations get sharper immediately.
+**Do not let the word creep.** If the model is not choosing its next action, it is not an agent — and nobody is impressed by an agent that is slower.
 
 ### Verify it
 
-**Write the steps on paper before you build anything.** If you succeed, you have just designed a workflow and the decision is made. If you cannot get past step two without "it depends what it finds", you may genuinely need an agent.
+- **Write the steps on paper first.** If you succeed, you have designed a workflow. If you cannot get past step two without "it depends what it finds", you may need an agent.
+- **Take ten real runs and compare the tool sequences.** Identical means workflow; wildly varying means a real agent problem, or a lost agent.
+- **Trace the money.** Confirm no amount is ever produced by a model.
+- **Run the same input twice and diff the result.** A workflow must produce the identical row and total.
+- **Ask what a failure report looks like.** If a failure is only describable as "the agent got confused", you cannot support this feature.
 
-**Take ten real runs and compare the tool sequences.** Identical sequences mean a workflow. Wildly varying sequences mean either a real agent problem or an agent that is lost — chapter twelve's ladder tells you which.
-
-**Trace the money.** Follow every rupee through your design and confirm that no amount is ever produced by a model. Any arithmetic in a model's output is a bug waiting for a demo.
-
-**Run the same input twice and diff the result.** A workflow must produce the identical order row, the identical total and the identical confirmation. If it does not, something non-deterministic is sitting where it should not be.
-
-**Ask what a failure report looks like.** Can you say which step failed, with a log line? If a failure is only describable as "the agent got confused", you cannot support this feature.
-
-Red flags: an agent whose steps are the same on every run; a model computing a price, total or discount; a write with no idempotency key; an agent chosen before any simpler rung was tried; no step-level logging; no explicit error path for an empty or unparseable input; the word "agent" used for a single model call; and a design where an agent sits *around* the money rather than inside one bounded step.
+Red flags: an agent whose steps are the same every run; a model computing a price or discount; a write with no idempotency key; an agent chosen before a simpler rung was tried; no step-level logging; no error path for unparseable input; "agent" used for a single model call; an agent sitting *around* the money rather than inside one bounded step.
 
 ## Walkthrough
 1. Pick one AI feature you are planning. Write its steps on paper, numbered, in order, as if a new teammate had to do it by hand.

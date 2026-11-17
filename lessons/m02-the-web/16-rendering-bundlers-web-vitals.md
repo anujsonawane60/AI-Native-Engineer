@@ -4,7 +4,7 @@ module: m02-the-web
 slug: rendering-bundlers-web-vitals
 title: "Rendering Strategies, Bundlers, CDNs and Core Web Vitals"
 order: 16
-duration_min: 30
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Checkpoint demo. The team's canteen app opens in 1.4 seconds on the presenter's laptop and in 11 seconds on the mentor's three-year-old Android on venue 4G.
+Checkpoint demo. The app opens in 1.4 seconds on the presenter's laptop and 11 seconds on the mentor's three-year-old Android on venue 4G. The Network panel explains it: 3.2 MB transferred, 2.4 MB of it JavaScript, to show six dish names and six prices. A charting library rides along because one admin screen has a graph and the bundle is not split, and the photos are 900 KB camera images displayed at 160 pixels wide.
 
-The Network panel explains all of it. The page transfers 3.2 MB, of which 2.4 MB is JavaScript, to display six dish names and six prices. A charting library is in the bundle because one admin screen shows a graph, and the bundle is not split, so every student downloads the chart code to look at a menu. The dish photos are full-resolution camera images, 900 KB each, resized down to 160 pixels wide by the browser after downloading all of it.
-
-And the worst part is not the wait. At second nine the logo image finally loads, the page reflows, and the mentor — who had been reaching for "Masala Dosa" — taps "Sold out: Idli" instead. That jump has a name, a score, and a direct line to the fact that she gave up.
+The worst part is not the wait. At second nine the logo loads, the page reflows, and the mentor — reaching for "Masala Dosa" — taps "Sold out: Idli".
 
 ### The idea
 
 **Where and when your page is built decides what the first second feels like, and "fast" is three specific measurable numbers rather than an impression.**
 
-Three places a page can be built. At **build time**, once, in advance — the result is a plain file, so serving it is as fast as the internet gets. At **request time**, on the server, when the user asks — always fresh, and the user waits for the server. In the **browser**, by JavaScript, after an almost-empty document arrives — the server's job is tiny, and the work lands on the user's device, which is a ₹8,000 Android.
+Three places a page can be built. At **build time**, once in advance — a plain file, so serving it is as fast as the internet gets. At **request time** on the server — always fresh, and the user waits. In the **browser**, after an almost-empty document arrives — your server's job is tiny and the work lands on a ₹8,000 Android.
 
 ### The analogy
 
-How the canteen prepares food.
+**Pre-cooked in the warmer** is build-time rendering: served in four seconds, but made at 10am, so a noon price change leaves the board wrong. **Cooked when you order** is server rendering: exactly current, and you stand there while it is made. **Handed raw ingredients to assemble at your table** is client rendering: the counter frees up instantly, which looks efficient from behind the counter, until you notice you are doing the work with whatever tools you have.
 
-**Pre-cooked and sitting in the warmer** is build-time rendering. You walk up and you are served in four seconds. It is the fastest possible experience, and the food was made at 10am, so if the price changed at noon the board is wrong.
-
-**Cooked when you order** is server rendering. Exactly right, exactly current, and you stand there while it is made.
-
-**Handed a tray of raw ingredients to assemble at your table** is client rendering. The counter is free almost instantly, which looks efficient from behind the counter. Then you discover you are doing the work, with whatever tools you happen to have, and the student with a plate and a spoon finishes long before the one with nothing.
-
-**Where the analogy breaks:** the canteen has one counter and serves one person at a time. A CDN copies your pre-cooked page to servers all over the world and serves thousands of people at once from whichever one is nearest. That is why build-time rendering plus a CDN is not just fast but cheap — and it is also why a CDN cannot help with the cooked-to-order case, where the wait is the kitchen rather than the distance.
+**Where the analogy breaks:** the canteen serves one person at a time. A CDN copies your pre-cooked page to servers worldwide and serves thousands at once from the nearest — which is why build time plus a CDN is fast *and* cheap, and why a CDN cannot help the cooked-to-order case, where the wait is the kitchen rather than the distance.
 
 ### Picture it
 
@@ -65,29 +57,13 @@ How the canteen prepares food.
 
 Build time serves finished bytes from a nearby CDN, request time builds fresh bytes while the user waits, and client rendering sends an empty shell plus the code and does the work on the user's own phone.
 
-### Most real apps mix all three
-
-This is not a single choice for the whole product. It is a choice per page, and the useful default is: **static unless there is a reason, server-rendered when the content is per-user or changes constantly, client-rendered only for the parts that are genuinely interactive.**
-
-Your landing page and your "about the canteen" page should be static. The menu, which changes when the chef marks something sold out, can be server-rendered, or static with a short revalidation window. The cart is per-user and interactive, so it is client work. One product, three answers, and asking "which of these is this page?" in the brief is what stops everything defaulting to the slowest option.
-
-### Three numbers, not a feeling
-
-Core Web Vitals are the industry's three measurements, and they map onto the three things a user actually experiences.
-
-**LCP — Largest Contentful Paint.** How long until the biggest useful thing is visible. The target is under 2.5 seconds. This is "when can I read it".
-
-**INP — Interaction to Next Paint.** How long from a tap until the page visibly responds. Under 200 milliseconds. This is chapter 8's point measured: silence after a tap is what causes the second tap.
-
-**CLS — Cumulative Layout Shift.** How much the page jumps around as it loads. Under 0.1. This is the mentor tapping "Sold out: Idli", and it is caused almost entirely by images and ads with no reserved space.
-
-The number that matters is the one measured **on a mid-range phone on a throttled network**, not on your laptop. A laptop measurement of 1.4 seconds is not a smaller version of the truth; it is a different measurement entirely.
+Real apps mix all three, per page: **static unless there is a reason, server-rendered when the content is per-user or changes constantly, client-rendered only for the genuinely interactive parts.** Landing page static; menu server-rendered or static with a short revalidation window; cart client work. Asking "which is this page?" in the brief stops everything defaulting to the slowest option.
 
 ### Where it lives
 
-This chapter touches every box in M00's four at once: what the client has to do, what the server has to do, how much crosses the network, and where the data comes from.
+This chapter touches all four of M00's boxes: what the client does, what the server does, how much crosses the network, where the data comes from. Chapter 15's rendering choice becomes concrete here, M06 enforces a performance budget in CI, and M07's analytics collects these numbers from real users rather than your machine.
 
-Chapter 15's rendering choice is made concrete here. M05 covers caching and CDNs properly — the thing to carry forward now is that **a CDN cannot fix a slow database**, because it only caches what can be cached; if the page is rebuilt per request from a slow query, the CDN has nothing to serve. M06 is where you deploy and where a performance budget can be enforced in CI. M07's analytics is where you collect these numbers from real users instead of from your own machine, which is the only measurement that ultimately counts.
+The three measurements map onto what a user feels: LCP is "when can I read it", INP is "did my tap do anything" (chapter 8's silence, measured), CLS is the mentor tapping "Sold out: Idli". Targets are in the table below, and the only number worth quoting is measured **on a mid-range phone on a throttled network**.
 
 ### Words to own
 
@@ -110,36 +86,28 @@ Chapter 15's rendering choice is made concrete here. M05 covers caching and CDNs
 
 ### Tradeoffs and gotchas
 
-**"Client-render everything" is the default an AI will give you**, because it always works and needs the least thought. It is also the choice that moves all the cost onto the slowest device in the chain. Ask which pages genuinely need it.
+**"Client-render everything" is the AI default,** because it always works and needs the least thought. It also moves the cost onto the slowest device in the chain.
 
-**A library for one number is the most common waste.** A charting library to show "42 orders today", a date library to print a time, an icon package for four icons. Each is tens or hundreds of kilobytes that every user downloads. The question to ask on every dependency: what does this cost in kilobytes, and what would we do instead?
+**A library for one number is the most common waste** — a charting library for "42 orders today", a date library to print a time, an icon package for four icons. Ask of every dependency: what does this cost in kilobytes, and what would we do instead?
 
-**Images are usually the bigger problem and the easier win.** A camera photo at 4000 pixels wide, displayed at 160, wastes roughly 99% of its bytes. Resizing, modern formats and correct `width`/`height` attributes are the single highest-return performance work in a student project — and the `width`/`height` part fixes CLS at the same time.
+**Images are the bigger problem and the easier win.** A 4000px photo displayed at 160px wastes 99% of its bytes. Resizing and correct `width`/`height` are the highest-return performance work in a student project, and the sizing fixes CLS too — unsized images and late fonts are what CLS actually is.
 
-**Unsized images and late-loading fonts are what CLS actually is.** Reserve the space. A skeleton the same shape as the content, from chapter 10, is the same fix.
+**Static means stale, and stale sometimes costs money.** A menu built at 10am will sell a dish that sold out at 11, so revalidate often, fetch availability on the client, or server-render that page — and write down what staleness you accepted. The reverse trap: **a CDN cannot fix a slow database**, because a page rebuilt per request from a slow query has nothing cacheable.
 
-**A CDN cannot fix a slow database.** If each request rebuilds the page from a slow query, there is nothing cacheable. People buy CDNs to solve server problems and are surprised.
-
-**Static means stale, and stale is sometimes wrong in a way that costs money.** A statically generated menu built at 10am will happily sell a dish that sold out at 11. Either revalidate often, or fetch the availability on the client, or server-render that page. Decide, and write down what staleness you accepted.
-
-**Lighthouse on your laptop with no throttling is a meaningless number.** Run it in the mobile preset. Better still, run it on a real cheap phone.
-
-**Your own repeat visits are the fastest anyone will ever experience your site.** Everything is cached, DNS is resolved, the fonts are local. Test in a private window with the cache disabled, or you are measuring something no first-time user will ever see.
+**Your own repeat visit is the fastest anyone will ever experience your site:** cached, resolved, fonts local. Measure in a private window with the cache disabled, in Lighthouse's mobile preset, or you are measuring something no first-time user sees.
 
 ### Verify it
 
-This is the most measurable chapter in the module, so there is no excuse for an opinion.
+1. **Read the total transferred with cache disabled,** then the JavaScript subtotal separately. For six dishes and six prices, anything over a few hundred kilobytes needs justifying.
+2. **Sort by size and name the three largest files.** For each: what is it for, and does every user on every page need it?
+3. **Run Lighthouse in the mobile preset** and record LCP, INP and CLS. Three runs, take the middle one.
+4. **Check CLS by watching, not by score.** Reload on Slow 4G: anything that moves after you could have reached for it is the bug.
+5. **Compare one image's intrinsic size against its displayed size.** A 4000px image in a 160px slot is a finding you can fix today.
+6. **Check `width` and `height` are on every image.** The most common CLS cause, and the check is a search.
+7. **Measure on a real budget Android on mobile data.** Stopwatch, tap to readable content. This is the number you quote, and it will be worse than every throttled one.
+8. **Ask which rendering strategy each page uses, and why.** The same answer for every page means nobody chose.
 
-1. **Open the Network panel with cache disabled and read the total transferred.** Write the number down. Then read the JavaScript subtotal separately. For a page showing six dishes and six prices, anything over a few hundred kilobytes needs justifying.
-2. **Sort by size and name the three largest files.** For each, answer what it is for and whether every user on every page needs it. This is where the chart library on the menu page is found.
-3. **Run Lighthouse in the mobile preset** and record LCP, INP and CLS as numbers. Do it three times and take the middle result, because single runs vary.
-4. **Check CLS by watching, not just by score.** Throttle to Slow 4G and reload while looking at the top of the page. Anything that moves after you could have reached for it is the bug, and the score only tells you how much.
-5. **Look at one image's real dimensions against its displayed size.** Inspect it: DevTools shows both the intrinsic and the rendered size. A 4000px image in a 160px slot is a finding you can fix today.
-6. **Check `width` and `height` are on every image.** Missing them is the most common CLS cause, and the check is a search.
-7. **Measure on a real budget Android on mobile data.** One run. Time from tap to readable content with a stopwatch. This number is the one you quote to your team, and it will be worse than every throttled measurement you took.
-8. **Ask which rendering strategy each page uses, and why.** If the answer is the same for every page, nobody chose.
-
-Red flags in AI output: every page client-rendered; a library added for one small job; images without `width` and `height`; full-resolution images; a performance claim measured on a laptop; `100vh` sections and late fonts causing shift; and no code splitting, so one admin screen's dependencies ride along on every page. One more: a Lighthouse score quoted with no throttling setting stated, which means the number is not comparable to anything.
+Red flags: every page client-rendered · a library added for one small job · images with no `width`/`height` · full-resolution images · a performance claim measured on a laptop · `100vh` sections and late fonts causing shift · no code splitting, so one admin screen's dependencies ride along everywhere · a Lighthouse score quoted with no throttling stated, which is comparable to nothing.
 
 ## Walkthrough
 1. Open your team's product page, or the closest existing product your users use, in a private window with DevTools on the Network panel and "Disable cache" ticked.

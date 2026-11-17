@@ -4,7 +4,7 @@ module: m03-design
 slug: user-research-and-flows
 title: "User Research, User Flows and Information Architecture"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,25 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team of three builds a canteen pre-ordering app. They are sure students want to browse. So they ship a menu with cuisine filters, a veg/non-veg toggle, photo cards, a search bar, and a ratings system. Fourteen taps from opening the app to food being ordered. It looks like Swiggy.
-
-Nobody uses it. They stand near the counter for twenty minutes and finally see why: a student has twenty-two minutes between lectures, is walking, holding a bag, and wants the same vada pav they had yesterday. They do not want to browse. They want "the usual, again, now" — which the app cannot do at all, because reordering was never a feature.
-
-The team did not build it badly. They built the wrong thing beautifully. Three weeks gone. The information that would have saved them was available for free, twenty metres away, in a ten-minute conversation.
+A team builds a canteen pre-ordering app: cuisine filters, a veg toggle, photo cards, search, ratings. Fourteen taps from opening to ordered. It looks like Swiggy, and nobody uses it. Twenty minutes near the counter shows why — a student has twenty-two minutes between lectures and wants "the usual, again, now", which the app cannot do at all because reordering was never a feature.
 
 ### The idea
 
 **Research tells you what people are actually trying to do; a flow tells you the shortest honest path to doing it; information architecture decides where things live and what they are called.**
 
-All three happen before any pixel is designed. They are cheap to change now and brutally expensive to change after the AI has generated forty components around the wrong assumption. In this module you never write the interface yourself — you brief it. A flow is what you brief with.
+All three are cheap now and brutally expensive after AI has generated forty components around the wrong assumption. You brief the interface in this module rather than draw it, and a flow is what you brief with.
+
+Three methods fit a two-hour session:
+
+- **Five interviews, ten minutes each.** Ask about the last time — what time, how long did you have, what annoyed you. Never "would you use an app that…": past behaviour is data, future intention is fiction.
+- **Intercept counting.** Queue length at 13:10, cash versus UPI, group size. A number in a brief changes what AI builds.
+- **Artefact hunting.** The canteen's WhatsApp group, the sold-out note on the board — proof of demand, and the words people use.
 
 ### The analogy
 
-Walk into the campus canteen at 1 pm. The layout is a design decision someone made. Chai and snacks are on the right, near the door, because that is 70% of visits and those people must not block the meal queue. Plates are stacked before the food, not after. The price board is above the counter at eye height, not on a laminated card you have to pick up. The person who arranged that watched a thousand lunch rushes and arranged the room around what people repeatedly do.
+Walk into the campus canteen at 1 pm. Chai sits near the door because that is 70% of visits and those people must not block the meal queue. Someone arranged the room around what people repeatedly do — that arrangement is information architecture, and the path from "I'm hungry" to "I'm eating" is a user flow.
 
-That arrangement is information architecture. The path from "I'm hungry" to "I'm eating" — enter, grab plate, queue, say order, pay, collect, find seat — is a user flow.
-
-**Where the analogy breaks:** in the canteen there is a human behind the counter who repairs every confusion instantly. Point at the wrong dish and someone says "that one's finished, try this". Your app has nobody. Every ambiguity you leave in the flow becomes a student standing still, and then a student who closes the app. Software has to carry its own signage.
+**Where the analogy breaks:** the canteen has a human who repairs confusion instantly — "that one's finished, try this". Your app has nobody, so every ambiguity in the flow becomes a student standing still, then a student closing the app. Software carries its own signage.
 
 ### Picture it
 
@@ -59,23 +59,9 @@ That arrangement is information architecture. The path from "I'm hungry" to "I'm
     (show menu)        (suggest nearest)    (retry, keep cart)
 ```
 
-One intent enters, three steps carry it to an outcome, and three named failure branches catch the cases where it cannot — each with a decided response rather than a blank screen.
+One intent enters, three steps carry it to an outcome, and three named failure branches each get a decided response rather than a blank screen.
 
-### Three research methods that fit a two-hour session
-
-You are not running a study. You need enough evidence to stop guessing, by Thursday.
-
-**Five interviews, ten minutes each.** Not "would you use an app that…" — that question only measures politeness. Ask about the last time instead: "Tell me about the last time you bought food on campus. What time was it? How long did you have? What did you order? What annoyed you?" Past behaviour is data. Future intention is fiction.
-
-**Intercept counting.** Stand where the thing happens and count. How many people are in the queue at 1:10 pm? How many pay cash versus UPI? How many are alone versus in a group? Twenty minutes of counting gives you numbers you can put in a brief, and a number in a brief changes what AI builds.
-
-**Artefact hunting.** Look at what people already use to solve this. The canteen's WhatsApp group. The handwritten sold-out note stuck on the board. The teacher's Google Form. These are evidence of real demand, already working, and they tell you the vocabulary people already use.
-
-Five interviews is enough because the fifth one usually tells you nothing new. If the fifth is still surprising you, do three more. This connects directly to M01, where your team gathered persona evidence for the PRD — this chapter is how you turn that evidence into something designable.
-
-### Writing a flow AI can build from
-
-A flow is not a wish list. It has a specific shape, and the shape is what makes it brief-able.
+That fixed shape is what makes a flow brief-able:
 
 | Part | What it states | Canteen example |
 |---|---|---|
@@ -86,23 +72,17 @@ A flow is not a wish list. It has a specific shape, and the shape is what makes 
 | Failure branches | What happens when a step cannot complete | Sold out, payment failed |
 | Step budget | The maximum taps you will accept | 3 taps, under 20 seconds |
 
-The step budget is the part everyone forgets and the part that disciplines everything else. "Reorder in three taps" is a constraint AI can design against. "Make reordering easy" is not.
-
-A second flow worth naming early: the staff flow. Someone behind the counter has to mark the vada pav sold out, on a shared Android phone, with oily fingers, in four seconds. Two actors, two flows, one product. Teams routinely design the customer flow and discover the staff flow a week before demo day.
-
-### Information architecture: naming is the product
-
-Information architecture is two questions. What are the top-level places in this app? What is each one called?
-
-Both are harder than they look, and AI gets both wrong in the same predictable way: it mirrors your database. Tables become tabs. You get "Items", "Transactions", "Entities" — accurate, and meaningless to a hungry nineteen-year-old.
-
-Good names come from the research, in the users' own words. If every student said "chai" and nobody said "beverages", the section is called chai. If staff call it "sold out" and never "unavailable", the toggle says sold out. In an Indian app this matters twice over, because a word that is fine in English may be read by someone who thinks in Marathi or Hindi — "Outlet" is a shop to a designer and an electrical socket to everyone else. M15 takes this further into brand voice; here, just use the words you heard.
-
-A practical test: write your four top-level labels on paper and show them to someone outside your team. Ask where they would tap to do three specific things. If they hesitate on more than one, the names are wrong, not the person.
+The step budget disciplines everything else: "reorder in three taps" is a constraint AI can design against, "make reordering easy" is not.
 
 ### Where it lives
 
-Research and flows sit at the very front of the build. In M01 you wrote the PRD; a flow is the PRD's "how" made concrete enough to design. In the next chapter these flows become wireframes, one frame per step. In chapter 4 you test them with three friends, which is how you find out your step budget was fantasy. In M07 the same flow becomes a funnel you measure — the steps you named here become the events you count there, which only works if you named them properly now. M11's MVP checkpoints will ask which flow your product is for, and "all of them" is the answer that fails.
+Research and flows sit at the very front of the build.
+
+- **M01's PRD** — a flow is its "how", concrete enough to design
+- **Next chapter** — each flow step becomes one wireframe
+- **Chapter 4** — testing shows your step budget was fantasy
+- **M07** — the steps you name here become the funnel events you count
+- **M11** — MVP checkpoints ask which flow this is for; "all of them" fails
 
 ### Words to own
 
@@ -121,27 +101,27 @@ Research and flows sit at the very front of the build. In M01 you wrote the PRD;
 
 ### Tradeoffs and gotchas
 
-**Research theatre is worse than no research.** Five interviews where you described your app and people said "nice" is not evidence — it is a trap, because now you believe you checked. If nobody in your interviews said anything that surprised or annoyed you, you were pitching, not researching.
+**Research theatre is worse than no research.** Five interviews where you pitched and people said "nice" is not evidence, and now you think you checked.
 
-**You are not your user, even when you are.** You are a student on this campus, so you are tempted to skip research entirely. But you are a student who is building an app, which makes you the single most atypical user available. Your own experience is a hypothesis, not a finding.
+**You are not your user, even when you are.** A student building an app is the most atypical student available. Your experience is a hypothesis.
 
-**Flows that branch forever never get built.** If your flow has eleven conditional branches, you have written a specification nobody can hold in their head, including the AI. Name the three or four failures that will actually happen, decide what each one shows, and let the rest fall into one honest error state.
+**Flows that branch forever never get built.** Name three or four real failures; let the rest fall into one honest error state.
 
-**IA by org chart.** If your three top-level tabs happen to match your three team members' areas of responsibility, that is a smell. Users do not know how your team is split.
+**The second actor is a whole flow.** Someone must mark the vada pav sold out in four seconds. Teams find that flow a week before demo day.
 
-**A flow with no step budget will grow.** Every review meeting adds a step and nobody ever removes one. The budget is what lets you say "that is a fourth tap, so what comes out?"
+**AI gives you your database back.** Asked for an IA, it mirrors your schema: "Items", "Transactions", "Manage" — accurate, meaningless to a hungry nineteen-year-old. Names come from research: if students said "chai", the section is chai. Tabs matching your three team members' areas are the same smell.
 
 ### Verify it
 
-When you hand AI a flow and ask for screens, flows or an IA, check five things before you accept anything.
+Run five checks on any flow, screen set or IA the AI hands you.
 
-1. **Count the steps against your budget.** If you said three taps and the output has six, it ignored your constraint. This is the single most common failure and the easiest to catch.
-2. **Look for the failure branches by name.** Ask explicitly: "show me what the sold-out state and the payment-failed state look like." If AI only produced the happy path, you have a demo, not a product.
-3. **Check for invented evidence.** AI will cheerfully write you a persona called "Priya, 21, loves trying new cuisines" that came from nothing. Every persona attribute must trace to something a real person said to you. Strike the rest.
-4. **Read the labels aloud.** If the tabs are "Dashboard", "Items", "Manage" and "Settings", you got the database back. Replace every label with a word from your interview notes.
-5. **Hunt the second actor.** Ask "which flows does this design not cover?" A product with customers almost always has a staff or admin flow hiding behind it.
+1. **Count the steps against your budget** — three asked, six delivered means the constraint was ignored.
+2. **Ask for failure branches by name**: "show me the sold-out state and the payment-failed state."
+3. **Strike invented evidence** — every persona line must trace to something a real person said.
+4. **Read the labels aloud**, then ask an outsider where they would tap to do three tasks. Hesitation means the name is wrong, not the person.
+5. **Hunt the second actor**: "which flows does this design not cover?"
 
-Red flags: a flow with no numbers in it, a persona with no quote behind it, an IA where every section name is a noun from your schema, and any output that describes the happy path as though failure were impossible.
+Red flags: a flow with no numbers in it; a persona with no quote behind it; section names that are nouns from your schema; output that treats failure as impossible.
 
 ## Walkthrough
 1. Pick one job your product does and write it as a sentence in the user's voice, starting with "I want to". Not a feature — an outcome. "I want to eat before my 1:40 class" rather than "I want a menu filter".

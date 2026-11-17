@@ -4,7 +4,7 @@ module: m05-scale-reliability
 slug: scaling-and-load-balancers
 title: "Vertical vs Horizontal Scaling; Stateless Servers and Load Balancers"
 order: 5
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,33 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A college page shares your team's app and three hundred students open it at once. Your single free-tier instance holds on for ninety seconds and then stops answering.
-
-You do the obvious thing: upgrade to the largest instance you can get. It helps a little and costs money. Then somebody suggests running three copies instead, which is free on your host, and that is when it gets strange.
-
-Students start being logged out at random, every third page load, because sessions were stored in the server's memory and there are now three memories. Photos uploaded in the morning return 404 in the afternoon, because the file was written to one instance's local disk and the request came back to a different instance. Your rate limiter stops working properly, since each copy counts to fifty separately. And a scheduled job that was supposed to run once at midnight now runs three times and sends every student three notifications.
-
-Not one of those is a bug in the new copies. They are all the same bug, which was always present and only became visible when there was more than one server: your app was remembering things it had no right to remember.
+Three hundred students open your app at once and your single free-tier instance stops answering after ninety seconds. You upgrade to the largest instance; it costs money and helps a little. Then you run three copies instead, which is free, and it gets strange: students are logged out every third page load, morning uploads 404 in the afternoon, the rate limiter triples, and a midnight job sends every student three notifications. None of that is a bug in the new copies — your app was remembering things it had no right to remember.
 
 ### The idea
 
 **Scale out, not up — but only a stateless server can scale out, so making your server forget everything is the actual work.**
 
-Vertical scaling means a bigger box: more CPU, more RAM, one machine. Horizontal scaling means more boxes behind something that spreads requests between them. Vertical is simpler and runs out: there is a largest machine, and you pay sharply for the top end. Horizontal is cheaper per unit of capacity and has no ceiling worth worrying about, but it demands that any request can be handled by any copy.
-
-Stateless does not mean your app has no data. It means the *server process* holds nothing that matters between requests. Everything that must survive goes to a shared place: the database, the shared cache, or object storage. M00 already told you why — RAM forgets on restart. The second reason is the one this chapter adds: with three instances, RAM is also three different RAMs that never agree.
+Vertical scaling is a bigger box; horizontal is more boxes behind something that spreads requests. Vertical is simpler and runs out, because there is a largest machine and the top end is expensive. Horizontal is cheaper per unit of capacity and demands that any request can be handled by any copy. Stateless does not mean your app has no data: the *process* holds nothing that matters between requests. M00 said RAM forgets on restart; with three instances it is also three RAMs that never agree.
 
 ### The analogy
 
-One counter, forty students, 1:10 pm.
+One counter, forty students, 1:10 pm. Vertical scaling is hiring one superhumanly fast cashier: it helps, and there is a limit to how fast a human gets. Horizontal scaling is opening three more counters, which needs somebody at the door saying "counter two is free" — the **load balancer**, who watches the queues and stops sending people to a counter whose card machine has died, which is a **health check**. State ruins it: if one cashier keeps in her head who has already paid, that student can only be served by her, so the canteen keeps a shared receipt register all four cashiers read and write.
 
-Vertical scaling is hiring one superhumanly fast cashier and widening the counter. It genuinely helps and there is a limit to how fast a human gets.
-
-Horizontal scaling is opening three more counters. Capacity triples for the price of three ordinary cashiers — and now you need somebody at the door saying "counter two is free, go there". That person is the **load balancer**. They watch which counters have queues, send each arrival to the shortest, and stop sending people to a counter whose card machine has died. That last part is a **health check**.
-
-Here is where state ruins everything. Suppose one cashier keeps in her head which students have already paid. Now that student can only ever be served by her — send him to counter three and he is treated as unpaid. The canteen's answer is a shared receipt register behind the counter that all four cashiers read and write. That is your database and your shared cache, and it is what lets any counter serve any student.
-
-**Where the analogy breaks** in two useful ways. Cashiers take weeks to hire and get tired; app instances appear in seconds and can be destroyed without ceremony, which is why autoscaling exists and why you should never be sentimental about an instance. And the canteen has one kitchen. Four counters do not cook faster, so past a point the queue simply moves from the counter to the kitchen — which is precisely the database bottleneck the next chapter is about.
+**Where the analogy breaks:** the canteen has one kitchen, and four counters do not cook faster, so past a point the queue moves from the counter to the kitchen — the next chapter.
 
 ### Picture it
 
@@ -69,8 +55,6 @@ Here is where state ruins everything. Suppose one cashier keeps in her head whic
 
 Requests arrive at one load balancer that picks a healthy app instance, and because no instance stores anything, all three reach the same shared cache, database and file store for every piece of state.
 
-### The four things that stop you scaling out
-
 Run this checklist against your own project and you will find at least two.
 
 | What the code does | Why it breaks on three instances | Where it belongs |
@@ -80,15 +64,11 @@ Run this checklist against your own project and you will find at least two.
 | Keeps counters or caches in memory | Each instance counts separately | Shared cache |
 | Runs a scheduled job in the web process | The job runs three times | A separate worker or scheduler |
 
-Each one has a tempting shortcut and each shortcut is worse than the fix. For sessions, the shortcut is **sticky sessions**: the load balancer remembers which instance served you and sends you back there every time. It works, and it quietly costs you most of what you were buying. Balancing gets worse because traffic is pinned rather than spread, a restart still logs those users out, and you have hidden the problem rather than removed it. Use sticky sessions when you have inherited something you cannot change, not when you are designing.
+Each has a tempting shortcut. For sessions it is **sticky sessions**, pinning you to the instance that served you: it works, and quietly costs most of what you were buying, because traffic is pinned rather than spread and a restart still logs those users out.
 
 ### Where it lives
 
-The load balancer sits between the network and the server in M00's four boxes, and on a zero-config host you already have one — that is what happens when you set the instance count to three. M06 covers where instances actually run, how containers make them identical, and how to generate the load that proves any of this. M13 goes deeper into orchestration and multi-region. M07 is where you watch per-instance metrics and notice that one of the three is unhealthy.
-
-Scaling out also multiplies your database connections, which is the single most common way a student team takes down their own free-tier database: three instances each opening twenty connections against a plan that allows thirty. That is the next chapter.
-
-And note what horizontal scaling gives you besides capacity: if one instance dies, two still answer. One instance is a single point of failure no matter how large it is, which is why "two small" often beats "one big" even at traffic levels where one would cope.
+The load balancer sits between network and server in M00's four boxes, and on a zero-config host you already have one — that is what happens when you set the instance count to three. Scaling out multiplies your database connections, which is how teams take down their own free-tier database: three instances at twenty connections each against a plan allowing thirty. That is the next chapter. It also buys survival, because if one instance dies the other two still answer.
 
 ### Words to own
 
@@ -109,33 +89,25 @@ And note what horizontal scaling gives you besides capacity: if one instance die
 
 ### Tradeoffs and gotchas
 
-**Vertical scaling is not shameful and is sometimes correct.** One larger database beats a sharded cluster for almost every project you will build this decade. The honest rule: scale app servers out, scale databases up until you have measured a reason not to.
+**Vertical scaling is not shameful and is sometimes correct.** Scale app servers out; scale databases up until you have measured a reason not to.
 
-**Autoscaling cannot fix a cold start.** New instances take time to boot and warm their caches. If your rush arrives in thirty seconds, autoscaling that reacts in two minutes is a comfort, not a solution. Pre-scale before a known event — a demo, a campus announcement, lunch — rather than hoping.
+**Autoscaling cannot fix a cold start.** New instances boot and warm their caches, so if your rush arrives in thirty seconds, autoscaling that reacts in two minutes is a comfort rather than a solution.
 
-**Scaling out multiplies your bugs by the instance count.** A memory leak on one instance is a leak on all three. A job that double-sends emails now triple-sends them. Capacity does not fix correctness.
+**Scaling out multiplies your bugs by the instance count,** and will not fix a slow query: three servers waiting on the same 900 ms query serve the same students per second.
 
-**Health checks must mean something.** A check that returns 200 whenever the process is alive will keep sending traffic to an instance that has lost its database connection. A check that tests the database on every probe will take all your instances out of rotation the moment the database hiccups. The usual compromise: a shallow check for the load balancer, a deeper one you look at yourself.
+**Health checks must mean something.** One that returns 200 whenever the process is alive keeps feeding an instance that has lost its database; one that tests the database on every probe empties your rotation on the first hiccup.
 
-**The load balancer is itself a single point of failure,** which managed platforms solve for you and which you should at least know is there. If your load balancer is one small box you configured, you have moved the problem rather than solved it.
-
-**More instances will not fix a slow query.** Three servers waiting on the same 900 ms query serve the same number of students per second, just with more things waiting. Find the bottleneck before you multiply anything.
+**The load balancer is itself a single point of failure,** which managed platforms solve for you.
 
 ### Verify it
 
-The single best question to put to an AI about your own codebase is: **"if I run three copies of this and kill one at random, what breaks?"** A good answer names specific files and specific state. A vague answer means it has not looked.
-
-**Red flag: anything written to a local file path.** Search the diff for file writes. An upload going to a local folder works perfectly on one instance and is a 404 generator on three. It belongs in object storage, as M04 taught.
-
-**Red flag: in-memory sessions, caches or counters,** described as fine. This is the same red flag as Chapters 2 and 4 and it keeps appearing because AI defaults to the simplest thing that passes a test on one machine.
-
-**Red flag: sticky sessions offered as the solution.** When you point out that sessions are in memory, the cheap answer is to pin users to instances. Push back and ask for the state to be moved instead, then decide for yourself which you want. If you choose stickiness, that is a decision-log entry with a reason.
-
-**Red flag: a scheduler inside the web process.** Anything described as "runs every night at midnight" living in the same process as your request handlers will run once per instance. Ask explicitly how many times this executes with three instances running.
-
-**Red flag — the recurring one: "upgrade to a bigger instance" or "increase the memory limit" as the first recommendation.** More memory is the answer to exactly one problem, which is genuinely needing more memory. It is not the answer to a leak, to a slow query, to an N+1, or to a cold start, and it is the most expensive wrong answer on the list because it feels like progress and shows up on a bill.
-
-Then prove it. Set your instance count to two or three on your host. Log in, then reload the page ten times and check you are still logged in. Upload a file, wait a minute, and fetch it back. Hit your rate-limited endpoint and confirm the limit is still what you configured rather than triple. Restart one instance while using the app and confirm nothing visible happens. Each of those is a thirty-second test, and each one catches a bug that otherwise surfaces during your demo.
+- **Ask the one question:** "if I run three copies of this and kill one at random, what breaks?" A good answer names files and state.
+- **Red flag: anything written to a local file path.** It works on one instance and generates 404s on three; uploads belong in object storage.
+- **Red flag: in-memory sessions, caches or counters called fine** — the same red flag as Chapters 2 and 4.
+- **Red flag: sticky sessions offered as the solution.** Ask for the state to be moved instead; if you still pick stickiness, log the reason.
+- **Red flag: a scheduler inside the web process.** Ask how many times "every midnight" runs with three instances.
+- **Red flag: "a bigger instance" or "raise the memory limit" first.** More memory answers one problem only: needing more memory.
+- Prove it in thirty seconds each: three instances, reload ten times still logged in; upload a file, wait, fetch it; check the rate limit is not tripled; restart one instance mid-use and confirm nothing visible happens.
 
 ## Walkthrough
 1. Find out how many instances your app currently runs. On most zero-config hosts it is one, and the setting is in the service's scaling or instances panel.

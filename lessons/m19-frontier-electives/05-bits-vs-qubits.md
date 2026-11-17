@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: bits-vs-qubits
 title: "Bits vs Qubits: Superposition and Measurement"
 order: 5
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -24,23 +24,23 @@ last_reviewed: 2026-11-16
 
 A student reads a headline — "quantum computer solves in minutes what would take a classical computer ten thousand years" — and repeats it in an interview as "quantum computers try every possible answer at the same time, so they will break all encryption soon."
 
-Three sentences in, the interviewer asks what you get when you read a qubit. The honest answer is: one bit, zero or one, chosen at random with a probability set by the state you prepared, and the state is destroyed in the process. The student does not know that, and the interview moves on.
+Three sentences in, the interviewer asks what you get when you read a qubit. The honest answer: one bit, zero or one, chosen at random with a probability set by the state you prepared, and the state is destroyed in the process. The student does not know that, and the interview moves on.
 
-This block of four chapters exists so you can hold a conversation about quantum computing without being either the person repeating headlines or the person who dismisses the whole field. Literacy, not mastery. You will not design an algorithm. You will be able to read a claim and say which part of it is physics, which part is engineering, and which part is a press release.
+These four chapters exist so you can hold a conversation about quantum computing without being either the person repeating headlines or the person dismissing the field. Literacy, not mastery. You will not design an algorithm; you will be able to read a claim and say which part is physics, which part is engineering, and which part is a press release.
 
 ### The idea
 
 **A classical bit is either 0 or 1. A qubit carries a weighted blend of both until it is measured, and measuring it gives you exactly one bit and erases the blend.**
 
-Two words to be careful with. The blend is called a superposition, and each of the two possibilities carries a weight. Those weights are not simply probabilities — they can work against each other and cancel out, which no probability can do, and that cancellation is the only reason quantum computing is interesting at all. Chapter 6 takes that apart.
+Two words to be careful with. The blend is a superposition, and each possibility carries a weight. Those weights are not simply probabilities — they can work against each other and cancel out, which no probability can do, and that cancellation is the only reason quantum computing is interesting. Chapter 6 takes it apart.
 
-Measurement is the second word. You never see the weights. You get one outcome, with probabilities derived from the weights, and the qubit is left sitting in whatever you measured. So a quantum program is not run once. It is prepared and measured a thousand or more times, and what you read is the histogram of the outcomes. Each one of those runs is called a shot.
+Measurement is the second word. You never see the weights. You get one outcome, with probabilities derived from the weights, and the qubit is left in whatever you measured. So a quantum program is prepared and measured a thousand or more times, and what you read is the histogram of outcomes. Each run is a shot.
 
 ### The analogy
 
-The canteen flips a coin to decide whether today's special is poha or upma. While the coin is spinning in the air, you cannot sensibly call it heads or tails. You slam your hand on it and now it is one of them. That is roughly superposition and measurement, and it will get you through a dinner conversation.
+The canteen flips a coin to decide whether today's special is poha or upma. While the coin is spinning you cannot sensibly call it heads or tails. You slam your hand on it and now it is one of them. That is roughly superposition and measurement, and it will get you through a dinner conversation.
 
-**Where the analogy breaks**, and it breaks hard, so this paragraph is the real content of the chapter. A spinning coin is simply a coin whose value you do not yet know — the answer already exists and you are ignorant of it. A qubit in superposition is not an unknown value; the blend is physically real, and two blends can be combined so that one possibility's weight cancels another's and that outcome becomes impossible. Nothing a coin does can produce that. Second, you can photograph a spinning coin from both sides and discuss it later; a qubit cannot be copied, which is a hard theorem and not an engineering limitation. Third, the coin keeps spinning until it lands, while a real qubit loses its blend to heat and stray fields in microseconds whether you are ready or not.
+**Where the analogy breaks**, and it breaks hard. A spinning coin is a coin whose value you do not yet know — the answer exists and you are ignorant of it. A qubit in superposition is not an unknown value; the blend is physically real, and two blends can be combined so one possibility's weight cancels another's and that outcome becomes impossible. Second, a qubit cannot be copied, which is a theorem rather than an engineering limitation. Third, the coin keeps spinning until it lands, while a real qubit loses its blend to heat and stray fields in microseconds whether you are ready or not.
 
 ### Picture it
 
@@ -79,11 +79,9 @@ Because a single run yields one random bit, the actual output of a quantum progr
 
 ### Where it lives
 
-M00 taught you that everything in a computer is encoded as bits, and that the four boxes — client, server, network, data — all move bits around. A quantum computer does not replace any of those boxes. It is a specialised coprocessor, reached over an ordinary HTTPS API of the kind you met in M02, sitting in a lab fridge colder than deep space, which a classical computer feeds a circuit to and reads a histogram back from.
+A quantum computer replaces none of M00's four boxes. It is a specialised coprocessor, reached over an ordinary HTTPS API of the kind you met in M02, sitting in a lab fridge colder than deep space, which a classical computer feeds a circuit to and reads a histogram back from.
 
-Practically, that means your path to touching one is free and immediate. The large vendors expose in-browser circuit builders and simulators at no cost, with limited free queue time on real hardware. A simulator on a normal laptop handles twenty to thirty qubits comfortably, which is more than enough for everything in these four chapters. Nothing here requires money or hardware.
-
-What a qubit physically *is* varies: a superconducting loop at a few thousandths of a degree above absolute zero, a single trapped ion held by lasers, a photon, a neutral atom. The programming model is the same across all of them, which is why you can learn the model without choosing a technology.
+Your path to touching one is free and immediate: the large vendors expose in-browser circuit builders and simulators at no cost, with limited free queue time on real hardware. A laptop simulator handles twenty to thirty qubits, which covers these four chapters. Nothing here requires money or hardware. What a qubit physically *is* varies — a superconducting loop, a trapped ion, a photon, a neutral atom — but the programming model is the same across all of them.
 
 ### Words to own
 
@@ -103,27 +101,27 @@ What a qubit physically *is* varies: a superconducting loop at a few thousandths
 
 ### Tradeoffs and gotchas
 
-**"Tries all answers at once" is wrong, and expensively so.** You can prepare a blend over many possibilities, but you cannot read them. You read one random outcome. Any useful algorithm must arrange, before measuring, for the wrong answers to cancel and the right one to survive — which is hard, which is why there are only a handful of such algorithms, and which is chapter 7.
+**"Tries all answers at once" is wrong, and expensively so.** You can prepare a blend over many possibilities but you cannot read them; you read one random outcome. A useful algorithm must make wrong answers cancel before measuring, which is why only a handful of such algorithms exist.
 
-**You cannot inspect a quantum state.** Not on hardware. A simulator will show you the internal weights because it is just classical arithmetic, and this misleads beginners badly: the real machine offers no such window.
+**You cannot inspect a quantum state.** Not on hardware. A simulator shows you the internal weights because it is just classical arithmetic, and that misleads beginners badly.
 
-**You cannot copy a qubit.** So the error-handling habits you have from M06 — retry, log, duplicate, snapshot — are unavailable. Error correction has to work entirely differently, which chapter 8 covers.
+**You cannot copy a qubit.** So the habits you have from M06 — retry, log, duplicate, snapshot — are unavailable, and error correction has to work entirely differently.
 
-**Qubits die on a schedule.** Coherence times are measured in tens to hundreds of microseconds. Every gate takes time and adds error. A circuit is a race, and depth matters more than qubit count for whether a result means anything.
+**Qubits die on a schedule.** Coherence times are tens to hundreds of microseconds, and every gate adds error. A circuit is a race, and depth matters more than qubit count for whether a result means anything.
 
-**Randomness is not the product.** A coin-flip circuit produces random bits, and people sometimes present that as a quantum achievement. Your laptop has had a perfectly good random number source for years.
+**Randomness is not the product.** A coin-flip circuit produces random bits, and people present that as an achievement. Your laptop has had a good random number source for years.
 
 ### Verify it
 
-**Red flag: "parallel universes" or "tries every possibility simultaneously".** This phrasing is the single clearest sign the explanation came from popular press rather than physics. Ask directly: what do I get when I measure, and how many times must I run it?
+**Red flag: "parallel universes" or "tries every possibility simultaneously".** The clearest sign the explanation came from popular press rather than physics. Ask directly: what do I get when I measure, and how many times must I run it?
 
-**Red flag: no mention of shots.** Any description of running a quantum program that does not say it is repeated many times and read as a distribution has skipped the part that governs how long the experiment takes and how precise the answer is.
+**Red flag: no mention of shots.** A description that does not say the program is repeated many times and read as a distribution has skipped what governs how long an experiment takes and how precise its answer is.
 
-**Red flag: claiming you can read the full state of a qubit.** Ask whether the answer is describing a simulator or hardware. The window exists only in simulation.
+**Red flag: claiming you can read the full state of a qubit.** Ask whether the answer describes a simulator or hardware. The window exists only in simulation.
 
-**Red flag: decoherence absent.** This is the diagnostic test for a quantum claim. If a model tells you a circuit with a thousand gates will run on a current machine without saying anything about error rates or coherence time, it is describing an idealised machine that does not exist. Ask what the circuit depth is and what the per-gate error rate is on the target hardware.
+**Red flag: decoherence absent.** The diagnostic test for a quantum claim. A model that says a thousand-gate circuit will run on a current machine without mentioning error rates or coherence time is describing a machine nobody has built. Ask for circuit depth and the per-gate error rate.
 
-**Red flag: exponential speedup asserted for an ordinary problem.** Sorting, searching a database you already indexed, training a neural network, routing delivery vans. Ask which named algorithm applies and what structure in the problem it exploits. Chapter 7 gives you the short list to check against.
+**Red flag: exponential speedup asserted for an ordinary problem.** Sorting, searching an indexed database, training a neural network, routing vans. Ask which named algorithm applies; chapter 7 has the short list.
 
 ## Walkthrough
 1. Open a free in-browser quantum circuit composer. Start a new circuit with one qubit and one measurement, and nothing else.

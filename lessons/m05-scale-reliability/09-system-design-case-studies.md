@@ -4,7 +4,7 @@ module: m05-scale-reliability
 slug: system-design-case-studies
 title: "System Design Case Studies: Shortener, Chat, Delivery, UPI"
 order: 9
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,31 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Somebody says "design a URL shortener" and the student starts drawing. Within two minutes there is a message queue, a sharded key-value store, three microservices and a service mesh. Asked how many links a day, they have no idea. Asked the bottleneck: "scaling".
-
-The reverse happens at M11's checkpoints. A team has built a real product, it works, and when a mentor asks "what happens at ten times the traffic?" nobody can answer, because the architecture was never designed — it accumulated. They cannot name their bottleneck, so they cannot defend any choice in it.
-
-Both failures skip the boring part. Design is not drawing boxes. It is a few questions in a fixed order, and the boxes fall out of the answers almost mechanically.
+Somebody says "design a URL shortener" and the student starts drawing: within two minutes there is a message queue, a sharded key-value store, three microservices and a service mesh. Asked how many links a day, they have no idea; asked the bottleneck, "scaling". The reverse happens at M11's checkpoints, where a team cannot answer "what happens at ten times the traffic?", because the architecture was never designed — it accumulated. Both skip the boring part: design is a few questions in a fixed order.
 
 ### The idea
 
 **Requirements, then estimates, then a sketch, then one deep dive, then the tradeoffs you accepted. In that order, every time.**
 
-**Requirements** split in two: functional, what it does, and non-functional, how fast, how fresh, how reliable, for how many people. The non-functional half is where every decision in this module gets made, and it is the half people skip.
-
-**Estimates** are deliberately crude: requests per second, read-to-write ratio, bytes per year, rounded hard. The usual conclusion for a student project — say it out loud — is "this fits comfortably on one small database", which is a successful design, not a failed one.
-
-**The sketch** is boxes and arrows for the happy path only. **The deep dive** is one part, chosen because the estimates called it the bottleneck. **The tradeoffs** are what you gave up, in your own words, which is what M18's defence asks for.
+Requirements split in two: functional, what it does, and non-functional — how fast, how fresh, how reliable, for how many people. The non-functional half is where every decision in this module gets made, and it is the half people skip. Estimates are crude and rounded hard, and the usual conclusion for a student project is "this fits on one small database", which is a successful design rather than a failed one. The sketch is the happy path only; the deep dive is whatever the estimates called the bottleneck.
 
 ### The analogy
 
-Designing the canteen itself, rather than queuing in it.
+Designing the canteen rather than queuing in it. You start not with the kitchen layout but with twelve hundred students, 70% between 1:00 and 1:40, mostly three dishes — and the rest is arithmetic: four hundred plates in forty minutes is ten a minute, so three counters at four a minute plus one spare. The deep dive is the samosa warmer, because the arithmetic said the counter is the constraint — not the cutlery.
 
-You do not start with the kitchen layout. You start with: how many students, in what window, eating what. Twelve hundred students, 70% between 1:00 and 1:40, mostly three dishes. From that one sentence the rest is arithmetic — four hundred plates in forty minutes, ten a minute, so three counters at four a minute plus one spare for the rush. The layout is a consequence of the numbers.
-
-And the deep dive is the samosa warmer, because the arithmetic said the counter is the constraint and pre-made food is what makes a counter fast. You do not deep-dive the cutlery.
-
-**Where the analogy breaks:** a canteen's capacity is set in concrete for ten years, so over-building is rational. Software changes next week, which inverts the economics — the cheapest design is the smallest one meeting today's numbers.
+**Where the analogy breaks:** a canteen's capacity is concrete for ten years, so over-building is rational. Software changes next week, which inverts the economics — the cheapest design is the smallest one meeting today's numbers.
 
 ### Picture it
 
@@ -61,31 +49,14 @@ And the deep dive is the samosa warmer, because the arithmetic said the counter 
 
 The five steps run strictly left to right, and the only loop that matters is back to requirements when your arithmetic shows one was unaffordable.
 
-### Case study: a link shortener
+Four worked examples, and what the numbers force:
 
-**Requirements.** Create a short code for a long URL; follow a code to its target. Non-functional: redirects must feel instant, say under 100 ms at p95; a code once issued must never point elsewhere; reads vastly outnumber writes.
-
-**Estimates.** Say a busy campus service: 1,000 new links and 100,000 redirects a day. That is 0.01 writes a second and a little over 1 read a second, peaking perhaps ten times the average — about 12 reads a second. Five years at 1,000 links a day is 1.8 million rows; at 500 bytes each, under a gigabyte.
-
-Say the conclusion plainly: **twelve reads a second and under a gigabyte fits on the smallest database you can rent.** Any design involving sharding here is wrong, and knowing that is the point of the estimate.
-
-**Sketch.** A write endpoint storing `code → long_url`. A read endpoint that looks up the code and returns a redirect. One table, one unique index on `code`.
-
-**Deep dive: the code itself.** Seven characters from a 62-character alphabet gives over three trillion possibilities, so random generation almost never collides — and a unique index plus one retry handles it when it does. The tempting alternative, an incrementing counter in base 62, gives shorter codes and makes every link guessable, so anyone can enumerate your database.
-
-**The caching here is unusually clean.** A code never changes target, so the mapping is *immutable*, so there is no invalidation problem at all — the hardest part of Chapter 3 does not exist. Long TTL in the shared cache, a hit rate above 95% because a few links take most traffic, and a redirect in about 2 ms.
-
-**Tradeoffs.** Immutability made this easy; add editable links and you import the whole invalidation problem. And use 302, not 301: a 301 is cached by browsers semi-permanently, so you lose click counts and can never fix a mistake.
-
-### Case study: food delivery order tracking
-
-A Swiggy-shaped problem, and a better teacher than the shortener: it holds two workloads that want opposite things.
-
-**Requirements.** A student orders; watches status move through accepted, preparing, picked up, delivered; sees the delivery partner on a map. Non-functional: status must never be wrong, because money moved; the map may be a few seconds behind; it must work on slow 4G on a cheap Android phone.
-
-**Estimates.** One city, 5,000 orders a day, 30% in the 8 pm hour — 1,500 an hour, under half an order a second. Trivial. Now the other workload: 200 delivery partners each sending a location every 5 seconds is 40 writes a second, continuously, all evening. That is **a hundred times the order traffic**, and it shapes the design.
-
-**Sketch and the split.** Orders go in the database: low volume, durable, strongly consistent, audited. Locations go in the shared cache: one key per partner, overwritten every ping, short TTL, never in the orders table. Only the last location matters, so keeping history by default is millions of rows a day nobody reads.
+| System | Crude estimate | What that forces | Deep dive |
+|---|---|---|---|
+| Link shortener | 1,000 new links and 100,000 redirects a day: 0.01 writes/s, about 12 reads/s at peak, 1.8 M rows and under 1 GB over five years | The smallest database you can rent; any sharding here is wrong | The code: 7 characters of a 62-character alphabet is 3 trillion options, so random plus a unique index and one retry beats a guessable counter |
+| Delivery tracking | 5,000 orders a day is under 0.5/s — against 200 riders pinging every 5 s, which is 40 writes/s all evening, a hundred times the order traffic | Two workloads with opposite needs: orders durable in the database, locations disposable in the cache | Polling every 5 s versus a WebSocket on patchy 4G |
+| Group chat | One message must reach 50 devices | Fan-out, and the per-user unread count is harder than the message store | Unread counts |
+| UPI payment | The bank is the source of truth, not you | Idempotency, reconciliation, never trusting your own copy of a status | Reconciliation |
 
 ```
  rider app ──location every 5 s──▶ shared cache  (1 key per rider,
@@ -97,15 +68,16 @@ A Swiggy-shaped problem, and a better teacher than the shortener: it holds two w
 
 Location pings overwrite one disposable cache key per rider while order status goes to the durable database, and the student's app reads one of each.
 
-**Deep dive: how the student's screen updates.** Polling every five seconds is more requests but survives flaky 4G, reconnects for free, and is a day's work. A WebSocket sends fewer bytes and feels better, and costs connection handling, reconnect logic and a scaling concern. On budget Android phones on patchy networks, polling wins for a first version — a decision-log entry with a reason, not a compromise.
-
-**Everything in this module appears here.** Status changes are strongly consistent because money moved; positions are eventual, bounded at five seconds. The payment webhook is retried by the provider, so it needs an idempotency key or you double-confirm orders. The location endpoint needs a per-rider rate limit, because a buggy rider app in a loop is the likeliest load you will see. A restaurant tablet going offline needs a timeout and a fallback, not an order stuck in "preparing".
-
-**The other two, in a line each.** Chat's hinge is fan-out: one message must reach N devices, and the per-user unread count is harder than the message store. UPI's hinge is that you are not the source of truth — the bank is — so everything collapses into idempotency, reconciliation, and never trusting your own copy of a payment status.
+The shortener's caching is unusually clean because a code never changes target: immutable data has no invalidation problem, so the hardest part of Chapter 3 does not exist. The delivery design is where this module assembles — strong consistency on status because money moved, eventual on position bounded at five seconds, an idempotency key on the retried payment webhook, a per-rider rate limit, and a fallback for a tablet that goes offline.
 
 ### Where it lives
 
-This chapter is the module's assembly point, and the method is M00's Director's Loop applied to architecture: FRAME is requirements, ARCHITECT is estimates and the sketch. M01's decision log is where tradeoffs land. M04 supplied schemas, queues and idempotency; M06 containers and load tests; M07 the metrics that tell you which estimate was wrong. M11's checkpoints and M18's defence are where you present this out loud, and M13 gives load testing and multi-region their own chapters.
+The module's assembly point. The method is M00's Director's Loop applied to architecture: FRAME is requirements, ARCHITECT is estimates and the sketch, and M01's decision log is where the tradeoffs land.
+
+- M04 — schemas, queues, idempotency
+- M06 — containers and load tests that check your estimates
+- M07 — the metrics that say which estimate was wrong
+- M11 and M18 — presenting and defending this out loud
 
 ### Words to own
 
@@ -124,31 +96,24 @@ This chapter is the module's assembly point, and the method is M00's Director's 
 
 ### Tradeoffs and gotchas
 
-**Designing for scale you will never see is the most common failure here.** Kafka, Kubernetes and sharding for a thousand users is not caution, it is a product that never ships. The correct response to an estimate of twelve requests a second is relief.
+**Designing for scale you will never see is the most common failure here.** Kafka, Kubernetes and sharding for a thousand users is not caution, it is a product that never ships; the right response to twelve requests a second is relief.
 
-**Estimates come second for a reason.** They give you permission to be simple. Without them every suggestion sounds plausible and the loudest voice wins.
+**Estimates come second for a reason:** they give you permission to be simple. Without them every suggestion sounds plausible and the loudest voice wins.
 
-**Deep-dive exactly one thing.** Covering everything shallowly reads as not knowing which part is hard. Pick what your arithmetic flagged and go three levels in.
+**Deep-dive exactly one thing.** Covering everything shallowly reads as not knowing which part is hard.
 
-**Two workloads in one product usually want opposite designs.** Low-volume durable writes and high-volume disposable writes should not share a table, a consistency model or a rate limit. Noticing the split is most of the value of estimating.
+**Two workloads in one product usually want opposite designs,** so low-volume durable writes should not share a table, a consistency model or a rate limit with high-volume disposable ones.
 
-**Name your bottleneck before anyone asks.** "At ten times this traffic the location writes break first, and the fix is batching pings to fifteen seconds" is a complete answer. Not having one is what fails a defence.
+**Name your bottleneck before anyone asks.** "At ten times this traffic the location writes break first, and the fix is batching pings to fifteen seconds" is a complete answer. Small decisions count too: use 302 rather than 301, because a browser caches a 301 semi-permanently, so you lose click counts and can never fix a mistake.
 
 ### Verify it
 
-**Give the AI the requirements and withhold the architecture.** Ask for requirements, estimates with arithmetic shown, a sketch, one deep dive and the tradeoffs — in that order, and refuse to let it skip ahead. A design that arrives without numbers cannot be interrogated.
-
-**Red flag: a 100-million-user architecture for your problem.** Queues, shards, microservices and a message bus for 5,000 orders a day. Ask: "at my estimated load, how much of this could I delete and still meet the requirements?" The honest answer is usually most of it.
-
-**Red flag: no estimates, or estimates with no arithmetic.** "It will handle high traffic" is not an estimate. Make it show requests per second and bytes per year, and check the multiplication yourself — those are the numbers most likely to be confidently wrong.
-
-**Red flag: no stated bottleneck.** Every design has one. If the AI cannot name what gives out first and at roughly what load, it has drawn a picture rather than designed a system.
-
-**Red flag — the recurring ones: caching added to the fastest part,** such as a cache on the write path of a service doing 0.01 writes a second while the 40-per-second location endpoint is unprotected; and "a bigger instance" in place of noticing two workloads sharing a table.
-
-**Red flag: two workloads not separated** — location pings and orders sharing a table, a consistency model and a rate limit.
-
-Then test the design against reality rather than your own satisfaction. Load-test it, which is M06's job, and compare real numbers to your estimates — the gap teaches more than the design did. Ask a teammate who did not build it to explain the bottleneck back to you. And write the tradeoffs into your decision log now, because M18 will ask you to defend each one and "I don't remember why" is the worst available answer.
+- **Give the AI the requirements and withhold the architecture:** the five steps in order, refusing to let it skip ahead. A design without numbers cannot be interrogated.
+- **Red flag: a 100-million-user architecture for your problem.** Ask how much you could delete at your estimated load and still meet the requirements; usually most of it.
+- **Red flag: no estimates, or estimates with no arithmetic.** Make it show requests per second and bytes per year, and check the multiplication yourself.
+- **Red flag: no stated bottleneck.** Every design has one; without it, it has drawn a picture rather than designed a system.
+- **Red flag: two workloads not separated,** pings and orders sharing a table and a rate limit; and the recurring one, a cache on a write path doing 0.01 writes a second while the 40-per-second endpoint is unprotected.
+- Then test it against reality: load-test it (M06) and compare real numbers with your estimates, and ask a teammate who did not build it to explain the bottleneck back to you.
 
 ## Walkthrough
 1. Pick one of the two systems this chapter did not walk through — group chat, or a UPI payment flow. You will design it in twenty minutes, on paper, before touching any AI.

@@ -4,7 +4,7 @@ module: m06-cloud-linux-devops-testing
 slug: regions-cost-billing-traps
 title: "Regions, Zones, Cost Models and Billing Traps"
 order: 7
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,29 +22,30 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team in Nashik builds their canteen app and accepts the default region, which is in Virginia. Everything works. The app feels sluggish on campus and they assume that is 4G. A single page load makes six database calls, and each one crosses the Indian Ocean and back — roughly 250 milliseconds each way. Six round trips is three seconds of waiting that exists for no reason other than a dropdown nobody read.
+A team in Nashik accepts the default region, Virginia. One page load makes six database calls, each crossing the Indian Ocean and back at roughly 250 ms each way — three seconds of waiting caused by a dropdown nobody read.
 
-A second team's VM is compromised in the way chapter 3 described. For nine days it mines cryptocurrency at full CPU, with enough network traffic to blow through the free allowance. The bill at the end of the month is ₹41,000. Nobody looked at the billing page, because nothing was wrong from the outside.
-
-A third team runs a load test for M05 against their own staging environment, enthusiastically, for twenty minutes. The compute was free. The data leaving the provider was not. ₹3,800.
-
-None of these teams did anything exotic. All three are routine, all three are preventable in about four minutes, and the prevention is the same four minutes in every case.
+A second team's VM is compromised exactly as chapter 3 described and mines cryptocurrency for nine days: ₹41,000, because nothing looked wrong from outside. Both are routine, and the same four minutes of work prevents both.
 
 ### The idea
 
 **Cloud cost is a meter, not a price, and the meter runs whether or not anyone is using your product — so you set the alarm before you turn anything on.**
 
-You are not buying a server for a month. You are being metered on four things at once: how long compute runs, how much data you store, how much data leaves, and how many operations you perform. The bill is the sum of four meters, three of which you cannot see from inside your app.
+You are metered on four things at once, three of which you cannot see from inside your app.
+
+| Meter | What it counts | Student-scale trap |
+|---|---|---|
+| Compute time | Seconds your instance or function runs | An idle VM left running all month |
+| Storage | Gigabytes held, per month | Old backups and build artefacts forever |
+| Egress | Data leaving the provider | Load tests, large images, video |
+| Operations | Requests, reads, writes, invocations | A loop calling an API, a retry storm |
+
+**Egress is the one nobody expects:** data *in* is usually free, data *out* is charged per gigabyte.
 
 ### The analogy
 
-The canteen pays for the shop in one lump every month, and the manager knows that number by heart. Gas, electricity and water are meters. Nobody knows those numbers by heart.
+The canteen pays rent in one lump each month and the manager knows that number by heart. Gas, electricity and water are meters, and nobody knows those by heart. The freezer runs all night whether or not anyone bought ice cream; a tap left running in the back costs money for nine days before anyone notices. The manager's defence is not vigilance — the electricity board sends an SMS when the bill passes ₹5,000.
 
-The freezer runs all night whether or not anyone bought ice cream. A tap left running in the back costs money for nine days before anyone walks past. And the delivery charge is per kilometre, so a supplier in another city costs more per sack than the one across the road, for identical rice.
-
-The manager's defence is not vigilance. It is that the electricity board sends an SMS when the bill passes ₹5,000, so the question "is something wrong?" is answered without anyone having to remember to ask.
-
-**Where the analogy breaks:** a water meter has a physical ceiling — the pipe is only so wide. Cloud meters are elastic by design. A loop that calls an API a million times, or a compromised machine at full tilt, can run up in a weekend what the canteen spends on electricity in a year. There is no narrow pipe, which is why the alarm is not optional.
+**Where the analogy breaks:** a water meter has a physical ceiling. Cloud meters are elastic by design — a loop calling an API a million times can spend in a weekend what the canteen spends on electricity in a year. The alarm is not optional.
 
 ### Picture it
 
@@ -70,44 +71,11 @@ The manager's defence is not vigilance. It is that the electricity board sends a
 
 Four separate meters add up to your bill, and a budget alert is the only mechanism that tells you about a problem on day two rather than at the end of the month.
 
-### Regions and zones
-
-A **region** is a geographic place — Mumbai, Singapore, Frankfurt, Virginia. A **zone** is one independent data centre inside a region, with its own power and network, so that a failure in one zone does not take the others down.
-
-Two rules cover almost everything you need.
-
-**Pick the region closest to your users, and do it on day one.** Physics sets a floor: light in fibre travels roughly 200 km per millisecond, and real routes are not straight. Nashik to Mumbai is single-digit milliseconds. Nashik to Virginia is around 250 milliseconds each way, before any processing. Multiply by the number of round trips a page makes and you have the three-second menu above.
-
-**Keep your app and your database in the same region.** This is the one that bites. A fast app in Mumbai with a database in Virginia pays the ocean crossing on every single query, and page loads make many. If you choose only one thing from this chapter, choose this.
-
-Zones matter to you mainly as a word you will see. Spreading across zones for resilience is an M05 and M13 concern. Changing region, however, usually means recreating the resource and migrating data — which is why it is a day-one decision and not an adjustment.
-
-### The four meters, and which one surprises people
-
-| Meter | What it counts | Student-scale trap |
-|---|---|---|
-| Compute time | Seconds your instance or function runs | An idle VM left running all month |
-| Storage | Gigabytes held, per month | Old backups and build artefacts forever |
-| Egress | Data leaving the provider | Load tests, large images, video |
-| Operations | Requests, reads, writes, invocations | A loop calling an API, a retry storm |
-
-**Egress is the one nobody expects.** Data coming *in* is usually free. Data going *out* — to your users, to another provider, to your laptop — is charged per gigabyte, often at a rate that looks trivial until you move a lot of it. The teams who get surprised are almost always moving data out: a load test, a database dump, a bucket of uncompressed dish photos being served without a CDN.
-
-**Operations surprise people in the opposite way: they are tiny and there are millions of them.** A per-read charge of a hundredth of a paisa is irrelevant until a bug puts a read inside a loop.
-
-### The five ways a student team gets a bill
-
-1. **The thing left running.** A VM created for an experiment in week two, still running in week nine. The most common of all, and the cheapest to prevent: delete it the day you finish with it.
-2. **The compromised machine.** Chapter 3's breach, converted into compute charges. Mining is the usual payload because the attacker's profit *is* your bill.
-3. **The runaway loop.** An agent writes a retry with no backoff, or a function that triggers itself. Operations and egress climb at machine speed. M05's retries-and-backoff chapter is the preventative.
-4. **The load test.** Deliberate traffic, metered exactly like real traffic. Always check what a test costs before you run it, and prefer the platform's own test environment.
-5. **The free trial ending.** The twelve-month allowance from chapter 6 expires, nothing in your setup changes, and the same workload starts costing money. Write the expiry date in your notes on day one.
-
-Notice that only one of these five is anything to do with success. You will not get a surprise bill because your product got popular; you will get one because something was left on, broken into, or looping.
-
 ### Where it lives
 
-This is the money chapter, and it connects outward in every direction. M00 told you to set billing alerts on every account; this is why. Chapter 3's firewall is a cost control as much as a security control. M05's load testing needs an egress check first. M04's file uploads become a storage and egress line. Chapter 13's CDN exists partly to cut egress. M11's going-live checkpoint asks you for your billing alert screenshots.
+A **region** is a geographic place: Mumbai, Singapore, Virginia. A **zone** is one independent data centre inside a region. Two rules cover almost everything: pick the region closest to your users on day one — Nashik to Mumbai is single-digit milliseconds, Nashik to Virginia about 250 each way — and keep your app and database in the same region, because a fast app in Mumbai with a database in Virginia pays the ocean crossing on every query.
+
+This is the money chapter: chapter 3's firewall is a cost control as much as a security one, and M11 asks for your billing alert screenshots.
 
 ### Words to own
 
@@ -128,29 +96,21 @@ This is the money chapter, and it connects outward in every direction. M00 told 
 
 ### Tradeoffs and gotchas
 
-**Set the budget alert before you create the first resource.** Not after. Four minutes, once per account, on a number you would be unhappy to see — ₹500 is a sensible student threshold. Add a second at double that. An alert does not stop spending; it tells you on day two instead of day thirty, and day two is the entire difference between ₹400 and ₹41,000.
-
-**A free tier is not a spend cap.** The two are completely different. Free tier means "the first N units are free"; what happens at N+1 is either a charge or a stop, and which one it is depends on the provider and sometimes on the service. Find out, per service, before you rely on it. If a provider offers a genuine hard spend limit, use it, even though it means your app stops rather than bills.
-
-**Never put a card on an account a beginner is experimenting in, if you can avoid it.** Many platforms offer a genuinely cardless free tier. Where a card is required, that account is the one with the tightest alert and the fewest people with access.
-
-**Cost does not follow intuition.** Idle compute costs more than you expect; storage costs less; egress costs more than almost anyone guesses. Check the meter, do not reason from feel.
-
-**Deleting the resource is not always deleting the cost.** A deleted VM may leave its disk, its snapshot, its reserved IP address and its load balancer behind, each with its own meter. After you delete something, look at the billing page the next day and confirm the line is gone.
-
-**Changing region later is a migration, not a setting.** Treat the dropdown at creation time with the seriousness of a schema decision.
+- **Set the budget alert before you create the first resource.** Four minutes per account, at a number you would be unhappy to see; ₹500 is a sensible student threshold. An alert does not stop spending — it tells you on day two instead of day thirty, the difference between ₹400 and ₹41,000.
+- **A free tier is not a spend cap.** What happens at the first unit past the allowance is either a charge or a stop, depending on the provider and the service. Find out per service, and use a hard spend limit if one is offered.
+- **Five ways a student team gets a bill:** the thing left running, the compromised machine, the runaway loop with no backoff, the load test, the free trial ending. Only one of those has anything to do with success.
+- **Deleting the resource is not always deleting the cost.** A deleted VM may leave its disk, snapshot, address and load balancer behind, each metered. Check the billing page next day.
+- **Changing region later is a migration, not a setting,** and the card belongs on the account with the tightest alert and fewest people with access.
 
 ### Verify it
 
-Cost is where AI's confident-but-stale knowledge does the most financial damage. Five checks.
+1. **Reject any estimate without numbers.** Which meter, how many units, at what rate, totalling what per month, from which page.
+2. **Check every quoted limit and price against the provider's page today,** and write the date beside it.
+3. **Ask what happens at the free-tier limit — stop, or charge?** Per service; the answers differ, and that difference is the risk.
+4. **Ask what egress this design produces.** Anything serving large files straight from a bucket has an egress line; make it say the number.
+5. **Ask what is left behind when I delete this.** Disks, snapshots, addresses, logs.
 
-1. **Reject any estimate without numbers.** "This should stay within the free tier" is not an estimate. Demand: which meter, how many units, at what rate, totalling what per month, from which page. If it cannot produce that, it does not know.
-2. **Check every quoted limit and price against the provider's page today, and write the date beside it.** This is the module's recurring red flag in its most expensive form. Prices and free-tier allowances change; a model's remembered figure has no date attached.
-3. **Ask explicitly: what happens at the free-tier limit — does it stop or does it charge?** Per service. The answers differ, and the difference is the whole risk.
-4. **Ask what egress this design produces.** Any architecture that moves data between providers, or serves large files directly from a bucket, has an egress line. Make it say the number.
-5. **Ask what is left behind when I delete this.** Disks, snapshots, addresses, logs. An agent that creates infrastructure should be able to list what cleaning up actually requires.
-
-Red flags: a cost claim with no date and no source page; "the free tier is generous, you will be fine"; a retry or polling loop with no interval and no backoff; a load-test plan with no egress estimate; and infrastructure created during a chat session that nobody wrote down and nobody will remember to delete.
+Red flags: a cost claim with no date or source page; "the free tier is generous, you will be fine"; a retry loop with no backoff; a load test with no egress estimate; infrastructure created in a chat that nobody wrote down.
 
 ## Walkthrough
 1. Open the billing page of every cloud account your team has. All of them, including the one someone created in week one and forgot.

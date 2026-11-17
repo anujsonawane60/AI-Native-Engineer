@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: datasets-and-data-quality
 title: "Datasets and Data Quality: The Part That Decides Everything"
 order: 2
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -19,32 +19,23 @@ last_reviewed: 2026-11-16
 - Catch a dataset whose quality nobody measured being blamed on the model
 
 ## Lesson
-
 ### The pain
 
-M09 chapter 3 gave you splits, leakage and honest metrics. M10 chapter 9 gave you ingestion quality for documents you retrieve from. Neither covers the thing in front of you now: a file of labelled rows that you built, which decides the ceiling of everything in chapter 1 and chapter 4.
+M09 chapter 3 gave you splits, leakage and honest metrics; M10 chapter 9 gave ingestion quality for retrieval. New here is the file of labelled rows you built yourself, which sets the ceiling for chapters 1 and 4.
 
-A team labels 1,800 support messages into four buckets over a weekend. Three people split the work. They train, and the score stalls at 0.68 whatever they do. Four weeks of model changes follow — a bigger model, more epochs, three learning rates, a different architecture — and the number moves by two points.
-
-Then somebody takes 100 rows and relabels them independently. The three original labellers disagree with each other on 24 of them. "Complaint" and "refund request" were never defined, so each person drew the line somewhere else. On top of that, 140 rows are near-duplicates of each other because the product's template replies got exported too, and 61 of those duplicates have one copy in train and one in test — so the honest score was never 0.68 at all.
-
-The ceiling was in the file. Four weeks of GPU time went into a model that was already as good as the labels allowed.
+A team labels 1,800 support messages into four buckets over a weekend. The score stalls at 0.68 whatever they change. Then somebody relabels 100 rows independently: the original labellers disagree on 24, because "complaint" and "refund request" were never defined. And 61 near-duplicate template replies have one copy in train and one in test — so 0.68 was never real either. The ceiling was in the file.
 
 ### The idea
 
 **Your dataset is a measuring instrument, and an unmeasured instrument cannot be trusted no matter what it reads.**
 
-A dataset is not "the data we have". It is a file with a version, a written definition of every label, a known rate of disagreement between labellers, a measured duplicate rate, a recorded split rule, and a note of where every row came from and whether you are allowed to use it. Building that takes a day. Not building it costs a month.
+A dataset is not "the data we have". It is a versioned file with a written definition of every label, a known disagreement rate, a measured duplicate rate, a recorded split rule, and a note of where each row came from. Building that takes a day; not building it costs a month.
 
 ### The analogy
 
-The canteen wants to know which dishes get complaints. Staff tick a box on a slip: good, average, bad.
+The canteen asks staff to tick a box per dish: good, average, bad. Six weeks in, the data says nothing. Nobody defined "average". Slips from the 1:10 pm rush are missing because nobody had hands free. One regular filled in forty slips. Those are **label ambiguity**, **selection bias** and **duplicate concentration**.
 
-Six weeks in the data says nothing. Investigate and you find the reasons. Nobody defined "average", so one server ticks it for anything not praised and another never ticks it at all. Slips from the 1:10 pm rush are missing because nobody had hands free, so the busiest, worst-tasting half-hour is simply absent. The same regular customer filled in forty slips, all for one dish. And the kitchen started printing a new slip design in week four, so the first three weeks and the last three are not comparable.
-
-Each of those has a name in this chapter: **label ambiguity**, **selection bias**, **duplicate concentration**, and a **distribution shift** inside your own file.
-
-**Where the analogy breaks.** A manager reading slips notices the handwriting is all the same and gets suspicious. Training notices nothing. It will fit the forty slips from one customer as confidently as forty from forty people, and it will learn that the 1:10 pm rush does not exist. There is no mechanism inside the loop that can object to its own input.
+**Where it breaks.** A manager notices the handwriting is all the same and gets suspicious. Training notices nothing: it fits forty slips from one customer as confidently as forty from forty people, and learns the rush does not exist.
 
 ### Picture it
 
@@ -68,25 +59,23 @@ Raw rows become a dataset only after deduplication, a written label guide checke
 
 ### The four defects that cap your score
 
-**Label noise.** Two people applying your guide to the same row and disagreeing. Measure it: have two people label the same 100 rows and compute the percentage they agree on. Below roughly 85% agreement, no model can do better than your guide, and the fix is rewriting the guide with worked edge cases — not more data. Also beware a single labeller being internally inconsistent: slip 50 rows they have already done back into their queue and see if they repeat themselves.
+**Label noise.** Two people applying your guide to one row and disagreeing. Below roughly 85% agreement, no model can beat your guide, and the fix is edge cases in the guide, not more data.
 
-**Duplicates and near-duplicates.** Exact copies inflate whatever they copy. Near-duplicates — the same message with a different name, the same template with one word changed — are worse, because they cross splits and turn memorisation into an apparently high test score. Deduplicate before splitting, always, and check near-duplicates by text similarity rather than only exact matching.
+**Duplicates and near-duplicates.** The same template with one word changed crosses splits and turns memorisation into a high test score. Deduplicate before splitting, by text similarity, not exact matches.
 
-**Imbalance.** If 71% of rows are one label, any score must be read against that 71% baseline, and the rare labels may have twenty examples and no hope. Three honest responses: collect more of the rare class, merge classes that you cannot separate anyway, or accept a model that only decides the common case and escalates the rest to a human. Weighting the loss helps a little and is not a substitute for examples.
+**Imbalance.** If 71% of rows are one label, read every score against that baseline. For a rare label: collect more, merge it, or escalate to a human. Loss weighting is no substitute for examples.
 
-**Contamination.** Train and test sharing information. Duplicates are one route; the other two are time and identity. If your rows have dates and the thing you predict evolves, a random split lets the model see next month while being tested on last month. If one user appears 40 times, a random split puts some of their rows on both sides and you measure memory of that user rather than generalisation.
-
-### Splitting by time and by user
-
-The default random split is wrong more often than students expect, and the rule is simple. **Split by time** when you will run the model on data from after training — order volumes, prices, trends, anything seasonal. Train on January to August, validate on September, test on October, and the score you get is the one you will actually see. **Split by user** when rows are grouped: all of one user's rows go to exactly one split. **Split randomly** only when rows are independent and time does not matter.
-
-A random split on time-series data is the most common way to produce a score that is excellent in the notebook and useless in production, and it is the default in nearly every script an AI will write you.
+**Contamination.** Dated rows split randomly let the model see next month while being graded on last month, so **split by time**: train January to August, test October. A user appearing 40 times lands on both sides, so **split by user**, all their rows in one split. **Split randomly** only when rows are independent and undated — yet random is the AI default.
 
 ### Where it lives
 
-This chapter sits under chapters 1, 4, 5 and 10 of this module. The file you build here is what chapter 1's loop reads and what chapter 4's fine-tune consumes in a different shape — instruction and response pairs rather than rows and labels, same quality rules. Chapter 5's preference pairs have an extra version of the agreement problem, since two people often disagree about which of two answers is better. And chapter 10's eval set is a dataset too: real cases, written before you see output, with provenance.
+Under chapters 1, 4, 5 and 10.
 
-It also touches law. M07's data-protection material and India's DPDP Act apply to a training file exactly as they apply to a database. A student's phone number in `dataset-v3.csv` on a shared drive is personal data, and a model trained on it can repeat it.
+- Chapter 1 — the loop reads this file
+- Chapter 4 — same rules, as instruction and response pairs
+- Chapter 5 — preference pairs, where labellers also disagree
+- Chapter 10 — the eval set is a dataset too
+- M07 and India's DPDP Act — a phone number in `dataset-v3.csv` is personal data a model can repeat
 
 ### Words to own
 
@@ -107,30 +96,26 @@ It also touches law. M07's data-protection material and India's DPDP Act apply t
 
 ### Tradeoffs and gotchas
 
-**More data is the wrong first instinct.** Doubling a noisy file doubles the noise. Two hundred rows you labelled carefully against a written guide beat two thousand labelled quickly by three people who never agreed on the definitions. Fix the guide, then scale.
+**More data is the wrong first instinct.** Doubling a noisy file doubles the noise. Two hundred rows labelled carefully against a guide beat two thousand labelled fast by people who never agreed.
 
-**Derive labels from behaviour where you can.** M09 chapter 2 made this point and it is the highest-return habit in this chapter. Did the ticket get reopened within a week? Did the order get cancelled? Did the user click? Your product records behaviour already, nobody has to be paid to label it, and it cannot drift because somebody was tired on Sunday.
+**Derive labels from behaviour where you can.** Was the ticket reopened? Was the order cancelled? Your product records that already, and it cannot drift because a labeller was tired.
 
-**Synthetic data helps with rare classes and lies about your real distribution.** Generating 200 examples of a rare label so the model has something to learn from is legitimate. Generating your test set is not, ever: you would be measuring whether the model agrees with another model. Keep synthetic rows flagged in a column so you can always train with them and evaluate without them.
+**Synthetic data helps rare classes and lies about your distribution.** Generating 200 examples of a rare label is fine; generating your test set never is. Flag synthetic rows so you can train with them and evaluate without them.
 
-**A dataset is a versioned artefact, not a living spreadsheet.** The moment two people edit the same file, no run is reproducible and no comparison between runs means anything. Freeze, name with a version, and make the next change a new file with a one-line changelog.
-
-**Consent and licence are not formalities.** Rows scraped from a site whose terms forbid it, or user messages collected without a privacy notice that covers model training, are a problem that surfaces at the worst possible time — when the product works and someone asks where the data came from. Record source, date and basis for every batch at the moment you collect it, because reconstructing it later is impossible.
-
-**Your label distribution will drift and your dataset will not.** The product changes, users change, and a file frozen in October describes October. Diarise a re-check: sample 100 fresh rows a month later, label them, and see whether the mix has moved. This is chapter 13's drift monitoring in its cheapest manual form.
+**Consent and licence are not formalities.** Record source, date and legal basis at collection time; reconstructing them later is impossible.
 
 ### Verify it
 
-Ask an AI to "prepare the dataset" and you will get a script that loads, shuffles, splits and reports. None of those steps measures anything. Make it measure.
+"Prepare the dataset" gets you a script that loads, shuffles, splits and reports — none of which measures anything.
 
-1. **Demand the label guide before any labelling.** One paragraph per label plus two deliberately hard edge cases per label. If the AI writes labels without definitions, you have bought the 0.68 ceiling.
-2. **Demand the agreement number.** Two people, same 100 rows, percentage matched, written down. No agreement figure means the dataset's ceiling is unknown.
-3. **Check that deduplication happened before splitting, not after.** Ask for the near-duplicate count, not only the exact-duplicate count, and ask which similarity threshold was used.
-4. **Ask which split rule was chosen and why.** The answer must name random, temporal or grouped and justify it from your data. "Random, for simplicity" on dated rows is a defect.
-5. **Ask for the per-label counts in every split.** A rare label with four rows in the test split cannot be measured, and an aggregate score will hide that completely.
-6. **Ask where every row came from.** If no column records the source, provenance is already lost.
+1. **Demand the label guide first** — one paragraph per label plus two hard edge cases each.
+2. **Demand the agreement number.** Two people, same 100 rows, percentage matched, written down.
+3. **Check deduplication ran before splitting**, and ask for the near-duplicate count.
+4. **Ask which split rule was chosen and why.** "Random, for simplicity" on dated rows is a defect.
+5. **Ask for per-label counts in every split.** A rare label with four test rows cannot be measured.
+6. **Ask where each row came from.**
 
-Red flags: a dataset with no version in its filename; no written label definitions; no agreement measurement; deduplication after the split or not at all; a random split on dated data; an aggregate score with no per-label breakdown; synthetic rows mixed in with no flag column; and the diagnosis "we need a bigger model" offered before anyone has measured label noise.
+Red flags: no source column; no version in the filename; no label definitions; no agreement measurement; deduplication after the split; a random split on dated data; unflagged synthetic rows; "we need a bigger model" before anyone measured label noise.
 
 ## Walkthrough
 1. Export a few thousand real rows from your own product into one file and immediately add a version to the filename. Add columns for source and export date. Never edit this file again.

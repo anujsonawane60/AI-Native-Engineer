@@ -4,7 +4,7 @@ module: m05-scale-reliability
 slug: rate-limiting
 title: "Rate Limiting: Token Bucket, Sliding Window and HTTP 429"
 order: 4
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,33 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your app sends an OTP by SMS so students can log in. Each SMS costs you a few paise, and your free tier includes a hundred a day.
-
-At 2 am somebody discovers that your `/api/send-otp` endpoint will send an SMS to any number, as many times as asked, with no limit. It might be a classmate being funny. It might be a bug in your own retry code that loops when the network drops. By 6 am the endpoint has been called nine thousand times, your SMS quota died at 2:04 am, your account is suspended, and no student can log in all day during the lunch rush you built the whole thing for.
-
-Now the same shape with a bigger number. M10 has you calling a language model per request, and each call costs real rupees. One unlimited loop overnight and the month's budget is gone before anyone wakes up — and this time no quota stops it, only a bill.
-
-Nothing was hacked. Your app did precisely what it was asked, nine thousand times, because nobody ever told it how often it was willing to say yes.
+Your app sends a login OTP by SMS. Each message costs a few paise and the free tier allows a hundred a day. At 2 am somebody finds `/api/send-otp` will send to any number as often as asked; by 6 am it has run nine thousand times, the quota died at 2:04, and no student can log in at lunch. M10's paid model calls are the same shape with a bill instead of a quota.
 
 ### The idea
 
 **A rate limit is a promise you make to yourself about the maximum rate at which you will do expensive work for one identity, and a 429 is how you say no politely.**
 
-The two words that matter are *rate* and *identity*. Rate, because the answer is never "no" but "not that fast" — five OTPs a minute is generous for a real student and useless to a script. Identity, because a limit counted across all users means one abuser degrades everybody, and a limit counted per user means a signup script just makes more users.
-
-Rate limiting is not primarily a security feature. It is a cost and fairness feature that stops a lot of abuse as a side effect. You are protecting a finite resource — SMS credits, model tokens, database connections, your free-tier quota — from being spent faster than you meant.
+Rate, because the answer is never "no" but "not that fast": five OTPs a minute is generous for a student and useless to a script. Identity, because a limit counted across all users lets one abuser degrade everybody. You are protecting SMS credits, model tokens and free-tier quota from being spent faster than you meant.
 
 ### The analogy
 
-The canteen sign reads **max 3 plates per person**.
+The canteen sign reads **max 3 plates per person** — not because three is what a human can eat, but because at 1:10 pm there are forty people and finite samosas. The staff keep no ledger; they count the plates on the tray in front of them, and a fourth gets "not now, come back in a bit", which is exactly 429 with `Retry-After`. A student collecting for three hostel-mates needs six at once, so a burst is allowed and a steady stream refused: a **token bucket**.
 
-It is not there because three plates is the limit of what a human can eat. It is there because at 1:10 pm there are forty people and a finite number of samosas, and without the sign the first four in the queue leave with everything. The sign keeps the counter usable for the fortieth person.
-
-Notice how the staff enforce it. They keep no ledger of anyone's lifetime consumption. They look at the person in front of them, now, and count the plates on their tray. And when you ask for a fourth they do not throw you out of the canteen — they say "not now, come back in a bit", which is exactly what HTTP 429 with a `Retry-After` header means.
-
-The rule has a burst allowance too. A student collecting food for three hostel-mates genuinely needs six plates at once, so the staff let an occasional burst through while refusing a steady stream. That is a **token bucket**, and it is the shape most real limits take.
-
-**Where the analogy breaks:** the canteen recognises faces. Your server does not. Everything hard about rate limiting is the identity question — the canteen's staff know that this is the same student who came back twice, and your API has to work that out from an IP address, a login, or a key, each of which can be faked, shared or thrown away.
+**Where the analogy breaks:** the canteen recognises faces. Your server must infer identity from an IP, a login or a key, each of which can be faked, shared or thrown away.
 
 ### Picture it
 
@@ -70,8 +56,6 @@ The rule has a burst allowance too. A student collecting food for three hostel-m
 
 Tokens drip into a bucket at a fixed rate up to a maximum, each request spends one, and a request arriving at an empty bucket is refused with a header telling it how many seconds to wait.
 
-### Four algorithms, and which to actually use
-
 | Algorithm | How it counts | Why you would pick it |
 |---|---|---|
 | Fixed window | Requests per calendar minute, reset at :00 | Simplest; allows a double burst at the boundary |
@@ -79,27 +63,18 @@ Tokens drip into a bucket at a fixed rate up to a maximum, each request spends o
 | Token bucket | Tokens refill over time, request spends one | Allows honest bursts, caps the average |
 | Leaky bucket | Requests queue and drain at a fixed rate | When you want to smooth, not refuse |
 
-The fixed window's flaw bites in practice. With a limit of 100 per minute, a client can send 100 at 12:00:59 and 100 more at 12:01:00 — two hundred requests in one second, entirely within the rules. For something expensive, that is not a rounding error.
-
-For almost everything you build this year: **token bucket**, counters in a shared cache, keyed per identity, with different limits per endpoint. Sliding window where exact fairness beats bursts. Fixed window only when the thing you are protecting is cheap.
-
-### What to count against
-
-This is the decision AI gets wrong most often, and in India it is wrong in a specific way.
-
-**By IP address** is the obvious choice and a poor one here. A whole hostel or campus Wi-Fi network frequently shares one public address through carrier-grade NAT, and mobile networks do the same at scale. Limit by IP at five a minute and you have throttled three hundred students as one person — while the actual abuser switches to mobile data.
-
-**By user id** is fair and precise, and useless before login. Signup, login and OTP are exactly the expensive endpoints, and exactly the ones where no user id exists yet.
-
-**By API key** is the right answer for anything machine-to-machine, and it is how every API you consume limits you.
-
-So the working pattern is layered: a generous per-IP limit as a blunt instrument against floods, a tight per-user limit where you have one, and a tight per-phone or per-email limit on the unauthenticated endpoints that cost money. Three cheap limits beat one clever one.
+The fixed window's flaw bites: with 100 a minute allowed, a client sends 100 at 12:00:59 and 100 more at 12:01:00. For almost everything you build this year: token bucket, keyed per identity, a different limit per endpoint.
 
 ### Where it lives
 
-A rate limiter sits in front of your handler, and its counters live in the shared cache from Chapter 2 — never in process memory, because with three instances a per-process counter gives every abuser three times the promised limit, and a restart forgives everything.
+The limiter sits in front of your handler and its counters live in Chapter 2's shared cache, never in process memory, because three instances give every abuser three times the limit.
 
-Outward: M04's payment and webhook endpoints need limits and idempotency keys together, since a limit stops the flood and idempotency stops the duplicate charge. M07's alerting turns a spike in 429s into a signal. M10's model calls are the most expensive thing you will ever put a limit in front of. M06 is where you generate the load to test it, and Chapter 8 is the other side of the same coin — what *your* code should do when somebody else returns 429 to you.
+What you count against is the decision AI gets wrong most often. **IP** is poor in India, where a hostel shares one address through CGNAT, so five a minute throttles three hundred students as one person. **User id** is precise and useless before login — and login and OTP are exactly the endpoints that cost money. **API key** suits machine-to-machine. Layer them: generous per-IP against floods, tight per-user, tight per-phone where there is no login.
+
+- M04 — a limit plus an idempotency key on payments and webhooks
+- M06 — the load test that proves the limit works
+- M07 — a spike in 429s as an alert
+- Chapter 8 — the other side: receiving a 429
 
 ### Words to own
 
@@ -119,33 +94,23 @@ Outward: M04's payment and webhook endpoints need limits and idempotency keys to
 
 ### Tradeoffs and gotchas
 
-**Too strict is an outage you built yourself.** Ten requests a minute per IP will block an entire shared network during your demo. Work out what one enthusiastic real user does in a minute, multiply generously, then check what happens if two hundred of them share an address.
+**Too strict is an outage you built yourself.** Ten a minute per IP blocks a shared network during your demo. Start from what one enthusiastic user does in a minute, multiply generously, then check two hundred of them on one address.
 
-**A 500 is not a rate limit.** If your limiter crashes the request or returns a generic error, every client retries immediately and you have built an amplifier. Return 429, include `Retry-After`, and say something human in the body. Chapter 8 explains why the right status code is what lets a well-behaved client back off instead of pile on.
+**A 500 is not a rate limit.** A generic error makes every client retry at once, so you have built an amplifier: return 429 with `Retry-After` and something human in the body.
 
-**Decide fail-open or fail-closed on purpose.** If the cache is down, do you allow everything or refuse everything? For a menu page, fail open — availability beats protecting a cheap read. For the endpoint that sends SMS or calls a paid model, fail closed, because the downside is a bill you cannot undo. Write the choice in your decision log; it will be questioned.
+**Decide fail-open or fail-closed on purpose.** Cache down, a menu page fails open because availability beats protecting a cheap read; an endpoint that sends SMS or calls a paid model fails closed, because the downside is a bill you cannot undo.
 
-**Limits belong per endpoint, not per app.** One global "100 per minute" either throttles your menu pointlessly or leaves your OTP endpoint wide open. Make the limit proportional to what one call costs: generous on a cached read, tight on anything that sends a message, moves money or calls a model.
-
-**Your own frontend is a plausible attacker.** A retry loop firing on every network blip, an effect that runs twice, a submit button with no disabled state. Most student rate-limit incidents are self-inflicted, which is reason enough to watch your 429 rate when nobody is attacking you.
-
-**Never rate limit a health check or a webhook receiver carelessly.** Blocking your host's health probe takes your app out of rotation. Blocking a payment provider's webhook retries can lose an order confirmation; M04's idempotency keys plus a generous limit on that path is the combination you want.
+**Your own frontend is a plausible attacker:** a retry loop on every blip, a submit button with no disabled state. And never limit a health check or webhook receiver carelessly — that drops you out of rotation, or loses an order confirmation.
 
 ### Verify it
 
-**Ask what one call costs before asking for a limit.** The first question is: "for each endpoint, what does one request cost me in money, in third-party quota and in database work?" The limits fall out of that table, and an AI proposing numbers without it is inventing them.
-
-**Red flag: counters in process memory.** Look for a plain dictionary or map holding counts inside the app. It tests perfectly and fails in production, giving each instance its own allowance. Ask: "where does this counter live, and what happens with three instances and a restart?"
-
-**Red flag: keyed on IP only.** For Indian student users this is close to a guaranteed incident. Insist on a per-user or per-phone key on the endpoints that cost money.
-
-**Red flag: a 500, a 403, or a silent empty response instead of 429.** Check the status code with your own eyes, and check `Retry-After` is present. A limiter the client cannot understand produces retries, not restraint.
-
-**Red flag — the recurring one: the limit is on the cheap endpoint.** AI will cheerfully limit your cached menu read, which costs 1 ms, while leaving `/api/send-otp` and the model-calling endpoint open. Ask it to rank endpoints by cost per call and confirm the tightest limit sits on the dearest one.
-
-**Red flag: "add more memory" or "upgrade the plan" offered as the fix for abuse.** Scaling up to absorb an unlimited loop is paying for the attack. The fix is a limit.
-
-Then test it rather than reading about it. Loop requests and watch for the exact request number where 429 begins; it should match your limit. Read `Retry-After`, wait that long, confirm the next request succeeds. Use the app as a human and confirm you are never limited. Restart, and check the counter did not reset.
+- **Ask what one call costs before asking for a limit,** per endpoint, in money and quota. Numbers proposed without that table are invented.
+- **Red flag: counters in process memory.** A plain dictionary tests perfectly and gives each instance its own allowance.
+- **Red flag: keyed on IP only.** For Indian student users this is close to a guaranteed incident.
+- **Red flag: a 500, a 403 or a silent empty response instead of 429,** with no `Retry-After`. Check it yourself.
+- **Red flag: the limit on the cheap endpoint,** capping a 1 ms cached read while `/api/send-otp` stays open. Make it rank endpoints by cost per call.
+- **Red flag: "add more memory" or "upgrade the plan" against abuse.** Absorbing an unlimited loop is paying for the attack.
+- Test it: find the request number where 429 begins, wait the `Retry-After` and confirm the next succeeds, use the app as a human and never be limited, then restart and check the counter survived.
 
 ## Walkthrough
 1. List every endpoint in your app. Next to each, write what one call costs you: rupees, third-party quota, emails or SMS sent, model tokens, database writes. Be concrete.

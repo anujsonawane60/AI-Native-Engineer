@@ -4,7 +4,7 @@ module: m05-scale-reliability
 slug: slos-retries-circuit-breakers
 title: "Reliability: SLOs, Retries, Backoff, Timeouts and Circuit Breakers"
 order: 8
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,35 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your SMS provider does not go down. It goes *slow*. Requests that normally take 300 milliseconds start taking thirty seconds.
-
-Your code calls it and waits, because nobody set a timeout and the default is to wait as long as it takes. Each waiting request holds an app worker and a database connection. Within ninety seconds every worker in all three instances is parked on a dead SMS call, and your entire app — menu, orders, admin page, everything with nothing to do with SMS — stops answering.
-
-A teammate adds retries. Three attempts per request, immediately, no delay. The provider was struggling with your normal traffic and is now receiving three times as much. The thing that was recovering stops recovering, and your retries are the reason.
-
-One third party got slow and you were down for an hour. That is the shape of most real outages: not a component failing, but a slow component nothing was protecting you from, plus well-meaning retries turning a dip into a disaster.
+Your SMS provider does not go down, it goes *slow*: 300 ms becomes thirty seconds. Your code waits, because nobody set a timeout, and each waiting request holds a worker and a database connection. Within ninety seconds every worker in all three instances is parked on a dead SMS call and your whole app stops answering. A teammate adds three immediate retries, so the struggling provider receives triple traffic and stops recovering. One third party got slow and you were down for an hour.
 
 ### The idea
 
 **Reliability is not the absence of failure. It is deciding in advance how much failure is acceptable, and making sure one slow dependency cannot take everything else with it.**
 
-Two halves. The first is a target you write down: an **SLO**, a service level objective, such as "99.9% of menu requests succeed in under 500 ms, monthly". That number tells you when to stop optimising and when to drop everything, and the gap between it and perfection is your **error budget**.
-
-The second is four defences, applied in order to every call that leaves your process: a **timeout** so you stop waiting, a **retry with backoff** so a blip is not a failure, a **circuit breaker** so you stop calling something clearly broken, and a **fallback** so the user still gets something useful.
-
-Of those, the timeout is worth more than the other three combined. An unbounded wait is how a small failure becomes total.
+Half of it is a target you write down: an **SLO** such as "99.9% of menu requests succeed in under 500 ms, monthly", and the gap between it and perfection is your **error budget**. The other half is four defences — timeout, retry with backoff, circuit breaker, fallback — on every call that leaves your process. The timeout is worth more than the other three combined: an unbounded wait is how a small failure becomes total.
 
 ### The analogy
 
-It is 1:10 pm and the juice supplier has not arrived.
+It is 1:10 pm and the juice supplier has not arrived. Without a rule the counter stops and the queue backs up behind people who only wanted samosas: no timeout. The rule a real canteen has is **if juice is not here by 1:15, take it off the board and keep serving** — thirty fed, three disappointed, a timeout plus a fallback. Calling the supplier once more is sensible; calling every ten seconds for an hour is a **retry storm** that keeps the line permanently engaged. The sane version waits a minute, then two, then four, then stops — a **circuit breaker**.
 
-Without a rule, the counter stops. Staff wait for juice, the queue backs up behind people who only wanted samosas, and the whole canteen is blocked on one missing item. That is no timeout.
-
-The rule a real canteen has is: **if juice is not here by 1:15, take it off the board and keep serving.** Thirty people get fed, three are disappointed. That is a timeout plus a fallback — the difference between a bad day for juice and a bad day for everybody.
-
-Now the supplier's phone. Calling once more is sensible — maybe the first call dropped. Calling every ten seconds for an hour is a **retry storm**: the line is permanently engaged, and if the supplier was about to call back, they cannot get through. The sane version waits a minute, then two, then four, then stops after the sixth failure and tries once at 2 pm. That last part is a **circuit breaker**.
-
-**Where the analogy breaks:** canteen staff notice and improvise. They get bored of waiting, they look at the queue, they make a call. Code is infinitely patient. It will wait thirty minutes for a reply without complaint and without telling anybody, which is precisely why these rules have to be written down rather than left to good judgement at the time.
+**Where the analogy breaks:** staff get bored of waiting and look at the queue. Code is infinitely patient: it waits thirty minutes without complaint and without telling anybody.
 
 ### Picture it
 
@@ -69,38 +53,27 @@ Now the supplier's phone. Calling once more is sensible — maybe the first call
                                └────▶ back to OPEN
 ```
 
-A breaker starts closed and passes calls through, trips open after repeated failures and fails instantly without calling, then after a cooling period allows one trial call that either closes it again or sends it straight back to open.
+A breaker starts closed and passes calls through, trips open after repeated failures and fails instantly without calling, then after a cooling period allows one trial call that either closes it or sends it back to open.
 
-### Availability arithmetic
+The four defences:
 
-Percentages feel abstract until you convert them to minutes. Do that once and you will never promise 99.99% casually again.
-
-| Target | Downtime per month | What that feels like |
+| Defence | What it does | A sane first setting |
 |---|---|---|
-| 99% | about 7 hours | one bad afternoon |
-| 99.9% | about 43 minutes | one lunch rush |
-| 99.95% | about 22 minutes | a slow deploy |
-| 99.99% | about 4 minutes | essentially no manual recovery |
+| Timeout | Stops you waiting for a call that may never answer | 2 s cache, 5 s database query, 10 s third-party API |
+| Retry with backoff and jitter | Survives a blip without becoming a stampede | 2–3 attempts, doubling, randomised; only timeouts, 429 and 503 |
+| Circuit breaker | Stops calling a dependency that is clearly broken | 5 failures, open 30 s, then one trial call |
+| Fallback | Gives the user something instead of an error | Yesterday's cached menu; "we will notify you" |
 
-Then the part people miss: availability **multiplies** across dependencies. If your app needs your host, your database, your cache and your payment provider, each independently 99.9% available, your ceiling is roughly 99.6% — about three hours a month — before you write a single bug. Every dependency spends reliability you did not know you were spending, which is a good reason to work without the cache and a bad reason to add a fifth service for one nice feature.
-
-A target of 100% is not ambitious, it is wrong. A zero error budget means never deploying, never experimenting and never taking a risk, which is how teams stop shipping. M07 builds this properly.
-
-### The four defences, in order
-
-**Timeout.** Every call that leaves your process — database, cache, payment gateway, SMS, model API — gets an explicit deadline. Many client libraries default to none, which means "wait forever". A good first pass: 2 seconds for a cache, 5 for a database query, 10 for a third-party API, and a total request budget smaller than wherever your host cuts you off.
-
-**Retry with exponential backoff and jitter.** Retry once after a delay, then double the delay. Add randomness so a thousand clients do not retry in unison — the same jitter idea as Chapter 3's TTLs. Cap attempts at two or three. And retry only what is safe to repeat: a timeout, a 429, a 503. Never a 400, 401 or 422, because the answer will not change.
-
-**Circuit breaker.** Count failures to one dependency. Past a threshold, stop calling it and return an error immediately — the opposite of patience, and what keeps your workers free. After a cooling period, let exactly one request through to test the water.
-
-**Fallback.** Decide what the user sees when all that has happened. Yesterday's cached menu beats an error page. "Payment confirmation is delayed, we will notify you" beats a spinner. This is **graceful degradation**, and it is the only one of the four your users ever see.
+Many client libraries default to no timeout, which means forever. The fallback is the only one your users ever see, which is why it is also called **graceful degradation**.
 
 ### Where it lives
 
-These defences wrap every arrow in Chapter 2's diagram and every arrow out to a third party. They are the other side of Chapter 4: there you returned 429, here you receive one and must respond well.
+These defences wrap every arrow out to a dependency or a third party. They are the other side of Chapter 4: there you returned 429, here you receive one.
 
-Outward: M04's idempotency keys are what make retrying a payment safe at all, and its queues are where work goes when a dependency is down. M06's tests and deploy pipeline are where you prove a fallback works before you need it. M07 is the home of SLOs, error budgets and the alerting that tells you a breaker has tripped. M18's runbook is where "what to do when the breaker opens" gets written for a human.
+- M04 — idempotency keys make retrying a payment safe at all; queues hold work while a dependency is down
+- M06 — proving a fallback works before you need it
+- M07 — SLOs, error budgets, and alerting when a breaker trips
+- M18 — the runbook entry for an open breaker
 
 ### Words to own
 
@@ -121,35 +94,32 @@ Outward: M04's idempotency keys are what make retrying a payment safe at all, an
 
 ### Tradeoffs and gotchas
 
-**Retrying a non-idempotent write charges twice.** The request timed out; you do not know whether the payment went through. Retry without an idempotency key and you may have taken ₹120 for a ₹60 plate. M04 taught you the key; this is where you find out what it was for. Retry reads freely, writes only with a key.
+Percentages feel abstract until you convert them to minutes:
 
-**Retries are load amplification at the worst possible moment.** Three attempts per client means the struggling service receives triple traffic exactly when it can least cope. Backoff, jitter, a low attempt cap and a breaker are what make retries safe rather than harmful.
+| Target | Downtime per month | What that feels like |
+|---|---|---|
+| 99% | about 7 hours | one bad afternoon |
+| 99.9% | about 43 minutes | one lunch rush |
+| 99.95% | about 22 minutes | a slow deploy |
+| 99.99% | about 4 minutes | essentially no manual recovery |
 
-**A timeout that is too short fails requests that would have succeeded.** On slow 4G a legitimate upload may take fifteen seconds. Base the number on your measured p95 from Chapter 1 with headroom, not on a round figure that felt right.
+**Availability multiplies across dependencies.** Host, database, cache and payment provider each independently 99.9% available put your ceiling near 99.6% — about three hours a month — before you write a single bug. And 100% is not ambitious but wrong: a zero error budget means never deploying.
 
-**Timeout budgets must nest.** If your host cuts requests off at 30 seconds and you make three sequential calls with 15-second timeouts each, your own timeouts never fire — the platform kills you first and your fallback never runs. Make the worst case fit inside the outer limit.
+**Retrying a non-idempotent write charges twice.** The call timed out and you cannot tell whether the payment went through, so without an idempotency key you may have taken ₹120 for a ₹60 plate.
 
-**A breaker with no half-open state never recovers,** and one that trips on a single failure trips during every deploy. Thresholds and cooling periods are numbers to choose deliberately.
+**Timeout budgets must nest, and too short fails requests that would have succeeded.** An upload on slow 4G may legitimately take fifteen seconds, so base the number on your p95 from Chapter 1. And if your host cuts off at 30 seconds while you make three sequential 15-second calls, the platform kills you first and your fallback never runs.
 
-**Do not put a breaker in front of your own database.** Fail fast on dependencies you can live without; your primary is not one of those, and a tripped breaker there is a self-inflicted outage.
+**A breaker with no half-open state never recovers,** one that trips on a single failure trips during every deploy, and a breaker in front of your own primary database is self-inflicted downtime.
 
 ### Verify it
 
-**Ask for the inventory first.** "List every call my code makes that leaves the process, and for each one give me the current timeout, the retry policy, and what the user sees if it fails." The gaps in that table are your outage. An AI that cannot produce it has not read your code.
-
-**Red flag: no timeout, or a default one.** The most common and most expensive omission in generated code. Check each client call in the diff has an explicit deadline. "The library handles it" is worth verifying, because the library's handling is frequently "wait forever".
-
-**Red flag: retries with a fixed delay and no jitter,** or an attempt count above three. Ask what happens if a thousand clients do this simultaneously.
-
-**Red flag: retrying a 400, 401 or 422.** The answer will not change. Retrying a client error wastes quota and hides the real bug.
-
-**Red flag: a retry on a payment, an order creation or any write, with no idempotency key.** Ask straight out: "if this times out after the server already processed it, what stops the user being charged twice?" An answer without the word idempotency is not an answer.
-
-**Red flag: a breaker with no half-open state, or a threshold of one failure.** Ask how it recovers, and what happens during your next deploy.
-
-**Red flag — the recurring ones: "scale up" or "add more memory" as the fix for a slow third party,** which cannot work because the waiting is not happening in your memory; and a timeout added to the fast internal call while the thirty-second external one stays unbounded.
-
-Then prove the behaviour instead of reading about it. Point one dependency at a deliberately wrong address: that feature should fail quickly while everything else keeps serving. Then make the dependency slow rather than dead, with a sleep or throttling, because slow is the case that actually takes systems down. Force the breaker open, confirm later calls return instantly, wait out the cooling period and confirm recovery. And read your logs: a well-behaved failure leaves a record, not silence.
+- **Ask for the inventory first:** every outbound call, with its timeout, retry policy and user-visible failure. The gaps are your outage.
+- **Red flag: no timeout, or a default one** — the most expensive omission in generated code. "The library handles it" is frequently "wait forever".
+- **Red flag: a fixed retry delay with no jitter, or more than three attempts.** Ask what a thousand clients doing this at once looks like.
+- **Red flag: retrying a 400, 401 or 422.** The answer will not change, so you waste quota and hide the real bug.
+- **Red flag: a retry on a payment or order with no idempotency key.** Ask what stops a double charge; an answer without the word idempotency is not an answer.
+- **Red flag: "scale up" for a slow third party,** since the waiting is not in your memory; and a timeout on the fast internal call while the slow external one stays unbounded.
+- Prove the behaviour: point one dependency at a wrong address and confirm that feature fails fast while the rest serves; then make it slow rather than dead, because slow is what takes systems down; force the breaker open, confirm later calls return instantly, and wait out the cooling period.
 
 ## Walkthrough
 1. List every call your app makes that leaves the process. Database, cache, object storage, payment gateway, SMS or email provider, model API, anything else. Expect six to ten lines.

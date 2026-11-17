@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: payments-upi-idempotency
 title: "Payments: Gateway, UPI, Checkout, Webhooks and Idempotency"
 order: 17
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -22,39 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-The canteen app takes UPI payments in test mode. A student pays ₹240 for her order, the flow works, everyone is delighted. Then the real story, the one this chapter exists for.
+In test mode the canteen app takes UPI payments. The provider sends a webhook — `payment.captured`, ₹240, order 91 — and the server credits ₹240 to the student's wallet and takes eleven seconds to reply, because the handler also emails a PDF receipt. The provider waited eight seconds, treated it as failed, and retried; the server had no memory of the first and credited another ₹240. ₹480 for a ₹240 payment.
 
-The provider sends a webhook to the canteen's server: `payment.captured`, ₹240, order 91. The server credits ₹240 to the student's canteen wallet, marks the order paid, and then — because the handler also generates a PDF receipt and emails it — takes eleven seconds to reply.
-
-The provider waited eight seconds, got nothing, and treated the delivery as failed. So it retries. The same webhook arrives again. The server, with no memory of the first, credits another ₹240. The student now has ₹480 of credit for a ₹240 payment.
-
-By the end of the week forty students have discovered that paying slowly, or twice, or just getting lucky with a flaky network, produces free credit. The canteen is short ₹7,000 and the team cannot reconstruct what happened, because the only record is an unbounded log of webhook bodies with no event ids.
-
-The bug is not in the payment. The payment was perfect. The bug is that the handler assumed a webhook arrives exactly once, and **no webhook in the world arrives exactly once.**
+By week's end forty students had worked out that paying twice produced free credit, the canteen was ₹7,000 short, and the only record was a log of bodies with no event ids. The handler assumed a webhook arrives exactly once, and **no webhook in the world arrives exactly once.**
 
 ### The idea
 
 **The payment provider holds the truth about money, your webhook handler must be safe to run many times, and the amount is always decided by your server.**
 
-Three rules, each preventing a specific loss.
-
-**The provider is the source of truth.** Your database records what the provider told you. A phone saying "payment successful" is a hint, not a fact — it can lie, the network can drop the confirmation, and the user can close the app at the wrong moment.
-
-**Idempotency** means an operation can repeat without changing the result. Webhooks arrive twice, users double-tap, networks retry. Every money operation must be designed so the second occurrence does nothing.
-
-**The server computes the amount.** Chapter 1's rule at the highest stakes. The client sends what the student wants to buy; the server looks up today's prices, totals them in paise, and tells the provider what to charge.
+Your database records what the provider told you; a phone saying "payment successful" is a hint, not a fact. **Idempotency** means an operation can repeat without changing the result, so every money operation must be built so the second occurrence does nothing. The client sends what the student wants to buy, never the price.
 
 ### The analogy
 
-The canteen's token system, with the bank involved.
+A student pays at the counter and gets token 41. The bank's confirmation slip — "token 41, ₹240, cleared" — goes in the register; if the same slip arrives twice the clerk files the duplicate without writing anything, because token 41 is already recorded. That is idempotency; the register's token column is the idempotency key.
 
-A student pays at the counter and the cashier gives her token 41. The kitchen cooks against the token, not against her word. If she says "I paid" with no token, the answer is no.
-
-The bank sends a confirmation slip to the office: "token 41, ₹240, cleared". The clerk writes it in the register. If the same slip arrives twice — the courier was unsure the first was delivered — the clerk sees token 41 already recorded and files the duplicate without writing anything. That check is idempotency, and the register's token column is the idempotency key.
-
-And the price: the student does not write ₹2 on her own slip. The cashier reads today's board.
-
-**Where the analogy breaks:** a clerk can see two slips are identical and use judgement. Your handler sees two unrelated HTTP requests, possibly in parallel on two server instances, with no intuition at all. The check has to be a database constraint — a unique index on the provider's event id — because two copies of your code running simultaneously will both pass an "if not already recorded" test and both insert.
+**Where the analogy breaks:** a clerk can see two slips are identical and use judgement. Your handler sees two unrelated HTTP requests, possibly in parallel on two instances. The check has to be a database constraint — a unique index on the provider's event id — because two copies of your code will both pass an "if not already recorded" test and both insert.
 
 ### Picture it
 
@@ -89,37 +71,7 @@ Your server creates the order and tells the provider the amount in paise; the st
 
 ### Where it lives
 
-This chapter is the whole module arriving at once, which is why it is last.
-
-The amount comes from chapter 1's rule that the client cannot be trusted. The webhook is chapter 3, with signature verification now protecting money. The order and payment rows are chapters 6 and 7. Marking the order paid and recording the payment together is chapter 11's transaction. The webhook endpoint is public, so chapter 12's lesson — a route with no session needs its own authentication, here the signature — applies directly. And verify, record, queue, return is chapter 16.
-
-Forward: M07 treats a payment discrepancy as an incident with a response procedure. M11's checkpoints will ask you to demonstrate a payment flow and explain its failure cases. M17 is the business end — pricing, revenue, reconciliation as a monthly discipline.
-
-Everything here stays in **test mode**: test credentials, test UPI handles, simulated webhook deliveries. You will never move real money in this course, and every rule is identical in test mode and production — which is exactly why you learn it here.
-
-### UPI specifically
-
-UPI is the default in India and behaves differently from a card in ways that matter to your design.
-
-**The payment leaves your app.** The student is handed to their UPI app — GPay, PhonePe, Paytm — approves there, and comes back. Your app loses the screen mid-transaction, and they may not come back at all: they close the app, lose signal, or get a call. **The payment can succeed while your app never hears about it from the client.** That is why the webhook is the primary path rather than an optimisation.
-
-**Amounts are integer paise.** ₹240 is `24000`. Providers' APIs take paise; your database stores paise. A float anywhere produces a reconciliation you cannot explain, and the amounts do not round in your favour.
-
-**Pending is a real, common state, not an error.** A UPI payment can sit pending for minutes. Your order needs a status for it, your UI must say something honest, and chapter 16's cron job must ask the provider about anything pending after ten minutes.
-
-**Refunds are asynchronous too** — their own request, webhook and idempotency problem. So are collect requests and static QR codes: same three rules, different journey.
-
-### Idempotency, concretely
-
-Two places need it, for two different reasons.
-
-**Outbound: creating the payment.** You send an idempotency key — usually your own order id. If your network drops and you retry, the provider sees the same key and returns the same payment rather than creating a second. Without it, a student on a flaky connection who taps twice is charged twice.
-
-**Inbound: receiving the webhook.** The provider's event has a unique id. You insert it into a table with a **unique constraint** before doing any work. If the insert fails because the id exists, this is a duplicate: reply `200` and do nothing else.
-
-The unique constraint is load-bearing. "Check whether we have seen this id, then insert it" is two statements, and two copies of your handler running at the same moment both pass the check and both insert. A database-level unique index is the only thing that makes the second fail — which is why you verify this by reading the schema, not the handler's `if`.
-
-And one more: **never make the credit an addition.** `balance = balance + 24000` run twice gives ₹480. A payment row carrying a unique event id, with the balance computed from the sum of rows, cannot double because the second row cannot exist.
+This chapter is the whole module arriving at once: chapter 1's untrusted client, chapter 3's webhook, chapters 7 and 11's rows in one transaction, and chapter 12's public endpoint whose signature is its only authentication. Everything stays in **test mode**, where every rule is identical to production.
 
 ### Words to own
 
@@ -138,34 +90,26 @@ And one more: **never make the credit an addition.** `balance = balance + 24000`
 
 ### Tradeoffs and gotchas
 
-**Never trust the client's success callback alone.** Mark the order `pending_confirmation` and let the webhook promote it. Otherwise a student who edits the callback gets free food, and a student whose connection drops after a real payment gets nothing.
+**Idempotency at both ends, enforced by the schema.** Outbound, your order id is the idempotency key, so a retry returns the same payment instead of charging twice. Inbound, insert the provider's event id into a table with a **unique constraint** before doing any work; if that insert fails, reply `200` and do nothing. "Check, then insert" is two statements, and two copies of your handler both pass the check and both insert — so verify this in the schema, not the handler's `if`.
 
-**Reply to the webhook fast, then work.** Verify, deduplicate, record, queue, return `200` — under a second. Every slow thing in that handler is a retry you invited, and a duplicate you must survive.
+**Never make the credit an addition.** `balance = balance + 24000` run twice gives ₹480. A payment row carrying the unique event id, with the balance summed from rows, cannot double.
 
-**Verify the signature first.** Until it checks out, the body is a string from a stranger.
+**Verify the signature, deduplicate, record, queue, return `200` — under a second.** Every slow thing there is a retry you invited, and the client's callback must never mark an order paid.
 
-**Store the provider's raw event, once, with its id.** When you are ₹7,000 short, that is what lets you reconstruct the week. A text log with no ids is what the team in the opening story had.
-
-**Webhooks arrive out of order.** `payment.captured` can arrive before `order.created` commits, and a failure after a success. Your transitions must be explicit about what may follow what, and a late event for an already-final order is ignored, not applied.
-
-**Reconcile on a schedule.** A daily job comparing your payment rows against the provider's list finds the webhooks you never received — and you will have some.
-
-**Test mode and production differ in configuration, not in rules.** Separate keys, secrets and dashboards, all in environment variables. A payment key in git is a rotate-today incident even in test mode.
+**UPI leaves your app, so the webhook is the primary path** — the student approves in GPay and may never come back. Amounts are integer paise, and pending is a normal state rather than an error.
 
 ### Verify it
 
-Eight checks, and payments is the one place where all of them are mandatory.
-
-1. **Replay the same webhook twice,** using the provider's resend button. Count: one payment row, one credit, one status change. Two of anything is the opening story, live in your project.
-2. **Replay it five times, quickly.** A different test — whether the unique constraint holds under concurrency, rather than whether your `if` works.
-3. **Send a wrong signature.** It must be rejected and change nothing, or anyone on the internet can mark any order paid.
-4. **Send a webhook claiming a different amount.** ₹1 for a ₹240 order. Your handler must notice and refuse to fulfil.
-5. **Tamper with the amount on the way in.** Change your checkout request's total to ₹1. The order must still be created at the real price.
-6. **Kill the app mid-payment.** Approve a test payment, then close the browser. Does the order become paid when the webhook arrives? This is the commonest real UPI journey and most first implementations fail it.
-7. **Leave a payment pending.** Use the provider's pending and failed test flows. Confirm an honest state and that your cron job resolves it.
+1. **Replay the same webhook twice:** one payment row, one credit, one status change.
+2. **Replay it five times, quickly** — that tests the unique constraint under concurrency, not your `if`.
+3. **Send a wrong signature.** It must be rejected, changing nothing.
+4. **Send a webhook claiming a different amount.** ₹1 for a ₹240 order must not be fulfilled.
+5. **Tamper with the checkout amount.** Set the total to ₹1; the real price must still be charged.
+6. **Kill the app mid-payment.** Approve, close the browser; the order must still become paid via the webhook.
+7. **Leave a payment pending.** Use the provider's pending and failed flows; confirm an honest state and that cron resolves it.
 8. **Read the schema for the unique constraint on the event id.** Not the handler — the schema.
 
-Red flags: an order marked paid by the client's callback; crediting before verifying the signature; no unique constraint on the event id; a balance updated by addition; floats or rupees anywhere; email or PDFs generated inline; no reconciliation job; no pending state; a key in git; "duplicates are unlikely".
+Red flags: an order marked paid by the client's callback; crediting before verifying the signature; no unique constraint on the event id; a balance updated by addition; floats or rupees anywhere; email or PDFs inline; no reconciliation job; no pending state; a key in git; "duplicates are unlikely".
 
 ## Walkthrough
 1. Read your provider's test-mode UPI documentation and find three things: how to create an order, the webhook events you will receive, and how signature verification works. Write down the signature header's name.

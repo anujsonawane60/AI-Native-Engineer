@@ -4,7 +4,7 @@ module: m01-team-startup-git
 slug: pull-requests-and-diffs
 title: "Pull Requests and Reviewing a Diff You Did Not Write"
 order: 8
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student opens a pull request titled "changes". It contains 1,400 changed lines across 23 files. The description is empty.
+A student opens a pull request titled "changes": 1,400 changed lines across 23 files, description empty. Their teammate scrolls for thirty seconds and clicks Approve. Three days later prices display 100× too large, because somewhere in those lines a paise-to-rupees conversion was removed.
 
-Their teammate opens it, scrolls for thirty seconds, sees nothing obviously wrong, and clicks Approve. Three days later the sold-out feature works but prices display 100× too large, because somewhere in those 1,400 lines a conversion from paise to rupees was removed. Both of them "reviewed" it. Neither of them looked at that line.
-
-The reviewer is not lazy. A 1,400-line diff is genuinely unreviewable, and clicking Approve was the only available action. The failure happened when the pull request was opened, not when it was approved.
+The reviewer is not lazy. A 1,400-line diff is unreviewable, and Approve was the only available action. The failure happened when the pull request was opened, not when it was approved.
 
 ### The idea
 
 **A pull request proposes a change and asks a human to check it before it reaches main. With AI writing the code, this review is the job.**
 
-You are not reviewing syntax — the agent is better at syntax than you are. You are reviewing intent, scope, and the things an agent systematically gets wrong.
+You are not reviewing syntax — the agent is better at that than you. You review intent, scope, and the things an agent systematically gets wrong.
 
 ### The analogy
 
-The canteen hires the fast helper from M00. They have reorganised the storeroom.
+The canteen's fast helper has reorganised the storeroom. A bad handover is "I reorganised it": you either trust them or re-check every shelf. A good one is "I moved the dry goods to the left shelf, threw out three expired packets — here they are — and did not touch the fridge. The one thing I'm unsure about is whether the oil should be by the stove." Your review takes ninety seconds, because the handover said where to look.
 
-A bad handover: "I reorganised it." You have no idea what moved. You either trust them completely or re-check every shelf yourself. Both are bad options.
-
-A good handover: "I moved the dry goods to the left shelf so they're nearer the prep station, I threw out three expired packets — here they are — and I did not touch the fridge. The only thing I'm unsure about is whether the oil should be by the stove or in the cupboard."
-
-Now your review takes ninety seconds. You check the three thrown-out packets, you confirm the fridge is untouched, and you answer the one open question. The handover told you where to look.
-
-**Where the analogy breaks:** a helper knows what they were uncertain about. An agent does not — it has no sense of which of its changes were judgement calls. So the description has to come from *you*, which is why writing it is part of your work and not the agent's.
+**Where the analogy breaks:** a helper knows what they were uncertain about. An agent has no sense of which changes were judgement calls, so the description must come from *you*.
 
 ### Picture it
 
@@ -75,64 +67,18 @@ Now your review takes ninety seconds. You check the three thrown-out packets, yo
          └───────────────────────────▶│
 ```
 
-The description is read before the diff, and it tells the reviewer where to look. Without it, the reviewer has to reconstruct your intent from the code, which is slow and unreliable.
+The description is read before the diff and says where to look. Without it the reviewer must reconstruct your intent from the code.
 
-### How to review without reading every line
+You will not read 1,400 lines. Review in four passes, cheapest first, stopping as soon as you find something to fix.
 
-You will not read 1,400 lines, and you should not try. Review in four passes, cheapest first, and stop as soon as you find something that needs fixing.
-
-**Pass 1 — the file list, ten seconds.** Does the set of changed files match the stated scope? A payments file in a styling change is a red flag before you read any code. This pass catches the most problems per second of effort.
-
-**Pass 2 — the line count, five seconds.** Is it proportionate? "Fix one calculation" should not be 600 lines. If it is, ask why before reading further.
-
-**Pass 3 — the diff itself, a few minutes.** Read only the changed lines. Look for the specific things agents get wrong (below), not for style.
-
-**Pass 4 — run it.** Use the preview URL and try the thing. Then try to break it: the empty case, the wrong user, submitting twice. This is the pass that catches what reading cannot.
-
-### The six-question review checklist
-
-These are the questions that find real problems in agent-written code. They come from the failure modes in M00 and the four-box model from M00.3.
-
-**1. Does it do what the brief asked, and nothing else?**
-Scope creep is the most common defect. Unrequested improvements are not free — they are unreviewed changes.
-
-**2. Is any decision that matters happening on the client?**
-Prices, permissions, discounts, "is this user staff". If the server is not re-deciding it, it is not decided. This is the single highest-value question on the list.
-
-**3. What happens when it fails or is empty?**
-Agents build the happy path. No items, no network, a failed save, a very long name. Ask for the states, not the feature.
-
-**4. Did the data shape change, and what about existing rows?**
-A new required field breaks every row that already exists. This is cheap to fix before merge and expensive afterwards.
-
-**5. Is anything secret in here?**
-Keys, tokens, a database URL, a real email address. Search the diff. The commit is permanent the moment it merges.
-
-**6. Can I explain what this does?**
-If you cannot, you cannot maintain it, debug it, or defend it in M18. "I don't understand this file, walk me through it" is a legitimate review comment and one of the most useful you can write.
-
-### Writing comments that get it fixed
-
-The same discipline as giving feedback to AI in M00: symptom, expected versus actual, one thing at a time.
-
-| Weak | Strong |
-|---|---|
-| "This looks wrong" | "Line 42: price is divided by 100 twice, so ₹40 renders as ₹0.40" |
-| "Needs error handling" | "If the save fails, the toggle stays on and the user thinks it worked. Can it revert and show a message?" |
-| "Too many changes" | "This PR also reformats `Menu.tsx` and renames `price` to `amount`. Can you split those out so I can review the toggle separately?" |
-| "Is this secure?" | "A logged-in student can call this endpoint directly. Is the role checked server-side?" |
-
-Two conventions that help a three-person team move fast:
-
-Mark comments as **blocking** or **non-blocking**. "Blocking: the role is not checked server-side" versus "non-blocking: I'd name this `isAvailable`". Without the distinction, every comment reads as a demand and reviews become slow and tense.
-
-**Approve with comments** when nothing is blocking. Holding a PR hostage over a variable name is how a team stops reviewing each other's work at all.
+1. **The file list, ten seconds.** Does it match the stated scope? A payments file in a styling change is a red flag before any code is read — the most problems caught per second.
+2. **The line count, five seconds.** "Fix one calculation" should not be 600 lines.
+3. **The diff, a few minutes.** Read only the changed lines, looking for what agents get wrong, not for style.
+4. **Run it.** Use the preview URL, then try to break it: the empty case, the wrong user, submitting twice.
 
 ### Where it lives
 
-Pull requests are where several threads in this program meet. In M06, CI runs your tests automatically on every PR, so the machine checks what it can and you check what it cannot. In M06's deploy chapter, each PR gets a preview URL, which is what makes pass 4 possible. In M10, you will review much larger agent-generated PRs, and the agent-ready repository exists so that tests and linters catch the mechanical problems before a human looks.
-
-And in M18 the defence is individual. Your review comments are evidence that you engaged with code you did not write — which is the actual skill this program is training.
+In M06, CI runs your tests on every PR and each PR gets a preview URL, which is what makes pass 4 possible. In M10 you review much larger agent-generated PRs, and the agent-ready repository exists so linters catch the mechanical problems first. In M18 the defence is individual, and your review comments prove you engaged with code you did not write.
 
 ### Words to own
 
@@ -151,31 +97,39 @@ And in M18 the defence is individual. Your review comments are evidence that you
 
 ### Tradeoffs and gotchas
 
-**The reviewer's problem is usually the author's fault.** An unreviewable PR is a PR that was opened wrong. If your teammate cannot review your change in ten minutes, split it — and the fix is in your brief, which should have been scoped more tightly in the first place.
+**Write comments as symptom, expected versus actual, one thing at a time** — the same discipline as feedback to AI in M00.
 
-**Approving without understanding is worse than not reviewing.** It puts your name on the change and creates the false impression that it was checked. If you do not understand it, say so. That is the honest and useful move.
+| Weak | Strong |
+|---|---|
+| "This looks wrong" | "Line 42: price is divided by 100 twice, so ₹40 renders as ₹0.40" |
+| "Needs error handling" | "If the save fails, the toggle stays on and the user thinks it worked. Can it revert and show a message?" |
+| "Too many changes" | "This PR also reformats `Menu.tsx` and renames `price` to `amount`. Can you split those out so I can review the toggle separately?" |
+| "Is this secure?" | "A logged-in student can call this endpoint directly. Is the role checked server-side?" |
 
-**Do not let the agent open and merge its own PRs.** It is capable of the whole cycle. The result is a repository where nothing was ever reviewed and nobody can explain anything, which is precisely the outcome this program exists to avoid.
+**Label every comment blocking or non-blocking.** "Blocking: the role is not checked server-side" versus "non-blocking: I'd name this `isAvailable`". Otherwise every comment reads as a demand, and holding a PR hostage over a variable name is how mutual review stops happening.
 
-**Review the PR, not the person.** "This endpoint trusts the client" is about code. "You always forget authorization" is about a person, and in a three-person team that has to work for six months, it costs more than it gains.
+**Small PRs get real reviews; large ones get rubber stamps.** Entirely the author's to control: an unreviewable PR was opened wrong, and the fix is in the brief.
 
-**Protect main once the habit is established.** Turning on branch protection means nobody — including you at 2 am, including an agent — can push to main without a PR. It removes the temptation rather than relying on discipline.
+**Approving without understanding is worse than not reviewing**, because it puts your name on the change and falsely signals it was checked. For the same reason, never let the agent open and merge its own PRs.
 
-**Small PRs get real reviews. Large ones get rubber stamps.** This is the most reliable finding in all of code review, and it is entirely under the author's control.
+**Review the PR, not the person.** "This endpoint trusts the client" is about code; "you always forget authorization" costs more than it gains.
+
+**Protect main once the habit holds.** Then nobody — including you at 2 am, including an agent — can push to main without a PR.
 
 ### Verify it
 
-Before you open a PR, four checks:
+Six questions find the real problems in agent-written code.
 
-1. **Is the diff under roughly 400 lines?** Beyond that, reviews degrade into skimming. Split it.
-2. **Does the file list match the stated scope?** Run `git diff main --stat` and read it yourself first. Fix the surprises before a human sees them.
-3. **Have you written WHAT, WHY, SCOPE, TEST and RISK?** The RISK line is the most valuable — name the part you are least sure about, because that is where the reviewer should spend their attention.
-4. **Have you run it yourself on the preview URL?** Including the empty case and the wrong-user case.
+1. **Does it do what the brief asked, and nothing else?** Unrequested improvements are unreviewed changes.
+2. **Is any decision that matters happening on the client?** Prices, permissions, "is this user staff". If the server is not re-deciding it, it is not decided — the highest-value question here.
+3. **What happens when it fails or is empty?** Agents build the happy path; ask for the states, not the feature.
+4. **Did the data shape change?** A new required field breaks every row that already exists.
+5. **Is anything secret in here?** Keys, tokens, a database URL — permanent the moment it merges.
+6. **Can I explain what this does?** If not, "walk me through this file" is a legitimate comment.
 
-Before you approve one, two checks:
+Before opening a PR: diff under roughly 400 lines; `git diff main --stat` matches the stated scope; WHAT, WHY, SCOPE, TEST and RISK written; run on the preview URL including the empty and wrong-user cases. RISK is the most valuable line — it tells the reviewer where to spend attention.
 
-1. **Did you run the six questions, or just scroll?** Questions 2 and 3 find the most real defects.
-2. **Can you explain what this change does, in one sentence, without looking?** If not, comment instead of approving.
+Red flag: you scrolled the diff instead of asking the six questions, or cannot say in one sentence what the change does.
 
 ## Walkthrough
 1. Start clean: `git switch main`, `git pull origin main`, `git switch -c feat/your-change`.

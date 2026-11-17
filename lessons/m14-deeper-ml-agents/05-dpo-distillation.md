@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: dpo-distillation
 title: "DPO, Distillation and When Fine-Tuning Is the Wrong Answer"
 order: 5
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -19,32 +19,25 @@ last_reviewed: 2026-11-16
 - Catch a preference dataset where one person's taste became the product's rule
 
 ## Lesson
-
 ### The pain
 
-M09 chapter 11 told you that preference training exists, that a reward model sits inside RLHF, and that sycophancy is one of its documented side effects. Chapter 4 of this module ran supervised fine-tuning. This chapter covers the rung above it, the sideways move that saves money, and — at greater length than either — the cases where the whole family of techniques is the wrong answer.
+M09 chapter 11 told you preference training exists and that sycophancy is one side effect; chapter 4 ran supervised fine-tuning. New here is the rung above it, the sideways move that saves money, and the cases where this whole family is the wrong answer.
 
-Start with the wrong answer, because it is where teams lose the most time. A team's assistant gives correct but unhelpful answers: technically right, three paragraphs long, never leading with the thing the student asked. They collect 800 pairs where one answer is "better" and run preference tuning. The model's answers get longer. Everyone is confused, until someone reads the pairs and finds that in 71% of them the chosen answer was simply the longer one, because the person labelling at 11 pm used length as a proxy for effort. The tune worked perfectly. It learned exactly what the data said.
+A team collects 800 pairs where one answer is "better" and runs preference tuning. The answers get longer: in 71% of pairs the chosen answer was simply the longer one, because the labeller used length as a proxy for effort. The tune learned exactly what the data said.
 
-A second team does something more expensive. They want to cut their ₹18,000-a-month inference bill, so they distil a large provider model into a small open-weight one by training on thousands of the large model's outputs. It works: the bill falls to ₹2,400 and quality drops by four points on their eval set, which they accept. Then someone reads the provider's terms of service and finds that training a competing model on its outputs is prohibited. The artefact is unusable and nobody checked before spending the fortnight.
+A second team distils a provider model to cut ₹18,000 a month to ₹2,400, then reads the terms and finds it prohibited.
 
 ### The idea
 
 **Three different problems hide behind the word "fine-tuning", and each needs a different kind of data.**
 
-**Supervised fine-tuning** needs examples of the right answer. Use it when you can write the output you want. **Preference tuning**, of which Direct Preference Optimization is the practical form, needs *pairs* — a better and a worse answer to the same input. Use it when every answer is defensible and the difference is judgement you can only express by choosing. **Distillation** needs a teacher: a strong model's outputs on your real inputs, which a small model is then trained to imitate. Use it when quality is already acceptable and the problem is cost or latency.
+**Supervised fine-tuning** needs examples of the right answer, for when you can write the output you want. **Preference tuning**, in practice Direct Preference Optimization, needs *pairs* — a better and a worse answer to one input — for when every answer is defensible. **Distillation** needs a teacher's outputs on your real inputs for a small model to imitate, for when quality is fine and the bill is not.
 
 ### The analogy
 
-Three ways to improve the canteen's thali.
+Three ways to improve the canteen's thali. Forty photographs to copy: supervised fine-tuning. Two correct thalis side by side and which a student prefers, four hundred times: preference tuning, because you cannot write the rule down. A junior copying the senior at a third of the wage: distillation, where the junior never exceeds the senior.
 
-Show the cook forty photographs of a correctly assembled thali and have them copy the arrangement. That is supervised fine-tuning: you knew the right answer and demonstrated it.
-
-Put two correctly assembled thalis side by side and tell the cook which one a student would prefer, four hundred times. Neither is wrong. You cannot write the rule down — it is about balance, and you only know it when you see both. That is preference tuning.
-
-Have your most experienced cook plate two thousand thalis while a new junior watches and copies, until the junior produces something close at a third of the wage. That is distillation. The junior will never exceed the senior, and will faithfully reproduce the senior's one bad habit.
-
-**Where the analogy breaks.** A cook shown two thalis understands *why* one is better and generalises. Preference tuning has no access to your reason. It only sees which string you picked, so any accidental regularity in your picks — longer, more polite, more bullet points — becomes the lesson. The canteen has an explanation channel; the training data does not.
+**Where it breaks.** A cook shown two thalis understands *why* one is better. Preference tuning sees only which string you picked, so any accidental regularity — longer, politer — becomes the lesson.
 
 ### Picture it
 
@@ -72,25 +65,23 @@ Each of the three tuning jobs needs a different shape of data and a different vo
 
 ### How DPO actually works, in words
 
-Preference tuning used to require a reward model and a reinforcement-learning loop — the RLHF pipeline M09 described. Direct Preference Optimization removes both. It takes your pairs and adjusts the model directly so that, for each prompt, the chosen answer becomes more likely relative to the rejected one, while a strength setting keeps the model from drifting far from where it started.
+Preference tuning used to need a reward model and a reinforcement-learning loop. DPO removes both: it adjusts the model so the chosen answer becomes more likely than the rejected one, while a strength setting stops it drifting far from where it started.
 
-Three practical consequences. It runs as an ordinary training loop, so it fits the same free notebook GPU and the same LoRA adapter machinery as chapter 4. It needs the model to already be decent at the task, so **DPO goes after SFT, not instead of it**. And the strength setting is the knob that matters: too weak and nothing changes, too strong and the model collapses into whatever superficial pattern your chosen answers share.
-
-Where do pairs come from? Three honest sources. Your product's own thumbs-up and thumbs-down, if the same prompt produced both. Two models answering the same real input, with a human choosing. And deliberate pair construction: take a good answer, make a worse version of it that fails in the specific way you want trained out, and pair them. The third is the most controllable and the most work.
+It runs as an ordinary training loop on the same free notebook GPU and LoRA machinery as chapter 4, and needs a model already decent at the task — which is why **DPO goes after SFT, not instead of it**. Strength is the knob: too weak, nothing changes; too strong, the model collapses into whatever your chosen answers share.
 
 ### Distillation, and its two hard limits
 
-Distillation is the most practically useful idea in this chapter for an Indian student startup, because it attacks the number that decides survival: cost per request. Collect your real inputs, have a strong model produce outputs for them, check those outputs, and supervised-fine-tune a small model on the result. You now serve a model a fraction of the size, often on your own hardware, at a fraction of the cost per request.
+Distillation attacks the number that decides survival: cost per request. Have a strong model answer your real inputs, check the answers, fine-tune a small model on them. Two limits are absolute. **The student cannot exceed the teacher**: distilling a model wrong 12% of the time gives you one wrong at least 12% of the time, in the same places. And **the licence may forbid it**.
 
-Two limits are absolute. **The student cannot exceed the teacher**, so distilling a model that is wrong 12% of the time gives you a model that is wrong at least 12% of the time, usually more, and in the same places. And **the licence may forbid it**: several providers' terms prohibit using their outputs to train competing models, and open-weight model licences carry their own conditions. Read the terms before you spend the GPU time, not after.
-
-The thing to measure is the gap. Score teacher and student on the same eval set, record both numbers and both costs per request, and state the trade in one sentence: four points of quality for a seven-times cost reduction, accepted or rejected.
+Measure the gap: score teacher and student on one eval set, record both costs per request, and state the trade — four points of quality for a seven-times cost cut.
 
 ### Where it lives
 
-Below this chapter: chapter 4's SFT, which DPO requires as a foundation and distillation uses as its mechanism. Above it: chapter 8's reinforcement learning, which is what DPO replaced for this purpose and which you will almost certainly never run. Beside it: chapter 10's regression suite, which is the only thing that can tell you a preference tune did not make something else worse, and chapter 7's serving, where a distilled model's cost advantage is actually realised.
-
-Outside the module: M09 chapter 14's cost arithmetic is what makes a distillation decision defensible, and M17 chapter 6 is where that number becomes margin.
+- Chapter 4 — the SFT that DPO needs underneath and distillation uses
+- Chapter 7 — serving, where the cost advantage is realised
+- Chapter 8 — the reinforcement learning DPO replaced
+- Chapter 10 — the only check that nothing else broke
+- M09 chapter 14, M17 chapter 6 — cost arithmetic, margin
 
 ### Words to own
 
@@ -109,30 +100,24 @@ Outside the module: M09 chapter 14's cost arithmetic is what makes a distillatio
 
 ### Tradeoffs and gotchas
 
-**Check your pairs for the boring regularity before you train.** Compute the average length of your chosen answers and your rejected ones. If chosen is consistently longer, politer, or more heavily formatted, that is what will be learned. Fix it by constructing pairs where the better answer is *shorter*.
+**Check your pairs for the boring regularity before you train.** Compare the average length of chosen and rejected answers; if chosen is consistently longer, that is what gets learned. Construct pairs whose better answer is *shorter*.
 
-**One person's preferences are not your product's preferences.** Pairs labelled by one teammate at midnight encode that teammate. Have two people label the same 50 pairs and measure agreement exactly as chapter 2 does for labels; below about 80%, you do not yet have a shared idea of "better" and no tune can supply one.
+**Sycophancy is the predictable side effect,** because humans like being agreed with. Include pairs whose better answer says "no".
 
-**DPO on an unprepared model wastes the pairs.** If the model cannot produce a reasonable answer to your prompts at all, preference tuning has nothing to push between. Do SFT first.
-
-**Distillation inherits the teacher's failures exactly.** Review the teacher's outputs before training on them, and throw away the bad ones. A distillation set is a dataset and chapter 2 applies: deduplicate, spread the categories, record provenance.
-
-**Sycophancy is the predictable side effect.** M09 chapter 11 warned you. Preference tuning rewards answers humans liked, and humans like being agreed with. Include pairs where the better answer says "no", "you are mistaken", or "I cannot do that", or you will train a model that flatters.
-
-**Here are the seven cases where no tuning helps.** The answer depends on a current fact. The output must carry a citation to a source. The requirement changes more often than monthly. A tool or a schema would make the error impossible. You have fewer than about two hundred examples. You have no eval set, so you cannot tell whether anything improved. And the real problem is that two stakeholders want different things, which is a product decision wearing a technical costume.
+**Seven cases where no tuning helps:** the answer depends on a current fact; the output needs a citation; the requirement changes weekly; a tool or schema would make the error impossible; fewer than two hundred examples; no eval set; two stakeholders want different things.
 
 ### Verify it
 
-The specific failure here is a tune that worked perfectly on data that encoded the wrong lesson.
+The failure here is a tune that worked perfectly on data encoding the wrong lesson.
 
-1. **Measure the length difference in your pairs before training.** Average chosen length versus average rejected length. A large gap means you are about to train length.
-2. **Demand the agreement number on preference pairs.** Two labellers, same 50 pairs, percentage matched. Preference data without it is one person's taste.
-3. **Check that refusals and disagreements are present among the chosen answers.** If every chosen answer is agreeable and helpful, you are training sycophancy.
-4. **For distillation, demand the licence check in writing, before the GPU time.** Which provider, which clause, what it permits. Then demand the teacher and student scores side by side with costs per request.
-5. **Ask what the student lost.** The quality gap, stated as a number on your eval set, plus any capability that fell off entirely.
-6. **Run the seven-case list against your own problem out loud.** If any of them fits, the correct output of this chapter is "do not tune", and that is a successful outcome.
+1. **Measure the length difference in your pairs before training.**
+2. **Demand the agreement number:** two labellers, same 50 pairs, matched percentage. Below 80%, no shared idea of "better" exists.
+3. **Check refusals are present among chosen answers,** or you are training sycophancy.
+4. **For distillation, demand the licence check in writing before the GPU time:** which clause, what it permits.
+5. **Ask what the student lost** — the quality gap, beside both costs per request.
+6. **Run the seven-case list against your problem.** If one fits, "do not tune" is the answer.
 
-Red flags: preference pairs where the chosen answer is reliably longer; one labeller; DPO proposed without SFT first; distillation planned with no licence sentence; no teacher-versus-student table; no cost-per-request figure attached to a distillation decision; every chosen answer agreeable; and a second tuning attempt whose only change is "more data".
+Red flags: chosen answers reliably longer; one labeller; DPO without SFT; no licence sentence; no teacher-versus-student numbers.
 
 ## Walkthrough
 1. Write down your actual complaint about your product's AI output in one sentence. Then run it against the seven cases where tuning does not help, and record which ones fit.

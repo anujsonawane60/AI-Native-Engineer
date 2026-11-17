@@ -4,7 +4,7 @@ module: m06-cloud-linux-devops-testing
 slug: debugging-a-failure
 title: "Debugging: Reading a Stack Trace, Reproducing, Bisecting a Failure"
 order: 11
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,27 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student's canteen app breaks. They tell their AI assistant "my app is broken, the order page does not work". They get a confident answer, apply it, and the app is still broken — differently. Four more rounds, two more unrelated changes, and now they are not sure the original problem still exists or whether they have three problems.
-
-Then they post in the group chat: "anyone know why my app is not working?" Nobody can help — not because nobody knows, but because the message contains no information. No error text, no expected result, no account of what they already tried.
-
-Meanwhile the error was on the screen the entire time. Line four of the stack trace named their own file and line number, and the message said `Cannot read properties of undefined (reading 'price')`. Together those say: something arrived without a price, at that line. Twelve minutes of guessing would have been four of thinking.
+A student's canteen app breaks. They tell their AI "my app is broken, the order page does not work", get a confident answer, apply it, and the app is still broken — differently. Four rounds later they cannot tell whether the original problem still exists or whether they now have three. They post "anyone know why my app is not working?" in the group chat and nobody can help, because the message contains no information. The error was on the screen the whole time: `Cannot read properties of undefined (reading 'price')`, at their own file and line.
 
 ### The idea
 
 **Debugging is not guessing cleverly. It is three moves in a fixed order: get the exact error text, make the failure happen on demand, then halve the search space until only the cause is left.**
 
-Skipping move one is why conversations go in circles. Skipping move two is why fixes that seemed to work come back. Move three is a method, not a talent, and it turns "I have no idea" into "it is in these four lines".
+**1. Capture.** Copy the error complete and unparaphrased — type, message, timestamp, and the first trace line naming one of *your* files. Read upward from the bottom for the story in order. A `TypeError` on `undefined` means data was missing, a status code means the other side answered (4xx yours, 5xx theirs), a timeout means nothing answered.
+
+**2. Reproduce.** A bug you cannot reproduce cannot be fixed, only disturbed. Remove steps until it stops failing; the shortest sequence that still breaks *is* diagnosis. Four questions settle most "works for me" cases: which user, which data, which device, which environment. Then turn the reproduction into a failing test from chapter 10 — red now, green when fixed.
+
+**3. Bisect.** When you cannot see the cause, start halving. Over time: thirty commits between working and broken, so check the middle one; five checks find it, which is why M01 insisted on small commits. Over the input: a 500-row import fails, so try 250, then 125. Over the stack: is the value wrong already in the request, the handler or the database? `curl` eliminates half the system in seconds.
 
 ### The analogy
 
-Every student in the canteen says the dal tastes wrong today.
+Every student says the dal tastes wrong today. The bad cook adds salt, then sugar, then more dal: three changes, no knowledge, a pot wrong in a new way. The good cook tastes it themselves — the exact error text, not a report — then gets it to happen on demand: a fresh bowl from the same pot tastes wrong every time, so the fault is in the pot. Then they halve the space: the dal before the salt is fine; the oil is rancid.
 
-The bad cook adds salt, then sugar, then more dal. Three changes, no knowledge, and the pot is now wrong in a new way.
-
-The good cook tastes the dal themselves — that is the exact error text rather than a report of it. Then they get it to happen on demand: a fresh bowl from the same pot tastes wrong every time, so the problem is in the pot and not in one student's plate. Then they halve the search space: taste the dal before salt was added. Fine, so the fault is after that step. Taste the oil. The oil is rancid. One ingredient, found in three tastes.
-
-**Where the analogy breaks:** the cook can taste the intermediate states because the dal is physically in front of them. Software's intermediate states are invisible unless you make them visible — which is what logging a value, or a test that isolates one function, is for. Most of the skill in debugging is creating the taste you need, and this is where an AI genuinely helps: it is very good at telling you what to look at next.
+**Where the analogy breaks:** the cook can taste intermediate states; the dal is in front of them. Software's intermediate states are invisible unless you make them visible, which is what logging a value is for. Most of the skill is creating the taste you need.
 
 ### Picture it
 
@@ -65,10 +61,6 @@ The good cook tastes the dal themselves — that is the exact error text rather 
 
 Debugging runs in one direction: capture what the machine said, make the failure repeatable, then halve the search space until one change remains.
 
-### Move one: read the error, all of it
-
-A stack trace lists the function calls that were in progress when the failure happened, newest first. It looks like a wall of text and holds exactly three things you need.
-
 ```
 TypeError: Cannot read properties of undefined (reading 'price')
     at calculateTotal (/app/src/lib/cart.ts:42:18)      ← your code
@@ -78,51 +70,11 @@ TypeError: Cannot read properties of undefined (reading 'price')
     at performUnitOfWork (/app/node_modules/react-dom/...)
 ```
 
-The first line gives the type and message, and the lines below are the chain of calls, with the two naming your own files being the ones that matter.
-
-**The message.** `Cannot read properties of undefined (reading 'price')` is specific. Something you expected to be an object was not there, and you asked it for `price`. Not "the app is broken".
-
-**The first line that is your code.** Nearly all trace lines come from libraries. Scan down for the first path that is yours — here, `cart.ts:42`. Beginners read the top line, see a library name, and conclude the library is broken. It is not; your code called it wrongly.
-
-**The bottom of the trace.** Reading upward from the bottom gives you the story in order, and for nested or asynchronous errors the "caused by" section down there is usually the real cause.
-
-Three error types worth recognising by sight: a **TypeError** on `undefined` means something was missing, almost always from data; a **network error** with a status code means the other side answered, and the code says whose fault it is — 4xx yours, 5xx theirs, as M02 covered; and a **timeout** means nothing answered, which is a different hunt entirely.
-
-### Move two: reproduce it
-
-A bug you cannot reproduce cannot be fixed, only disturbed. You want steps that make it happen every time.
-
-Start from the full path and remove steps until it stops failing. The smallest sequence that still breaks is your reproduction, and shortening it *is* diagnosis: if the bug only happens with an empty cart, you have learned more than from any amount of reading code.
-
-Four questions resolve most "it works for me" cases. **Which user?** A different role, from M04, is the most common answer. **Which data?** An empty list, a very long dish name, a ₹0 total, Devanagari text. **Which device or network?** Slow 4G, a budget Android browser, a cold start from chapter 5. **Which environment?** If it only breaks when deployed, chapter 1's case sensitivity and chapter 8's run-time environment variables are the first two suspects.
-
-Then do the thing that makes the fix permanent: **turn the reproduction into a failing test.** You already have the suite from chapter 10. A test that reproduces this bug is red now, green when fixed, and red again forever if it returns — one evening's pain converted into a permanent guard.
-
-### Move three: bisect
-
-When you cannot see the cause, stop looking and start halving.
-
-**Bisect over time.** It worked on Monday and fails today, across thirty commits. Do not read thirty diffs — check the middle one. If it works there, the cause is in the later fifteen; if it fails, the earlier fifteen. Five checks find it among thirty. Git has a built-in command for this, and it is the concrete reason M01 insisted on small commits: bisecting three enormous ones tells you almost nothing.
-
-**Bisect over the input.** The import fails on a 500-row file. Try 250, then 125, then 60. In seven steps you have the one row, and that row usually explains everything.
-
-**Bisect over the stack.** Is the bad value wrong in the browser, the request, the server handler, or the database? Check the middle — look at what the server received. One check eliminates half the system, and chapter 4's `curl` does it in four seconds.
-
-**Bisect over the code path.** Log the value halfway through. The question is never "what is wrong" but "is it still correct here".
-
-### Giving AI something it can work with
-
-This is the same four-part blocker format M01 gave you for asking a teammate.
-
-**Intent.** What you were trying to do. **Expected.** What should have happened, specifically. **Actual.** The exact error text, copied, complete, with the timestamp. **Already tried.** What you have ruled out.
-
-Four lines. "My order page is broken" versus a message carrying `TypeError: Cannot read properties of undefined (reading 'price') at calculateTotal (cart.ts:42)`, "expected ₹240 for one item", and "happens only when the cart is empty" — that is the difference between four rounds of guessing and one correct answer.
-
-And never paraphrase an error. "Something about undefined" has thrown away the file, the line and the property.
+The first line gives the error type and message; the lines below are the chain of calls, and the two naming your own files are the ones that matter.
 
 ### Where it lives
 
-Debugging is where every other chapter in this module gets used. Chapter 2's logs hold the error text, chapter 4's commands are how you look, chapter 10's tests lock a fix in place, and chapter 12's CI output is a stack trace you did not have to reproduce. M07's error tracking collects traces from real users. M01's blocker format is this chapter's output.
+Debugging is where the rest of the module gets used: chapter 2's logs hold the error text, chapter 4's commands are how you look, chapter 10's tests lock the fix in place, chapter 12's CI output is a trace you did not have to reproduce.
 
 ### Words to own
 
@@ -141,29 +93,22 @@ Debugging is where every other chapter in this module gets used. Chapter 2's log
 
 ### Tradeoffs and gotchas
 
-**Change one thing at a time.** Three simultaneous changes tell you nothing about which one mattered. This is also why you commit before letting an agent start, from M01.
-
-**The first plausible cause is usually not the cause.** Especially the one the AI offers first, which is the most common cause of that message in general, not in your code. Hold it as a hypothesis.
-
-**Fixing the symptom guarantees a repeat.** Wrapping the crash in a check so the page stops breaking is sometimes the right emergency action, and it is not a fix. Whatever produced a missing `price` is still producing it.
-
-**Do not let an agent "fix" a bug you have not reproduced.** The symptom moves, and you can no longer tell whether the original problem exists.
-
-**Deployed-only bugs have five usual causes, in this order:** a missing environment variable; file name capitalisation from chapter 1; a dependency on your laptop that is not in the dependency file; a build-versus-run-time configuration difference; and a region or cold-start effect from chapters 5 and 7.
-
-**Intermittent is a category, not a mystery.** These failures are almost always timing, ordering or shared state. The useful question is "what else is running at the same time".
+- **Change one thing at a time,** and commit before letting an agent start (M01).
+- **The first plausible cause is usually not the cause** — especially the AI's first offer, which is the commonest cause of that message in general, not in yours.
+- **Fixing the symptom guarantees a repeat,** and never let an agent fix a bug you have not reproduced: the symptom moves and the original is lost.
+- **Deployed-only bugs have five usual causes, in order:** a missing environment variable; file name capitalisation from chapter 1; a dependency on your laptop but not in the dependency file; a build-versus-run-time difference; a cold start.
 
 ### Verify it
 
-AI is genuinely excellent at debugging *if* you give it evidence and hold it to it.
+AI is excellent at debugging *if* you give it evidence and hold it to it.
 
-1. **Did you give it the exact text, or a description?** This is on you, and it is the most common cause of a useless answer. Paste the whole trace, the timestamp, and your expected result.
-2. **Does its diagnosis point at a specific line of your code?** "There may be an issue with state initialisation" is not a diagnosis. Demand a file, a line, and a claim you can check.
-3. **Ask for the read-only check before the fix.** "What one command or log line would confirm this?" An agent that cannot name the evidence is guessing.
-4. **Does the fix address the cause or the symptom?** Ask directly. Both answers are sometimes acceptable; you must know which one you accepted.
-5. **Ask for the regression test.** A fix with no test that was red before it can return silently. Chapter 10's rule applies: watch it fail first.
+1. **Exact text, not a description,** in M01's blocker format: intent, expected, actual, already tried. Paste the whole trace and the timestamp; never paraphrase.
+2. **Does the diagnosis point at a specific line of your code?** "There may be an issue with state initialisation" is not one.
+3. **Ask for the read-only check before the fix.** An agent that cannot name the evidence is guessing.
+4. **Cause or symptom?** Both are sometimes acceptable; know which you accepted.
+5. **Ask for the regression test,** and watch it fail first.
 
-Red flags: a confident diagnosis with no reference to your actual error text; a fix that changes several files for a one-line symptom; deleting and reinstalling dependencies as the first step rather than the last; a `try`/`catch` around the failure with nothing logged, which hides the evidence permanently; and an agent that says "this should now work" without running anything.
+Red flags: a diagnosis that never quotes your error text; a fix touching several files for a one-line symptom; reinstalling dependencies first; a `try`/`catch` with nothing logged; "this should now work" without running anything.
 
 ## Walkthrough
 1. Find a real failure in your own project — or break something deliberately, such as removing a field from the data your page expects.

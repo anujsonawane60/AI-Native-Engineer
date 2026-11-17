@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: diffusion-deep-dive
 title: "Diffusion Deep Dive: Latents, Guidance, ControlNet, Style Adapters"
 order: 9
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -19,30 +19,23 @@ last_reviewed: 2026-11-16
 - Catch a generated image whose settings nobody wrote down
 
 ## Lesson
-
 ### The pain
 
-M09 chapter 15 taught diffusion as repeatedly removing noise, explained why hands and text go wrong, and put latent space, negative prompts, image-to-image, inpainting and seeds in its glossary as words. It said plainly that running diffusion yourself, tuning it to your product's look, controlling composition and keeping a character consistent are this chapter. Here they are.
+M09 chapter 15 taught diffusion as repeatedly removing noise and explained why hands and text go wrong. New here is running it yourself: controlling composition, holding a character consistent, reproducing the image that worked.
 
-The failure this prevents is a week of a team's life. They need twelve images: the same delivery rider character, same style, six scenes. They write careful prompts. Rider one looks twenty, rider two looks forty, rider three wears a different uniform, and in four of the twelve the signboard reads "RESTURANT". They respond by adding adjectives — "consistent character, same person, highly detailed" — which changes everything except the thing they wanted. Then the one image that finally looks right cannot be reproduced, because nobody recorded the seed, the sampler, the step count or the guidance value.
-
-Adjectives were never going to fix any of this. Identity, composition and legible text are architecture problems with specific tools, and the reproducibility problem is pure bookkeeping.
+A team needs twelve images of the same delivery rider in six scenes. Rider one looks twenty, rider two forty, rider three wears a different uniform, and four signboards read "RESTURANT". They add adjectives, which changes everything except the thing they wanted. Then the image that finally looks right cannot be reproduced, because nobody recorded the seed, sampler, steps or guidance.
 
 ### The idea
 
 **Diffusion gives you four separate control surfaces, and almost everyone tries to operate all four through the prompt.**
 
-The **prompt** controls content and mood. A **structural condition** controls composition — where things are, what pose, what layout. A **reference image or trained adapter** controls style and identity. And the **sampling settings** control how faithfully and how expensively the denoising runs. Each has its own tool. Reaching for stronger wording when the problem belongs to one of the other three is the central mistake of this subject.
+The **prompt** controls content and mood. A **structural condition** controls composition. A **reference image or trained adapter** controls style and identity. The **sampling settings** control how faithfully and expensively the denoising runs. Reaching for stronger wording when the problem belongs to another surface is the central mistake here.
 
 ### The analogy
 
-The canteen wants photographs of its thali for a new menu board.
+The canteen wants photographs of its thali for a menu board. The prompt is the brief: "a full South Indian thali, warm light, steel plate". The structural condition is the chalk outline fixing where the plate, glass and papad go. The style reference is three old photographs with "match this look". The sampling settings are how many times the photographer re-shoots.
 
-The prompt is the brief: "a full South Indian thali, warm light, steel plate". It decides what is in the frame. The structural condition is the chalk outline you draw on the table showing exactly where the plate, the glass and the papad go — not describing the arrangement, fixing it. The style reference is three old photographs you hand over saying "match this look". The sampling settings are how many times the photographer re-shoots before calling it done.
-
-Shouting "make it more consistent" at a photographer with no chalk outline and no reference photographs is what prompt-only generation feels like.
-
-**Where the analogy breaks.** A photographer who cannot read a smudged sign asks what it says. The model has no such channel. It works in a compressed space where the sign is a few pixels wide, and it will confidently invent letters because inventing is the only operation it has. No instruction fixes that; only a bigger canvas, a separate text layer, or doing the lettering yourself.
+**Where it breaks.** A photographer who cannot read a smudged sign asks what it says. The model has no such channel: the sign is a few pixels wide in a compressed space, and it invents letters because inventing is its only operation.
 
 ### Picture it
 
@@ -71,37 +64,22 @@ Shouting "make it more consistent" at a photographer with no chalk outline and n
 
 Four inputs steer a denoising loop that works on an eight-times-smaller representation, and the decoder at the end reconstructs full-size detail rather than preserving it, which is the structural reason small text and small faces come out wrong.
 
-### Latents, and the price of the discount
-
-The reason diffusion is affordable is that the loop does not work on pixels. An encoder compresses the image to roughly one-eighth of its width and height — about sixty-four times fewer positions to process — and the loop denoises that. At the end, a decoder expands it back.
-
-That compression is the whole economics and the whole limitation. A signboard occupying 200 pixels of a 1024-pixel image is 25 latent positions, not enough to carry eleven letters. The decoder then produces something letter-shaped because it was trained to produce plausible detail, not accurate detail. Faces in a crowd, jewellery, a sari's pattern, the digits on a price tag: same failure, same reason.
-
-Three consequences. Generate larger if detail matters. Put real text on afterwards as a layer, which is what professional pipelines do. And inpaint one region at full attention rather than re-rolling the whole image.
-
 ### Steps, schedulers and the true cost of guidance
 
-The **scheduler** is the timetable for removing noise: how much comes off at each step and in what pattern. Different schedulers reach a usable image in different numbers of steps, and this is where most wasted compute lives. A classic scheduler wants 30 to 50 steps. Modern fast samplers get there in 15 to 25. Distilled variants of some models produce usable output in 4 to 8. Quality rises steeply at first and then flattens, so running 80 steps is almost always paying for nothing.
+The **scheduler** is the timetable for removing noise. Classic schedulers want 30 to 50 steps, fast samplers 15 to 25, distilled variants 4 to 8. Quality rises steeply then flattens, so 80 steps pays for nothing.
 
-**Guidance** deserves a correction to how it is usually described. Classifier-free guidance works by making *two* predictions at every step — one conditioned on your prompt, one unconditioned — and pushing away from the unconditioned one. That means a guidance scale above 1 roughly **doubles the compute per step**. The negative prompt is not a separate mechanism; it replaces the unconditioned branch with your list of things to avoid. Turning guidance up makes the image follow the prompt harder and, past a point, produces the burnt, over-saturated, high-contrast look everybody recognises as AI output.
-
-### The three control tools worth learning
-
-**Structural conditioning, usually called ControlNet.** A second network runs alongside the denoiser, conditioned on a map derived from a reference: a stick-figure pose, a depth map, an edge outline, a region mask. You get the composition you drew while the content comes from your prompt. This is the tool for "same layout, different dish" and for "this exact pose". It costs extra memory and roughly a third more time per step.
-
-**An image reference adapter, usually called an IP-Adapter.** You supply an image and the model borrows its style or its subject's appearance, with no training at all. Minutes to try, good for approximate consistency, and the cheapest first attempt at keeping a character recognisable.
-
-**A trained style adapter — a LoRA on images.** Chapter 4's mechanism applied to a diffusion model: 20 to 40 images of your product, style or character, trained into a small adapter in under an hour on a free notebook GPU. This is the real answer to brand consistency, and the only one that reliably survives across many scenes. Chapter 2's data rules apply, including having the right to the images.
+**Guidance** needs a correction. Classifier-free guidance makes *two* predictions every step — one on your prompt, one unconditioned — and pushes away from the second, so guidance above 1 roughly **doubles compute per step**. The negative prompt is not separate: it replaces the unconditioned branch. Past a point, more guidance produces the burnt look everybody recognises as AI output.
 
 ### Tools today
 
-A free notebook GPU runs the Stable Diffusion family comfortably, including structural conditioning and adapter training at modest resolution. The Diffusers library is the scriptable path and ComfyUI the visual one; both expose schedulers, guidance, ControlNet and adapters explicitly, which is what you want while learning. Model names, adapter formats and the best fast scheduler change every few months — check them rather than trusting this paragraph.
+A free notebook GPU runs the Stable Diffusion family comfortably, including structural conditioning and adapter training at modest resolution. The Diffusers library is the scriptable path and ComfyUI the visual one; both expose schedulers, guidance, ControlNet and adapters explicitly, which is what you want while learning. Model names, adapter formats and the best fast scheduler change every few months.
 
 ### Where it lives
 
-Upstream of M15, which is where these images become a content engine and a brand voice, and M03's design system, which is what your style adapter should be trained to match. Chapter 6's quantization and chapter 7's serving apply here too: a diffusion pipeline is a model being served, with the same cold-start and memory questions. Generated images belong in object storage from M04 chapter 15, generated once and reused, not regenerated per page view.
-
-M09 chapter 15's judgement rules carry over unchanged and are not softened by any technique here: no likeness without consent, disclosure where a user could be misled, and no generated photograph presented as a photograph of a real thing.
+- M15 and M03 — the content engine, and the design system your adapter should match
+- Chapters 6 and 7 — a diffusion pipeline is a model being served
+- M04 chapter 15 — object storage: generate once, reuse
+- M09 chapter 15 — no likeness without consent, disclosure where a user could be misled
 
 ### Words to own
 
@@ -121,31 +99,26 @@ M09 chapter 15's judgement rules carry over unchanged and are not softened by an
 
 ### Tradeoffs and gotchas
 
-**A seed alone does not reproduce an image.** Reproduction needs the seed, the model and its exact version, the scheduler, the step count, the guidance scale, the resolution, every adapter with its weight, and often the library version. Record all of it as a recipe stored beside the image. One field missing and you have a mystery PNG.
+**A seed alone does not reproduce an image.** You need the seed, the model and its exact version, the scheduler, steps, guidance scale, resolution, every adapter with its weight, and often the library version. One field missing and you have a mystery PNG.
 
-**Guidance is not a quality dial.** Raising it to fix a composition problem produces a more saturated version of the wrong composition. Composition problems go to structural conditioning; style problems go to adapters; only prompt-adherence problems belong to guidance.
+**Guidance is not a quality dial.** Raising it to fix composition gives a more saturated version of the wrong composition. Composition goes to structural conditioning, style to adapters.
 
-**More steps past the flat part of the curve is money for nothing.** Run your own step comparison once — 10, 20, 30, 50, same seed — and find your own flattening point. Then never think about it again.
+**Latent compression decides what you can do about detail.** Generate larger, add real text afterwards as a layer, and inpaint one region rather than re-rolling the image.
 
-**Style consistency from prompt words is an illusion.** "Consistent character" in a prompt does nothing to the architecture. Consistency comes from a fixed seed plus a trained adapter plus an unchanged pipeline, and even then it is approximate across very different scenes.
-
-**You need rights to your training images.** A style adapter trained on another illustrator's portfolio is a legal and ethical problem that does not stop being one because the output looks different. Use your own photographs, your own illustrations, or properly licensed material, and record the provenance exactly as chapter 2 requires.
-
-**Generate once, store, reuse.** An image is a fixed cost in rupees and seconds, with no per-token discount and no streaming. Regenerating a hero image on every page load is one of the most expensive mistakes available to you.
+**Consistency comes from a trained adapter, not words** — 20 to 40 images on a free notebook GPU in under an hour, under chapter 2's data rules, which include having the right to the images. An adapter trained on another illustrator's portfolio is a legal problem.
 
 ### Verify it
 
-The red flag here is an image with no recipe: a result nobody can reproduce, improve or defend.
+The red flag here is an image with no recipe: a result nobody can reproduce or defend.
 
-1. **Demand the recipe card with the image.** Nine fields, written down. If any is missing, the result is not yet a result.
-2. **Make it name which control surface the problem belongs to** before changing anything: content, composition, style, or sampling. Most AI answers reach for the prompt regardless.
-3. **Ask for the step comparison, done once, on your own prompt.** Then hold the number.
-4. **Ask what guidance above 1 costs.** If the answer does not mention two predictions per step, the explanation is incomplete and the cost estimate is wrong.
-5. **For consistency work, insist on an adapter or a reference image.** Prompt-only consistency claims should be rejected on sight.
-6. **Ask where the training images came from.** Source, licence, consent — the same three questions as chapter 2.
-7. **Compare against the plain pipeline.** Every added adapter and condition costs memory and time; each one needs a side-by-side showing what it bought.
+1. **Demand the recipe card with the image.** Nine fields, written down.
+2. **Make it name the control surface first:** content, composition, style, or sampling.
+3. **Ask for the step comparison on your own prompt,** then hold the number.
+4. **Ask what guidance above 1 costs.** No mention of two predictions per step means the estimate is wrong.
+5. **For consistency, insist on an adapter or reference image.** Prompt-only claims should be rejected on sight.
+6. **Ask where the training images came from** — source, licence, consent.
 
-Red flags: an image with no seed recorded; a recipe missing the scheduler or the model version; guidance raised to 15 to fix composition; 80 steps as a default; "consistent character" as a prompt phrase; a style adapter trained on scraped artwork; images regenerated per page view; and generated product photography presented as photographs of real food.
+Red flags: no seed recorded; a recipe missing the scheduler or model version; guidance at 15 to fix composition; 80 steps by default; "consistent character" as a prompt phrase; an adapter trained on scraped artwork.
 
 ## Walkthrough
 1. On a free notebook GPU, set up a diffusion pipeline you can script. Generate one image and print every setting the pipeline used. That printed block is your recipe template.

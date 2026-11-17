@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: ai-harnesses
 title: "AI Harnesses: The Loop, Tools, Permissions and the Sandbox"
 order: 17
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: high
@@ -22,61 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Two students, same agent, same bug — a price showing as ₹0.40 instead of ₹40.
+Two students, same agent, same bug — a price showing as ₹0.40 instead of ₹40. The first uses it as a chat box: pastes a function in, reads the reply, pastes code back into the editor, pastes more context when it does not fit, and forty minutes later has a fix they do not understand.
 
-The first uses it as a chat box. They paste a function in, read the reply, paste the suggested code back into their editor, find it does not fit, paste more context, and forty minutes later they have a fix they do not understand and two new errors.
-
-The second opens the agent *in the repository*. It reads the file. It greps for where prices are formatted and finds three places. It runs the test suite, sees one failure, fixes the double division, runs the suite again, and shows a nine-line diff across two files. Eight minutes.
-
-Same model. The difference is that the second student understood what they were holding: not a chat window, but the agent loop from chapter fourteen with file and shell tools pointed at a working directory.
-
-And then the third student, who did understand that, told it to "clean up the repo" and lost a folder of uncommitted draft designs — which is M00's opening story, and the reason the second half of this chapter exists.
+The second opens the agent *in the repository*. It reads the file, greps for where prices are formatted, runs the test suite, fixes the double division, runs it again, and shows a nine-line diff. Eight minutes — because the second student understood they were holding chapter fourteen's loop with file and shell tools pointed at a working directory. A third student, who understood that much, told it to "clean up the repo" and lost a folder of uncommitted drafts.
 
 ### The idea
 
-**A harness is the agent loop, packaged: a model, a tool list, a permission layer, and a working directory that bounds what it can reach. Every harness is those same four parts. Learn the four and you can pick up any of them in an hour; learn one product's menus and you have learnt a menu.**
+**A harness is the agent loop, packaged: a model, a tool list, a permission layer, and a working directory that bounds what it can reach. Every harness is those same four parts.**
+
+Learn the four and you can pick up any harness in an hour.
 
 ### The analogy
 
-The harness is the kitchen, not the cook.
+The harness is the kitchen, not the cook. A good kitchen has the knives within reach, the gas behind a valve, the storeroom through a door and the cash box in the office. A cook is exactly as safe as the kitchen is arranged, and arranging it is a one-time job.
 
-A good kitchen has the knives in a block within reach, the gas behind a valve, the storeroom through a door, and the cash box in the office. A cook is exactly as safe as the kitchen is arranged, and arranging it is a one-time job that pays out every day afterwards.
-
-**Where the analogy breaks:** a kitchen's boundaries are physical. A cook standing at the stove cannot accidentally reach into the office. A harness's boundaries are *configuration*, they are invisible, and the defaults are almost always wider than you assume. The wall between the kitchen and the office is a setting you have not looked at yet.
-
-### Part one: the loop
-
-Chapter fourteen's loop, running inside someone else's code. The harness decides what to observe, asks the model for the next action, executes it, feeds the result back, and repeats.
-
-Things the harness does for you, which you should know are happening: it manages context, usually by compacting older turns automatically when the window fills — which is chapter five's summarisation, and it can lose the constraint you stated twenty turns ago. It keeps a session you can resume. It may offer a plan mode that produces a plan without acting, which is chapter fifteen's plan-then-execute built in and the most underused button in any harness.
-
-### Part two: the tools
-
-Almost identical across harnesses, because the job is the same. Read a file. Write or edit a file. Run a shell command. Search file contents. List files by pattern. Fetch a URL. Spawn a sub-agent. Plus whatever MCP servers you connected in chapter sixteen.
-
-Look at that list as chapter four taught you to: `run a shell command` is the generic escape hatch you were told never to build, and every harness has it, because that is what makes a coding agent useful. It is not a design flaw; it is a design *decision* that moves the entire safety burden onto parts three and four.
-
-### Part three: the permissions
-
-Three buckets, and the shape is the same everywhere: actions that run silently, actions that prompt you, and actions that are refused outright. Good harnesses let you match on patterns, so `run tests` is allowed while `delete anything` or `git push` is not.
-
-M00 gave you the default split and it still holds. Silent: read, search, run tests, run a linter, start a dev server, edit files that are committed. Prompt: delete, push, install a dependency, anything with elevated privileges, anything touching a database, any deploy. Never: production credentials, live payment keys, the production database.
-
-The part students skip is the first list. If everything prompts, you stop reading prompts, and the one that mattered gets approved along with the other forty. Auto-approving the safe set is not laziness — it is what makes a prompt informative.
-
-### Part four: the sandbox
-
-The sandbox is whatever bounds the blast radius, and you can have a real one for free.
-
-**The cheapest sandbox is a clean git working tree.** Everything committed means every edit is reversible, which is why M01 put version control before any building. This single step removes most of the risk in this chapter and costs one command.
-
-**The second cheapest is an empty folder.** The working directory is the boundary for file tools. An agent opened in your home directory can read your whole life; opened in one project folder it cannot. Where you launch it is a security decision.
-
-**No secrets in the folder.** `.env` with a real key is readable regardless of permissions, as M00 established and chapter seven sharpened. Placeholders locally, real values in your deploy platform.
-
-**No production reach from that terminal.** If you can deploy or connect to the live database from there, so can the agent.
-
-**A container when you need more.** A development container or a throwaway virtual machine gives you a filesystem that is not yours and, optionally, no network — which removes chapter seven's outward channel entirely. This is also the only context in which bypassing all permission prompts is a defensible choice.
+**Where the analogy breaks:** a kitchen's boundaries are physical, so a cook at the stove cannot reach into the office. A harness's boundaries are *configuration*: invisible, and wider by default than you assume. The wall between kitchen and office is a setting you have not looked at.
 
 ### Picture it
 
@@ -100,17 +60,28 @@ The sandbox is whatever bounds the blast radius, and you can have a real one for
   └───────────────────────────────────────────────────┘
 ```
 
-Four layers. The tools are nearly identical everywhere, so your safety comes entirely from the bottom two, and both are yours to set.
+Four layers. The tools are nearly identical everywhere, so safety comes from the bottom two, both yours to set.
 
-### Tools today
-
-The harnesses in common use as this is written are Claude Code, OpenAI's Codex CLI, Cursor, Gemini CLI and the agent modes built into editors. They differ in interface, in pricing and in extras. They do not differ in the four parts. Expect the names and the free tiers to have changed by the time you read this, and expect the anatomy not to have.
+| Part | What it is | What to know |
+|---|---|---|
+| The loop | Chapter fourteen's loop, inside someone else's code | It compacts old turns automatically, dropping a constraint from twenty turns ago |
+| The tools | Read, edit, run shell command, search, fetch URL, spawn sub-agent, plus your MCP servers | `run a shell command` is the escape hatch you were told never to build; every harness has one |
+| The permissions | Three buckets — silent, prompt, refused — matched on patterns | Auto-approving the safe set is what makes a prompt informative |
+| The sandbox | Whatever bounds the blast radius: working directory, git tree, container | Plan mode, which plans without acting, is any harness's most underused button |
 
 ### Where it lives
 
-A harness sits on your machine, between you and the model, holding your credentials. Everything from M00's permissions chapter is the user manual for it, and M01's git discipline is what makes it safe.
+A harness sits between you and the model, holding your credentials — so M00's permissions chapter is its user manual and M01's git discipline is what makes it safe. The sandbox you can have for free, cheapest first:
 
-M06's work on Linux, processes and containers is what a sandbox actually is. M01's review habit is how you check the result: read the file list first, then the diff, and never approve what you cannot explain. Chapter eighteen compares the harnesses and their configuration surfaces, and chapter nineteen prepares the repository so that the agent can check its own work before you see it.
+- **A clean git working tree.** Everything committed means every edit is reversible — one command, and most of the risk is gone.
+- **An empty folder.** The working directory bounds the file tools; an agent opened in your home directory can read your whole life.
+- **No secrets in the folder.** A real `.env` is readable regardless of permissions; placeholders locally, real values in your deploy platform.
+- **No production reach from that terminal.** If you can deploy or reach the live database, so can the agent.
+- **A container when you need more** — a filesystem that is not yours and, optionally, no network at all.
+
+### Tools today
+
+The harnesses in common use as this is written are Claude Code, OpenAI's Codex CLI, Cursor, Gemini CLI and the agent modes built into editors. They differ in interface, pricing and extras, not in the four parts. Expect the names and free tiers to have changed by the time you read this; the anatomy will not have.
 
 ### Words to own
 
@@ -129,37 +100,30 @@ M06's work on Linux, processes and containers is what a sandbox actually is. M01
 
 ### Tradeoffs and gotchas
 
-**Defaults are tuned for a good first impression.** Not for your repository, your credentials or your risk. Nothing in a harness's default configuration knows that this folder can deploy to production. Spend ten minutes on the permission settings per project; it is a one-time cost.
+**Defaults are tuned for a good first impression**, not for your repository or your risk. Nothing in a default configuration knows this folder can deploy to production; ten minutes on the permission settings fixes that.
 
-**Bypassing all prompts is only defensible inside a container.** The mode that approves everything exists and it is genuinely useful — in a disposable environment with no secrets and nothing you would miss. Outside one, it is the setting behind most of the stories in this module.
+**Bypassing all prompts is only defensible inside a container** — disposable, no secrets, nothing you would miss. Outside one it is the setting behind most of this module's stories.
 
-**Auto-compaction eats your constraints.** You said "prices are in paise, never rupees" at turn three. At turn forty the harness has summarised that away and the agent helpfully divides by a hundred. Put durable constraints in a rules file, which is chapter eighteen, not in a conversation.
+**Auto-compaction eats your constraints.** You said "prices are in paise" at turn three; by turn forty the harness has summarised it away and the agent divides by a hundred. Durable constraints belong in a rules file, not a conversation.
 
-**A dirty working tree removes your undo.** Running an agent with uncommitted work is the story in M00. Commit first. Every time.
+**A dirty working tree removes your undo**, which is the third student above. Commit first, and `cd` into the project before starting the agent — the most common mistake and the easiest to fix.
 
-**Where you launch it is a security decision.** `cd` into the project before starting the agent, not into your home directory. This is the single most common mistake and the easiest to fix.
-
-**The summary is not the trace.** "I updated the price formatting and ran the tests" is generated text. The trace shows the commands and their real exit codes. Read the trace when something is odd, and read the diff always.
-
-**Sub-agents inside a harness inherit a tool list.** Chapter fifteen's contracts apply: check what a spawned sub-agent is allowed to do, because it is easy to assume it is more restricted than it is.
+**The summary is not the trace.** "I updated the price formatting and ran the tests" is generated text; the trace shows the commands and their exit codes. Spawned sub-agents inherit a tool list too, so check it.
 
 ### Verify it
 
 Five checks before you let a harness work, once per project.
 
-**Is the working tree clean and committed?** If not, do that first and nothing else matters as much.
+- **Is the working tree clean?** If not, commit first.
+- **What folder am I in, and what is in it?** List everything including dotfiles, and assume all of it will be read.
+- **What is auto-approved, what prompts, what is denied?** Read the settings; do not discover them.
+- **Can this terminal reach production?** Cloud logins, database URLs, deploy commands — if yes, move the work or remove the access.
+- **What is the worst case if this goes wrong?** If the answer involves real money, real user data or unrecoverable work, change the setup rather than relying on care.
 
-**What folder am I in, and what is in it?** List everything including dotfiles. Assume everything present will be read.
 
-**What is auto-approved, what prompts, and what is denied?** Open the settings and read them rather than discovering them. Move "run tests" to silent and confirm "delete" and "push" are not.
+Then during the run, **read the file list before the diff, and the diff before you accept.** An agent asked to fix one calculation that touched eleven files has misunderstood the scope, and the file list says so at a glance.
 
-**Can this terminal reach production?** Cloud logins, database URLs, deploy commands. If yes, either move the work or remove the access for now.
-
-**What is the worst case if this goes completely wrong?** If the honest answer involves real money, real user data or unrecoverable work, change the setup rather than relying on care.
-
-Then during the run: **read the file list before the diff, and the diff before you accept.** An agent asked to fix one calculation that touched eleven files has misunderstood the scope, and the file list tells you that in three seconds. That is M01's review discipline, and with a harness it is the whole of your quality control.
-
-Red flags: an agent launched in your home directory; a real `.env` in the working folder; uncommitted work at the start of a run; all prompts bypassed outside a container; a permission list nobody has read; a diff accepted without being opened; a trace never looked at; and a production-capable terminal running an unattended agent.
+Red flags: an agent launched in your home directory; a real `.env` in the working folder; uncommitted work at the start of a run; prompts bypassed outside a container; a permission list nobody has read; a diff accepted unopened; a trace never looked at; a production-capable terminal running an unattended agent.
 
 ## Walkthrough
 1. Pick one project folder. Run `git status` and commit everything until the working tree is clean. Do not continue until it is.

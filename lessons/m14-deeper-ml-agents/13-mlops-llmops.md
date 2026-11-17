@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: mlops-llmops
 title: "MLOps and LLMOps: Registry, Versioning, Drift and Tracing"
 order: 13
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -19,30 +19,23 @@ last_reviewed: 2026-11-16
 - Catch "it worked last Tuesday" when nobody recorded what last Tuesday consisted of
 
 ## Lesson
-
 ### The pain
 
-By this point in the module you have produced a labelled dataset, a LoRA adapter, a quantized build, a serving configuration, a regression suite, a calibrated judge and possibly an orchestrator with several agents. Every one of those is an artefact that can change independently, and none of them is in the same place.
+By now you have a dataset, an adapter, a quantized build, a serving configuration, a regression suite and a judge. Each changes independently, and none lives in the same place.
 
-So here is the Tuesday problem. A user complains on Thursday that the assistant's answers have become worse. On Tuesday they were good. The team goes looking and finds: the system prompt was edited on Wednesday by a teammate improving tone; the retrieval index was rebuilt on Tuesday night when new documents were ingested; the provider's model name still says what it said, but the provider shipped an update; and the eval judge was pointed at a newer model last week so the historical scores are not comparable either.
-
-Four changes, no record of which was in effect when. The honest answer to "what did the system look like on Tuesday?" is that nobody knows, and so the question "what made it worse?" is unanswerable. This is not a tooling problem; it is a bookkeeping problem, and the bookkeeping is this chapter.
+So: a user complains on Thursday that answers have got worse; on Tuesday they were good. The team finds the prompt was edited on Wednesday, the index rebuilt Tuesday night, the provider shipped an update behind an unchanged model name, and the judge was repointed last week. Four changes, no record of which was in effect when — so "what made it worse?" is unanswerable.
 
 ### The idea
 
 **An AI system's version is a tuple, not a number, and a release pins every element of it.**
 
-Six things: the **base model and its exact version**, the **adapter or fine-tune**, the **prompt set with ids**, the **retrieval index build**, the **regression suite version**, and the **judge model and rubric**. Change any one and you have a new version of the system, whether or not any code changed. Record the tuple with every release, log it on every request, and "what did Tuesday look like?" becomes a lookup instead of an argument.
+Six things: the **base model and its exact version**, the **adapter**, the **prompt set with ids**, the **retrieval index build**, the **suite version**, and the **judge model and rubric**. Change any one and the system is a new version, whether or not code changed. Record the tuple with every release and log it on every request.
 
 ### The analogy
 
-The canteen's dal was excellent on Tuesday and ordinary on Thursday. The cook is the same person, the recipe card has not changed, and nobody can explain it.
+The canteen's dal was excellent on Tuesday and ordinary on Thursday. Same cook, same recipe card, no explanation. A kitchen with a service log can answer: it records the rice supplier, the cylinder batch, the cook, the card version and the tasting score — and lets you go back to Tuesday's *whole* configuration.
 
-A kitchen that keeps a service log can. It records, every day: which rice supplier the sack came from, which gas cylinder batch, which cook was on the pot, which version of the recipe card was pinned up, and what the tasting panel scored. With that log, Thursday is a two-minute comparison — the toor dal came from a different supplier — instead of a week of guessing.
-
-And the second rule the log makes possible: when Thursday is bad, you can go back to Tuesday's *whole* configuration. Not just the recipe card. The supplier, the cylinder, the card and the cook, together.
-
-**Where the analogy breaks.** A supplier who changes the dal tells you, eventually, because there is a delivery note. Your model provider can change the thing behind a familiar name with no delivery note at all. The kitchen's ingredient can be inspected; yours has to be *tested* against a fixed set, which is why chapter 10's suite is the only ingredient inspection you have.
+**Where it breaks.** A supplier who changes the dal eventually tells you; your provider can change what sits behind a familiar name with no note. Their ingredient can be inspected, yours must be *tested* against a fixed set.
 
 ### Picture it
 
@@ -72,31 +65,26 @@ A release pins six artefacts together, the registry keeps previous whole tuples 
 
 ### Three things to keep, and the difference between them
 
-**Experiment tracking** is chapter 1's results table, grown up. One row per run: the settings, the data version, the scores, who ran it, when. Its purpose is comparison, it holds hundreds of rows, and most of them will never be served.
+**Experiment tracking** is chapter 1's results table grown up: one row per run with settings, data version, scores and date. **Lineage** — which data and config produced an artefact — is three more columns, not a system.
 
-**A registry** holds only what is servable, each entry with a **stage** — staging, production, archived — and a pointer to the experiment that produced it. Its purpose is deployment and rollback. A student team's registry can be a table in your own database plus files in object storage; the concept matters, the product does not.
+**A registry** holds only what is servable, each entry with a **stage** — staging, production, archived — and a pointer to its run.
 
-**Lineage** is the links between them: this adapter came from that data version under that configuration, evaluated by that suite. Lineage is what makes a complaint traceable back to a cause, and it is three extra columns rather than a system.
-
-### Prompts are code
-
-A prompt that lives in a text box in someone's dashboard is unversioned, unreviewed and unattributable. Treat prompts exactly like code: in the repository, changed by pull request, reviewed by a person, gated by chapter 10's suite, and — the part teams miss — **carrying an id that is logged on every request**.
-
-That id is what turns a complaint into an investigation. A user forwards a bad answer; the trace tells you prompt 4 at version 12 with model version X produced it; you can reproduce it exactly. Without the id, you are looking at today's prompt and guessing whether it is the one that ran.
+Prompts belong in the repository too, changed by pull request, each **carrying an id logged on every request** — which turns a complaint into a reproducible investigation.
 
 ### The three drifts
 
-**Input drift.** Your users start asking things your system was never built for — a new category, longer messages, a different language mix. Detect it cheaply: track the distribution of input length, detected language and a small set of topic buckets, weekly. A shifting distribution is an instruction to add eval cases, not an error.
+**Input drift.** Users start asking things the system was never built for. Track input length, language and topic buckets weekly; a shift means adding eval cases, not an error.
 
-**Model drift.** The provider changes the model behind a name. This is the one that produces the Tuesday problem, and the defences are: pin a dated version wherever the provider offers one, keep a **canary set** of twenty fixed prompts whose outputs you store, and diff them nightly. A behaviour change on the canary set with no change on your side is model drift, and it is the moment to re-run the full suite.
+**Model drift.** The provider changes the model behind a name — the Tuesday problem. Pin a dated version where offered, keep a **canary set** of twenty fixed prompts whose outputs you store, and diff them nightly. A change there with none on your side means re-running the suite.
 
-**Judgement drift.** Your own measuring instrument moved, because the judge model updated or the rubric was edited. Pin the judge, version the rubric, and re-run M10 chapter 12's twenty-label calibration when either changes. Scores either side of an unrecorded judge change are not comparable, and a team that does not know this will chase a phantom regression for a week.
+**Judgement drift.** Your own instrument moved, because the judge updated or the rubric changed. Scores either side of that are not comparable.
 
 ### Where it lives
 
-M06 chapter 12 runs the gate. M13 chapter 5 owns release engineering generally — shadow deployments, canaries, staged rollout — and the only addition here is that an AI rollback must restore the whole tuple, because reverting code while the index and prompts stay new restores nothing. M07 chapters 5 and 6 own logs, traces and percentiles; LLMOps adds the span attributes listed in the diagram, and those attributes are what make M09 chapter 14's cost arithmetic computable from real traffic instead of estimated.
-
-Inside this module: chapter 1's run log is your experiment tracking, chapter 4's adapter and chapter 6's quantized build are registry entries, chapter 10's suite is the gate and one element of the tuple, chapter 11's agent configurations are prompts with ids, and chapter 14's gateway is the convenient place to stamp the release id onto every request.
+- M06 chapter 12 — runs the gate
+- M13 chapter 5 — release engineering, plus one addition: an AI rollback restores the whole tuple
+- M07 chapters 5, 6 — logs, traces and the span attributes above
+- This module — chapter 1's run log is your experiment tracking; chapter 14's gateway stamps the release id
 
 ### Words to own
 
@@ -118,33 +106,27 @@ Inside this module: chapter 1's run log is your experiment tracking, chapter 4's
 
 ### Tradeoffs and gotchas
 
-**A rollback that restores only code is not a rollback.** The most common incident shape here: the deploy is reverted, the problem persists, and nobody realises the retrieval index is still the new build. Make rollback a single action that restores all six elements, and test it before you need it.
+**A rollback that restores only code is not a rollback.** The deploy is reverted, the problem persists, and the index is still the new build. Make rollback one action over all six elements.
 
-**Pin versions, and put the deprecation in a diary.** A pinned dated model stops drifting underneath you and starts expiring instead, which is a far better problem — you choose when to move. The cost is that you must track the retirement date for every pinned thing, including the base model your chapter 4 adapter depends on.
+**Pin versions, and diarise the deprecation.** A pinned model stops drifting underneath you and starts expiring instead — a better problem, because you choose when to move.
 
-**Do not log the prompt text on every request; log the id.** Full prompts in logs are expensive, and they carry user data into a system with different access rules. The id plus a versioned prompt file reconstructs it exactly.
+**Monitoring errors is not monitoring quality:** a feature can be zero-error and wrong.
 
-**Monitoring errors is not monitoring quality.** An AI feature can be 100% available, zero-error, and giving wrong answers. The nightly online eval from chapter 10 is your quality monitor; uptime is not a proxy for it.
-
-**Drift detection needs a stable instrument.** If your judge changed, you cannot tell drift from measurement error. Pin the judge first, then look for drift — in that order, or you will investigate the wrong thing.
-
-**Keep the dataset version in the tuple, not only in the experiment.** Two adapters trained from different data versions are different artefacts even with identical configurations, and the data version is the field most often lost.
-
-**This is bookkeeping, and bookkeeping decays.** The habit survives only if it is automatic: the release id stamped by the gateway, the prompt id read from the file, the canary diff on a schedule. Anything a person must remember weekly will be forgotten by week three.
+**Bookkeeping decays:** stamp ids automatically, schedule the canary diff.
 
 ### Verify it
 
 The red flag is a system where nobody can say what produced a given answer.
 
-1. **Pick one real bad answer from last week and demand its full tuple.** Model version, adapter, prompt id, index build, suite version. If any field cannot be produced, that is the first thing to fix.
-2. **Ask whether model versions are pinned.** A bare provider model name with no date is an unversioned dependency.
-3. **Ask what the rollback restores.** If the answer is "the deployment", ask specifically about the index, the prompts and the adapter.
-4. **Ask how model drift would be noticed.** The answer must be a fixed canary set diffed on a schedule, not "users would tell us".
-5. **Check the judge is pinned and the rubric versioned,** and ask when the calibration was last re-run.
-6. **Read one real trace end to end.** It must carry prompt id, model version, token counts, cost, cache hit, tool calls and latency. Any missing attribute is a question you will be unable to answer later.
-7. **Ask which artefact's deprecation date is nearest.** A team that cannot answer has an unscheduled outage in its future.
+1. **Pick one bad answer and demand its full tuple.** Any missing field is your first job.
+2. **Ask whether model versions are pinned.** A bare name is an unversioned dependency.
+3. **Ask what the rollback restores:** index, prompts, adapter.
+4. **Ask how model drift would be noticed:** a canary set on a schedule, not "users would tell us".
+5. **Check the judge is pinned, the rubric versioned.**
+6. **Read one trace end to end:** prompt id, model version, tokens, cost.
+7. **Ask which deprecation date is nearest.**
 
-Red flags: "it worked last Tuesday" with no tuple recorded; prompts edited in a dashboard; no prompt id in logs; unpinned model names; a rollback that reverts only code; drift monitoring that watches only errors and latency; an unpinned judge; a dataset version recorded nowhere; and a release process that depends on somebody remembering a step.
+Red flags: "it worked last Tuesday" with no tuple; prompts edited in a dashboard; no prompt id in logs; unpinned models; code-only rollback; an unpinned judge; prompt text logged instead of ids.
 
 ## Walkthrough
 1. Write down your release tuple as it stands right now, filling in all six fields with real values. Mark every field you cannot determine — those marks are your work list.

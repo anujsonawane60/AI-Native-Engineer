@@ -4,7 +4,7 @@ module: m17-distribution-revenue
 slug: positioning
 title: "Positioning: Why Anyone Should Care"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,33 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Three teams present on the same Thursday afternoon. Team A is building "an AI-powered platform for campus services". Team B is building "a smarter way to manage your college life". Team C says: "second-year students whose labs run from eleven to one order lunch by 10:45 and collect it at a side window, instead of standing in the twenty-minute canteen queue."
+Three teams present on the same Thursday. Team A is building "an AI-powered platform for campus services". Team B is building "a smarter way to manage your college life". Team C says: "second-year students whose labs run eleven to one order lunch by 10:45 and collect it at a side window, instead of standing in the twenty-minute canteen queue." Two weeks later A and B have four hundred visits between them and three signups. Team C has sixty-one users.
 
-Two weeks later, A and B have a landing page each, about four hundred visits between them, and three signups. Team C has sixty-one users.
-
-The products were not the problem. A's product worked. B's product was prettier. What A and B were missing was a sentence that a student could hear once, in a corridor, and repeat accurately to the person sitting next to them in class — and the person next to them could decide, in two seconds, whether it was for them.
-
-That is the whole job of positioning, and most teams skip it because it produces no code. Then they spend five weeks wondering why a working product gets no users, and conclude they need more features.
+A's product worked and B's was prettier. What both lacked was a sentence a student could hear once in a corridor and repeat accurately in class — so the next person could decide in two seconds whether it was for them. Teams skip this because it produces no code, then conclude they need more features.
 
 ### The idea
 
 **Positioning is the sentence someone else repeats when you are not in the room, and it is built from four facts, not from adjectives.**
 
-The four facts: who exactly this is for, what they do about the problem today, what specifically changes for them, and why you rather than the obvious alternative. Everything else — the logo, the tagline, the hero image — decorates that. If the four facts are not decided, the decoration has nothing to decorate.
+Who exactly this is for, what they do about the problem today, what specifically changes for them, and why you rather than the obvious alternative. The logo, the tagline and the hero image only decorate that. Your technology is not on the list: "AI-powered" is a fact about your implementation, and users do not buy implementations.
 
-Notice what is not in the list: your technology. "AI-powered" tells a user nothing about their own life. It is a fact about your implementation, and users do not buy implementations.
+The "today" fact is the one teams get wrong. Your real competition is the workaround from M01 — a WhatsApp group, a friend who queues, or doing nothing — almost never a startup. It also hands you your number: twenty minutes is in Team C's position because the queue costs twenty minutes. A position with no number in it is usually an adjective in disguise.
 
 ### The analogy
 
-Two canteens, forty metres apart.
+Two canteens, forty metres apart. The first board says "FOOD · SNACKS · BEVERAGES" — accurate and useless, because everything on campus is food, snacks or beverages. The second says "FULL THALI · ₹60 · SERVED IN 7 MINUTES · 1 TO 2 PM". A student with forty minutes free and ₹60 has already decided, and tells a friend "the place near the gate does a thali in seven minutes" — a sentence that survives repetition because it is made of facts, and that is aimed at something specific: the mess queue, not restaurants in town.
 
-The first has a board that says "FOOD · SNACKS · BEVERAGES". It is accurate and it is useless. Everything on campus is food, snacks or beverages.
-
-The second has a board that says "FULL THALI · ₹60 · SERVED IN 7 MINUTES · 1 TO 2 PM". A student with forty minutes between classes and ₹60 in their pocket has already decided. More importantly, that student tells a friend "the place near the gate does a thali in seven minutes" — and the sentence survives being repeated, because it is made of facts rather than feelings.
-
-The second board is also positioned *against something specific*: the mess queue, not against restaurants in town. It wins by being faster than the thing you would otherwise do, and it says so on the board.
-
-**Where the analogy breaks:** a canteen is positioned partly by where it physically stands. A student walking past the gate discovers it without any words at all. Your product has no gate and no smell. Words, and only words, decide whether anyone ever finds out it exists — which is why eight unglamorous minutes spent on four lines is the highest-return work in this module.
+**Where the analogy breaks:** a canteen is positioned partly by where it physically stands, and a student walking past discovers it with no words at all. Your product has no gate and no smell. Words, and only words, decide whether anyone finds out it exists — which is why eight unglamorous minutes on four lines is the highest-return work in this module.
 
 ### Picture it
 
@@ -71,27 +61,9 @@ The second board is also positioned *against something specific*: the mess queue
 
 Two versions of the same template: the filled one names people, a workaround, a specific change and evidence, while the unfilled one could describe any product in the cohort.
 
-### Positioning against the workaround, not the competitor
-
-In M01 you found a problem and wrote down what people do about it today. That workaround is your real competition, and it is usually not a startup. It is a WhatsApp group, a phone call, a spreadsheet, a friend who queues, or doing nothing.
-
-This matters because it decides the shape of your position. If your users currently use a shared WhatsApp group, your position is "without losing things in the scroll" — not "better than Slack". If they currently pay a shop ₹20 to print something, your position is about the ₹20 and the walk. A position aimed at a competitor your users have never heard of is a position aimed at nobody.
-
-It also gives you your comparison number. "Twenty minutes" is in Team C's position because the workaround costs twenty minutes. A position with no number in it is almost always still an adjective in disguise.
-
-### Category: do not invent one
-
-There is a temptation to announce a new category — "we are building the Campus OS". Resist it for now. A category claim asks the listener to learn a new concept before they can decide anything, and at sixty-one users you cannot afford that cost.
-
-Borrow a category your user already understands and narrow it hard. "Lunch pre-ordering for hostel students" is a boring sentence that needs no explanation. Boring and understood beats novel and ignored every time at this stage. You can rename the category later, from a position of having users.
-
 ### Where it lives
 
-Your position is an input to almost everything that follows. The price in chapter 2 depends on what workaround you displace and what that workaround costs. The monetization model in chapter 3 depends on who the user is and how often value arrives. The launch in chapter 7 is only a distribution plan for this sentence; a vague sentence launched loudly is still vague. Chapter 8's outreach emails are this sentence addressed to one person.
-
-Backwards, it rests on M01: the problem statement, the persona, and the willingness-to-pay conversations. If your position feels impossible to write, the usual cause is that the problem statement was never narrowed, not that you lack copywriting skill.
-
-Sideways, M03's work on hierarchy and trust is how the position gets onto a page without being buried under a stock illustration. And in M18 you will be asked, in front of people, who this is for and why they would switch. The answer is this sentence, said out loud without hedging.
+Your position is an input to nearly everything that follows: chapter 2's price depends on which workaround you displace and what it costs, chapter 3's model on who the user is and how often value arrives, and chapters 7 and 8 are only this sentence distributed — loudly, or to one person at a time. Backwards it rests on M01; if the position feels impossible to write, the usual cause is a problem statement that was never narrowed, not a lack of copywriting skill. M03 gets it onto a page. M18 wants a second version for a jury, which asks about market and insight — write the user's version first.
 
 ### Words to own
 
@@ -109,31 +81,27 @@ Sideways, M03's work on hierarchy and trust is how the position gets onto a page
 
 ### Tradeoffs and gotchas
 
-**Narrowing feels like shrinking the market, and it is the opposite.** "Second-year students with 11-1 labs" sounds like a hundred people. It is a hundred people you can reach, convince and watch. "All students" is a number you cannot act on. You widen later from a base, which is how every product you admire started.
+**Narrowing feels like shrinking the market, and it is the opposite.** "Second-year students with 11-1 labs" is a hundred people you can reach, convince and watch. "All students" is a number you cannot act on. You widen later from a base.
 
-**"AI-powered" is not a position.** By 2026 it is close to meaningless to a user, and in M10 you learned how much is going on behind that phrase. If the AI is genuinely the differentiator, say what it does for the user: "it reads your timetable and orders without you opening the app" is a position; "AI-powered" is a shrug.
+**Do not invent a category.** "We are building the Campus OS" asks a listener to learn a new concept before deciding anything. Borrow a category they already understand and narrow it hard: "lunch pre-ordering for hostel students" needs no explanation. Boring and understood beats novel and ignored.
 
-**A position you cannot deliver is the most expensive kind.** If the board says seven minutes and it takes eighteen, you have not mis-positioned, you have mis-sold, and the user who tried you tells everyone. Chapter 9 is about exactly how fast that spreads.
+**"AI-powered" is not a position.** If the AI genuinely is the differentiator, say what it does for the user: "it reads your timetable and orders without you opening the app" is a position; "AI-powered" is a shrug.
 
-**Repositioning gets expensive quickly.** Once the sentence is on a landing page, in an app store listing, in two hundred outreach emails and in your pitch, changing it means changing all of them. Spend the time now, while the only cost is an argument between three people.
-
-**Your position for users and your position for a jury are different documents.** A mentor or an investor wants the market and the insight; a user wants to know what changes on Tuesday. Write the user one first. M18 covers the other.
+**A position you cannot deliver is the most expensive kind.** If the board says seven minutes and it takes eighteen, you have mis-sold, and the user who tried you tells everyone — chapter 9 is how fast that spreads. Repositioning is expensive too: the sentence is on a landing page, a store listing, two hundred emails and your pitch.
 
 ### Verify it
 
-AI is genuinely useful here and fails in one specific, recognisable way: it writes fluent positioning that is interchangeable. Check its output against these.
+AI fails here in one recognisable way: it writes fluent positioning that is interchangeable.
 
-**Red flag: the swap test fails.** Replace your product's name with a competitor's and read it again. If it still reads true, it is not a position, it is a mood. This catches almost every first draft, human or machine.
+**Red flag: the swap test fails.** Put a competitor's name in place of yours and read it again. If it still reads true, it is a mood, not a position. This catches almost every first draft, human or machine.
 
 **Red flag: no named alternative.** If the sentence does not say what the user stops doing, nobody can judge whether to switch. "Instead of" is load-bearing.
 
-**Red flag: adjectives where a number belongs.** Seamless, smart, effortless, modern, powerful. Each one is a place where a number was unavailable. Twenty minutes, ₹60, 10:45, sixty-one students — those survive repetition.
+**Red flag: adjectives where a number belongs.** Seamless, smart, effortless, modern, powerful — each marks a place where a number was unavailable. Twenty minutes, ₹60 and 10:45 survive repetition.
 
-**Red flag: a position written before anyone was asked.** AI will produce a confident position from your feature list alone, and it will be about your features. Your five M01 conversations are the only source for what the user actually calls the problem. Use their words, not yours and not the model's.
+**Red flag: a position written before anyone was asked.** The model will produce a confident position from your feature list alone, and it will be about your features. Your five M01 conversations are the only source for what the user calls the problem.
 
-**Red flag: a category nobody has heard of.** If explaining your position requires a preceding definition, it is two sentences and it will not be repeated.
-
-And the test no desk work replaces: say your sentence once to five people who do not know your project, change the subject for a minute, then ask them to tell you what it was. What comes back is your actual position. What is on your slide is a draft.
+Then the test no desk work replaces: say your sentence to five people who do not know your project, change the subject for a minute, and ask them what it was. What comes back is your actual position.
 
 ## Walkthrough
 1. Open your M01 problem statement and your notes from the willingness-to-pay conversations. Underline every phrase where a real user described the problem in their own words. You are going to steal those words.

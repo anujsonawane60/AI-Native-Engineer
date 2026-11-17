@@ -4,7 +4,7 @@ module: m06-cloud-linux-devops-testing
 slug: processes-systemd-logs
 title: "Processes, systemd, Logs and Package Management"
 order: 2
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team gets their canteen ordering app running on a free-tier virtual machine at 11 p.m. They see it in the browser. They are thrilled. They close the terminal and go to sleep.
+A team gets their canteen app running on a free-tier virtual machine at 11 p.m., sees it in the browser, closes the terminal and goes to sleep. At 11:01 the app is gone: closing the terminal killed the process, nothing restarted it, and nobody found out until a teammate tried the link next morning.
 
-At 11:01 p.m. the app is gone. Closing the terminal killed the process, because the process was a child of that terminal session. Nothing was watching, nothing restarted it, and no one found out until a teammate tried the link the next morning.
-
-They fix that, and three days later the app dies at 3 a.m. for a different reason. This time they want to know *why*, and they have no idea where to look. The terminal that showed the error is long gone. They restart it, it works, and they never learn what happened — so it happens again the following week during their demo.
+Three days later it dies at 3 a.m. for a different reason, and they have no idea where to look. They restart it, it works, they never learn *why* — so it happens again during their demo.
 
 ### The idea
 
-**A running program is a process; a process can die; and a server needs two things you do not have on a laptop — something that restarts the process automatically, and somewhere that keeps the error message after the process is gone.**
+**A running program is a process; a process can die; and a server needs two things a laptop does not — something that restarts the process automatically, and somewhere that keeps the error message after the process is gone.**
 
-On Linux the first thing is a service manager, and on almost every modern distribution the service manager is called systemd. The second thing is the log. Both exist so that a machine with no human watching it keeps working, and so that when it does not, the reason survives.
+On Linux the first is a service manager, called systemd on almost every modern distribution. The second is the log. A process is one running copy of a program, with a PID, a user, and an exit code when it ends: `0` means success, anything else failure — the number CI in chapter 12 uses to decide whether your build passed.
 
 ### The analogy
 
-The canteen opens at 8 a.m. whether or not the manager remembers. There is a rota pinned to the wall: who opens, what happens if they do not turn up, who covers. If the tea counter runs out of gas and shuts, someone swaps the cylinder and reopens it without the manager being asked.
+The canteen opens at 8 a.m. whether or not the manager remembers, because a rota is pinned to the wall: who opens, who covers if they do not turn up. That rota is systemd — this counter should be open; if it closes unexpectedly, reopen it; if it fails five times in a row, stop trying and write it in the book. And there is a book: "3:10 a.m., cold storage tripped the fuse, reset." Nobody reads it on a good day. On a bad day it is the only thing that explains anything.
 
-That rota is systemd. It says: this counter should be open; if it closes unexpectedly, reopen it; if it fails to open five times in a row, stop trying and write it in the book.
-
-And there is a book. Every incident gets a dated line: "3:10 a.m., cold storage tripped the fuse, reset." Nobody reads it on a good day. On a bad day it is the only thing that explains anything.
-
-**Where the analogy breaks:** a cook notices the gas has run out and acts on judgement. systemd has no judgement whatsoever. It only knows the process exited, not whether restarting is sensible. A process that crashes because the database password is wrong will be restarted forever, failing identically every time, and the restart loop itself becomes the symptom you have to diagnose.
+**Where the analogy breaks:** a cook notices the gas has run out and acts on judgement. systemd has no judgement whatsoever. It only knows the process exited, not whether restarting is sensible. A process that crashes on a wrong database password gets restarted forever, failing identically, and the restart loop becomes the symptom you have to diagnose.
 
 ### Picture it
 
@@ -65,43 +59,11 @@ And there is a book. Every incident gets a dated line: "3:10 a.m., cold storage 
 
 systemd keeps your app's process alive and restarts it when it exits, while the reason for the exit is written to a log that outlives the process itself.
 
-### What a process actually is
-
-A process is one running copy of a program. It has a number — a PID — that the system uses to refer to it, a user it runs as, a slice of memory, and a set of open files. When it ends it returns an exit code: `0` means it finished successfully, anything else means it failed, and that single number is what CI in chapter 12 uses to decide whether your build passed.
-
-Three facts about processes that explain most server confusion:
-
-A process started from a terminal usually dies with that terminal. That is the 11 p.m. failure above. This is why you hand your app to a service manager instead of running it by hand.
-
-A process that uses too much memory is killed by the kernel without warning, and the evidence appears in the system log rather than in your app's own output. On a free-tier VM with 512 MB of RAM this is common, and the symptom — "it just disappears" — looks like a mystery until you know to look there.
-
-Two processes cannot listen on the same port. `EADDRINUSE` means an old copy of your app is still running. The fix is finding and stopping it, not changing the port.
-
-### Logs: the part students skip
-
-A log is a file your program appends lines to as it runs. That is all. Its value is entirely in the fact that it persists after the thing that wrote it has gone.
-
-Three places matter. Your application's own log, which is whatever your code prints — and on a managed platform, this is what you see in the dashboard's "Logs" tab. The service manager's log, which records every start, stop, crash and restart of your service. And the kernel log, which is where out-of-memory kills and disk failures appear.
-
-The discipline to build now, and the one chapter 11 depends on: **when something breaks, read the log before forming a theory.** Students consistently invent a cause, ask an AI to fix the invented cause, and spend an hour on a problem that the first ten lines of the log would have named. M07 goes much deeper on structured logs and what is worth logging; for now the skill is simply going and looking.
-
-### Package management, and the dependency it is not
-
-Linux installs software through a package manager — `apt` on Ubuntu and Debian, which is what nearly every tutorial and cloud image you meet will use. One command fetches a program, its dependencies, and its service definition, from a trusted repository.
-
-The distinction that matters, and that agents get wrong:
-
-A **system package** is software the whole machine shares: the database server, the web server, the language runtime itself. Installing one is a root-level act and `sudo` is correct.
-
-A **project dependency** is a library your product uses: a web framework, a date library. It belongs inside your project folder, is listed in your project's dependency file, and is installed by your language's own tool with no `sudo` anywhere. Your repository is the record of it; the machine is not.
-
-Mixing these up is the most common way an agent breaks a working environment, which is why chapter 1 flagged `sudo` on a project dependency as a red flag and why chapter 8's containers largely remove the problem by giving each app its own private file system.
-
 ### Where it lives
 
-On a managed platform — the zero-config kind in chapter 6 — you never touch systemd. The platform runs the service manager for you, restarts your app, and shows you the log in a web page. Knowing what it is doing is still what lets you read that page.
+On a managed platform you never touch systemd: the platform restarts your app and shows you the log in a web page. On your own VM you write a short service file. In chapter 8 a container runs a single process and the container runtime does the restarting; in chapter 9 Kubernetes does that job across many machines — declare what should be running, let something else keep it that way.
 
-On your own VM, you write a short service file and systemd does the rest. In chapter 8 a container runs a single process and the container runtime does the restarting, which is systemd's job moved up a level. In chapter 9 Kubernetes does the same job again, across many machines. Same idea at three scales: declare what should be running, let something else keep it that way.
+Three logs matter, and they are different files: your app's own output (the "Logs" tab on a managed platform), the service manager's record of every start, stop and restart, and the kernel log, where out-of-memory kills appear.
 
 ### Words to own
 
@@ -122,26 +84,22 @@ On your own VM, you write a short service file and systemd does the rest. In cha
 
 ### Tradeoffs and gotchas
 
-**Automatic restart hides failures as well as fixing them.** A service that silently restarts twenty times an hour looks healthy from outside. The restart count is itself a metric worth watching, which is exactly the point M07 makes about alerting on the thing rather than the symptom.
-
-**A restart loop on a configuration error is infinite.** Wrong database password, missing environment variable, bad port — systemd will restart forever and the log will contain the same twelve lines over and over. The tell is identical timestamps a few seconds apart.
-
-**Restarting fixes the symptom and destroys the evidence.** The instinct under pressure is to restart. Copy the log first. Thirty seconds of copying saves you the second outage.
-
-**`sudo apt install` on your laptop does not travel.** Anything you install by hand on a machine exists only on that machine. If your app needs it, it belongs in your Dockerfile or your platform configuration, or the next deploy will not have it. This is the "works on my machine" problem that chapter 8 exists to solve.
-
-**Free-tier VMs run out of memory, not CPU.** On 512 MB, a build step is far more likely to be killed than to be slow. If a process vanishes during a build, suspect memory before anything clever.
+- **Automatic restart hides failures as well as fixing them, and a restart loop on a configuration error is infinite.** A service restarting twenty times an hour looks healthy from outside. Wrong password, missing environment variable, bad port — systemd retries forever, and the tell is identical log lines seconds apart.
+- **Restarting fixes the symptom and destroys the evidence.** Copy the log first; thirty seconds of copying saves the second outage.
+- **A system package is not a project dependency.** The database server, web server and language runtime are shared by the machine, so `sudo apt install` is correct. A library your code imports belongs in your project's dependency file, no `sudo` anywhere. Anything installed by hand lives only on that machine — if your app needs it, it goes in your Dockerfile or platform config.
+- **Free-tier VMs run out of memory, not CPU.** On 512 MB a build step is more likely to be killed than to be slow. If a process vanishes mid-build, suspect memory first.
+- **Two processes cannot listen on the same port.** `EADDRINUSE` means an old copy of your app is still running. Find and stop it; do not change the port.
 
 ### Verify it
 
-When an AI explains a crash or proposes a service setup, check four things.
+The discipline chapter 11 depends on: read the log before forming a theory. Then check four things.
 
-1. **Did it read the log, or guess?** Ask: "what in the log output tells you that?" If the answer does not quote your actual text, the diagnosis is a plausible invention. Paste the real lines and ask again.
-2. **Did it propose a restart as the fix?** A restart is a mitigation. Ask what would have to be true for the problem to not recur, and whether the log supports that.
-3. **Is it installing a project dependency with `sudo`?** Still the red flag from chapter 1. Project dependencies go in the project's dependency file; system packages go in the Dockerfile or platform config, never typed once into a terminal and forgotten.
-4. **Does the service definition say what happens on failure?** A service file with no restart policy and no log destination is half a service. Ask what happens on the fifth consecutive crash.
+1. **Did it read the log, or guess?** Ask "what in the log output tells you that?" If the answer does not quote your actual text, the diagnosis is a plausible invention.
+2. **Did it propose a restart as the fix?** A restart is a mitigation. Ask what would have to be true for the problem not to recur.
+3. **Is it installing a project dependency with `sudo`?** Still the red flag from chapter 1.
+4. **Does the service definition say what happens on failure?** A file with no restart policy and no log destination is half a service. Ask what happens on the fifth consecutive crash.
 
-One more red flag specific to this chapter: an answer that tells you to run your app with `&` at the end, or inside `screen` or `nohup`, as a production solution. Those keep a process alive past your terminal; they do not restart it when it dies, and nobody is watching.
+Red flag: an answer offering `&`, `screen` or `nohup` as a production solution. Those keep a process alive past your terminal; they do not restart it when it dies, and nobody is watching.
 
 ## Walkthrough
 1. In a free browser Linux environment or your platform's web shell, run `ps aux | head -20`. Every line is one process. Find the user column and notice how few run as root.

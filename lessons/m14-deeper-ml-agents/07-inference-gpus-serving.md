@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: inference-gpus-serving
 title: "Inference, GPUs and Serving Providers"
 order: 7
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: high
@@ -19,32 +19,23 @@ last_reviewed: 2026-11-16
 - Catch a GPU being rented for a load nobody has measured
 
 ## Lesson
-
 ### The pain
 
-M09 chapter 7 explained why a GPU is faster for this work and distinguished a model being too big to fit from one being too slow to use. M09 chapter 13 made you measure latency on a phone. Chapter 6 of this module got a model running on your own laptop. What none of them covers is the part that decides your bill: what happens on the serving machine when forty people use your feature at 1:10 pm.
+M09 chapter 7 explained why a GPU is faster and separated "too big to fit" from "too slow to use"; chapter 6 ran a model on your laptop. New here is what decides your bill: the serving machine at 1:10 pm.
 
-The failure has two symmetric forms. A team reads that a GPU serves "1,800 tokens per second" and rents one for ₹28,000 a month. Their actual load is 300 requests a day, which the GPU finishes in under four minutes of work, so they are paying for 24 hours of an idle machine and their cost per request is roughly sixty times what a per-token API would have charged.
-
-The other team goes serverless to avoid exactly that, and discovers that every cold request spends 40 seconds loading 4 GB of weights before it does any work. Their p95 latency is a minute. They had measured the model's speed and never measured the system's.
-
-Both teams measured something true and irrelevant. The number that matters is cost and latency per request at *your* concurrency, and it cannot be read off anybody's benchmark page.
+One team reads that a GPU serves "1,800 tokens per second" and rents one for ₹28,000 a month. Their real load is 300 requests a day, so they pay for an idle machine at sixty times the per-token price. Another goes serverless, where cold requests spend 40 seconds loading weights and p95 is a minute. Both numbers were true and irrelevant: what matters is cost and latency per request at *your* concurrency.
 
 ### The idea
 
 **Generating a response is two different jobs with different bottlenecks, and almost everything about serving follows from that.**
 
-**Prefill** reads your whole prompt at once. Every token can be processed in parallel, so this is a compute-heavy burst, and its duration sets your **time to first token**. **Decode** then produces the answer one token at a time, each one needing the whole model's weights read from memory again, so it is limited by memory bandwidth rather than arithmetic. That is why output tokens are slower than input tokens, why they usually cost more, and why the single most valuable serving technique is sharing one pass over the weights across many users at once.
+**Prefill** reads your whole prompt at once, in parallel, so it is compute-heavy and sets your **time to first token**. **Decode** produces one token at a time, each needing the model's weights read again, so it is limited by memory bandwidth. That is why output tokens are slower and dearer, and why the key technique is sharing one pass over the weights.
 
 ### The analogy
 
-The canteen at 1:10 pm. Prefill is reading the whole order slip for a table of six: you can scan every line at a glance, and it takes one moment however long the list is.
+The canteen at 1:10 pm. Prefill is reading a table's order slip: one glance, however long the list. Decode is cooking one dish at a time on a single tawa, where the walk to the masala shelf dominates. If six tables want dosas, fetch the masala once and make six — **batching** — and let new orders join the trip in progress: **continuous batching**.
 
-Decode is cooking the dishes one at a time on a single tawa. Each dish needs the cook to walk to the shelf, fetch the masala, come back. The walk dominates, not the cooking. Which means the clever move is obvious: if six tables all want dosas, fetch the masala once and make six dosas on the same trip. The sixth table waits no longer than the first, and the kitchen's output multiplies.
-
-That is **batching**, and the refinement that matters is that new orders should join the current trip rather than waiting for it to finish — **continuous batching**. A kitchen that waits until all six dosas are done before accepting a seventh order is wasting the tawa.
-
-**Where the analogy breaks.** The cook's shelf has infinite room, but the serving machine's memory does not. Every conversation in progress occupies memory for its own context — the **KV cache** — so the number of simultaneous diners is capped by memory, not by the cook's hands. Run out and new requests queue, and M05's lesson arrives: a queue makes everybody's wait longer at once.
+**Where it breaks.** The cook's shelf has infinite room; the machine's memory does not. Every conversation holds its own context — the **KV cache** — so concurrency is capped by memory, and requests queue once it fills.
 
 ### Picture it
 
@@ -70,25 +61,24 @@ Prefill is a parallel burst that sets the first-token wait while decode is a slo
 
 ### The four shapes, and where each wins
 
-**A hosted API, priced per token.** Zero operations, instant, no idle cost, and you pay for every token forever. This is the right default for almost every student startup, and M09 chapter 14 already taught you to compute its cost per request.
+- **Hosted API, per token.** No operations, no idle cost, paid per token forever. The default for most student startups.
+- **Serverless GPU, per second.** No idle cost, but a cold start of tens of seconds hits a real user.
+- **Dedicated GPU, per hour.** Yours idle or not, so cost per request falls as utilisation rises; the only shape with predictable latency.
+- **Your own hardware.** Chapter 6's path: no per-request cost, one machine's concurrency, every operational problem yours.
 
-**Serverless GPU, priced per second of compute.** You supply the model, the platform starts a worker on demand. No idle cost, but a cold start pays for loading weights — tens of seconds for a multi-gigabyte model — and that lands on a real user. Good for bursty, latency-tolerant work: batch jobs, image generation, overnight processing.
 
-**A dedicated GPU, priced per hour.** You rent a machine and it is yours, idle or not. The cost per request falls as utilisation rises, so this only beats per-token pricing above a volume you must calculate. Also the only shape that gives you predictable latency, which matters if your feature is interactive.
-
-**Your own hardware.** Chapter 6's path. No per-request cost at all, bounded by one machine's concurrency, and you own every operational problem.
-
-The break-even is simple arithmetic you should do rather than guess: take your monthly dedicated-GPU cost, divide by your monthly requests, and compare that to your per-token cost per request. A machine at ₹28,000 a month serving 300 requests a day is about ₹3.10 a request; the same machine at 30,000 requests a day is about ₹0.03. Nothing changed except utilisation.
+The break-even is arithmetic: monthly machine cost divided by monthly requests, against per-token cost per request. A ₹28,000 machine at 300 requests a day is ₹3.10 each; at 30,000 a day, ₹0.03. Only utilisation changed.
 
 ### Tools today
 
-The open serving engines that implement continuous batching and paged key-value caches are vLLM and Hugging Face's Text Generation Inference; both will serve a quantized open-weight model with an OpenAI-shaped API, which keeps you portable. Serverless GPU platforms and hourly GPU rentals exist from several vendors at prices that move monthly, and the cheapest honest path for a student team is: use a per-token hosted API until a measured volume justifies otherwise, and prototype anything heavier on a free notebook GPU. Every price, product name and instance type in this paragraph will be wrong within six months — this chapter is marked high-volatility for that reason.
+The open serving engines with continuous batching and paged key-value caches are vLLM and Hugging Face's Text Generation Inference; both serve a quantized open-weight model behind an OpenAI-shaped API, which keeps you portable. Serverless platforms and hourly rentals exist from several vendors at prices that move monthly. The cheapest honest path is a per-token hosted API until measured volume says otherwise, prototyping heavier work on a free notebook GPU. Every price and name here will be wrong within six months.
 
 ### Where it lives
 
-Upstream: chapter 6 decides what you are serving and at what precision, since the quantized size determines how many concurrent conversations fit in memory. Downstream: chapter 14 puts a gateway in front of whatever you choose, which is what makes switching between these four shapes a configuration change instead of a rewrite.
-
-Sideways: M05 chapters 4 and 8 are the queueing, rate-limiting and timeout discipline this needs, because an overloaded inference server fails in exactly the ways that module describes. M07 chapter 6 is where the p95 you must watch is recorded. M09 chapter 14 is the cost arithmetic. M17 chapter 6 is where it becomes margin.
+- Chapter 6 — what you serve and at what precision, which sets how many conversations fit
+- Chapter 14 — the gateway that makes switching shapes configuration, not a rewrite
+- M05 chapters 4, 8 — queueing, rate limits
+- M09 chapter 14, M17 chapter 6 — cost arithmetic, margin
 
 ### Words to own
 
@@ -109,31 +99,21 @@ Sideways: M05 chapters 4 and 8 are the queueing, rate-limiting and timeout disci
 
 ### Tradeoffs and gotchas
 
-**Throughput and latency are in opposition, and benchmarks quote the one that flatters.** A server tuned for maximum tokens per second batches aggressively, which makes any individual user wait longer. A published "1,800 tokens per second" is an aggregate across many simultaneous requests and tells you nothing about what one student on 4G will experience. Always ask: at what concurrency, and what was the p95 for a single request?
+**Throughput and latency are in opposition; benchmarks quote the flattering one.** "1,800 tokens per second" is an aggregate across simultaneous requests and says nothing about one student on 4G. Ask at what concurrency, and the p95 for a single request.
 
-**Idle time is the expensive part of a rented GPU, and nobody notices it.** Your bill does not depend on requests, so a quiet week costs exactly as much as a busy one. Set a utilisation target, measure against it weekly, and treat a GPU under 20% utilised as a decision to revisit rather than a sunk cost.
-
-**Cold starts belong in the p95, not in a footnote.** On serverless GPU, the honest latency figure includes the cold path at the frequency it actually occurs. Measure it by leaving the service idle for your real gap between requests and then timing one.
-
-**Long prompts are a first-token problem, long answers are a throughput problem.** They need different fixes: trim the prompt (M10 chapters 5 and 6) for the first, cap the output length for the second. Teams frequently apply one to the other and see nothing improve.
-
-**The KV cache is why your concurrency limit is lower than you expect.** At a long context, per-conversation cache memory can rival the weights themselves. A machine that holds one model comfortably may support only a handful of simultaneous long conversations, and the symptom is queueing rather than an error.
-
-**Spot and preemptible instances are cheap because they can be taken away.** Fine for a training run that checkpoints. Not fine for the thing answering your users, unless you have a fallback path that is tested.
+**Idle time is the expensive part of a rented GPU.** A quiet week costs what a busy one costs; under 20% utilisation is a decision to revisit. Cold starts belong in the p95, not a footnote.
 
 ### Verify it
 
-The red flag for this chapter is the plainest one in the module: **a per-request cost nobody has measured.**
+The red flag here is the plainest in the module: a cost per request nobody measured.
 
-1. **Demand cost per request, in rupees, for every option.** Not per token, not per hour, not per million. Per request, at your measured volume, including idle time for anything rented.
-2. **Ask for the break-even volume as a number.** "Requests per day above which renting wins." If the AI cannot state it, it has not done the arithmetic.
-3. **Separate the two latency numbers.** Time to first token and tokens per second, each measured at the concurrency you expect, not at concurrency one.
-4. **Ask what happens at double your peak concurrency.** The answer should mention the KV cache, a queue and a timeout. If it mentions none of them, the plan has no failure behaviour.
-5. **Ask for the cold-start figure and where it lands.** Then ask what fraction of your requests will hit it.
-6. **Check for continuous batching by name** in any self-hosted plan. Naive batching wastes most of the advantage.
-7. **Insist the API shape is portable.** If switching providers means rewriting your application, you have bought lock-in along with the GPU.
+1. **Demand cost per request in rupees for every option,** including idle time.
+2. **Ask for the break-even volume as a number.** If the AI cannot state it, it did no arithmetic.
+3. **Separate the two latency numbers,** at the concurrency you expect.
+4. **Ask what happens at double your peak concurrency** — the answer should mention the KV cache, a queue and a timeout.
+5. **Check for continuous batching by name,** and keep the API shape portable.
 
-Red flags: a GPU rented before load was measured; a throughput benchmark presented as a latency promise; no utilisation figure; cold starts excluded from p95; no concurrency test; no timeout or queue in the design; spot instances serving users with no fallback; and a self-hosted plan that never mentions the key-value cache.
+Red flags: a GPU rented before load was measured; a throughput benchmark sold as a latency promise; no utilisation figure; cold starts excluded from p95; spot instances with no fallback.
 
 ## Walkthrough
 1. Measure your real load from your own logs: requests per day, requests in the busiest hour, and the maximum number in flight at once. Write all three down. Everything else depends on these.

@@ -4,7 +4,7 @@ module: m09-ai-foundations
 slug: choosing-a-model
 title: "Choosing a Model: Quality, Latency, Context, Privacy and Cost"
 order: 13
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: high
@@ -22,31 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Three teams in the same cohort choose a model for the same kind of feature, and all three choose badly for the same reason: nobody tested anything.
-
-The first team reads that a frontier model tops the leaderboards and wires it in. Their feature classifies support tickets into four buckets. It works perfectly, costs about forty times what the job needs, and burns the free credits in eleven days.
-
-The second team picks the cheapest model on a list because the budget is nothing. Their feature summarises order history in Marathi. The cheap model's Marathi is poor and it ignores the output format on roughly one request in six, so their parser crashes and they spend a week writing retry logic around a model that was the wrong choice.
-
-The third team asks an AI which model to use. It names a model confidently, quotes a price per million tokens, states a context window, and recommends it warmly. Two of those facts are out of date and the model was renamed six months ago. The team plans a budget around the quoted price and is wrong by a factor of four.
+Three teams choose a model for the same feature and all three choose badly, because nobody tested anything. The first wires in the leaderboard leader to sort tickets into four buckets: it works perfectly, costs forty times what the job needs, and burns the credits in eleven days. The second picks the cheapest model, whose Marathi is poor and which breaks the output format once in six requests. The third asks an AI, which names a model with a price and a context window — two facts out of date, and the model renamed six months ago.
 
 ### The idea
 
 **Model choice is a measurement, not an opinion. Build twenty examples of your own task with answers you trust, run three candidate models against them, and score the results yourself.**
 
-It takes about ninety minutes, requires no code you cannot ask for, and it is the single highest-return ninety minutes in this module. It also produces something you can defend in M11's checkpoints and in M18's demo-day questioning, which "we used the best one" does not.
+It takes ninety minutes, needs no code you cannot ask for, and produces something you can defend at a checkpoint, which "we used the best one" does not.
 
-And one rule sits above all of it. **Any price, rate limit, context size or model name quoted by an AI — including by a very good AI — is probably stale. The provider's own pricing and model pages are the only authority.** This is M00's knowledge-cutoff failure mode landing exactly where it costs money, and chapter 11 explained why it is structural rather than careless.
+One rule sits above all of it. **Any price, rate limit, context size or model name quoted by an AI — including by a very good AI — is probably stale. The provider's own pricing and model pages are the only authority.** That is the knowledge-cutoff failure mode landing exactly where it costs money.
 
 ### The analogy
 
-The canteen needs a new supplier for 200 kilos of rice a week, and three are available.
+The canteen needs a new rice supplier and three are available. Nobody chooses by reading a trade magazine's "supplier of the year" award. The cook orders a sample sack from each, cooks the same dish three times and tastes them side by side — then asks what the sample cannot answer: cost per kilo, delivery by 7 am, a festival week at triple volume. The award-winner might suit a five-star hotel and be wrong for a canteen needing cheap rice at dawn. The magazine measured something real, but not this kitchen.
 
-Nobody chooses by reading a trade magazine's "supplier of the year" award. The cook orders a sample sack from each, cooks the same dish from each, and tastes all three side by side. Then he asks the questions the sample cannot answer: what does it cost per kilo, can they deliver by 7 am, can they handle a festival week at triple volume, and will they still be in business in March?
-
-The award-winning supplier might be perfect for a five-star hotel's biryani and quite wrong for a canteen that needs reliable cheap rice at dawn. The magazine measured something real. It did not measure this kitchen.
-
-**Where the analogy breaks:** rice suppliers do not change their product every three months, and their price list stays valid for a year. Model line-ups change constantly — prices get cut, models get renamed and retired, new ones appear — so your comparison has a shelf life measured in months. Write the date on it, and plan to rerun it, which is why this chapter carries a high volatility flag.
+**Where the analogy breaks:** rice suppliers do not change their product every three months. Model line-ups change constantly, so your comparison has a shelf life of months. Write the date on it and plan to rerun it.
 
 ### Picture it
 
@@ -74,31 +64,19 @@ The award-winning supplier might be perfect for a five-star hotel's biryani and 
 
 Five axes measured on your own task, producing a comparison table rather than an opinion.
 
-### The five axes, one at a time
+Each axis has one discipline behind it.
 
-**Quality, on your task.** A benchmark measures average performance on somebody else's questions. Your task is classifying Marathi support tickets from students on budget phones, and no benchmark measures that. Twenty of your own examples with answers you trust beats every leaderboard, and chapter 3's rules apply: the twenty must not be examples you tuned your prompt on, or you are measuring memory again.
-
-**Latency.** Two numbers matter. Time to first token is what the user feels as responsiveness, driven mostly by input length. Total time is driven mostly by output length, since generation is sequential. Measure both on a phone on mobile data: a model that feels instant on campus wifi can feel broken on 4G in a hostel corridor, which is M05 and M08 together.
-
-**Context.** Not the published maximum — your actual prompt. System prompt plus retrieved data plus history plus reserved output, as chapter 12 laid out. A model with a huge window you cannot afford to fill is not better than one that fits.
-
-**Privacy.** Three questions with real answers. Where does the data physically go? Is it used to train the provider's models by default, and can that be turned off? Do your privacy policy and your users' consent actually permit sending this data to a third party? For identifiable student data, M07's consent rules bind you and India's DPDP Act is the frame. Sometimes a small model on your own machine is the only acceptable option despite lower quality, and that is a legitimate engineering outcome.
-
-**Cost.** Per request, from token counts you measured, at a price you read today. Chapter 14 is the full arithmetic. Remember that output tokens cost more than input, and that a reasoning model's hidden thinking tokens are usually billed.
-
-### The small model is often enough, and the router is the professional answer
-
-The most useful discovery most teams make is that the small cheap model does their actual job about as well as the expensive one. Classification, extraction, short rewriting, routing, tagging — none of these are hard for a modern small model, and the premium for the frontier model closes a gap your users cannot perceive. Chapter 7's diminishing returns, made concrete on your own data.
-
-Which leads to the pattern you should know by name. **Routing**, or a cascade: send every request to the cheap model, and escalate to the expensive one only when a check says the cheap answer is not good enough — low confidence, a failed format check, an explicit "I am not sure". Most traffic is handled cheaply and the hard cases still get the good model. M10 builds the mechanics; here you need to know it exists so that your choice can be "both, with a rule" rather than one model forever.
+- **Quality** is scored on twenty of your own examples with answers you trust — not the examples you tuned the prompt on.
+- **Latency** is time to first token and total time, measured on a phone on mobile data. What feels instant on campus wifi can feel broken on 4G.
+- **Context** means your actual prompt, not the published maximum: system prompt plus retrieved data plus history plus reserved output.
+- **Privacy** is three answerable questions: where the data physically goes, whether it trains their models by default, and whether your users' consent permits sending it. For identifiable student data the DPDP Act is the frame, and a weaker local model can be the only acceptable option.
+- **Cost** is per request, from measured token counts, at a price you read today.
 
 ### Where it lives
 
-Model choice is a decision-log entry, and a classic one. M01 taught you that a decision log is for you in three weeks; this is the entry you will be asked about most. It needs the three candidates, the scores on your own examples, the measured latencies, the prices with the date you read them, and the one sentence of why.
-
-It is also deliberately revisitable. Write it so that rerunning the comparison next semester is a one-hour job: keep the twenty examples in your repository, keep the scoring sheet, and note the date. M06's warning about free-tier limits going stale applies to the whole model landscape.
-
-Deeper evaluation — eval harnesses, scoring with another model as a judge, tracking quality over time — is M10 chapter 12 and M14. Twenty examples scored by hand fits in ninety minutes and is enough to decide well today.
+- **Model choice is a decision-log entry**, and the one you will be asked about most: three candidates, scores on your examples, measured latencies, prices with the date you read them, and one sentence of why.
+- **Write it to be rerun.** Keep the twenty examples and the scoring sheet in your repository.
+- **Deeper evaluation — eval harnesses, model-as-judge, quality over time — is M10 and M14.**
 
 ### Words to own
 
@@ -118,33 +96,23 @@ Deeper evaluation — eval harnesses, scoring with another model as a judge, tra
 
 ### Tradeoffs and gotchas
 
-**Benchmarks are real measurements of the wrong thing.** They are not fraudulent; they are about average performance on standard tasks, and some of their questions have leaked into training data. Chapter 3's warning about reusing a test set, at industry scale. Use leaderboards to pick which three models to test, never to decide.
-
-**Twenty examples is noisy, and still vastly better than none.** A three-out-of-twenty difference may be chance; a fifteen-out-of-twenty difference is not. Be honest about which kind of gap you found.
-
-**Free tiers have rate limits that your demo will hit.** A model that works in testing can fail during your demo because thirty classmates are calling it at once. Read the per-minute limits, and know what your feature does when it is throttled.
-
-**Models get deprecated.** A model you hard-code today can be retired. Keep the model name in configuration, and have a second candidate already scored so a switch is an afternoon rather than a crisis.
-
-**"Cheaper per token" is not "cheaper per request."** A cheap model needing a 2,000-token prompt, two retries and a longer answer can cost more per completed task than a dearer one that gets it right first time. Compare cost per *successful* request, chapter 14's unit.
-
-**Everything numeric here expires.** Prices, limits, window sizes, model names and relative quality all move. The method survives; the numbers do not. Date your table.
+- **The small model is usually enough, and routing is the professional answer.** Classification, extraction and tagging are easy for a small model, and **routing** sends everything to the cheap one, escalating only when a check fails.
+- **Benchmarks are real measurements of the wrong thing.** They cover average performance on standard tasks, and some questions have leaked into training data. Use leaderboards to pick which three to test, never to decide.
+- **Twenty examples is noisy and still far better than none.** A three-out-of-twenty gap may be chance; fifteen is not.
+- **Free tiers have rate limits your demo will hit.** Read the per-minute limits and know what your feature does when throttled.
+- **Models get deprecated.** Keep the name in configuration and a second candidate already scored.
+- **"Cheaper per token" is not "cheaper per request."** A cheap model needing two retries can cost more per completed task, so compare cost per *successful* request.
+- **Everything numeric here expires.** The method survives; the numbers do not, so date your table.
 
 ### Verify it
 
-**Red flag, the headline one: a benchmark score offered as evidence that a model suits your task.** Ask what the benchmark measures, whether your task resembles it, and what the model scores on your own twenty examples. The last question is the only one that decides anything.
-
-**Red flag: a confidently quoted price.** Treat any price from a chat window as a rumour. Open the provider's pricing page, read the number, and write the date next to it in your notes. This single habit is the difference between a budget and a guess.
-
-**Red flag: an invented or renamed model.** If you cannot find the exact model string on the provider's own model page, do not plan around it. This is the third time this red flag appears in this module, because it is the most frequent fabrication in the subject.
-
-**Red flag: a recommendation with no privacy answer.** Ask where the data goes, whether it trains their model, and whether your consent covers it. "It should be fine" is not an answer.
-
-**Red flag: a single recommendation with no second option.** A choice needs alternatives and the tradeoff between them, which is M00's ASK field. One recommendation with no comparison is an opinion dressed as advice.
-
-**Red flag: latency measured on your laptop and presented as the user's experience.** Measure on a phone, on mobile data, as M08 and M05 both insist.
-
-And the thing nobody can do for you: score the twenty outputs by hand, one at a time, against what you decided the right answer was before you looked. It is dull, it takes thirty minutes, and it is the only part of this process that cannot be faked.
+- **A benchmark score offered as evidence that a model suits your task** — the headline one. Ask what it measures, and what the model scores on your own twenty examples.
+- **A confidently quoted price.** Treat any price from a chat window as a rumour: open the pricing page, read the number, write the date beside it.
+- **An invented or renamed model.** If the exact string is not on the provider's model page, do not plan around it.
+- **A recommendation with no privacy answer.**
+- **A single recommendation with no second option** is an opinion dressed as advice.
+- **Latency measured on your laptop and presented as the user's experience.** Measure on a phone, on mobile data.
+- **The part nobody can do for you:** score the twenty outputs by hand against the answer you decided before you looked.
 
 ## Walkthrough
 1. Write down the single AI task in your product that matters most. One task, named precisely, with the shape of its input and output.

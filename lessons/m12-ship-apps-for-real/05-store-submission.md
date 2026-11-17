@@ -4,7 +4,7 @@ module: m12-ship-apps-for-real
 slug: store-submission
 title: "App Store and Play Store Submission, Start to Finish"
 order: 5
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: high
@@ -22,31 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team finishes their app on a Wednesday. Demo day is Friday. They open the Play Console for the first time, pay the fee, and discover the following over the next eleven days.
+A team finishes their app on a Wednesday; demo day is Friday. They open the Play Console for the first time and find identity verification that takes days, a package name typo they cannot change, an `.apk` Google will not accept, a required privacy policy URL that does not exist, and a mandatory testing period for new accounts. They demo in a laptop browser and reach the Play Store five weeks later.
 
-Identity verification needs a government ID and a matching address, and takes days. Their package name has a typo they cannot change. Google will not accept their `.apk`, only an `.aab`. The listing needs a privacy policy at a live public URL, which does not exist. The data safety form asks eighteen questions about data they have never catalogued. A content rating questionnaire must be completed. And because it is a brand-new personal developer account, Google requires a **closed test with at least 12 testers for 14 continuous days** before they can even apply for production access.
-
-They demo on a laptop browser. The app reaches the Play Store five weeks later.
-
-A second team makes a worse mistake. They ship, they are live, and three months later they lose the laptop with the keystore file on it. There is no backup. With self-managed signing, that is the end: no update can ever be published for that app again, because Google will only accept uploads signed with the same key. Their only option is a new listing with zero installs, zero reviews and zero ranking.
-
-Both failures are calendar and process failures. Neither is a coding failure.
+A second team ships, then loses the laptop holding the keystore. With self-managed signing that is the end: Google only accepts uploads signed with the same key, so that app can never be updated again.
 
 ### The idea
 
 **Store submission is mostly waiting, and the waiting is outside your control — so start it on day one and do your building inside it.**
 
-The second half: **your signing key is the one artefact in this course that you cannot regenerate.** Code can be rewritten, databases restored, servers rebuilt. A lost signing key, in the worst configuration, permanently severs you from your own published app and every user who installed it.
+And: **your signing key is the one artefact in this course you cannot regenerate.** Losing it, in the worst configuration, permanently severs you from your published app and every user who installed it.
 
-Everything else is a sequence. In the right order, submission is an afternoon of forms spread across two weeks of waiting. In the wrong order, five weeks.
+Everything else is a sequence: in the right order, an afternoon of forms spread across two weeks of waiting; in the wrong order, five weeks.
 
 ### The analogy
 
-The canteen stall needs an FSSAI food licence before it serves one plate. The licence needs an application, identity proof, an inspection and a waiting period. None of that is cooking, and no amount of cooking skill shortens it.
+The canteen stall needs an FSSAI licence before it serves one plate, and no cooking skill shortens the application, the inspection or the waiting. It also needs a declaration of what is in the food — and if the board says "no onion" and the inspector finds onion, the offence is the declaration.
 
-The stall also needs a price board and a declaration of what is in the food. If the board says "no onion" and the inspector finds onion, the problem is not the onion — it is the declaration. Being wrong on your own label is a far more serious offence than the onion.
-
-**Where the analogy breaks**, in the way that catches teams out. The inspector visits occasionally and the licence lasts a year. App review happens on **every single update you ever ship**, by a different reviewer each time, against rules that change without anyone telling you. A build that passed last month can be rejected this month for a policy that did not exist then. That is why this chapter carries a high-volatility tag: the shape of the process is stable, the specifics are not, and you must read the console rather than trust this page or an AI's memory.
+**Where the analogy breaks.** The inspector visits occasionally and the licence lasts a year. App review happens on **every single update you ever ship**, against rules that change without telling you. Hence the high-volatility tag: read the console, not this page.
 
 ### Picture it
 
@@ -75,33 +67,31 @@ Submission alternates between short bursts of your own work and long stretches o
 
 ### Where it lives
 
-Submission sits at the end of your build pipeline and touches four earlier modules. The artefact you upload comes out of M06's CI/CD and secrets discipline. The privacy policy and the data declarations are M07's consent and privacy chapter turned into a form with legal weight. The keystore is a secret, so M01's rule about what never enters git applies absolutely. The staged rollout you finish with is the beginner version of M13's release engineering.
-
-Inside your team this is one person's standing job, because the console has one account and the waiting needs chasing.
+The artefact you upload comes out of M06's CI/CD and secrets discipline. The privacy policy and data declarations are M07's consent chapter with legal weight. The keystore is a secret, so M01's rule about what never enters git applies absolutely. The staged rollout is the beginner version of M13. In your team this is one person's standing job.
 
 ### The sequence, in order
 
-**1. Create the developer account today.** Google Play Console: a **one-time** fee of about US$25, roughly ₹2,100. Apple Developer Program: an **annual** membership of about US$99, roughly ₹8,400 *every year*. For three students the Play fee is a shared pizza; the Apple fee is more than a fifth of this course tier's price, and you pay it again next year. One shared Play account per team, Android first, iOS only if a real user needs it. Check current fees in the console — they move.
+**1. Create the developer account today.** Google Play Console: a **one-time** fee of about US$25, roughly ₹2,100. Apple Developer Program: an **annual** membership of about US$99, roughly ₹8,400 *every year*. So: one shared Play account per team, Android first, iOS only if a real user needs it. Fees move — check the console.
 
-**2. Complete identity verification immediately.** Both stores verify who you are, and this is pure waiting. Do it while still building screens.
+**2. Complete identity verification immediately.** Pure waiting, so do it while still building screens.
 
-**3. Fix the package name and bundle identifier.** `com.yourteam.yourapp`. **Permanent.** You cannot change it after publishing — only publish a different app. Check for `example`, `myapp` and typos now.
+**3. Fix the package name.** `com.yourteam.yourapp` is **permanent** — after publishing you can only publish a different app. Check for `example` and typos now.
 
-**4. Set up signing, and back the keys up.** On Android, enrol in **Play App Signing**: Google holds the key that signs what users download, and you hold an *upload key* for what you send Google. A lost upload key can be reset; if you manage signing yourself, a lost keystore is unrecoverable. Expo's build service can hold your credentials — but export the keystore and its passwords anyway, into a password manager the whole team can reach plus an offline copy.
+**4. Set up signing and back the keys up.** On Android, enrol in **Play App Signing**: Google holds the key that signs what users download, you hold an *upload key*. A lost upload key can be reset; if you manage signing yourself, **a lost keystore is unrecoverable**. Export the keystore and its passwords to a team password manager plus an offline copy.
 
-**5. Produce the right artefact.** Google requires an **AAB** (Android App Bundle), not an `.apk`. Apple requires an `.ipa`. Your Android **version code** must increase on every upload and can never be reused; same for the iOS build number.
+**5. Produce the right artefact.** Google requires an **AAB**, not an `.apk`; Apple an `.ipa`. Your version code must increase on every upload and can never be reused.
 
-**6. Write the privacy policy and host it.** Both stores require a live public URL before you can submit, saying what you collect, why, who you share it with and how a user deletes their data.
+**6. Host the privacy policy** at a live public URL: what you collect, why, who you share it with, how a user deletes their data.
 
-**7. Fill the data declarations honestly.** Play calls it the **Data safety** form; Apple calls it **App Privacy** details. Both ask what you collect, whether it is linked to identity, whether it is shared, and whether it is used for tracking. The single most dangerous thing you can do here is **declare that you collect nothing while your app contains an analytics or crash-reporting library.** That is a false declaration, and the consequence escalates from rejection to app removal to account termination. Your crash reporter collects device identifiers. Your analytics collects usage. Declare them.
+**7. Fill the data declarations honestly.** Play calls it **Data safety**, Apple **App Privacy**. Declaring you collect nothing while your app contains an analytics or crash-reporting library is a false declaration, and it escalates from rejection to app removal to account termination. Your crash reporter collects device identifiers.
 
-**8. Complete the content rating and audience declarations.** Both stores ask whether the app targets children, contains ads, has user-generated content or offers financial features. The easiest rejection to avoid.
+**8. Complete the content rating and audience declarations** — children, ads, user-generated content, financial features.
 
-**9. Give the reviewer a way in.** If your app requires login, supply working demo credentials. A reviewer who cannot get past your login screen rejects you.
+**9. Give the reviewer a way in.** A login wall with no demo credentials is a rejection.
 
-**10. Ship to a testing track first, not production.** Play has internal, closed and open tracks; Apple has TestFlight. Internal testing reaches up to a hundred people you nominate, fast, and is where you discover your release build differs from your development build. And the rule that ambushes student teams: a **new personal Play developer account must run a closed test with at least 12 testers opted in for 14 continuous days** before it can apply for production access.
+**10. Ship to a testing track first, not production.** Play has internal, closed and open tracks; Apple has TestFlight. The rule that ambushes student teams: a **new personal Play developer account must run a closed test with at least 12 testers opted in for 14 continuous days** before it can apply for production access.
 
-**11. Release with a staged rollout.** Play lets you release to 5%, watch your crash rate, then 20%, then 100%. Cheapest insurance in the module, and chapter 8 is what you watch during it.
+**11. Release with a staged rollout** — 5%, watch the crash rate, then 20%, then 100%.
 
 ### Words to own
 
@@ -121,29 +111,19 @@ Inside your team this is one person's standing job, because the console has one 
 
 **Android first is almost always right for an Indian student team.** Play reaches the overwhelming majority of your users, the fee is one-time, and you can install and test freely. iOS costs ₹8,400 a year before anyone — including you — can install your build.
 
-**Rejections are normal and are not personal.** Read the guideline they cite, fix that specific thing, and explain the change in the resubmission note. Do not rebuild the app, do not change three unrelated things, and do not argue.
+**Rejections are normal and not personal.** Read the guideline they cite, fix that specific thing, explain it in the resubmission note. Do not argue. The commonest avoidable rejection is missing in-app account deletion when users can sign up.
 
-**Both stores demand account deletion if you have accounts.** If a user can sign up in your app, they must be able to delete the account inside the app, not by emailing you. A one-afternoon feature and a guaranteed rejection if missing.
-
-**Target API level requirements move every year.** Play refuses uploads built against an Android version that is too old. Keeping the Expo SDK current is what handles this.
-
-**Your release build is not your development build.** Different optimisation, different engine settings, real signing, no dev server. Test the release artefact on a real phone before every upload.
-
-**Do not let an AI tell you the current rules.** Fees, forms, timelines and policy names here were accurate when written and will drift. The console is the source of truth, and a confident AI answer about store policy is exactly the plausible-but-wrong failure from M00.
+**Your release build is not your development build.** Different optimisation, real signing, no dev server — test the release artefact on a real phone before every upload. Play also refuses uploads built against too old an Android version; keeping the Expo SDK current fixes that.
 
 ### Verify it
 
-**Red flag: an AI stating current fees, review times or policy rules from memory.** These are the highest-volatility facts in the course. Ask AI *where in the console to look* and *what the answer will determine*, then read it yourself. Any number it gives you is a hypothesis.
+**Red flag: an AI stating current fees, review times or policy rules from memory.** Ask it *where in the console to look*, then read it yourself. Any number it gives you is a hypothesis — M00's plausible-but-wrong failure.
 
-**Red flag: a data safety form filled optimistically.** Cross-check the draft against the actual libraries in your app. Does your crash reporter send a device identifier? Does your analytics record screens viewed? Does your push setup store a token? Each is data. The honest form is longer than the convenient one and it is the only one that keeps your account.
+**Red flag: a data safety form filled optimistically.** Cross-check the draft against the libraries actually in your app: crash reporter identifiers, analytics screen views, push tokens.
 
-**Red flag: a signing setup with no backup instruction.** If the plan does not say where the keystore and its passwords live and who else can reach them, it is incomplete. Ask: "if my laptop is stolen tonight, can my team publish an update tomorrow?" Then test it by having a teammate retrieve the credentials.
+**Red flag: a signing setup with no backup instruction.** Ask: "if my laptop is stolen tonight, can my team publish an update tomorrow?" Then have a teammate retrieve the credentials.
 
-**Red flag: a secret inside the app bundle.** Before you upload, unzip your own `.aab` and search it for anything resembling a key. Whatever you find, strangers can find.
-
-**Red flag: a submission plan with no demo account.** A login wall plus no reviewer credentials is a planned rejection.
-
-**Verify the artefact, not the source.** Install the exact signed build you are about to upload onto a real budget phone and complete your main flow as a new user.
+**Verify the artefact, not the source.** Install the exact signed build you will upload on a real budget phone and complete your main flow as a new user.
 
 ## Walkthrough
 1. Today, before anything else: create the Google Play Console account, pay the one-time fee, and start identity verification. Write the date in your decision log.

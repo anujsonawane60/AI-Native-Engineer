@@ -4,7 +4,7 @@ module: m16-users-analytics-growth
 slug: growth-loops-vs-funnels
 title: "Growth Loops vs Funnels"
 order: 7
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,44 +22,31 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team finishes chapter six in good shape. Activation is 61%, retention flattens at 30%, the funnel has no embarrassing leaks left. They present this and someone asks how many users they will have in two months.
-
-The honest answer is: however many we personally ask. Every single user so far arrived because a team member sent a message or stood in a classroom. The product is good and the machine does not exist. On the week the team has exams, growth is zero, and every number in the module stops moving.
-
-They have spent five chapters improving a conveyor belt. A conveyor belt moves what you put on it. Nothing about a better conveyor belt produces more things to move.
+A team finishes chapter six in good shape: activation 61%, retention flat at 30%, no leaks left. Then someone asks how many users they will have in two months. Honest answer: however many we personally ask. Every user so far arrived because a team member asked, so on exam week growth is zero. Five chapters improved a conveyor belt, and a better belt does not produce more things to move.
 
 ### What M07 covered, and what is new here
 
-M07 did not mention growth loops. Its chapter eight is entirely funnel thinking — ordered steps, drops, windows — which is the right frame for one user's journey through your product and the wrong frame for how the next user arrives.
-
-This chapter introduces the other shape. Chapters one to six of this module were all funnel work: the ask ladder, the signup funnel, activation. They stay useful. What changes is where they sit: inside a loop, as the diagnostic for each of its steps.
+M07's chapter eight was pure funnel thinking — the right frame for one user's journey, the wrong frame for how the next user arrives. This chapter adds the other shape.
 
 ### The idea
 
-**A funnel consumes users; a loop produces them. A loop is a cycle whose output becomes its own next input, so each turn makes the next turn bigger.**
+**A funnel consumes users; a loop produces them: a loop's output becomes its own next input, so each turn makes the next turn bigger.**
 
-That is the entire distinction, and it is a test you can apply in one sentence: does running this once produce something that brings in a new person without you doing anything? If yes, it is a loop. If no, it is a funnel with an arrow drawn back, which is what most "growth loop" diagrams turn out to be.
+The test: does running this once bring in a new person without you doing anything? If no, it is a funnel with an arrow drawn back.
 
-### Loop anatomy
+Four parts make a loop. **Input:** a new user arrives. **Action:** they do something in the product. **Output:** that action produces something a non-user can see, like a shared link. **Return:** that output brings in a new user.
 
-Every loop has four parts, and naming all four is what separates a loop from a hope.
+Two numbers describe it. **Cycle time** is how long one turn takes: a user arriving, then the new user they caused. **Branching factor** is new users brought per existing user per cycle. Both matter: 0.8 at three days is a different business from 0.8 at two months, so always state the pair.
 
-**Input.** A new user arrives.
-**Action.** They do something inside the product.
-**Output.** That action produces something visible to a person who is not yet a user — a shared order link, a public page, a WhatsApp message, a referral code.
-**Return.** That output brings a new user in, and the cycle starts again.
+Never quote a branching factor alone: every arrow is a conversion with a drop-off, so the factor is those rates multiplied, which is why it is usually small.
 
-Two numbers describe the loop's behaviour. **Cycle time** is how long one turn takes: from a user arriving to the new user they caused arriving. **Branching factor** is how many new users each existing user brings in one cycle.
-
-Both are needed. A loop with a branching factor of 0.8 and a cycle time of three days is a different business from a loop with the same factor and a cycle time of two months.
+Almost no student product exceeds one, and that is fine. At 0.35, a hundred hand-recruited users produce about fifty more before decaying out — half your manual effort, given back.
 
 ### The analogy
 
-The canteen's lunch queue is a funnel. A hundred and eighty students walk in, a hundred and forty-two buy, thirty-eight leave. Tomorrow the canteen needs a fresh queue, and nothing about today's queue produces tomorrow's.
+The canteen's lunch queue is a funnel: a hundred and eighty students walk in, a hundred and forty-two buy, and tomorrow it needs a fresh queue. The loop is different. A student posts the Thursday thali in the hostel group, two friends come on Friday, and one of them posts a photo too. Friday's customers were produced by Thursday's.
 
-The canteen's loop is different. A student photographs the Thursday thali and posts it in the hostel group. Two friends come on Friday. One of them posts a photo as well. The canteen did nothing on Friday, and Friday's customers were produced by Thursday's.
-
-**Where the analogy breaks:** the campus has eighteen hundred students and no more. Even an excellent loop runs out of people to reach — it **saturates** — and when it does, the branching factor falls towards zero no matter how good the thali is. Your addressable market is also finite, and far smaller than you think during the first good week. A loop that worked beautifully inside one hostel will appear to break when it has finished that hostel, and the mistake is to conclude that the loop was never real.
+**Where the analogy breaks:** the campus has eighteen hundred students and no more. Even an excellent loop runs out of people — it **saturates** — and the factor then falls towards zero however good the thali is.
 
 ### Picture it
 
@@ -82,27 +69,11 @@ The canteen's loop is different. A student photographs the Thursday thali and po
 
 A loop with a branching factor below one decays: a hundred users produce thirty-five, then twelve, then four, and the loop stops unless new users keep being added from outside.
 
-### Below one still pays
-
-Almost no student product will have a branching factor above one. A loop above one compounds without help and is what people mean by "viral"; it is rare, usually short-lived, and not a reasonable target for a first product.
-
-A loop at 0.35 is still worth building, and the reason is arithmetic you can do in words. Without a loop, every single user costs you one manual ask from chapter one — and at chapter one's rates, roughly fifteen asks per retained user. With a branching factor of 0.35, every hundred users you recruit by hand produce about fifty more over several cycles before decaying out. That is a fifty per cent discount on the most expensive and least pleasant work your team does.
-
-So the honest framing is not "does this loop go viral" but "how much of my manual effort does this loop give back". That is a number you can report and defend, and M17 turns it into a cost.
-
-### Funnels live inside loops
-
-Every arrow in a loop diagram is a conversion with a drop-off, which means every arrow is a small funnel you already know how to measure.
-
-For the loop above: what share of activated users share a link at all; how many people see each shared link; what share of those tap it; what share of tappers activate. The branching factor is those four rates multiplied together, which is why it is usually small — four steps at fifty per cent each leave you at about six per cent.
-
-This is the practical payoff of the chapter. "Our loop is weak" is not actionable. "Only 9% of activated users ever share, and that is the smallest of our four rates" is a brief. Chapters two to six are the instruments you point at each arrow, one at a time.
-
 ### Where it lives
 
-Chapter one is the outside input that every sub-one loop depends on: a loop amplifies, so it needs something to amplify, exactly as that chapter said about SEO and referrals. Chapter four is the gate — a loop built on a product with no flattening point simply moves people through faster on their way out, so retention comes first and this is not negotiable. Chapter eight compares the three loop families in detail, and chapter nine is how you test a change to a single loop step once you have the traffic.
+Every arrow above is a rate you can already measure — share rate, people reached, tap rate, activation — and chapters two to six are the instruments.
 
-M15's content engine is a content loop measured properly, and its attribution chapter is the same honesty problem. M17 is where the branching factor becomes money: a loop that returns half your manual effort halves your acquisition cost, which is what makes the unit economics work.
+Chapter one is the outside input every sub-one loop amplifies; chapter four is the gate, and not negotiable; chapter eight compares the loop families; chapter nine tests one loop step; M15's attribution chapter is the same honesty problem; M17 turns the factor into money, since a loop returning half your effort halves acquisition cost.
 
 ### Words to own
 
@@ -121,30 +92,30 @@ M15's content engine is a content loop measured properly, and its attribution ch
 
 ### Tradeoffs and gotchas
 
-**Acquisition loops and engagement loops are different things.** A notification that brings an existing user back is an engagement loop: valuable, and it does not grow your user count. Only a loop whose output reaches a non-user is an acquisition loop. Teams conflate them and then wonder why a healthy loop produced no growth.
+**Acquisition and engagement loops differ.** A notification that brings an existing user back is valuable but grows nothing. Only output reaching a non-user acquires.
 
-**A loop needs several cycles to show itself.** With a four-day cycle you need a month; with a three-week cycle you need a term. A branching factor computed from five days of data is noise, and this is the commonest way teams declare a loop dead or alive too early.
+**A loop needs several cycles to show itself.** A four-day cycle needs a month, a three-week cycle a term; a factor from five days is noise.
 
-**WhatsApp loops are invisible by default.** A link pasted into a chat carries no referrer, so your analytics records the arrival as "direct" and you cannot tell the loop from luck. This is dark social, and it is the dominant sharing channel for Indian student products. The only fix is to put the attribution in the link itself — a per-user code or parameter — and to accept that anyone who retypes the URL is lost to you.
+**WhatsApp loops are invisible by default.** A pasted link carries no referrer, so analytics calls the arrival "direct" — dark social, which dominates Indian student products. The fix is a per-user code inside the link; anyone who retypes the URL is still lost.
 
-**Loops run backwards too.** A user who has a bad first experience tells the same nine people in the same group. Negative loops have the same mechanics and move faster, because complaints are more shareable than satisfaction.
+**Loops run backwards too.** A bad first experience is told to the same nine people; complaints are more shareable than satisfaction.
 
-**Saturation looks exactly like failure.** When a loop finishes a hostel, a class or a campus, the factor collapses. The correct response is a new population, not a redesigned loop.
+**Saturation looks like failure.** When a loop finishes a hostel the factor collapses; the response is a new population, not a redesigned loop.
 
-**You cannot loop your way out of bad retention.** If your curve never flattens, a loop pours strangers into a product that loses them, and the only thing that grows is your churn number. Chapter four is the prerequisite and chapter ten is the consequence.
+**You cannot loop your way out of bad retention.** A loop on a curve that never flattens pours strangers into a product that loses them, and only churn grows.
 
 ### Verify it
 
-Ask AI for a growth loop and you will get a diagram with four boxes and an arrow curving back to the first. Most of them are not loops.
+Ask AI for a growth loop and you get four boxes and a curved arrow. Most are not loops.
 
-1. **Check that the output reaches a non-user.** If the last box's product is seen only by people who already have accounts, this is an engagement loop at best and a funnel with a curved arrow at worst.
-2. **Demand the cycle time.** **A loop described without a cycle time** cannot be planned, measured or defended, and its absence usually means nobody thought about how long one turn takes.
-3. **Demand the branching factor as a product of named rates**, not as a single confident number. If the four rates are not listed, the number was invented.
-4. **Check whether any claimed factor came from fewer cycles than the cycle time allows.** One week of data on a four-day loop is one and a half cycles.
-5. **Ask how a share through WhatsApp would be attributed.** If the answer does not involve a code or parameter carried in the link, the loop cannot be measured and any later claim about it is a guess.
-6. **Ask what retention the loop assumes.** A loop proposed for a product whose curve has not flattened is a proposal to accelerate churn, and it should be refused until chapter four's number exists.
+1. **Check the output reaches a non-user.** Seen only by account holders, it is an engagement loop at best.
+2. **Demand the cycle time.** A loop without one cannot be planned, measured or defended.
+3. **Demand the factor as a product of named rates.** Rates not listed means the number was invented.
+4. **Check the data covers several cycles.** One week on a four-day loop is barely two.
+5. **Ask how a WhatsApp share would be attributed.** No code in the link, no measurable loop.
+6. **Ask what retention the loop assumes.** Refuse any loop on a curve that has not flattened.
 
-Red flags: a loop with no cycle time; a branching factor quoted to two decimal places from a fortnight of data; every organic signup attributed to the loop; an incentive attached before the loop has been shown to work at all; and a diagram in which the output is a push notification to existing users.
+Red flags: a factor quoted to two decimals from a fortnight of data; every organic signup credited to the loop; an incentive attached before the loop works; a diagram whose output is a push notification.
 
 ## Walkthrough
 1. Draw your current acquisition as it actually is today, honestly. If every user arrives because a team member asked, draw that, with the number of asks per user from chapter one.

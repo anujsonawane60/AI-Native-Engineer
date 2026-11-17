@@ -4,7 +4,7 @@ module: m03-design
 slug: avoiding-generic-ai-look
 title: 'Avoiding the Generic "AI Look"'
 order: 8
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,27 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Demo day. Eleven teams present. Nine of the eleven products share a visual identity nobody chose.
-
-A purple-to-blue gradient across the hero. The same geometric sans-serif. Three feature cards in a row, each with a thin line icon, each with a two-word heading and a one-line description. Frosted-glass panels over a blurred background. Everything centred. Rounded corners at exactly the same generous radius. A headline of the form "Transform your X with AI". A dark mode that is the light mode with the colours flipped. Emoji used as bullet points.
-
-The tenth team's product is a canteen app that looks like the canteen: steel-tray greys, a single hot orange for the one action that matters, dish names at a size you can read while walking, a hand-set price board on the home screen, and prices in a font large enough to see from the queue. It is not more beautiful than the other nine. It is *theirs*, and three mentors remember it a week later.
-
-The nine teams did not have bad taste. They asked for "a modern, clean design" and received the statistical average of everything the model has ever seen.
+Demo day, eleven teams, nine sharing a visual identity nobody chose: purple-to-blue gradient hero, the same geometric sans, three feature cards with thin line icons, "Transform your X with AI". The tenth team's canteen app looks like the canteen — steel-tray greys, one hot orange on the action that matters, prices readable from the queue. Not more beautiful; *theirs*.
 
 ### The idea
 
 **Generic output is what you get when your brief contains no information. Style comes from constraints, references and bans — never from adjectives.**
 
-"Modern", "clean", "sleek", "professional" and "beautiful" are all words that describe the centre of the distribution. They carry no instruction. Every word of real direction you add narrows the output away from the average, and narrowing is the whole job.
+"Modern", "clean" and "professional" describe the centre of the distribution, so they carry no instruction. Real direction narrows the output away from it, and narrowing is the job.
 
 ### The analogy
 
-Walk past five new cafés near any Indian campus and they are interchangeable: chalkboard menu, exposed brick, Edison bulbs, a wall of succulents, a neon sign saying something in cursive. Each owner chose that look because it signals "nice café". The signal has been copied so thoroughly that it now signals nothing except "we copied".
+Five new cafés near any campus are interchangeable: chalkboard menu, exposed brick, Edison bulbs, a cursive neon sign. Each signals "nice café" — copied so thoroughly it now signals only "we copied". The canteen next door is unmistakable and nobody designed it: steel plates survive ten thousand washes, chalk prices change daily.
 
-The old canteen next door is unmistakable, and nobody designed it. Steel plates because they survive ten thousand washes. A tiled counter because it wipes down. Prices in chalk because they change. Fluorescent light because it is cheap and bright. Every visual decision came from a real constraint, and the result is a look you could identify from a single photograph.
-
-**Where the analogy breaks:** the canteen's look accumulated over thirty years of use, and you have six weeks. You cannot wait for your constraints to express themselves. You have to go and find them deliberately — in your users, your region, your content and your actual physical conditions — and then write them into the brief as instructions. The specificity that a canteen earns by existing, you have to import on purpose.
+**Where the analogy breaks:** the canteen earned its look over thirty years; you have six weeks, so you find your constraints — users, region, content, conditions — and write them into the brief.
 
 ### Picture it
 
@@ -66,9 +58,14 @@ The old canteen next door is unmistakable, and nobody designed it. Steel plates 
 
 A brief with no constraints collapses to the centre of the training distribution; every specific constraint you add pushes the output away from that centre toward something only your product would look like.
 
-### The tells, by name
+Four levers do the narrowing.
 
-You cannot avoid what you cannot name. These are the current signatures, and they shift every few months — so treat the list as a method, not scripture.
+1. **References, in three respects.** "Like Zomato" averages the model's idea of a food app. Name the artefact and what to take: "the price-forward layout of a railway departure board — large numerals, left-aligned labels, high contrast. Take nothing else." Bus tickets and shop boards sit nowhere near the training average.
+2. **Constraints that force choices.** One accent colour; no gradients; one font family; four named icons; borders not shadows; the price is the largest text on a card.
+3. **Content-derived aesthetics.** Dish names read while walking set the type size; sunlight forces flat surfaces.
+4. **A written ban list.** "Never: gradients, glassmorphism, centred body text, emoji, stock illustration, more than one accent colour." Bans are checkable, so AI cannot drift back without visibly violating one.
+
+Three adjectives, three references and six bans fit in fifteen lines at the top of every session, beside `DESIGN.md`.
 
 | Tell | What it looks like | What to do instead |
 |---|---|---|
@@ -83,25 +80,16 @@ You cannot avoid what you cannot name. These are the current signatures, and the
 | "Transform your X" copy | Verb-your-noun-with-AI headlines | What your product literally does |
 | Flipped dark mode | Light values inverted | A second deliberate colour set |
 
-One honest caveat: some of these are also just conventions, and conventions exist because they work. The problem is not that a card has rounded corners. The problem is a screen where *every* decision is the default one, because that is a screen where nothing was decided.
-
-### Four levers that actually work
-
-**1. References, specified in three respects.** "Make it like Zomato" is useless — the model will average its idea of a food app. Useful direction names the artefact and exactly what to take from it: "Take the price-forward layout of a railway station departure board: large numerals, left-aligned labels, high contrast, no imagery. Take nothing else." Three respects, and a "take nothing else".
-
-Your best references are rarely other apps. A bus ticket. A Maharashtra State Transport timetable. A hand-painted shop board in Nashik. A ration card. A cricket scoreboard. These have strong visual logic and are nowhere near the centre of the training distribution.
-
-**2. Constraints that force choices.** Each of these removes a default: exactly one accent colour; no gradients anywhere; one font family; a maximum of four icons in the entire product, and name them; no shadows, use borders; the price must be the largest text on any card; no decorative imagery at all. A brief with six constraints like these cannot produce the average screen, because the average screen violates all six.
-
-**3. Content-derived aesthetics.** Let the real content dictate the form. If your users are reading dish names while walking, type size is driven by that, not by taste. If your product is used in sunlight, you are pushed toward flat high-contrast surfaces and away from soft gradients — a real constraint producing a real look. If prices are the thing people came for, prices get the hierarchy. This is the most durable lever, because it cannot be copied by a team with different content.
-
-**4. A written ban list.** The strongest single sentence in a style brief is a list of things never to do. "Never: gradients, glassmorphism, centred body text, emoji, stock illustration, more than one accent colour, more than two font sizes above body." Bans work because they are checkable, and the AI cannot drift back to the default without visibly violating one.
-
-Put together, this becomes a compact style direction: three adjectives you can defend, three references with what to take from each, and six bans. That fits in fifteen lines and goes at the top of every build session, alongside the `DESIGN.md` from chapter 7.
+Treat the tells as method, not scripture: conventions do work, and the problem is a screen where *every* decision is the default.
 
 ### Where it lives
 
-This chapter sets the *values* that chapter 7 built the structure for. It depends entirely on chapters 5 and 6 — a distinctive screen with broken hierarchy or random spacing just looks eccentric. Chapter 9 constrains it: a bold look that fails contrast is not a style, it is a defect. M15 extends the same direction to your landing page, deck and social presence, where consistency is what makes a three-person team look like a company. And at M11's checkpoint, "why does your product look like this?" is a question with a right answer: because of these constraints, from these users, in these conditions.
+This chapter sets the *values* chapter 7 built the structure for.
+
+- **Chapters 5 and 6** — distinctive plus broken hierarchy looks eccentric
+- **Chapter 9** — a bold look that fails contrast is a defect
+- **M15** — the same direction carries to your landing page
+- **M11** — "why does it look like this?" has a right answer
 
 ### Words to own
 
@@ -120,28 +108,26 @@ This chapter sets the *values* that chapter 7 built the structure for. It depend
 
 ### Tradeoffs and gotchas
 
-**Distinctive is not the same as unusual.** Inventing your own navigation pattern is unusual and expensive — every user pays to learn it, and chapter 3's consistency heuristic is not suspended because you had an idea. Be conventional in *interaction* and specific in *surface*. Buttons where buttons go; your own typography, colour, density and hierarchy.
+**Distinctive is not unusual.** Your own navigation pattern is expensive, because every user pays to learn it. Be conventional in *interaction*, specific in *surface*.
 
-**Do not fight the platform for looks.** On Android, the system back must work. Tap targets stay thumb-sized. M08 and M12 are not negotiable in service of an aesthetic.
+**Taste is built from references, not opinions.** Collect fifteen screenshots you like and write a sentence each on *what* is good.
 
-**Taste is built from references, not from opinions.** If you cannot say what you want, collect fifteen screenshots of things you find good and write one sentence under each saying *what* is good about it. That becomes the only real vocabulary you have, and it is also exactly what makes your briefs specific.
+**Constraints must be few and real.** Twenty produce a muddle; six you can defend produce a look.
 
-**Constraints must be few and real.** Twenty constraints produce paralysis and a muddle. Six that you can defend produce a look.
+**A distinctive look can still be bad.** Orange on grey at 2.1:1 is unreadable.
 
-**A distinctive look can still be bad.** Orange on grey is distinctive; orange on grey at 2.1:1 is unreadable. Run chapter 5's checks on anything this chapter produces, every time.
-
-**The tells list expires.** The specific signatures shift as models and fashions move. What does not expire is the method: name the current defaults, then ban them.
+**The tells expire; the method does not** — name today's defaults, then ban them.
 
 ### Verify it
 
-1. **The swap test.** Cover your logo and product name. Would this screen work, unchanged, for a laundry startup, a tuition app or a gym? If yes, nothing in it came from your product. This is the fastest and most brutal check in the module.
-2. **Run the tells checklist.** Go down the table above and mark each tell present or absent. Three or more present means the brief lost.
-3. **Count the accent colours.** More than one colour competing for "this is the action" means the constraint was ignored.
-4. **Ask it to justify three decisions.** "Why this type size, this accent colour and this density?" The answer should cite your users and conditions. If it cites "modern design trends", you got the average and a confident sentence about it.
-5. **Line it up against three real competitors.** Screenshot yours beside three products in your space, at the same size. If a stranger cannot pick yours out, go back to the references.
-6. **Re-run the contrast and sunlight checks from chapter 5.** Every time. A new look is the most common way accessibility silently regresses.
+1. **The swap test.** Cover your logo: would this screen work unchanged for a laundry startup or a gym? If yes, nothing in it came from your product.
+2. **Run the tells table.** Three or more present means the brief lost.
+3. **Count the accent colours** — more than one means the constraint was ignored.
+4. **Ask it to justify three decisions.** Answers must cite your users, not "design trends".
+5. **Line it up against three competitors.** If a stranger cannot pick yours out, return to the references.
+6. **Re-run chapter 5's contrast and sunlight checks** every time.
 
-Red flags: a gradient you did not ask for; any emoji in the interface; "Transform your…" copy; a hero section on an app screen; stock abstract illustration; identical corner radius on every single element; and AI describing its own output as "modern and clean", which is the exact vocabulary that produced the problem.
+Red flags: a gradient you did not ask for; emoji in the interface; "Transform your…" copy; a hero on an app screen; stock illustration; identical radius everywhere; AI calling its output "modern and clean".
 
 ## Walkthrough
 1. Screenshot one screen of your product and one screen each from three other teams in your cohort. Put all four side by side at the same size.

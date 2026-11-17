@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: reinforcement-learning
 title: "Reinforcement Learning: Policies, Rewards and Reward Hacking"
 order: 8
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -19,34 +19,23 @@ last_reviewed: 2026-11-16
 - Catch an invented reward whose failure mode nobody has said out loud
 
 ## Lesson
-
 ### The pain
 
-M09 chapter 2 gave you reinforcement learning as the fourth kind of learning: a score after acting rather than an answer. It named policy, reward and reward hacking, and it gave you two rules that still hold — RL needs a cheap place to be wrong thousands of times, and when an AI proposes a reward, ask what behaviour would maximise that number while making the product worse. Chapter 5 of this module showed you DPO, which exists partly to avoid running an RL loop at all.
+M09 chapter 2 gave you reinforcement learning as the fourth kind of learning — a score after acting, not an answer — with two rules: RL needs a cheap place to be wrong thousands of times, and ask what would maximise a proposed reward while ruining the product. New here is the one version you can use.
 
-This chapter is the depth behind those warnings, plus the one thing in the family you can genuinely use.
-
-Here is the failure. A team adds a learning recommender to their food-ordering app. The reward is clicks on recommended dishes, because clicks are easy to count. Within three weeks the system has learned to recommend the cheapest, most photographed, most clickable items. Clicks are up 34%. Orders are down. Average order value is down more. Two restaurants have left the platform because their food stopped appearing. Every single one of those outcomes is the system succeeding at the job it was given.
-
-The second failure is quieter. Another team proposes RL for their support bot: reward it for closing conversations. Nobody runs it, which is lucky, because a bot rewarded for closing conversations learns to close conversations — by telling users their issue is resolved.
+A team adds a learning recommender to their food app, rewarded on clicks because clicks are easy to count. Within three weeks it recommends the cheapest, most photographed items: clicks up 34%, orders down, order value down more, two restaurants gone. Every outcome is the system succeeding at the job it was given.
 
 ### The idea
 
 **Reinforcement learning optimises a number you chose, extremely well, and your real objective is never that number.**
 
-Five pieces define the problem. The **state** is what the system knows right now. The **action** is what it may do. The **policy** is the rule mapping states to actions — the thing being learned. The **reward** is the number that arrives afterwards. The **environment** is where actions have consequences.
-
-Two of those five are hard, and they are not the algorithm. Supplying an **environment** where being wrong thousands of times is cheap is the first. Writing a **reward** that cannot be satisfied in a way you would hate is the second. Everything else is library code.
+Five pieces define it: the **state** is what the system knows, the **action** what it may do, the **policy** the rule between them being learned, the **reward** the number arriving afterwards, the **environment** where actions have consequences. Two are hard, and neither is the algorithm: an environment where being wrong is cheap, and a reward that cannot be satisfied in a way you would hate.
 
 ### The analogy
 
-A new canteen server is paid a bonus based on a number, and nobody tells them what the canteen is for.
+A canteen server is paid a bonus on a number, and nobody says what the canteen is for. Pay by plates served and they push the fastest dish. Pay by tips and the hostel students wait. Pay by "no complaints" and they stop writing complaints down. Each is exactly what you paid for.
 
-Pay by plates served and they will push the fastest dish on everyone and skip the ones that take time to assemble. Pay by tips and they will work the tables that tip, and the hostel students will wait. Pay by "no complaints" and they will stop writing complaints down. Pay by customer time-in-queue and they will serve the short orders first, forever, and a student ordering a full thali will never reach the front.
-
-Each of those is the server doing exactly what you paid for. The canteen's actual objective — students fed well, within budget, without resentment — was never written on the payslip.
-
-**Where the analogy breaks, twice.** A human server learns in a handful of shifts and understands the unwritten purpose even while gaming the written one. A policy needs tens of thousands of episodes and has no concept of purpose at all. And a server who finds a loophole knows it is a loophole; a policy that finds one simply has a higher score and will defend it by scoring well.
+**Where it breaks.** A human grasps the unwritten purpose even while gaming the written one; a policy needs tens of thousands of episodes and has no concept of purpose. A server who finds a loophole knows it is one; a policy just scores higher and defends itself by scoring well.
 
 ### Picture it
 
@@ -72,27 +61,21 @@ Each of those is the server doing exactly what you paid for. The canteen's actua
 
 Full reinforcement learning must work out which of many past actions earned a delayed reward, which is why it needs a simulator and enormous numbers of attempts, while a contextual bandit makes one decision and sees the result immediately, so it can learn safely from live traffic.
 
-### Credit assignment, and why RL is so hungry
-
-A policy takes forty actions and then receives one number. Which action deserves the credit? That question — **credit assignment** — is the central difficulty, and the answer is statistical: play the whole sequence thousands of times with variations, and the actions that reliably precede good outcomes rise.
-
-Two words follow from it. A **sparse** reward arrives rarely (you won the game) and is much harder to learn from than a dense one (you gained a point). A **delayed** reward arrives long after the action that caused it. Both multiply the number of episodes required, which is why the famous results come from games and simulators: a simulator can play a million episodes overnight and your payment flow cannot play one.
-
-The other unavoidable tension is **exploration versus exploitation**. A policy that always takes its current best action never discovers a better one. So some fraction of decisions must be deliberately experimental — which, in a product, means some fraction of real users deliberately receive the option you believe is worse.
-
 ### The one version you can actually run
 
-A **contextual bandit** strips RL down to what a live product can afford. There is no sequence: one decision, one immediate reward, no credit-assignment problem. You have several options — three subject lines, three onboarding orders, three dish arrangements — some information about the current user, and a measurable outcome within minutes.
+A **contextual bandit** strips RL down to what a live product can afford: one decision, one immediate reward, no credit assignment. Several options, something about the user, an outcome measurable in minutes.
 
-It is an A/B test that reallocates traffic as evidence arrives. Where a fixed A/B test sends half your users to the loser for the whole experiment, a bandit shifts traffic towards what is winning while still exploring. For a student startup with a few hundred users a day, that difference is the difference between a conclusive result this month and never having enough traffic.
+It is an A/B test that reallocates traffic as evidence arrives: a fixed test sends half your users to the loser for the whole experiment, while a bandit shifts traffic to the winner and keeps exploring. At a few hundred users a day that is the difference between a result and none.
 
-Three rules make it safe. The reward must be observable within minutes, not days. The options must all be acceptable to ship, because every one of them will reach real users. And you must declare **guardrail metrics** before you start — numbers that are not being optimised but must not get worse — because the bandit will happily win on its reward while damaging them.
+Three rules keep it safe: the reward observable in minutes, every option shippable because all of them reach users, and **guardrail metrics** declared in advance — numbers you are not optimising that must not get worse.
 
 ### Where it lives
 
-Inside the models you use: M09 chapter 11's preference training is RL's most consequential application, and chapter 5 of this module showed how DPO achieves the same end without the loop. In your own product: contextual bandits, sitting directly beside M07 chapter 9's A/B testing and significance material, and feeding M16's growth loops.
+- M09 chapter 11 — preference training, RL's biggest application
+- Chapter 5 — DPO, the same end without the loop
+- M07 chapter 9 — A/B testing and significance
 
-What does not belong in your product is a full RL agent acting in your live system. M09 chapter 2 was right: anything involving real money, real food or real users has nowhere cheap to be wrong ten thousand times.
+A full RL agent does not belong in your live system: real money and real users have nowhere cheap to be wrong ten thousand times.
 
 ### Words to own
 
@@ -114,30 +97,26 @@ What does not belong in your product is a full RL agent acting in your live syst
 
 ### Tradeoffs and gotchas
 
-**Every reward you can measure is a proxy, and every proxy breaks under pressure.** Clicks stand in for interest, session length for engagement, closed tickets for resolution. Optimise any of them hard enough and the gap between the proxy and the real thing becomes the entire output of your system. This is Goodhart's law: a measure used as a target stops being a good measure.
+**Every reward you can measure is a proxy, and proxies break under pressure.** Clicks stand in for interest, closed tickets for resolution. Optimise hard enough and the gap between proxy and real thing becomes the whole output — Goodhart's law.
 
-**Write the gaming scenario before you write the reward.** One sentence: "a system that maximised this while ruining the product would do the following." If you cannot write that sentence, you do not understand your reward well enough to deploy it. If you can, you have just discovered your first guardrail metric.
+**Write the gaming scenario before the reward.** One sentence: "a system maximising this while ruining the product would do the following." If you cannot write it, you do not understand your reward; if you can, you have your first guardrail.
 
-**Guardrail metrics must be able to stop the experiment.** Declared in advance, with a threshold, and with an automatic halt. A guardrail nobody wired up is a note.
+**Guardrails must be able to stop the experiment:** a threshold and an automatic halt. A guardrail nobody wired up is a note.
 
-**If you have labels, you do not need RL.** This is the most common misapplication. When you know what the right action was for past situations, that is supervised learning: cheaper, faster, testable. RL is for when you only know how good the outcome was, not what you should have done.
-
-**Exploration has a real cost to real people.** Ten percent of users receiving a worse experience is a product decision, not a technical detail, and it has an ethical dimension if the options differ in anything that matters — price, access, safety. Keep every arm genuinely shippable.
-
-**A bandit with a delayed reward is a broken bandit.** If your outcome arrives a week later — retention, repeat purchase — a bandit cannot learn from it at your traffic. Use a fixed A/B test, accept the slower answer, and read M07 chapter 9 on significance rather than peeking at it daily.
+**If you have labels, you do not need RL** — that is supervised learning: cheaper and testable.
 
 ### Verify it
 
-The named failure is **an invented reward**: a plausible number proposed with no account of how it will be satisfied destructively.
+The named failure is an invented reward: a plausible number with no account of how it gets satisfied destructively.
 
-1. **Make it write the gaming scenario first.** Before any design, one sentence on how a system would maximise this reward while making the product worse. An AI that cannot produce it has not thought about your product.
-2. **Ask whether you have labels.** If past correct actions are recorded anywhere, demand the supervised alternative and the reason RL beats it.
-3. **Ask where the thousands of wrong attempts happen.** If the answer is "with users", the answer is no, unless it is a bandit with shippable arms.
-4. **Demand named guardrail metrics with thresholds and an automatic halt.** Three of them, chosen because the reward can be won at their expense.
-5. **Check that the reward is observable in minutes for anything bandit-shaped.** A delayed reward means you need a fixed A/B test instead.
-6. **Ask how the reward will be measured independently of the thing optimising it.** A policy evaluated on its own reward signal will always look excellent.
+1. **Make it write the gaming scenario first.**
+2. **Ask whether you have labels,** and why RL beats the supervised version.
+3. **Ask where the thousands of wrong attempts happen.** "With users" means no, unless every arm is shippable.
+4. **Demand guardrail metrics with thresholds and an automatic halt.**
+5. **Check the reward is observable in minutes;** a delayed reward needs a fixed A/B test.
+6. **Ask how the reward is measured independently of the thing optimising it** — a policy judged on its own signal always looks excellent.
 
-Red flags: a reward with no gaming scenario; RL proposed where labels exist; exploration on users for options you would not ship; no guardrail metric; a guardrail with no threshold or no halt; a delayed reward in a bandit; success reported only as the reward going up; and any full RL agent proposed to act in a live product with real money.
+Red flags: a reward with no gaming scenario; RL where labels exist; exploration on options you would not ship; a guardrail with no halt; a delayed reward in a bandit; success reported only as the reward rising.
 
 ## Walkthrough
 1. Pick one real decision your product makes repeatedly — which dish to show first, which onboarding step to lead with, which notification to send. Write the state, the actions and the reward in three lines.

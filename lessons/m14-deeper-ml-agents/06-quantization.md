@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: quantization
 title: "Quantization and Running Models on Cheap Hardware"
 order: 6
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -19,30 +19,23 @@ last_reviewed: 2026-11-16
 - Catch a quantized model that was never compared against the original
 
 ## Lesson
-
 ### The pain
 
-M09 chapter 5 gave you the arithmetic — parameters times bytes per number — and put quantization in the glossary as "fewer bytes per number, smaller and faster". M09 chapter 7 added "covered in M14". This is that chapter, and what is new is that you will do it on hardware you own and find out what it cost you.
+M09 chapter 5 gave you the arithmetic — parameters times bytes per number — and glossed quantization as "fewer bytes, smaller and faster". New here is doing it on hardware you own and finding out what it cost you.
 
-Here is the failure it prevents. A team wants their support assistant to run without an inference bill, on the office laptop. They download a 4-bit build of an open-weight model, it loads, it answers, everyone celebrates and they ship it. Two weeks later a user asks it to total four items and it is wrong by ₹40. Another asks a question in Marathi and gets fluent nonsense. A third pastes a long complaint and the model answers only the last line of it.
-
-Each of those is a known symptom of pushing precision too low, and all three were preventable by a comparison nobody ran. The team never scored the original model on their own eval set, so they have no idea whether these failures are the quantization or the model. They now cannot tell the difference between "this model is not good enough" and "we compressed it too hard", which are opposite problems with opposite fixes.
+A team runs their assistant on the office laptop to avoid an inference bill. They download a 4-bit build, it answers, they ship it. Two weeks later it totals four items wrong by ₹40 and answers a Marathi question with fluent nonsense. The original was never scored, so they cannot tell "this model is not good enough" from "we compressed it too hard".
 
 ### The idea
 
 **Quantization stores each weight in fewer bits, which buys memory and speed and costs accuracy — and the only honest way to choose a level is to score the same eval set at every level including the original.**
 
-A weight is a number. Store it in 32 bits and you have full training precision. Store it in 16 and you have the serving standard, at half the memory, with essentially no quality loss. Store it in 8 and the loss is small. Store it in 4 and it is real but often acceptable. Below 4 the model usually stops being worth serving. What makes this a decision rather than a setting is that "acceptable" is a property of your task, not of the model.
+Thirty-two bits is training precision. Sixteen is the serving standard: half the memory, essentially no loss. Eight loses a little. Four loses something real but often acceptable. Below four, not worth serving. "Acceptable" is a property of your task, which makes this a decision and not a setting.
 
 ### The analogy
 
-The canteen's recipe book lists every quantity precisely: 237 grams of rice, 18.4 grams of salt.
+The canteen's recipe book lists 237 grams of rice and 18.4 grams of salt. Rounded to the nearest 10 grams it fills a quarter of the pages and every dish tastes the same. Round to 50 and the sweets, where sugar matters to the gram, come out wrong. The only way to know which rounding went too far is to cook the same ten dishes from each book.
 
-Reprint it rounded to the nearest 10 grams and it fits in a quarter of the pages, the cook reads it faster, and every dish still tastes the same. Round to the nearest 50 grams and most dishes are fine, but the ones that depend on precision — the sweets, where sugar matters to the gram — come out wrong. Round to the nearest 100 and the book fits in a pocket and the kitchen produces something edible and not what anyone ordered.
-
-Crucially: the only way to know which rounding is too far is to cook the same ten dishes from each version of the book and taste them side by side. Nobody can tell you from the page count.
-
-**Where the analogy breaks.** A cook reading "100 grams" knows it is approximate and compensates. A model has no awareness that its numbers were rounded. It produces a confident answer built on degraded weights, and the degradation shows up as a specific wrong total rather than as hesitation. Confidence is unaffected by precision, which is exactly what makes this dangerous.
+**Where it breaks.** A cook reading "100 grams" knows it is approximate and compensates. A model does not know its numbers were rounded, so degradation arrives as a confident wrong total, not as hesitation.
 
 ### Picture it
 
@@ -65,35 +58,25 @@ Crucially: the only way to know which rounding is too far is to cook the same te
 
 Each halving of bits per weight halves the memory the weights occupy, and the key-value cache for the conversation sits on top of that and grows with how much context you send.
 
-### The two things you are actually choosing
-
-**The format and family.** For a laptop or a phone with no usable GPU, the practical path is a CPU-oriented quantized file format with mixed per-block precision — the widely used one is GGUF, and its "K-quant" levels keep the most sensitive parts of the model at higher precision than the rest. For GPU serving, weight-only quantization schemes such as AWQ and GPTQ are the common choices, and they keep more of the speed advantage because a GPU's bottleneck is memory bandwidth. Weight-only quantization leaves the activations in higher precision; schemes that quantize activations too are faster and lose more.
-
-**The level.** Not a free choice, because it is bounded by your hardware. Work out what you have, subtract what the operating system needs, allow for the KV cache at your real context length, and the remaining number tells you which levels are even available. Then test the ones that fit.
-
 ### What degrades first
 
-Precision loss is not uniform. It attacks specific capabilities in a predictable order, and those are what your eval set must cover.
+Precision loss is not uniform. Your eval set must cover these four.
 
-**Arithmetic and exact numbers** go first and most visibly. Totals, percentages, dates, invoice amounts. If money passes through your feature, this alone may decide the level.
-
-**Long-context behaviour** goes next: the model starts attending to the beginning or the end of a long input and ignoring the middle, worse than it already did.
-
-**Low-resource languages** degrade faster than English, which matters enormously here. A model that handles Marathi or Tamil acceptably at 16 bits can become unreliable at 4, and an English-only eval set will not notice.
-
-**Instruction following at the margins** — exact JSON, strict formats, refusals — gets looser. If chapter 4's fine-tune exists to hold a format, quantization can undo part of what it bought.
-
-**Perplexity, the metric you will be offered, is a poor proxy for all of this.** It can barely move while your arithmetic accuracy falls off a cliff. Score your own cases.
+- **Arithmetic and exact numbers** go first. If money passes through your feature, this alone may decide the level.
+- **Long-context behaviour** goes next: the middle of a long input gets ignored.
+- **Low-resource languages** degrade faster than English: fine in Marathi at 16 bits, unreliable at 4, and an English-only eval set will not notice.
+- **Instruction following at the margins** — exact JSON, refusals — gets looser, undoing part of a chapter 4 fine-tune.
 
 ### Tools today
 
-On a laptop with no GPU, llama.cpp is the engine and GGUF the file format; Ollama and LM Studio are friendlier wrappers around the same idea, and both will download a quantized build for you. On a GPU, bitsandbytes gives you quick 8-bit and 4-bit loading, while AWQ and GPTQ builds are what you serve. A ₹35,000 laptop with 8 GB of RAM and no GPU runs a 1-to-3-billion-parameter model at 4-bit at a usable speed; 16 GB runs a 7-to-8-billion model slowly but genuinely. A 70-billion model does not run on your laptop, and no quantization level changes that. Every name and number here moves — check it this week.
+On a laptop with no GPU, llama.cpp is the engine and GGUF the file format; Ollama and LM Studio are friendlier wrappers that will download a quantized build for you. On a GPU, bitsandbytes gives quick 8-bit and 4-bit loading, while AWQ and GPTQ builds are what you serve. A ₹35,000 laptop with 8 GB of RAM and no GPU runs a 1-to-3-billion-parameter model at 4-bit at usable speed; 16 GB runs a 7-to-8-billion model slowly but genuinely. A 70-billion model does not run on your laptop, and no quantization level changes that. Every name and number here moves — check it this week.
 
 ### Where it lives
 
-This chapter is downstream of chapter 4 and upstream of chapter 7. The adapter you trained gets merged into its base, then quantized, then served. It is also the cheapest honest answer to M09 chapter 14's cost problem, because a model running on hardware you already own has no per-request price at all — it has a latency cost and a quality cost instead, which is the trade this chapter makes measurable.
+Downstream of chapter 4, upstream of chapter 7: merge, quantize, serve. A model on hardware you own has no per-request price — only latency and quality costs.
 
-Two further connections. Chapter 10's regression suite is what you run at every precision level, which is why that chapter is worth more than this one. And M05's latency numbers decide whether 6 tokens a second is a product or a demo: a 200-token answer at 6 tokens a second is 33 seconds, which no user will wait for unless you stream it.
+- Chapter 10 — the regression suite you run at every precision level
+- M05 — latency: a 200-token answer at 6 tokens a second is 33 seconds
 
 ### Words to own
 
@@ -113,30 +96,27 @@ Two further connections. Chapter 10's regression suite is what you run at every 
 
 ### Tradeoffs and gotchas
 
-**"It fits" and "it works" are different claims.** Loading is the easy half. A model that fits in 7.6 GB of an 8 GB laptop will fit, answer, and then stall or crash the moment a long conversation grows the KV cache. Budget for the cache, and test with your longest realistic input, not your shortest.
+**"It fits" and "it works" are different claims.** A model occupying 7.6 GB of an 8 GB laptop will load, answer, then stall once a long conversation grows the KV cache. Test your longest realistic input.
 
-**Measure speed twice: cold and warm.** The first answer after loading includes reading gigabytes from disk. Quote both numbers, and quote time to first token separately from tokens per second, because they are felt differently by a user.
+**Quantize after merging, not before.** Merge a chapter 4 adapter into the base at full precision, then quantize. The other order produces something subtly wrong — a tune that mysteriously stopped working.
 
-**Quantize after merging, not before.** If you have a chapter 4 adapter, merge it into the base at full precision and then quantize the result. Quantizing first and merging afterwards produces something subtly wrong, and the symptom is a tune that mysteriously stopped working.
+**A small model at 8-bit usually beats a bigger one at 3-bit.**
 
-**A small model at 8-bit usually beats a bigger model at 3-bit.** Given a fixed memory budget, moderate compression of a smaller model is the better trade more often than aggressive compression of a larger one. Test both before assuming the bigger name wins.
+**Streaming changes the economics of slow hardware:** six tokens a second is intolerable as a wait and tolerable as text appearing.
 
-**Streaming changes the economics of slow hardware.** Six tokens a second is intolerable as a wait and tolerable as text appearing. If you are serving a quantized model on cheap hardware, streaming is not a nice touch, it is the thing that makes the decision viable.
-
-**Battery, heat and other apps are real constraints.** A model running locally on a student's phone or laptop competes with everything else on that device, and sustained inference throttles. Measure after ten minutes of use, not after one answer.
+**Heat is a real constraint:** sustained inference throttles.
 
 ### Verify it
 
-The named failure for this chapter is simple and extremely common: **a quantized model that was never compared against the original.**
+The named failure here is a quantized model never compared against the original.
 
-1. **Demand the full comparison table, original included.** Four rows — 16-bit, 8-bit, 4-bit, and whatever else fits — each with memory used, time to first token, tokens per second and your eval score. A table missing the 16-bit row is not a comparison.
-2. **Refuse perplexity as the quality column.** Ask for your own eval score. If the AI offers perplexity, ask it directly what perplexity would do if arithmetic accuracy halved, and watch it concede.
-3. **Check the eval set covers what degrades first.** Arithmetic with money, a long input, every language your users write in, and a strict-format case. If those four are absent, the comparison cannot detect the damage.
-4. **Ask for the memory arithmetic in advance.** Parameters times bytes, plus the KV cache at your longest context, plus operating-system headroom. If the plan is "download it and see", you will discover the limit during a demo.
-5. **Confirm the merge-then-quantize order** if a fine-tune is involved.
-6. **Ask what the quality gap is, as a number, and whether you accept it.** The output of this chapter is a sentence with two numbers in it, not a model file.
+1. **Demand the comparison table, original included** — each level with memory, latency, tokens per second and your eval score.
+2. **Refuse perplexity as the quality column.** It barely moves while arithmetic accuracy falls off a cliff.
+3. **Check the eval set covers what degrades first:** money, a long input, every user language, a strict format.
+4. **Ask for the memory arithmetic in advance,** including KV cache at your longest context.
+5. **Ask for the quality gap as a number, and whether you accept it** — the output here is a sentence with two numbers, not a model file.
 
-Red flags: no original-precision baseline; perplexity quoted as the quality measure; an English-only eval set on a product with Marathi users; speed quoted from a warm run only; "it fits in 8 GB" with no KV cache allowance; the lowest available level chosen because it is smallest; and a fine-tuned adapter quantized before merging.
+Red flags: no original-precision baseline; perplexity quoted as quality; an English-only eval set for Marathi users; warm-run speed only; no KV cache allowance.
 
 ## Walkthrough
 1. Inventory the cheapest hardware your team genuinely owns: RAM, whether there is a usable GPU, and free disk space. Write the numbers down. This is your budget.

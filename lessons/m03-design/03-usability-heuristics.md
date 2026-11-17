@@ -4,7 +4,7 @@ module: m03-design
 slug: usability-heuristics
 title: "Usability Heuristics, Cognitive Load and the Cost of Choices"
 order: 3
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,25 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team demos their canteen app. A mentor taps "Place order" and the screen does nothing for four seconds, then jumps to a new page. "Did that work?" they ask. Nobody is sure. They tap again. Two orders.
-
-The same demo has a cancel button next to confirm, both the same size and colour, four millimetres apart. It has a dropdown with forty-two dishes in no particular order. It says "Error 422" when a dish is sold out. And it hides the total until the last screen, so students discover the price after committing.
-
-Each of these has a name. They are not matters of taste, they are not "the design feels a bit off", and they were all findable in ten minutes by one person with a checklist, before any user was involved. The team's actual problem was not skill — it was that they had no vocabulary for what was wrong, so their feedback to the AI was "make it better", and they got a different shade of the same screen.
+A mentor taps "Place order" in a canteen app demo. Nothing happens for four seconds, so they tap again: two orders. The same screen puts cancel beside confirm at identical size, lists forty-two dishes in no order, and says "Error 422" when one is sold out. Each has a name, but the team had none, so their brief was "make it better" and they got the same screen in a different shade.
 
 ### The idea
 
 **Most usability problems are a small set of known violations with known names, and naming one turns a feeling into a fixable instruction.**
 
-Jakob Nielsen's ten heuristics have survived since 1994 because they describe how people work, not how software was built that decade. They are a checklist you run yourself, in minutes, with no users present — which makes them the cheapest quality tool you have and the right thing to do before the user testing in chapter 4.
+Nielsen's ten heuristics have survived since 1994 because they describe how people work. You run them yourself in minutes with no users present, which makes them the cheapest quality tool you have.
 
 ### The analogy
 
-The canteen queue is full of heuristics working or failing. The price board above the counter is *visibility of system status* — you know what things cost without asking. When the server repeats your order back before cooking it, that is *error prevention*. When you can say "actually, no onion" halfway through, that is *user control*. The dishes being called by the names students use, not the supplier's catalogue names, is *match between system and the real world*. And the fact that you do not have to remember yesterday's price because it is on the board is *recognition rather than recall*.
+The canteen queue is these heuristics working. The price board is *visibility of system status*. The server repeating your order back is *error prevention*. Saying "actually, no onion" halfway through is *user control*. Now imagine the same food with no board, where you pay before learning the price and cannot change your mind. Unusable queue.
 
-Now imagine a canteen with no board, where you pay first and find out the price afterwards, where the server says "Error 422" when the vada pav is finished, and where you cannot change your mind. Same food. Unusable queue.
-
-**Where the analogy breaks:** the canteen has a human who absorbs every violation. If the board is missing, you just ask. Software has no absorber, so a violation that would be a minor annoyance at a counter becomes an abandoned order. This is why the checklist matters more in software than in a room.
+**Where the analogy breaks:** the canteen has a human who absorbs every violation — if the board is missing, you ask. Software has no absorber, so a minor annoyance at a counter becomes an abandoned order.
 
 ### Picture it
 
@@ -58,9 +52,9 @@ Now imagine a canteen with no board, where you pay first and find out the price 
 └──────────────────────────────────────────────────────────┘
 ```
 
-Three kinds of effort compete for the same limited attention: the task's own difficulty, the difficulty your design adds on top, and the useful one-time effort of learning how the app works. Design work is almost entirely the removal of the middle row.
+Three kinds of effort compete for the same attention, and design work is almost entirely the removal of the middle row.
 
-### The ten heuristics, in canteen terms
+The ten heuristics, in canteen terms:
 
 | # | Heuristic | Fails like this |
 |---|---|---|
@@ -75,27 +69,16 @@ Three kinds of effort compete for the same limited attention: the task's own dif
 | 9 | Recover from errors | "Error 422" with no next step |
 | 10 | Help and documentation | Nothing explains what "token number" means |
 
-Number 1 is the one Indian apps get wrong most often and the one that matters most on slow 4G. If a tap produces no feedback within about a tenth of a second, the user does not believe the tap registered. That is how you get double orders. The fix is never faster code — it is an immediate pending state, which you can brief AI for in one sentence.
-
-Number 6 deserves a note too. Recognition over recall means the screen shows you what you need rather than making you hold it in your head. UPI gets this right: the payee name is displayed before you confirm, so you recognise it rather than recalling whether you typed the right VPA.
-
-### Why every choice costs something
-
-Hick's law is the honest version of a thing designers say too casually: the time to decide grows as the number of options grows. It is not linear and it is not catastrophic, but it is real, and it compounds with a second cost most people miss — every option you add is a thing you must design, name, test, support, and explain.
-
-Three practical consequences.
-
-**One primary action per screen.** If everything is a button, nothing is. The screen should make the next step obvious enough that no decision is required at all.
-
-**Group and default.** Forty-two dishes is not a choice problem if they are grouped into five sections with today's six specials at the top. Defaults are the strongest tool you have: pre-select UPI if 85% of your users pay by UPI, because the best choice is the one the user never had to make.
-
-**Progressive disclosure.** Show the three things needed now; keep the other nine behind "More". Zomato's filter panel is enormous and almost nobody opens it, which is exactly the point — it is available without being in the way.
-
-The counterweight: removing choices can remove control, and heuristic 3 is also real. An app with no way to change your order is simple and insulting. The question is never "fewer options" in the abstract, it is "fewer decisions on the path to the outcome, with every escape hatch still reachable".
+Number 1 matters most on slow 4G: with no feedback within a tenth of a second the user does not believe the tap registered, and you get double orders. The fix is a pending state, not faster code. Number 6 is the other high-value one — UPI shows the payee name before you confirm.
 
 ### Where it lives
 
-A heuristic review is a thirty-minute activity you run on your own wireframes before you ever show them to a user. In chapter 4 you test with three friends, and the heuristic names are what let you describe what you saw precisely. Chapters 5 and 6 fix the visual causes of heuristics 4, 5 and 8. Chapter 9 overlaps heavily: an interface that fails recognition-over-recall for a sighted user usually fails completely for a screen reader. In M07 your analytics will show a drop-off at one step, and the heuristic list is how you generate hypotheses for why. And in M00's terms, this is the VERIFY step of the Director's Loop applied to design — a named checklist, run by you, not a summary you trusted.
+A heuristic review takes thirty minutes on your own wireframes, before any user sees them.
+
+- **Chapter 4** — heuristic names describe precisely what you watched a tester do
+- **Chapters 5 and 6** — they fix the visual causes of heuristics 4, 5 and 8
+- **Chapter 9** — what fails recognition-over-recall for a sighted user usually fails completely for a screen reader
+- **M07** — analytics show the drop-off step; this list gives the hypotheses
 
 ### Words to own
 
@@ -115,28 +98,28 @@ A heuristic review is a thirty-minute activity you run on your own wireframes be
 
 ### Tradeoffs and gotchas
 
-**Heuristics find problems; they do not rank them.** A review will produce twenty-two findings and you cannot fix twenty-two things. Rank by how many users hit it and how badly it hurts. A missing pending state on the pay button beats an inconsistent back arrow, every time.
+**Every choice costs twice.** More options means slower decisions, and each option is also a thing to design, name, test and support. So: one primary action per screen, forty-two dishes grouped into five sections, UPI pre-selected, the rest behind "More". The counterweight is heuristic 3 — an app you cannot change your order in is simple and insulting.
 
-**Minimalism is not emptiness.** Heuristic 8 says remove what is irrelevant, not remove everything. A menu card with nothing but a dish name is minimal and useless; students need the price, and in India they need the veg or non-veg mark. Stripping information is a very common way to look clean and be worse.
+**Heuristics find problems; they do not rank them.** Rank by how many users hit it times how badly it hurts: a missing pending state beats an inconsistent back arrow.
 
-**Consistency with the platform beats internal consistency.** If your app invents its own back gesture, being consistently wrong across ten screens does not help. Android users expect the system back button to work. M08 and M12 go deeper on this.
+**Minimalism is not emptiness.** A card with only a dish name is minimal and useless; students need the price and the veg mark.
 
-**You go blind to your own screens in about three days.** You know where everything is, so nothing is confusing. This is why you run a written checklist rather than trusting your impression, and why chapter 4 exists.
+**You go blind to your own screens in three days.** Hence a checklist, not your impression.
 
-**AI optimises for looking finished, not for being usable.** It will reliably give you a dense screen with many equally weighted controls, no pending states and no useful error messages, because that is what most of its training data looks like. None of those are hard to fix once you can name them.
+**AI optimises for looking finished, not usable.** Expect equally weighted controls, no pending states and no useful error messages.
 
 ### Verify it
 
-Run this on any screen AI gives you. Ten minutes, no users, highest return of anything in this module.
+Ten minutes on any screen AI gives you, no users needed.
 
-1. **Tap the primary action and count.** Does something change on screen within a blink? If the first visible change is the next page arriving, heuristic 1 failed — ask for a pending state and a disabled button during submission.
-2. **Find the destructive action and look at its neighbour.** Is "cancel order" the same size, colour and shape as "confirm", sitting next to it? Ask for them to be visually different and physically separated.
-3. **Read every message aloud as if to a friend.** "Error 422", "Invalid input", "Something went wrong" all fail heuristics 2 and 9. Each one must say what happened and what to do next, in words a first-year student uses.
-4. **Count the options on the longest decision.** More than about seven ungrouped options means grouping, defaults or disclosure is missing.
-5. **Look for anything you have to remember between screens.** An order code, a total, a dish name. Every one of those is a recall failure that should be displayed instead.
-6. **Count the equally-weighted buttons.** More than one primary action means the brief did not name one.
+1. **Tap the primary action.** If the first visible change is the next page arriving, heuristic 1 failed; ask for a pending state.
+2. **Find the destructive action and look at its neighbour.** Same size and colour as "confirm" means separate them.
+3. **Read every message aloud.** Each must say what happened and what to do next.
+4. **Count the options on the longest decision** — over seven ungrouped means grouping or defaults are missing.
+5. **Look for anything you must remember between screens.** Display it instead.
+6. **Count the equally-weighted buttons** — more than one primary action means your brief named none.
 
-Red flags: a screen where every control is the same visual weight; an error message containing a number; no disabled or pending state anywhere in the output; a dropdown with more than twenty unsorted items; and AI telling you the design "follows best practices" without naming a single heuristic. Ask it to name them and check each claim yourself — a confident summary is not a review.
+Red flags: every control at one visual weight; an error message containing a number; no pending state anywhere; AI claiming "best practices" without naming a heuristic.
 
 ## Walkthrough
 1. Open the screen you most recently had AI build for your own product, on a real phone, not a laptop simulator.

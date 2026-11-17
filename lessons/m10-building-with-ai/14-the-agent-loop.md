@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: the-agent-loop
 title: "The Agent Loop: Stopping Conditions, Failure Recovery and Guardrails"
 order: 14
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Three runs of the same team's agent, in one week.
+Three runs of one team's agent in a week. Asked why orders dropped last week, it made a hundred and eighty model calls over forty minutes, re-read one file fourteen times, retried a failing query nine times identically, and never answered.
 
-**Run one.** Asked to find out why orders dropped last week. Forty minutes later it is still going. It has made a hundred and eighty model calls, re-read the same file fourteen times, retried one failing query nine times with identical arguments, and consumed the month's free quota before lunch. It never produced an answer.
-
-**Run two.** Asked to get the test suite passing. It deleted the failing test. The suite passes. This is M00's story, and it happens because "make the tests pass" is a goal with a cheaper solution than the one you meant.
-
-**Run three.** Asked the same research question, it stopped after two steps and announced a confident, wrong conclusion, because nothing in the system had any definition of what finished looked like, so the model's own sense of closure was the only stopping condition available.
-
-Three failures, three different missing pieces: no cap, no guardrail, no success condition.
+Asked to get the test suite passing, **it deleted the failing test.** The suite passes. Asked the research question again, it stopped after two steps with a confident wrong conclusion, because nothing defined what finished looked like. Three missing pieces: no cap, no guardrail, no success condition.
 
 ### The idea
 
 **An agent is a loop. Its three hardest parts are not the thinking — they are knowing when to stop, what to do when a step fails, and what it is never allowed to do. Write those three before you write the goal.**
 
-"Perceive, think, act" is a true description of the loop and a useless one for building, because every real failure is in the parts that sentence omits.
+"Perceive, think, act" is true and useless for building: every real failure is in what it omits.
 
 ### The analogy
 
-You send a new helper to the vegetable market. The good version of that instruction has four parts: the list, a fixed amount of cash rather than your card, a time to be back by, and one rule — "if tomatoes are over ₹40 a kilo, do not buy them, call me."
+You send a helper to the vegetable market. The good instruction has four parts: the list, a fixed amount of cash rather than your card, a time to be back by, and one rule — "if tomatoes are over ₹40, call me." Not distrust: it is what makes sending someone possible.
 
-Those four are not distrust. They are what makes sending someone possible at all. Without them you have someone who returns three hours later with ₹2,000 of mushrooms and a reasonable-sounding explanation.
-
-**Where the analogy breaks:** a helper gets tired, gets hungry, and comes home. That fatigue is a stopping condition you never had to specify. An agent has none. It will continue until your quota, your money or your patience runs out, and it will do so without any sense that something has gone wrong. Every stopping condition a human would supply themselves, you have to write down.
+**Where the analogy breaks:** a helper gets tired and comes home. That fatigue is a stopping condition you never had to specify. An agent has none, and continues until your quota or your patience runs out.
 
 ### Picture it
 
@@ -71,63 +63,25 @@ Those four are not distrust. They are what makes sending someone possible at all
          └── every step appended to a trace ───┘
 ```
 
-Observe, decide, gate, act, repeat — with five independent ways to stop and a gate between deciding and acting. The gate is where M00's permission model physically lives.
+Observe, decide, gate, act, repeat — five independent ways to stop, and a gate between deciding and acting. One is never enough; each catches a different failure.
 
-### Five stopping conditions, and you need several
+- **A success predicate** — done stated explicitly and checked by *code*: "the suite passes", "a row exists with this key". The third run had none.
+- **A step budget** — a hard maximum number of iterations.
+- **A cost budget** — a token or rupee ceiling checked every iteration; an instruction is not one.
+- **A wall-clock timeout** — a hung step spends neither steps nor tokens as the loop waits.
+- **A no-progress detector** — the same tool with the same arguments twice, or three steps with no new information, means it is stuck.
 
-One is never enough, because each catches a different failure.
-
-**A success predicate.** An explicit, checkable statement of done, evaluated by code rather than by the model's opinion. "The test suite passes." "A row exists in `orders` with this idempotency key." "All five questions have an answer with a verified citation." Run three above failed because the only available notion of done was the model's own sense of closure.
-
-**A step budget.** A hard maximum number of iterations — fifteen, twenty, whatever you choose — after which the loop exits regardless. The cheapest and most important guard here.
-
-**A cost budget.** A token or rupee ceiling checked every iteration, enforced in code. An instruction not to spend much is not a budget.
-
-**A wall-clock timeout.** A step can hang, and a loop waiting on a hung step spends neither steps nor tokens while it does so.
-
-**A no-progress detector.** The subtlest and most valuable. If the same tool is called with the same arguments twice, or three steps pass with no new information entering the transcript, the agent is stuck. Stop. Run one was a no-progress loop that nothing was watching for.
-
-All five need one more thing: **an escalation path that produces a report.** When an agent stops without succeeding, the output must be what it tried, learnt and recommends — not silence. A failed run with good notes is useful; one with nothing is forty minutes gone.
-
-### Why cost grows faster than steps
-
-This catches almost everyone. Each iteration re-sends the whole transcript so far: every previous tool call and every previous result. Step one sends a small context. Step twenty sends nineteen steps' worth of accumulated output.
-
-So twenty steps does not cost twenty times one step. It costs something closer to the sum of a growing series — several times worse — and a single large tool result early on is paid for again on every subsequent step. The practical rules follow directly: cap steps, keep tool results small and summarised, truncate large outputs before they enter the transcript, and apply chapter five's compaction inside the loop rather than only between conversations. Chapter six's caching helps with the stable prefix, and the transcript is not part of it.
-
-### Failure recovery: classify before you retry
-
-Blind retrying is what made run one burn a month of quota. Three categories, three responses.
-
-**Transient.** A timeout, a rate limit, a network blip. Retry with exponential backoff, up to a small limit. Safe only if the tool is idempotent, which is why chapter four insisted on idempotency keys.
-
-**Permanent.** Not found, no permission, malformed data. An identical retry cannot help. The result goes back as data so the agent can take a different approach.
-
-**The agent's own mistake.** Wrong argument type, a dish id that does not exist, an invalid date. Return the validation error as data with the allowed values. One retry is reasonable; a second identical attempt means stop.
-
-Across the loop, keep a per-tool failure budget: three failures of one tool stops the run. And for long tasks, **checkpoint** — write progress after each meaningful step so a resumed run does not restart from zero.
-
-### Guardrails: what it may never do
-
-Stopping conditions bound the cost. Guardrails bound the damage, and they are M00's permission chapter made concrete.
-
-**Read-only by default.** The tool list starts with reads only. Every write is added deliberately, one at a time, with a reason.
-
-**Approval gates on irreversible and outward actions.** Deleting, pushing, deploying, paying, emailing, posting. Chapter seven's argument, and the reason it is a gate rather than an instruction.
-
-**Scope limits in code.** One working directory. One set of tables. Only this user's rows. Not "please stay within scope" — a filter the agent cannot route around.
-
-**A dry-run mode.** The agent produces the plan and the proposed diff and applies nothing. For anything touching real data the first run is always a dry run, and it is the single best habit here.
-
-**No deletes in the tool list at all, until you have a specific reason.** Run two is the whole argument. Deletion is often the cheapest path to a stated objective, so an agent that can delete eventually will.
-
-**A full trace.** Every step: tool, arguments, result size, tokens, elapsed time. M07's observability applied to agents. Without it, "it got confused" is the best failure report you will ever write.
+All five need an **escalation path that produces a report** — what it tried, learnt and recommends. A failed run with notes is useful; silence is wasted time.
 
 ### Where it lives
 
-The loop is code you own — or code inside a harness, which chapters seventeen and eighteen take apart. Either way the budgets, gates and trace belong at your boundary, not in the prompt.
+The loop is code you own or code inside a harness; either way the budgets, gates and trace belong at your boundary, not the prompt. M06's test suite is what makes a success predicate real. Guardrails bound the damage budgets cannot:
 
-M06's test suite is what makes a success predicate real: "the tests pass" is only a stopping condition if there are tests, and chapter nineteen builds exactly that. M05's rate limiting is the backstop behind your cost budget. And chapter thirteen's warning stands: if your agent needs twenty steps for something whose steps you could have written down, the correct fix is not a better loop.
+- **Read-only by default**, every write added deliberately
+- **Approval gates** on deleting, pushing, deploying, paying and emailing
+- **Scope limits in code** — one directory, one set of tables, this user's rows
+- **A dry-run mode** that produces the diff and applies nothing, and no delete tool until you have a specific reason
+- **A full trace**: tool, arguments, result size, tokens, elapsed time
 
 ### Words to own
 
@@ -148,31 +102,27 @@ M06's test suite is what makes a success predicate real: "the tests pass" is onl
 
 **A goal with a cheap wrong solution will find it.** "Make the tests pass" invites deleting tests. State the goal as the property you want true *and* what must stay true: "the suite passes and no test file is modified."
 
-**Caps feel pessimistic and are what let you be generous.** A fifteen-step cap and a cost ceiling are what make an unattended run reasonable at all. Without them you supervise every run, which removes the benefit.
 
-**Approval fatigue destroys gates.** M00's warning, sharper here because an agent generates far more prompts than a chat does. Auto-approve the read set so a prompt means something.
+**Cost grows faster than steps**, because each iteration re-sends the whole transcript: a 40,000-token file read at step two is paid for at every later step.
 
-**A big tool result poisons every later step.** A 40,000-token file in the transcript at step two is paid for at every step after. Truncate, summarise, or return a reference the agent can query.
+**Classify a failure before retrying.** Transient — timeout, rate limit — retry with backoff, safe only if the tool is idempotent. Permanent — not found, no permission — return as data so the agent tries another way. A bad argument of its own — return the error with allowed values, then stop.
 
-**Agents are least safe exactly when they are most useful.** The long unattended run is where the value is and where the blast radius is largest. Dry run first, small cap while developing.
+**Approval fatigue destroys gates**, because an agent generates far more prompts than a chat; auto-approve the read set.
 
-**Do not let an agent choose its own budget.** "Use as many steps as you need" is not a budget, and neither is a number in the prompt. Budgets are enforced by the code around the loop.
+**Do not let an agent choose its own budget.** "Use as many steps as you need" is not a budget, and nor is a number in the prompt.
 
 ### Verify it
 
-Before any agent runs, four questions. If you cannot answer all four, you are not ready to start it.
+Four questions before any agent runs.
 
-**What is the success condition, and what code evaluates it?** If the answer is "the model will say when it is done", you have run three.
+- **What is the success condition, and what code evaluates it?**
+- **What are the caps — steps, cost, wall clock — and where are they enforced?**
+- **Which actions are gated?** Read the writes, deletes and sends as a permission list.
+- **What does failure look like** — a report, or silence? Silence is not acceptable.
 
-**What are the caps — steps, cost, wall clock — and where are they enforced?** Point at the lines.
+Afterwards, **read the trace, not the summary.** The agent's account of its own run is a generated narrative; the trace is what happened. Look for a repeated call, a step returning twenty thousand tokens, a gate never hit.
 
-**Which actions are gated, and what is the complete list of writes, deletes and outward sends in the tool list?** Read it as a permission list, as chapter four taught.
-
-**What does failure look like?** A report of what was tried and learnt, or silence? Silence is not acceptable.
-
-Then, after it runs: **read the trace, not the summary.** The agent's own account of its run is a generated narrative. The trace is what happened. Look for the same call repeated, a step that returned twenty thousand tokens, a gate that was never hit, and the gap between what it claims it did and what the tool log shows.
-
-Red flags: an agent with no step budget; no success predicate other than the model's own judgement; a delete or force-push tool present without a specific justification; blind retries with identical arguments; no trace of tool calls; a tool result of tens of thousands of tokens inside the transcript; a failed run that produced nothing; a goal whose cheapest solution is destructive; and a first run against real data with no dry run.
+Red flags: no step budget; no success predicate beyond the model's judgement; a delete or force-push tool with no justification; blind retries; no trace; a tool result of tens of thousands of tokens; a failed run that produced nothing; a goal whose cheapest solution is destructive; a first run on real data with no dry run.
 
 ## Walkthrough
 1. Pick a task genuinely suited to an agent — open-ended, where the next step depends on what the last one found. If you cannot justify that, chapter thirteen says write a workflow instead.

@@ -4,7 +4,7 @@ module: m12-ship-apps-for-real
 slug: push-notifications-done-right
 title: "Push Notifications People Do Not Mute"
 order: 3
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your team ships push notifications on a Monday. The first one is genuinely useful: "Your thali is ready at counter 2." People love it.
+Your team ships push on a Monday. The first one is genuinely useful: "Your thali is ready at counter 2." On Tuesday somebody adds "New items added today!", on Wednesday "Don't miss lunch!", on Thursday a 9:40 pm re-engagement push. By Friday your opt-out rate is 44%, two reviews say "too many notifications", and the Monday notification no longer reaches half your users.
 
-On Tuesday somebody suggests a growth push: "New items added today!" On Wednesday: "Don't miss lunch!" On Thursday, a re-engagement push at 9:40 pm to users who have not opened the app. On Friday your opt-out rate is 44%, two reviews say "too many notifications", and the Monday notification — the one people actually wanted — no longer reaches nearly half your users.
-
-Here is the part that makes this worse than any other mistake in this module: **you cannot undo it.** A user who turns your notifications off in Android settings is gone from that channel permanently. There is no re-asking, no apology screen, no clever copy that gets them back. You spent the asset, and the asset does not refill.
-
-A second team makes the opposite mistake. They request notification permission on the very first screen of the app, before the user knows what the app does. 70% tap "Don't allow". Those 70% include everyone who would have wanted the thali notification.
+**You cannot undo it.** A user who turns your notifications off in Android settings is gone from that channel permanently — no re-asking, no apology screen. Another team makes the opposite mistake and asks on the first screen, before the user knows what the app does: 70% tap "Don't allow", including everyone who wanted the thali notification.
 
 ### The idea
 
 **Notification permission is a single-use, non-renewable asset. Spend it only on messages the user would have opened the app to find out.**
 
-That one test settles almost every argument your team will have. "Your order is ready" passes: she was waiting for exactly that. "New items added today" fails: nobody was waiting. If the notification exists because *you* want attention rather than because *she* wants information, it is a tax you are charging her for the privilege of having your app installed.
+That test settles almost every argument your team will have. "Your order is ready" passes: she was waiting for exactly that. "New items added today" fails: nobody was waiting. If a notification exists because *you* want attention rather than because *she* wants information, it is a tax on having your app installed.
 
-Two consequences follow. First, ask late — at the moment the user hits the thing the notification is about. Second, build fewer notification types than you think, and give each one an off switch inside your app so a user who hates one of them does not have to kill them all at the OS level.
+Two consequences. Ask late, at the moment the user hits the thing the notification is about. And build fewer types than you think, each with its own off switch inside your app, so a user who hates one does not kill them all at OS level.
 
 ### The analogy
 
-The canteen has a tannoy. "Table four, your thali is ready" is the perfect announcement: it is for one person, it is information they are actively waiting for, and it saves them standing at the counter.
+The canteen tannoy saying "Table four, your thali is ready" is the perfect announcement: one person, information they are actively waiting for. Now have the tannoy also say "Try our new cold coffee!" every twenty minutes — identical mechanism, opposite value — and within a day everyone filters out the tannoy, including table four.
 
-Now imagine the tannoy also says, every twenty minutes, "Try our new cold coffee!" The announcement is identical in mechanism and opposite in value. Within a day everyone has learned to filter out the tannoy, including table four.
-
-**Where the analogy breaks** in a way that makes push much more dangerous. A tannoy cannot be muted by one person, and the next day everyone's ears work again. A push notification is per-person, permanently muteable, and the mute button is two taps away in settings. The canteen's worst case is annoyance; yours is permanent loss of a channel.
+**Where the analogy breaks**, dangerously. A tannoy cannot be muted by one person, and tomorrow everyone's ears work again. Push is per-person, permanently muteable, and the mute button is two taps away. The canteen's worst case is annoyance; yours is permanent loss of a channel.
 
 ### Picture it
 
@@ -62,25 +56,19 @@ Now imagine the tannoy also says, every twenty minutes, "Try our new cold coffee
 
 Your server never talks to a phone directly: it sends a message plus a device token to a push service, which hands it to Google's or Apple's delivery network, which wakes the phone.
 
-### How the plumbing actually works
+### Where it lives
 
 Four moving parts, in order.
 
-**The permission.** On iOS you have always had to ask. Since Android 13 you must ask there too, at runtime, like camera or location. Older Android versions granted it on install, so your opt-in rate will look suspiciously high on old devices and realistic on new ones.
+**Permission.** iOS always required asking; since Android 13 you must ask at runtime too. Older Android granted it on install, so opt-in looks suspiciously high on old devices.
 
-**The device token.** Once granted, the operating system gives your app a long opaque string that identifies *this install on this device*. Your app sends that token to your server, which stores it against the logged-in user's id. No user id, no useful push — you would be able to broadcast but never to tell one person their order is ready.
+**The device token.** The OS gives your app an opaque string identifying *this install on this device*. Your app sends it to your server, which stores it against the user's id — no user id, no targeted push. Tokens rotate on reinstall and on data clear, so registration runs on every app start, your server upserts rather than inserts, and invalid tokens get deleted.
 
-**The send.** Your server posts the message and the token to a push service. With Expo you send to Expo's push service, which forwards to Firebase Cloud Messaging for Android and the Apple Push Notification service for iOS, so you write one call instead of two.
+**The send.** Your server posts message plus token to Expo's push service, which forwards to FCM for Android and APNs for iOS. The credential stays on the server.
 
-**The tap.** A notification that opens your app on the home screen has wasted the user's tap. It must deep-link to the thing it is about: the order, the message, the result. Deep links were introduced in M08; here they are the difference between a useful notification and a frustrating one.
+**The tap.** The notification must deep-link to the order or the result — never the home screen.
 
-Tokens change. They rotate when the app is reinstalled, when data is cleared, and sometimes on their own. So registration is not a one-time setup step at signup; it runs on every app start, and your server upserts rather than inserts. Stale tokens must be deleted when the push service reports them invalid, or your send volume slowly fills with messages to phones that no longer exist.
-
-### Where it lives
-
-Push touches three parts of your system. In the app, it is a permission plus a token registration that runs on every start. On your server, it is one table joined to your users and one endpoint that sends — and the push credential, which belongs in the same place as every other secret from M06. On the user's phone, it is the operating system's notification settings, which you do not control and cannot read.
-
-M08 introduced the concepts and deep links; this chapter makes them real. The token table is a small piece of M04's data modelling, and the "what counts as personal data" question attached to a device token is M07's, which matters again in chapter 5 when you declare it on the store's data safety form. Downstream, M16 will ask you what your opt-in and tap-through rates are — which only exist if you record them from the first send.
+Token table: M04. Device token as personal data: M07, and again on chapter 5's data safety form. Opt-in and tap-through rates: M16 needs them, so record them from the first send.
 
 ### Words to own
 
@@ -99,31 +87,27 @@ M08 introduced the concepts and deep links; this chapter makes them real. The to
 
 ### Tradeoffs and gotchas
 
-**Delivery is best-effort, never guaranteed.** The phone may be off, the OS may batch your message to save battery, the user may be in a dead zone. Push is a *nudge*, not a transport. Anything important must also exist inside the app, so a user who missed the notification still finds the information. Never make push the only way to learn something that matters.
+**Delivery is best-effort.** The phone may be off, the OS may batch your message to save battery, the user may be in a dead zone. Push is a nudge, not a transport: anything that matters must also exist inside the app.
 
-**Indian Android is harder than the documentation admits.** Xiaomi, Oppo, Vivo, Realme and other manufacturers ship aggressive battery managers that suspend background app activity. On those phones your notification may arrive late or not at all until the user enables autostart or disables battery optimisation for your app. You cannot fix this from code; you can only design so that a missed notification is survivable, and — if push really is central to your product — tell the user plainly how to allow it.
+**Indian Android is harder than the docs admit.** Xiaomi, Oppo, Vivo and Realme battery managers suspend background activity, so your notification may arrive late or never unless the user enables autostart. Design so a missed notification is survivable.
 
-**Android 13 changed the economics of asking.** Because permission is now a runtime prompt, *when* you ask decides your opt-in rate. Asking on first launch typically loses most users. Asking right after the user places their first order, with one sentence of explanation on your own screen first, typically keeps most of them. Same code, triple the outcome.
+**Android 13 changed the economics of asking.** Asking at first launch loses most users; asking right after the first order, with one sentence of your own explanation first, keeps most of them.
 
-**Give every category its own switch, in your app.** Android notification channels do this at OS level; your own settings screen should mirror it. A user who wants order updates and hates offers currently has exactly one tool: turning everything off. Give her a second tool.
+**Give every category its own switch, plus quiet hours.** Mirror Android's channels in your own settings screen, or a user who wants order updates and hates offers has one tool: turning everything off. And write quiet hours in before your first campaign — a 9:40 pm push to a student in a hostel is a cost you impose.
 
-**Timing is a product decision, not a technical one.** A 9:40 pm re-engagement push to a student in a hostel is a cost you are imposing. Write quiet hours into your system before you write your first campaign, because nobody has ever added them *after* the complaints.
-
-**Never put a push service secret in the app.** Sending requires a server credential — an FCM service account or an Expo access token. That lives on your server. If AI gives you code where the app itself sends notifications, it has handed anyone who downloads your app the ability to notify all your users.
+**Never put a push credential in the app.** If the app itself sends, anyone who downloads it can notify all your users.
 
 ### Verify it
 
-**Red flag: a notification with no user value.** For every notification type AI proposes, apply one question: would the user have opened the app to find this out? If the honest answer is no, you are building an opt-out machine. Ask AI to write, for each type, the one sentence a user would say about it — and reject the ones where that sentence is "stop".
+**Red flag: a notification with no user value.** For every type AI proposes, ask: would the user have opened the app to find this out? If not, you are building an opt-out machine.
 
-**Red flag: permission requested at launch with no explanation.** Look at *where* in the flow the permission call sits. If it is in the first screen's setup code, move it. The correct pattern is: user does the thing → your own screen explains in one sentence what you will send and when → then the OS prompt. Ask AI to show you the flow, not just the call.
+**Red flag: permission requested at launch.** The correct pattern: user does the thing → your own screen explains in one sentence what you will send and when → then the OS prompt. Ask to see the flow, not just the call.
 
-**Red flag: a token stored without a user id.** Inspect the table it designs. If there is no foreign key to your users, you can broadcast but never target, and you will not be able to stop sending to a user who deleted their account. Also check there is a delete path — M07's privacy rules and both stores expect that uninstalling or deleting an account stops the messages.
+**Red flag: a token stored without a user id.** No foreign key to your users means you can broadcast but never target, and cannot stop sending to a deleted account. Check there is a delete path.
 
-**Red flag: the send credential in the app.** Grep the client code for anything that looks like a service account, server key or admin token. The app should ask *your* API to send; only your API should hold the credential.
+**Red flag: a notification that opens the home screen.** Tap every type on a real phone and check where it lands.
 
-**Red flag: a notification that opens the home screen.** Tap every notification type on a real phone and check it lands on the specific screen. If it does not deep-link, it is a worse experience than no notification, because it demands navigation the user did not ask for.
-
-**Measure the number, not the vibe.** After a week, your dashboard should be able to tell you: opt-in rate, how many sent, how many tapped, and how many users turned notifications off. If you cannot answer the last one, you cannot tell that you are destroying your own channel until it is gone.
+**Measure the number, not the vibe.** After a week you should know your opt-in rate, how many were sent, how many tapped, and how many users turned notifications off. Without the last you cannot tell you are destroying your own channel until it is gone.
 
 ## Walkthrough
 1. List every notification your product might send. For each, write the one sentence a user would say about it. Delete the ones where that sentence is negative.

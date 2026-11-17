@@ -4,7 +4,7 @@ module: m17-distribution-revenue
 slug: pricing-models
 title: "Pricing Models and Choosing Yours"
 order: 2
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,25 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team prices their lunch pre-ordering app at ₹99 a month. Nobody subscribes. After two weeks they drop it to ₹49. Still nobody. They conclude that students will not pay for anything, which is the wrong conclusion and an expensive one, because the same students spend ₹210 a month working around the exact problem the app solves — they just have never been shown the comparison.
+A team prices their lunch pre-ordering app at ₹99 a month. Nobody subscribes. They drop it to ₹49. Still nobody, so they conclude students will not pay for anything — an expensive wrong conclusion, because those students spend ₹210 a month working around the exact problem the app solves and were never shown the comparison.
 
-A second team goes the other way. They price at ₹19 a month because it is "cheap enough that anyone will say yes", and three hundred people say yes. Their AI feature costs them about ₹40 per user per month in inference. They are now paying ₹21 a month, per user, for the privilege of having users. Growth makes it worse. Every signup is a small, cheerful loss.
-
-Both teams treated price as a number you choose by feeling, and then argued about the feeling. Neither wrote down what the user already spends, what one user costs to serve, or what the user would be giving up. All three of those are knowable in an afternoon.
+A second team prices at ₹19 because it is "cheap enough that anyone will say yes", and three hundred people do. Their AI feature costs about ₹40 per user per month in inference, so they now pay ₹21 a month per user for the privilege of having users. Both teams chose by feeling. Neither wrote down what the user already spends, or what one user costs to serve.
 
 ### The idea
 
-**A price is a decision about who you want as a customer, what you are replacing, and where your cost floor is — and it is arrived at from three anchors, not from a feeling.**
+**A price is a decision about who you want as a customer, what you are replacing, and where your cost floor is — arrived at from three anchors, not from a feeling.**
 
-The three anchors, in order of importance: the **value anchor** (what the problem already costs this user, in rupees or in something they would trade rupees for), the **cost anchor** (what one user costs you to serve, which is your floor), and the **alternative anchor** (what the nearest comparable thing charges, which sets what feels normal).
+In order of importance: the **value anchor**, what the problem already costs this user; the **cost anchor**, what one user costs you to serve; and the **alternative anchor**, what the nearest comparable thing charges, which sets what feels normal. Any price between the value anchor and the cost anchor can exist. A price below the cost anchor cannot, however many people say yes.
 
-A price between the value anchor and the cost anchor can exist. A price below the cost anchor cannot, however many people say yes. This chapter is about arriving at the number; chapter 3 is about the *structure* you charge it through — subscription, usage, credits, freemium — and chapter 4 is about collecting it.
+Separate from how much is per *what*: per user per month, per order, per document, per seat. That is your **value metric**, and choosing it badly does more damage than mispricing by ₹50. A good one grows as the customer gets more value, lets them predict the bill before it arrives, and is cheap for you to measure honestly. "Per order placed" passes all three for the lunch app; "per API call" fails, because the buyer cannot predict it.
 
 ### The analogy
 
-The canteen thali is ₹60 and the owner is tired of thin margins. His real cost is ₹51 a plate, which chapter 6's method will make painfully familiar. He sells two hundred plates a day, so he makes ₹1,800.
-
-He raises the price to ₹70 and half the queue vanishes overnight. Students complain loudly. His nephew tells him he has destroyed the business.
+The canteen thali is ₹60 and the owner is tired of thin margins. His cost is ₹51 a plate, and at two hundred plates a day he makes ₹1,800. He raises the price to ₹70, half the queue vanishes overnight, and his nephew tells him he has destroyed the business.
 
 ```
   THE ₹10 RISE, AS ARITHMETIC
@@ -53,15 +49,13 @@ He raises the price to ₹70 and half the queue vanishes overnight. Students com
   ₹70           90          ₹19         ₹1,710
 ```
 
-At ₹70 he can lose more than half the queue and still earn more than he did at ₹60, because the margin per plate more than doubled.
+At ₹70 he can lose more than half the queue and still earn more than at ₹60, because margin per plate more than doubled. Break-even volume is ₹1,800 ÷ ₹19, about 95 plates. Revenue fell from ₹12,000 to ₹7,700 and profit went up. Loud complaints are not the same as a bad decision — but he could only know that because he knew his cost per plate.
 
-The break-even volume is ₹1,800 ÷ ₹19, which is about 95 plates. Below that he is worse off; above it he is better off, and he is also serving half as many people with the same gas and the same staff. Revenue fell from ₹12,000 to ₹7,700 and profit went up. Loud complaints are not the same as a bad decision — but notice that he could only know this because he knew his cost per plate.
+**Where the analogy breaks:** his change is reversible by rubbing out a number on a board. Yours hits people who already subscribed, and grandfathering them at the old price or moving them and risking churn is a decision you cannot un-make. He sees the queue shrink by lunchtime; you wait weeks for the same signal.
 
-**Where the analogy breaks:** the canteen's price change is reversible by rubbing out a number on a board, and tomorrow is a clean slate. Your price change hits people who already subscribed, and what you do about them — grandfather them at the old price forever, or move them and risk the churn — is a decision you cannot un-make. The canteen also sees the queue shrink by lunchtime; you will wait weeks for the same signal.
+### Picture it
 
-### The value anchor, done properly
-
-This is the anchor teams skip, and it is the one that produces a defensible price. You are not asking "what would they pay?", which invites a polite lie. You are counting what the problem costs them today.
+The value anchor is the one teams skip. Do not ask "what would you pay?", which invites a polite lie — count what the problem costs them today.
 
 ```
   WHAT THE WORKAROUND COSTS ONE STUDENT, PER MONTH
@@ -78,23 +72,11 @@ This is the anchor teams skip, and it is the one that produces a defensible pric
 
 One user's existing monthly spend on the workaround, separated into cash they can see and time they feel.
 
-That ₹210 is the ceiling that matters, far more than any competitor's price. A ₹99 subscription now has a sentence attached to it: "you already spend about ₹210 a month on this, and roughly eight hours." That sentence is what the two failing teams never had. Price without it and you are negotiating against yourself.
-
-Two cautions. Time savings convert to cash very poorly for students, so do not value 490 minutes at a professional hourly rate and claim your product is worth ₹4,000. And the cash figure must come from asking, not from assuming — the ₹90 of chai is the kind of line nobody guesses and everybody confirms when asked.
-
-### The value metric: what you charge *against*
-
-Separate from how much, there is the question of per *what*. Per user per month, per order, per document, per message, per seat, per collection window. This is the **value metric**, and choosing it badly causes more damage than mispricing by ₹50.
-
-A good value metric does three things: it grows as the customer gets more value, the customer can predict it before the bill arrives, and it is cheap for you to measure honestly. "Per order placed" passes all three for the lunch app. "Per API call" fails the second for a non-technical user. "Per team member" fails the first if value does not actually scale with headcount.
-
-A crucial Indian-market note: the hardest step in your whole price ladder is not ₹99 to ₹199. It is ₹0 to ₹1. UPI has made the mechanics of a small payment almost frictionless, but the *decision* to pay anything at all is a large one, and it is where almost all of your drop-off will sit. Price so that the first paid step buys something the user can feel immediately.
+That ₹210 is the ceiling that matters, far more than any competitor's price, and it attaches a sentence to a ₹99 subscription: "you already spend about ₹210 a month on this, and roughly eight hours." Two cautions. Time converts to cash very poorly for students, so do not value 490 minutes at a professional rate and claim your product is worth ₹4,000. And the cash figure must come from asking — the ₹90 of chai is a line nobody guesses and everybody confirms.
 
 ### Where it lives
 
-Backwards: M01's willingness-to-pay conversations are the raw material for the value anchor, and chapter 1's position tells you which workaround you are displacing and therefore which cost you are counting.
-
-Forwards and sideways: chapter 6 gives you your cost floor, and for any product with an AI feature that floor is much higher than teams expect — read it before you commit to a number. Chapter 3 turns the number into a structure. Chapter 4 collects it, including the UPI autopay mandate, which has a maximum amount in it and therefore quietly constrains future price rises. Chapter 5 is where this price becomes ARPU and meets CAC. M03's work on trust and hierarchy is how the price lands on a page without looking like a trap. M12 matters if you sell inside a mobile app, because the store takes a cut of in-app purchases and that cut is part of your cost floor.
+M01's willingness-to-pay conversations are the raw material for the value anchor, and chapter 1's position names which workaround you are counting. Chapter 6 gives you your cost floor, and for anything with an AI feature that floor is much higher than teams expect — read it before committing to a number. Chapter 3 turns the number into a structure, chapter 4 collects it, chapter 5 turns it into ARPU against CAC. Two quiet constraints: chapter 4's UPI autopay mandate carries a maximum amount, which limits future rises, and M12's store cut belongs in your cost floor if you sell inside a mobile app.
 
 ### Words to own
 
@@ -113,33 +95,27 @@ Forwards and sideways: chapter 6 gives you your cost floor, and for any product 
 
 ### Tradeoffs and gotchas
 
-**Cheap is not a strategy, it is a cap.** A ₹19 price makes every other number in chapter 5 impossible: you cannot spend on acquisition, you cannot absorb a refund, and you cannot afford support. Low prices also attract the users least likely to stay, which is the opposite of what you need in a six-month program.
+**The hardest step on your ladder is ₹0 to ₹1, not ₹99 to ₹199.** UPI made the mechanics frictionless; the *decision* to pay anything at all is still large, and that is where most of your drop-off sits.
 
-**Discounting is a price change you did not announce.** A 50% launch discount for three months is a ₹49 product with a ₹99 label, and your early cohort's retention and ARPU in chapter 5 will be measured on the discounted number whether you like it or not. If you discount, write down the date it ends and honour it.
-
-**Free is a price, and it is the most expensive one.** It converts cost into a liability with no revenue attached, which chapter 6 treats as a first-class danger for anything with inference in it. Free has uses — chapter 3 names the three conditions under which freemium works — but "free for now" is not one of them.
-
-**Annual plans are a cash decision, not a pricing decision.** A year upfront is wonderful for your runway and it makes your retention numbers look better than they are, because nobody can churn until month twelve. Be honest about which effect you are seeing.
-
-**Round numbers that match existing habits beat clever ones.** Indian consumers read ₹49, ₹99, ₹149, ₹199, ₹299 and ₹499 as familiar steps. ₹127 invites the question "why 127?", and every question you invite at the price is a user you lose.
-
-**Raising a price later is harder than starting higher.** You can always discount from a high price. Moving up means a conversation with everyone who already said yes, and a decision about grandfathering that will cost you either money or goodwill.
+| Gotcha | Why it bites |
+|---|---|
+| Cheap is not a strategy, it is a cap | A ₹19 price makes every number in chapter 5 impossible: no acquisition spend, no absorbed refund, no support — and it attracts the users least likely to stay |
+| Free is the most expensive price of all | It converts cost into a liability with no revenue attached, chapter 6's first-class danger for anything with inference in it; chapter 3 names the three conditions under which freemium works, and "free for now" is not one |
+| Round numbers that match habits beat clever ones | ₹49, ₹99, ₹199 and ₹499 read as familiar steps; ₹127 invites "why 127?", and every question you invite at the price is a user you lose |
+| Start high rather than raise later | You can always discount, but moving up forces a grandfathering decision that costs money or goodwill |
+| A launch discount is a price change you did not announce | Fifty per cent off for three months is a ₹49 product with a ₹99 label, and chapter 5 will measure that cohort's ARPU on ₹49 |
 
 ### Verify it
 
-**Red flag, the headline one: a price with no reference to what users already pay for the workaround.** If you or an AI produce a number and the justification is "comparable products charge this", the value anchor is missing and the price is a guess with a citation. Ask: what does this cost them today, in rupees, and who told us?
+**Red flag, the headline one: a price with no reference to what the workaround already costs.** "Comparable products charge this" means the value anchor is missing and the price is a guess with a citation.
 
-**Red flag: a price below the cost floor.** Any price proposed before chapter 6's cost-per-active-user figure exists is unverified. Ask for the floor explicitly, and if the answer is "we will optimise later", the price is not yet a price.
+**Red flag: a price below the cost floor.** Any price proposed before chapter 6's cost-per-active-user figure exists is unverified. If the answer is "we will optimise later", it is not yet a price.
 
-**Red flag: a price quoted in dollars, or converted from one.** AI will cheerfully recommend $9 per month for Indian college students. Any pricing advice that does not visibly know who your buyer is and what they earn is advice about a different market.
+**Red flag: a price in dollars, or converted from one.** AI will cheerfully recommend $9 a month for Indian college students. Advice that does not know what your buyer earns is about a different market.
 
-**Red flag: no value metric named.** "₹99 per month" with no statement of what happens to a user who places five hundred orders is an unbounded promise. Chapter 6 shows what that costs.
+**Red flag: "would you pay ₹99 for this?"** Everyone says yes to be kind and no with their wallet. Ask what they spend today, then ask for money in a real moment. And an unqualified "₹99 per month" is itself a red flag: say what a user who places five hundred orders gets.
 
-**Red flag: willingness to pay collected by asking "would you pay ₹99 for this?"** Everyone says yes to be kind and no with their wallet. Ask what they spend today, and ask for the money in a real moment.
-
-**Red flag: a price with no break-even arithmetic behind the change.** When you move a price, the only honest question is how much volume you can lose and stay level. That is one division. If nobody has done it, the argument is about feelings.
-
-The check that settles it: put the price in front of five real users in a moment where paying is possible, and count who pays. Five yeses in a survey and one payment is a clear result, and the result is the payment.
+The check that settles it: put the price in front of five real users where paying is possible and count who pays. Five survey yeses and one payment is a clear result — the payment.
 
 ## Walkthrough
 1. Write down, for one real user you have spoken to, every rupee they currently spend working around your problem in a month. Then write the time separately. Do not convert time into money.

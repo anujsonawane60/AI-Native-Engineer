@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: running-a-training-loop
 title: "Running a Real Training Loop"
 order: 1
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -19,32 +19,23 @@ last_reviewed: 2026-11-16
 - Catch a score that was measured on the data the model trained on
 
 ## Lesson
-
 ### The pain
 
-M09 chapter 6 taught the loop as an idea: a batch goes forward, a loss comes out, backpropagation assigns blame, every weight is nudged downhill. It taught you to read the two curves and stop at the turn, and it ended by saying that actually running a loop and debugging one that will not converge is this module. This is that chapter, and what is new is everything the idea leaves out.
+M09 chapter 6 taught the loop as an idea: a batch goes forward, a loss comes out, backpropagation assigns blame, weights are nudged downhill. New here is what the idea leaves out — running one on borrowed hardware with a time limit.
 
-Here is what it leaves out, in the shape it will reach you. A team trains a small classifier that sorts support messages into four buckets. They ask an AI for the code, paste it into a free notebook, and press run. The first cell fails because the model is on the GPU and the data is not. The second attempt runs out of memory at batch size 64 and dies with a message nobody reads to the end. The third trains for forty minutes, the notebook disconnects at minute thirty-eight, and nothing was saved. The fourth prints `accuracy: 0.991`, celebrated for a day — until someone notices it was computed on the same two thousand rows the model trained on, and the honest figure on unseen messages is 0.62.
-
-None of those four failures is about gradient descent. They are about running an experiment on borrowed hardware with a time limit, which is the actual content of the job.
+A team trains a support-message classifier. Attempt one fails: model on the GPU, data not. Attempt two dies out of memory. Attempt three disconnects at minute thirty-eight, saving nothing. Attempt four prints `accuracy: 0.991`, computed on the rows it trained on; honestly it is 0.62.
 
 ### The idea
 
 **A training run is an experiment, and an experiment you cannot repeat and cannot audit is not a result.**
 
-Three things make a run an experiment rather than an event. **Repeatable**: same seed, same data version, same code, same numbers. **Checkpointed**: weights hit disk often enough that a disconnect costs minutes. **Honestly scored**: the number you quote comes from data the model has never seen, opened once.
-
-Everything else here — devices, batch size, mixed precision, warmup — exists so the run finishes at all on hardware you can get for free.
+Three things make it an experiment rather than an event. **Repeatable**: same seed, same data version, same numbers. **Checkpointed**: weights hit disk often enough that a disconnect costs minutes. **Honestly scored**: your quoted number comes from data the model never saw, opened once.
 
 ### The analogy
 
-M09 compared training to a cook learning by tasting. Push that analogy one step into the real work.
+You teach a kitchen helper to sort orders into four trays from a box of three hundred the senior cook already judged. Thirty-two at a time, then a correction — a **batch** and a **step**. Box exhausted, shuffle, repeat — an **epoch**. A smaller box checks progress but never coaches — the **validation split**. A sealed box waits in the manager's drawer — the **test split**.
 
-You are teaching a kitchen helper to sort orders into four trays. You have a box of three hundred past orders with the senior cook's verdict on each. The helper sees thirty-two at a time and only then hears how many they got wrong and in which direction to adjust — a **batch** and a **step**. When the box is exhausted you shuffle and go again — an **epoch**. A smaller box of sixty is kept in the office to check progress, never to coach — the **validation split**. A third sealed box stays in the manager's drawer until the day you claim the helper is trained — the **test split**.
-
-The constraints are real too. The kitchen is yours for two hours, not all day. If interrupted you want notes, not a restart. And to prove next week that the helper improved, you must have written down which boxes you used and in what order.
-
-**Where the analogy breaks, in the way that matters most.** A human helper asks "why was that wrong?" and receives a reason. The model receives only a direction and a size per weight. It cannot tell "this is a refund request" from "this message is long and arrived at 2 am", and if the second correlates with the first in your box of three hundred it will learn the second perfectly and the loss curve will look beautiful.
+**Where it breaks.** A human asks "why was that wrong?" and gets a reason; the model gets only a direction and a size per weight. It cannot tell "refund request" from "arrived at 2 am", so if those correlate it learns the wrong one.
 
 ### Picture it
 
@@ -75,45 +66,30 @@ One versioned file splits three ways: the loop touches only the training split, 
 
 ### The eight things in every loop
 
-Whatever stack the AI hands you, a training script is these eight things with decoration around them. Read any script by finding them.
+Read any training script by finding these eight.
 
-**Seed everything.** One number at the top, applied to the shuffle, the split and the weight initialisation. Without it two runs differ and you cannot tell improvement from luck.
-
-**Load and split the data.** From one file with a version in its name. The split is made by code from the seed, never by hand and never re-made between runs.
-
-**Put the model and the batch on the same device.** The most common first error. The GPU is separate memory; weights and data both have to be moved into it.
-
-**Pick the optimizer.** In practice AdamW, with a learning rate and a weight-decay number. It keeps two running averages per weight, which is why it needs more memory than plain gradient descent and why it works with far less tuning.
-
-**Pick the schedule.** The learning rate starts near zero, climbs over a few hundred steps — **warmup** — then decays. Constant learning rates are why many runs blow up in their first minute.
-
-**Run the inner loop.** Forward, loss, backward, step, zero the gradients. Log every N steps.
-
-**Validate every epoch, with gradients off and the model in evaluation mode.** Missing that mode switch is a quiet bug: training-only layer behaviour stays on and your validation number is wrong in an unpredictable direction.
-
-**Checkpoint.** Save whenever validation improves, to mounted storage rather than the notebook's own disk, which dies with the session.
-
-### Fitting it onto a free GPU
-
-A free notebook GPU gives you roughly 15 GB of video memory and a session that can end without warning. Three levers get a run to fit, and each costs something.
-
-**Batch size** is the first thing to cut on an out-of-memory error. It also changes your results, because a smaller batch gives a noisier gradient — halving the batch usually means halving the learning rate too.
-
-**Gradient accumulation** gets the effect of a large batch on a small GPU: run four batches of 8, add up the blame, nudge once. The arithmetic matches a batch of 32; the clock time does not improve, but the run no longer dies.
-
-**Mixed precision** stores most numbers in 16 bits instead of 32, roughly halving memory and usually running faster. For small-model work it is the first flag to turn on, not the last.
-
-None of these fixes a model that does not fit. M09 chapter 5 gave that arithmetic: parameters times bytes per number, plus several times again for training. Past 15 GB no batch size saves you — you need a smaller model, which is chapter 4.
+1. **Seed everything** — shuffle, split, initialisation
+2. **Load and split** — one versioned file, split in code from that seed
+3. **Same device** — weights and batch both inside GPU memory
+4. **Optimizer** — in practice AdamW: more memory per weight, less tuning
+5. **Schedule** — rate climbs from near zero (**warmup**), then decays
+6. **Inner loop** — forward, loss, backward, step, zero the gradients, log
+7. **Validate each epoch, gradients off, evaluation mode on** — miss that switch and the number is wrong unpredictably
+8. **Checkpoint** — on every validation improvement, to storage that outlives the session
 
 ### Tools today
 
-Free notebook GPUs exist on Google Colab and Kaggle Notebooks; both give a usable session for this chapter at no cost, and both have changed their limits more than once. Use a small open-weight encoder of 20 to 70 million parameters with a public dataset of a few thousand labelled rows. Check every quota, session length and model name this week rather than believing a lesson.
+Free notebook GPUs exist on Google Colab and Kaggle Notebooks: a usable session at no cost, roughly 15 GB of video memory, limits that have changed more than once. Use a small open-weight encoder of 20 to 70 million parameters and a public dataset of a few thousand labelled rows. Check every quota and model name this week rather than believing a lesson.
 
 ### Where it lives
 
-Nowhere in your product. M09 chapter 6 said this and it stays true: the loop runs in a notebook beside your product, and its only output is a weights file plus a row in a results table. Your running app does a forward pass and nothing else.
+It runs in a notebook beside your product, never inside it.
 
-What it feeds is this module. The dataset is chapter 2. Whether to train at all is chapter 3. This same loop with only a small set of extra weights unfrozen is chapter 4. Your results table becomes chapter 13's experiment tracking, and your honest test score is the ancestor of chapter 10's regression suite.
+- Chapter 2 — the dataset
+- Chapter 3 — whether to train at all
+- Chapter 4 — this loop with few weights unfrozen
+- Chapter 10 — your test score as a regression suite
+- Chapter 13 — your results table as experiment tracking
 
 ### Words to own
 
@@ -132,29 +108,23 @@ What it feeds is this module. The dataset is chapter 2. Whether to train at all 
 
 ### Tradeoffs and gotchas
 
-**The first number you get is almost always wrong, and wrong in the flattering direction.** Scores on the training split, a validation split re-drawn after a bad result, a test split peeked at twice — all three inflate, and all three happen by accident. M09 chapter 3 named them; here you will commit one within an hour.
+**Fitting 15 GB costs you something every time.** Cutting batch size is the first out-of-memory fix, but halving it usually means halving the learning rate. Gradient accumulation buys a big batch on a small GPU — four batches of 8, one nudge — without buying speed. Mixed precision halves memory. Past 15 GB only a smaller model saves you: chapter 4.
 
-**A run that converges can still be useless.** Loss falling smoothly means the model found a pattern, not the pattern you wanted. The check is a stupid baseline: for four imbalanced buckets, what does "always predict the biggest bucket" score? If two hours of GPU time beat that by three points, you have learned about your data rather than your model.
+**The first number is wrong in the flattering direction.** A score on the training split, a validation split re-drawn after a bad result, a test split peeked at twice — all three inflate, all three by accident.
 
-**Longer training is the most expensive wrong answer.** Past the turn in validation loss, more epochs make the product worse while the run looks busier. Early stopping and keeping the best checkpoint are free, and most AI-written scripts omit both.
-
-**Learning rate is the one number worth a sweep.** Three runs an order of magnitude apart teach you more than any architecture tinkering. Change one thing per run and write down what.
-
-**Free GPUs disconnect at minute thirty-eight.** Checkpoint to mounted storage every epoch and log to a file, not only to the cell output. A run whose only evidence was a browser tab did not happen.
-
-**The data will be the problem more often than the model.** A classifier that plateaus below a useful score usually has label noise, duplicates across splits or unmeasured imbalance rather than a loop problem. That is chapter 2, placed second on purpose.
+**A converged run can still be useless, and longer training is worse.** Falling loss means a pattern, not your pattern — check it against the baseline. Past the turn in validation loss, more epochs make the product worse. Early stopping and best-checkpoint are free, and AI-written scripts omit both.
 
 ### Verify it
 
-AI will write you a training script that runs. Running is not the bar. Check these five every time.
+AI will write you a training script that runs. Running is not the bar.
 
-1. **Find the line that computes the reported metric, and name the split it reads.** If it is the data the loop trained on, every number is fiction. This is the most common defect in AI-generated training code.
-2. **Demand the stupid baseline before any training.** Majority class for classification, the mean for regression. A proposal that cannot say what beating-nothing looks like is not an experiment.
-3. **Find the seed, then run it twice.** Same seed, same losses. If not, something is unseeded and every later comparison is noise.
-4. **Check three one-line omissions:** evaluation mode during validation, gradients off during validation, and a checkpoint path that survives the session.
-5. **Demand both curves and the run log.** Training loss alone cannot distinguish learning from memorising, and a log with one row is a guess.
+1. **Find the line computing the reported metric and name its split.** If it is training data, every number is fiction — the commonest defect in AI-generated training code.
+2. **Demand the stupid baseline first.** Without it there is no experiment.
+3. **Find the seed, then run twice.** Same seed, same losses — otherwise every comparison is noise.
+4. **Check three one-line omissions:** evaluation mode and gradients off during validation, and a checkpoint path surviving the session.
+5. **Demand both curves and the run log.** Training loss alone cannot tell learning from memorising.
 
-Red flags: accuracy reported on the training set; a validation split re-drawn after a bad result; the test split used twice; no seed; no baseline; the last checkpoint kept instead of the best; a single loss curve; "more epochs made it better" with no validation line.
+Red flags: accuracy on the training set; a split re-drawn after a bad result; no seed; no baseline; the last checkpoint kept.
 
 ## Walkthrough
 1. Open a free notebook environment, select the GPU runtime, and run one cell that prints the GPU name and its total memory. Write both down. Everything you plan must fit inside that number.

@@ -4,7 +4,7 @@ module: m15-content-social-automation
 slug: generating-brand-imagery
 title: "Generating Brand Imagery and Video With AI"
 order: 7
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: high
@@ -22,23 +22,29 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team needs twelve assets for a week of posts. They generate all twelve in forty minutes and feel extremely productive. Then they look at them together.
-
-Twelve different illustration styles: two flat-vector, three photoreal, one watercolour, one 3D-render, the rest somewhere in between. Every image meant to show "an Indian college student" shows the same stock fantasy — a woman in a bright saree in a wood-panelled library — and one post about Nashik has the Taj Mahal in the background. Text generated inside two images reads `TIFFIN SERVICF` and `Mothly Plam`. One image shows a product screen with a map view and a loyalty-points widget; neither exists, and a user messages asking where to find them. One face is uncomfortably close to a recognisable actor. The logo, redrawn by the model, has the wrong spacing. And all twelve are square, so the vertical versions crop the price straight off the bottom.
-
-Everything the team gained in forty minutes they spend over the next two days, and the account looks like twelve different companies — chapter 6's grid test, failed in a single week.
+A team generates twelve assets for a week of posts in forty minutes, feels productive, then looks at them together. Twelve illustration styles: two flat-vector, three photoreal, one watercolour, one 3D-render. Every image meant to show "an Indian college student" shows the same stock fantasy — a woman in a bright saree in a wood-panelled library — and one post about Nashik has the Taj Mahal behind it. Text generated inside two images reads `TIFFIN SERVICF` and `Mothly Plam`. One shows a product screen with a map view and a loyalty widget; neither exists, and a user asks where to find them. And all twelve are square, so the vertical versions crop the price off the bottom. The account now looks like twelve companies — chapter 6's grid test, failed in a week.
 
 ### The idea
 
 **Generative media is directed, not requested. A set looks like one brand because you fixed the things that vary — a reference, a style block, a seed, a palette, a framing rule — not because you asked nicely twelve times.**
 
-M03 chapter 8 taught this for interfaces and chapter 5 taught it for prose. Images are the same problem with higher variance: without constraints, every generation lands somewhere different on the average of everything the model has seen.
+M03 chapter 8 taught this for interfaces and chapter 5 for prose. Images are the same problem with higher variance: without constraints, every generation lands somewhere different on the average of everything the model has seen. Five levers hold a set together.
+
+| Lever | What it fixes | How you use it |
+|---|---|---|
+| Reference image | Subject and product consistency | Feed your own photo in, not an adjective |
+| Style block | Medium, light, palette, background | 10–15 words pasted verbatim, never retyped |
+| Seed | The starting noise, so a shot repeats | Record it with every asset you keep |
+| Palette and bans | Stray colours and clichés | One accent from `DESIGN.md`; no gradients, glow, in-image text, monuments |
+| Framing rule | Surviving three crops | Subject centred, nothing in the outer tenth |
+
+The seed matters most and is skipped most often. M09 showed that a diffusion model starts from random noise; the seed is the number choosing that noise. Same prompt, same seed, same picture — and the same seed with a small prompt change gives a *related* picture. Without a recorded seed you cannot vary an asset later, only start over.
 
 ### The analogy
 
-The canteen's photo board. Hire one person for one afternoon: one camera, one window for light, one steel tray, one angle, forty dishes. The board looks like a board. Now instead ask twelve students to each send one photo from their own phone — twelve lightings, twelve angles, twelve colour casts — and it looks like a group chat.
+The canteen's photo board. One person, one afternoon: one camera, one window for light, one steel tray, one angle, forty dishes — and the board looks like a board. Ask twelve students to each send a phone photo instead, and twelve lightings and colour casts make it a group chat.
 
-**Where the analogy breaks**, in the way that matters most in this chapter: a camera can only photograph food the kitchen actually made. A model will happily render a dish your kitchen cannot cook, a product screen you have not built, and a phone your users do not own. The photographer's constraint is physical; yours has to be a rule you enforce.
+**Where the analogy breaks**, in the way that matters most here: a camera can only photograph food the kitchen actually made. A model will render a dish your kitchen cannot cook, a product screen you have not built, and a phone your users do not own. The photographer's constraint is physical; yours is a rule you enforce.
 
 ### Picture it
 
@@ -58,51 +64,9 @@ The canteen's photo board. Hire one person for one afternoon: one camera, one wi
 
 One generated source image, composed with everything important in the middle, is cropped to each channel's ratio afterwards — so the price survives the vertical crop instead of being cut off by it.
 
-### Five levers that lock a set together
-
-**1. A reference image, not a description.** "A young man in a kurta holding a tiffin" produces a different man every time. The same reference photo passed in as an image input produces something recognisably related. For product and person consistency, references beat adjectives every single time.
-
-**2. A style block you paste verbatim, every generation.** Ten to fifteen words fixing medium, light, palette and background: *flat illustration, two colours only — steel grey and one hot orange, no gradient, plain background, thick even outlines.* Never retype it. Never improve it mid-set.
-
-**3. The seed.** M09 taught you that a diffusion model starts from random noise and denoises toward an image. The seed is the number that chooses that starting noise. The same prompt with the same seed gives you the same picture; the same seed with a small prompt change gives you a *related* picture. Record the seed with every asset you keep — it is the only way to make a variation of something later instead of starting over.
-
-**4. A palette and a ban list.** One accent colour from `DESIGN.md`, and a written list of what must never appear: no gradients, no glow, no lens flare, no 3D blobs, no text inside the image, no stock-office backgrounds, no national monuments.
-
-**5. One framing rule.** Subject centred, breathing room on all four sides, nothing important in the outer tenth. This single rule is what makes one source asset survive three crops.
-
-### Text, stereotypes and invented products
-
-Three failure modes specific to this chapter.
-
-**Do not let the model write text inside images.** It is unreliable at any length and will produce `TIFFIN SERVICF` at exactly the wrong moment. Generate a clean background, then place real text on top with your chapter 6 template, in your real typeface. Your text is then also correct in every language, which matters when the caption is in Marathi.
-
-**The "generic India" default is real, and it is the content-side generic look.** Ask for "Indian students" and you will often get marigolds, a saree, a rickshaw, and a monument from 1,200 km away. Nashik is not a stock photograph. The fix is the same as M03 chapter 8's: your own reference photos. Photograph your actual street, your actual users' hands, your actual packaging. Ten photos you took are worth more than a hundred generations.
-
-**Never generate your own product.** No generated screenshots, no generated UI, no generated features. A screen recording of the real thing is faster, correct, and does not invite a user to ask where the map view is. This is the single most damaging mistake in the chapter, because it is a promise you cannot keep.
-
-### Video, briefly and honestly
-
-For a 30-to-60-second vertical clip, three practical rules. Keep generated shots under about four seconds each, because models lose continuity fast and faces drift. Burn captions into the video, because most people in a feed are watching muted. And prefer real footage for anything about your product: a screen recording with a voiceover beats any generation, and takes less time.
-
-Generated b-roll between real shots is a reasonable use. Generated product demonstrations are not.
-
-### Rights, consent, disclosure, provenance
-
-Four things, each of which has ended somebody's week.
-
-**Rights.** Whether you own generated output varies by jurisdiction and by the terms of the model you used, and in India the position on purely machine-generated work is not settled. Read the terms of whatever you use, and check whether the free tier permits commercial use at all before you put an asset on a pricing page.
-
-**Consent.** Do not generate recognisable real people, celebrities or look-alikes. For real customers, get written permission before their face appears anywhere, and do not use a model to "improve" a real person's photo.
-
-**Disclosure.** Several platforms require synthetic media to be labelled, and several detect and label it themselves. Label it. A team caught passing a generated image off as a photograph of their own kitchen loses more than the post.
-
-**Provenance.** Store every kept asset with its prompt, style block, seed, model, date and source references — a four-line note beside the file in your object storage from M04. Six weeks later, when you need one more image in the same style, this file is the difference between thirty seconds and an afternoon.
-
-**Tools today:** model names, free quotas and feature sets in this area change every few months, which is why this chapter is tagged high-volatility. The five levers above do not change. Current tool names belong in Go deeper, not in your head.
-
 ### Where it lives
 
-M09 is the theory under this chapter: latents, guidance strength, references and style adapters. M03's design system supplies the palette and type; chapter 6's kit supplies the ratios and safe areas; chapter 8 posts the results per channel; M04's object storage is where the assets and their provenance notes live; and M12's store screenshots are another surface that must match the same kit.
+M09 is the theory under this chapter: latents, guidance strength, references and style adapters. M03's design system supplies the palette and type, chapter 6's kit supplies the ratios and safe areas, chapter 8 posts the results per channel, and M04's object storage holds the assets and their provenance notes.
 
 ### Words to own
 
@@ -123,35 +87,35 @@ M09 is the theory under this chapter: latents, guidance strength, references and
 
 ### Tradeoffs and gotchas
 
-**Your own photos beat generation more often than students expect.** A real photo of your actual packaging on an actual Nashik street is specific, free, instantly on-brand, and impossible for a competitor to copy.
+**Your own photos beat generation more often than students expect**, and they are the cure for the "generic India" default: ask for "Indian students" and you get marigolds, a saree and a monument 1,200 km away. A real photo of your packaging on a Nashik street is specific, free and impossible to copy. Ten photos you took beat a hundred generations.
 
-**Variance is the enemy of a brand.** Models are built to be creative, which means different every time. Everything in this chapter is a way to suppress that.
+**Never generate your own product, and never generate your logo.** A screen recording of the real thing is faster, correct, and does not invite a user to ask where the map view is. A generated feature is a promise you cannot keep. Use the logo file.
 
-**Free tiers are small and they move.** Plan the set before you start generating, or you will spend your month's quota on experiments and have nothing for the posts.
+**Do not let the model write text inside images.** It produces `TIFFIN SERVICF` at the worst moment. Generate a clean background and put real text on top with your chapter 6 template — which also keeps a Marathi caption correct.
 
-**Do not generate your logo.** Ever. Use the file.
+**Generated faces age badly** — hands, teeth, jewellery and text drift — so prefer objects, food, places and backs of heads. Variance is the enemy of a brand: models are built to differ every time, and every lever above suppresses that.
 
-**Generated faces age badly.** Hands, teeth, jewellery and text drift. Prefer hands, objects, food, places and backs of heads to close-up faces.
+**Video: keep generated shots under about four seconds**, because models lose continuity. Burn captions in, since most feed viewers are muted. Generated b-roll between real shots is reasonable; generated product demos are not.
 
-**One good image used four ways beats four mediocre ones.** The crop work from one strong source asset is twenty minutes and consistent by construction.
+**Settle rights, consent and disclosure before anything goes public.** Ownership of generated output varies by jurisdiction and by the model's terms, and India's position on purely machine-generated work is unsettled — check whether the free tier permits commercial use at all. Never generate recognisable people or look-alikes, get written permission before a real customer's face appears, and label synthetic media.
+
+**Free tiers are small and they move.** Model names and quotas change every few months, which is why this chapter is high-volatility; the five levers do not.
 
 ### Verify it
 
-**Red flag: an image set with inconsistent brand.** Put all your assets in one grid at the same size. Any outlier in medium, light, palette or outline weight means the style block was not pasted or was edited mid-set. This is the fastest check here, and it is chapter 6's grid test again.
+**Red flag: an inconsistent set.** Put every asset in one grid at the same size. An outlier in medium, light, palette or outline weight means the style block was not pasted, or was edited mid-set. Chapter 6's grid test, and the fastest check here.
 
-**Red flag: text inside a generated image.** Zoom in and read every word, including small background text. One misspelling published is a permanent screenshot.
+**Red flag: text inside a generated image.** Zoom in and read every word, including small background text. One published misspelling is a permanent screenshot.
 
-**Red flag: product detail that does not exist.** Open your real product beside the asset and compare element by element. Any screen, feature, button or claim not in the live product must be removed, not "fixed later".
+**Red flag: product detail that does not exist.** Compare the asset against your live product element by element. Anything not in the real product is removed, not "fixed later".
 
-**Red flag: the stereotype default.** Ask yourself whether this image could have been generated by someone who has never been to your city. Monuments, marigolds and generic saree-and-library framing are the tells.
+**Red flag: the stereotype default.** Could this have been generated by someone who has never visited your city? Monuments, marigolds and saree-and-library framing are the tells.
 
 **Red flag: a recognisable face.** If anyone on your team says "that looks a bit like…", discard it.
 
-**Red flag: no seed, no prompt, no provenance.** An asset you cannot regenerate or vary is a dead end, and you will need a variation within two weeks.
+**Red flag: no seed, no prompt, no provenance.** Store every kept asset with its prompt, style block, seed, model and date beside the file in M04's object storage. An asset you cannot regenerate is a dead end.
 
-**Red flag: the crop test fails.** Crop every asset to 1:1, 4:5 and 9:16 and check that nothing important is lost. If the price or the subject disappears, the framing rule was ignored.
-
-**Red flag: the model calling its own output "vibrant" or "eye-catching".** The same vocabulary problem as "modern and clean" in M03 — ask instead which of your constraints produced each visual decision.
+**Red flag: the crop test fails.** Crop every asset to 1:1, 4:5 and 9:16. If the price or the subject disappears, the framing rule was ignored.
 
 ## Walkthrough
 1. Write down the exact asset list you need for one week of posting, with the channel and ratio for each. Plan the set before generating anything, because free quotas are small.

@@ -4,7 +4,7 @@ module: m13-production-engineering
 slug: kubernetes-for-real
 title: "Kubernetes for Real: Deployments, Services, Autoscaling, Helm"
 order: 3
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-M06 chapter 9 taught you what Kubernetes does and gave you four honest signals for when you need it. It also told you, correctly, that a three-person student team should not run one. This chapter is the other half: you are now at the point where you have to read, judge and operate a cluster — maybe because your startup grew a second and third service, maybe because an employer runs one, maybe because M18's architecture defence requires you to explain why you did not.
+M06 chapter 9 taught you what Kubernetes does and four honest signals for when you need it, and said a three-person student team should not run one. This chapter is the other half: reading, judging and operating a cluster — because your startup grew a third service, an employer runs one, or M18 asks you to defend why you did not.
 
-So here is what going wrong actually looks like. A team moves their canteen app onto a cluster. The manifest an agent produced has no memory limit. One pod gets a request that loads six months of orders into memory, grows to 3 GB, and the node runs out. Kubernetes starts evicting pods to save itself — including the database proxy and the pod serving the menu. The control loop reports everything is fine, because it faithfully restarts each evicted pod, which then gets evicted again. The team spends two hours reading logs from containers that no longer exist.
-
-Second failure, same week. The readiness probe queries the database. The database has a four-second hiccup. Every pod fails its probe at the same moment, Kubernetes removes all of them from the Service, and a four-second database blip becomes a ninety-second total outage. The database recovered on its own; the cluster turned a wobble into a disaster.
-
-Neither failure is about Kubernetes being hard. Both are two lines of YAML nobody read.
+A manifest has no memory limit: one pod grows to 3 GB, the node runs out, and Kubernetes evicts pods to save itself, then restarts each one, so the control loop reports all is well. Same week, the readiness probe queries the database, a four-second hiccup fails every probe at once, and the blip becomes a ninety-second outage. Both failures are two lines of YAML nobody read.
 
 ### The idea
 
 **A cluster does exactly what your manifests say, so the manifest is the product and reading it is the job.**
 
-Four objects carry almost everything you need. A **Deployment** says how many copies of which image. A **Service** gives those copies one stable internal name. An **Ingress** lets outside traffic in. A **HorizontalPodAutoscaler** changes the copy count based on a measured number. Helm is a template engine on top, so the same four objects can be reused across staging and production with one values file per environment.
+Four objects carry almost everything. A **Deployment** says how many copies of which image. A **Service** gives those copies one stable internal name. An **Ingress** lets outside traffic in. A **HorizontalPodAutoscaler** changes the copy count from a measured number. Helm is a template engine on top: the same four objects, one values file per environment.
 
 ### The analogy
 
-M06 gave you the festival caterer with twelve counters and a written plan. You were the person reading the plan. Now you write it.
+M06 gave you the festival caterer with twelve counters and a written plan; you were reading it, now you write it. Each counter is *promised* table space — the **resource request**, which the scheduler uses to pick a hall with room. Each has a ceiling it may never exceed, the **limit**, because one stall spreading across the hall starves the others. A runner asks two different questions: "are you alive?" and "are you ready for students?" A cook who steps out leaves the counter alive but not ready, so the queue goes elsewhere rather than the stall being shut.
 
-The caterer's plan has lines you did not notice before. Each counter is *promised* a certain amount of table space — that is the **resource request**, and the scheduler uses it to decide which hall has room. Each counter also has a hard ceiling it may never exceed — the **limit** — because one stall spreading across the hall starves the others. A runner asks each counter two different questions: "are you still alive?" and, separately, "are you ready for students?" A counter whose cook has stepped out for two minutes is alive but not ready, and the queue should be sent elsewhere rather than the stall being shut down.
-
-**Where the analogy breaks:** a stall that spills over its allotted space gets a word from the caterer and a chance to tidy up. A container that exceeds its memory limit is killed instantly, with no warning and no negotiation, and the only evidence is a two-word status: `OOMKilled`. There is no gradual degradation to notice. This is why the limit is a number you measure rather than a number you type.
+**Where the analogy breaks:** a stall that spills over gets a warning. A container over its memory limit is killed instantly, with only a two-word status: `OOMKilled`.
 
 ### Picture it
 
@@ -67,9 +61,12 @@ Outside traffic enters through the Ingress, the Service forwards it only to pods
 
 ### Where it lives
 
-This sits directly on top of M06 chapter 8's container image: a manifest is instructions for running the image you already built. The Service is M05's load balancer, internal and automatic. The HPA is M05's horizontal scaling with a trigger attached. The probes are M05's health checks, now split into two kinds. Chapter 4 of this module is how the cluster itself gets created, because clicking a cluster into existence is the fastest way to a resource nobody can identify. Chapter 5 uses Deployments to do canary releases properly, and chapter 7's load test is what tells you whether your HPA thresholds were sensible.
+This sits directly on M06 chapter 8's container image — a manifest is instructions for running it.
 
-Secrets stay exactly where M07 put them: a Kubernetes Secret is base64, not encryption, and anyone who can read the manifest can read the value.
+- The **Service** is M05's load balancer; the **HPA** is M05's horizontal scaling with a trigger; the **probes** are M05's health checks, split in two.
+- **Chapter 4** creates the cluster itself, because clicking one into existence is the fastest route to a resource nobody can identify.
+- **Chapter 5** uses Deployments for canary releases; **chapter 7**'s load test judges your HPA thresholds.
+- **Secrets** stay where M07 put them: a Kubernetes Secret is base64, not encryption.
 
 ### Words to own
 
@@ -92,32 +89,25 @@ Secrets stay exactly where M07 put them: a Kubernetes Secret is base64, not encr
 
 ### Tradeoffs and gotchas
 
-**No limits is the single most common defect, and no requests is the second.** Without limits, one pod can starve a node. Without requests, the scheduler has no idea how much room anything needs and will pack pods onto a node that cannot hold them. A manifest with neither is not a manifest; it is a wish.
+**No limits is the most common defect; no requests is the second.** Without limits one pod starves a node; without requests the scheduler packs pods onto a node that cannot hold them.
 
-**Set the memory limit from a measurement, and set it generously.** Kubernetes kills a container that exceeds memory, instantly. CPU behaves differently: exceeding the CPU limit only throttles you, which shows up as mysterious slowness rather than a crash. So a too-low memory limit crashes your app and a too-low CPU limit makes it slow. Both come from typing a round number instead of watching the pod under chapter 7's load test.
+**Set the memory limit from a measurement.** Exceeding memory kills the container instantly; exceeding CPU only throttles it, arriving as mysterious slowness.
 
-**A readiness probe must never check a dependency you do not control.** If it queries the database, a database hiccup removes every pod from rotation at once. Readiness means "this copy can serve"; liveness means "this process is wedged and a restart would help". If your liveness probe can fail for a reason a restart cannot fix, you have built a restart loop.
+**A readiness probe must never check a dependency you do not control.** Readiness means "this copy can serve"; liveness means "a restart would help". A liveness probe failing for a reason a restart cannot fix is a restart loop.
 
-**`image: latest` destroys your ability to roll back.** The tag must name an immutable build. Otherwise "roll back to the previous version" has no meaning, because both versions point at the same moving label. Use the commit SHA from M01.
+**A managed control plane is usually not free, and nodes certainly are not.** Learn on a free single-node cluster inside Docker on your laptop. If you must use a managed one, use trial credits, set a billing alert per M06 chapter 7, and destroy it the same day.
 
-**A managed control plane is usually not free, and the nodes certainly are not.** This is the chapter where a student can produce a surprise bill in rupees. Learn on a free local cluster — a single-node cluster inside Docker on your own laptop costs nothing and teaches ninety per cent of this. If you must use a managed cluster, use trial credits, run it inside one live session, and destroy it before you close your laptop. Set a billing alert first, per M06 chapter 7.
-
-**Helm hides things, which is the point and the risk.** A chart you did not write can create twenty objects from six values. Render the templates to plain YAML and read the output before you install anything. "It is just a chart from the internet" is how a cluster acquires objects nobody can explain.
-
-**Three healthy pods can still serve errors to everyone.** M06 said this and it is worth repeating because the cluster will reassure you. The control loop is satisfied when the count matches. M07's metrics are what tell you the product works.
+**Helm hides things, which is the point and the risk.** A chart you did not write can create twenty objects from six values, so render it to plain YAML before installing.
 
 ### Verify it
 
-AI writes plausible Kubernetes YAML faster than anything else in this module, and it is confidently incomplete. Run these six checks on every manifest before it goes anywhere.
+1. **Search for `limits` and `requests`.** Both absent is an automatic reject. Then ask where each number came from: a load-test figure is an answer, a sensible default is not.
+2. **Read the two probes and say what each tests.** The same path twice is one probe twice; either one touching the database is a no.
+3. **Check the image tag.** `latest` or a branch name means your rollback is imaginary.
+4. **Ask for the rollback command before you apply anything,** and confirm the previous ReplicaSet survives.
+5. **Make it render, not describe.** Generate plain YAML from the chart, read the objects, and find every secret in it.
 
-1. **Search the manifest for `limits` and `requests`.** Both absent is an automatic reject. Then ask where each number came from. "A sensible default" is not an answer; a figure from a load test is.
-2. **Read the two probes and say out loud what each one tests.** If they point at the same path, you have one probe twice. If either touches the database, say no.
-3. **Check the image tag.** If it is `latest` or a branch name, your rollback is imaginary.
-4. **Ask for the rollback command before you apply anything**, and confirm the previous ReplicaSet will still exist. A rollout with no tested rollback is a one-way door.
-5. **Find every secret in the YAML.** If a real credential is sitting in a Secret value in a file you are about to commit, stop. Base64 is not encryption.
-6. **Make it render, not describe.** For a Helm chart, generate the plain YAML and read the actual objects. Summaries omit exactly the fields that hurt you.
-
-Red flags: a manifest with no resource limits; probes that query a database; `latest` as an image tag; an HPA with a target but no maximum, so a traffic spike scales into a bill; a Service with no matching pod labels, which fails silently with zero endpoints; and a recommendation to install a service mesh or an operator before you have measured anything.
+Red flags: no resource limits; probes that query a database; `latest` as a tag; an HPA with no maximum, so a spike scales into a bill; a Service whose labels match no pod, failing silently with zero endpoints.
 
 ## Walkthrough
 1. Install a free single-node local cluster that runs inside Docker on your own laptop, plus the command-line client. No cloud account, no card, no bill. Confirm one node appears and is ready.

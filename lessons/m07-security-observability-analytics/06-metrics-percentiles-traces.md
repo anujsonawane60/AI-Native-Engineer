@@ -4,7 +4,7 @@ module: m07-security-observability-analytics
 slug: metrics-percentiles-traces
 title: "Metrics, Percentiles and p95; Traces and Spans"
 order: 6
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,19 +22,29 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team is told their app feels slow. They open their hosting dashboard, which proudly reports an average response time of 480 milliseconds, and conclude the complaint is wrong. Half a second is fine. They go back to building features.
+A team is told their app feels slow. Their dashboard reports an average response time of 480 milliseconds, so they conclude the complaint is wrong. Three weeks later they sit next to a user: her order takes nine seconds, twice, then is instant, then takes eleven and she gives up.
 
-Three weeks later they finally sit next to a user. Her order takes nine seconds, twice. Then it is instant. Then it takes eleven seconds and she gives up.
-
-Both things were true. The average was 480 milliseconds *and* one request in twenty took over four seconds. In a session where a student touches the app fifteen times, "one in twenty" means almost every student meets the slow version, more than once. The average was arithmetic about requests. The complaint was about people. The dashboard answered the wrong question confidently, which is worse than not answering.
+Both were true. The average was 480 milliseconds *and* one request in twenty took over four seconds. At fifteen taps a session, "one in twenty" means almost every student meets the slow version. The average was arithmetic about requests; the complaint was about people.
 
 ### The idea
 
 **An average describes your requests. A percentile describes your users — specifically the ones having the worst time.**
 
-Sort every request by duration. The p50, or median, is the one in the middle: half were faster. The p95 is the one 95% of the way along: one request in twenty was slower than this. The p99 is the worst one in a hundred.
+Sort every request by duration. The p50, or median, sits in the middle; the p95 is 95% of the way along, so one request in twenty was slower; the p99 is the worst in a hundred. Teams live by p95, because that is where complaints come from and it is still stable enough to chart.
 
-p95 is the number teams actually live by, because it is where real complaints come from and it is still stable enough to chart. p50 tells you what normal feels like. p99 tells you how bad your bad days are.
+| Type | What it does | Example | Read it as |
+|---|---|---|---|
+| Counter | Only goes up | Orders placed; errors returned | A rate: per minute, per hour |
+| Gauge | Goes up and down | Queue length; memory in use; open connections | The current value and its trend |
+| Histogram | Buckets many values so percentiles can be computed | Request duration | p50, p95, p99 |
+
+**You cannot get a p95 out of a counter or a gauge.** Percentiles require a histogram from the start, and "track response time" often produces one average and nothing else. Four charts are enough to begin with, from Google's site reliability work: **latency** as p50 and p95 per route, failed requests kept separate; **traffic** as requests per minute, so you can tell "no errors" from "no users"; **errors** as a percentage of traffic; **saturation**, how full the limiting thing is — usually database connections or a quota, not CPU.
+
+### The analogy
+
+The canteen's kitchen thermometer is a metric: one number read over and over, where the shape over time is the information. A single 180°C reading means nothing; 180°C and climbing when it should be 140°C is an incident. The queue's average wait of four minutes mixes 10:30am with 1pm, when the p95 wait is eighteen minutes and the student with a 1:15 lecture does not care about your average. The CCTV is a trace: fourteen of those eighteen minutes went at the payment counter, so hiring another server would have fixed nothing.
+
+**Where the analogy breaks:** a thermometer measures one oven; a metric summarises thousands of events, so it has already thrown information away. You cannot ask a metric "which student?" — that is what logs and traces are for.
 
 ### Picture it
 
@@ -48,42 +58,9 @@ p95 is the number teams actually live by, because it is where real complaints co
   mean = 480 ms  ◀── a number almost nobody experienced
 ```
 
-Requests laid out fastest to slowest show that the mean sits far to the left of the tail, which is why a 480-millisecond average and a four-second p95 are both honest descriptions of the same morning.
+Requests laid out fastest to slowest show the mean far to the left of the tail, which is why a 480-millisecond average and a four-second p95 describe the same morning.
 
-### The analogy
-
-The canteen's kitchen thermometer is a metric: one number, read over and over, and the shape over time is the information. A single reading of 180°C means nothing; 180°C and climbing when it should be 140°C is an incident.
-
-Now the queue. Average wait: four minutes. True, and useless, because it mixes 10:30am with 1pm. At 1pm the p95 wait is eighteen minutes, and the student who has a 1:15 lecture does not care about your average. If you wanted to fix the canteen you would staff for the 1pm p95, not the daily mean.
-
-And the CCTV is a trace. You can see the queue was eighteen minutes, but only the footage shows that fourteen of those minutes were spent at the payment counter, not at the serving counter — so hiring another server would have fixed nothing.
-
-**Where the analogy breaks:** a thermometer measures one oven, and a metric in software is a summary of thousands of events, so it has already thrown information away by the time you look at it. You cannot ask a metric "which student?" — that is what the logs and the trace are for. Each pillar answers its own question and refuses the others.
-
-### The three kinds of metric
-
-| Type | What it does | Example | Read it as |
-|---|---|---|---|
-| Counter | Only goes up | Orders placed; errors returned | A rate: per minute, per hour |
-| Gauge | Goes up and down | Queue length; memory in use; open connections | The current value and its trend |
-| Histogram | Buckets many values so percentiles can be computed | Request duration | p50, p95, p99 |
-
-The practical consequence: **you cannot get a p95 out of a counter or a gauge.** If you want percentiles, the measurement has to be recorded as a histogram from the start. This is a thing to ask for explicitly, because "track response time" will often produce a single average number and nothing else.
-
-### The four signals worth having first
-
-Before any clever dashboard, four charts. They come from Google's site reliability work and they have survived because they are enough.
-
-1. **Latency** — how long requests take, as p50 and p95, split by route. Keep failed requests separate; a fast failure makes your latency look great.
-2. **Traffic** — requests per minute. Without it you cannot tell "no errors" from "no users".
-3. **Errors** — the rate of failed requests, as a percentage of traffic. A count without a rate is meaningless at a growing user base.
-4. **Saturation** — how full the constrained thing is. For a student project that is usually database connections or your free tier's monthly quota, not CPU.
-
-If your dashboard has these four and nothing else, you are ahead of most teams. Charts of CPU and memory feel professional and almost never explain a user's complaint.
-
-### Traces and spans
-
-A metric says checkout's p95 is 9.2 seconds. It cannot say why. A **trace** is the end-to-end record of one request, broken into **spans** — one per step, each with a duration — so the nine seconds becomes a breakdown.
+A metric says checkout's p95 is 9.2 seconds but not why. A **trace** is the end-to-end record of one request, broken into timed **spans**.
 
 ```
   POST /orders                              total 9,240 ms
@@ -94,15 +71,17 @@ A metric says checkout's p95 is 9.2 seconds. It cannot say why. A **trace** is t
   └─ write order row              140 ms  ▌
 ```
 
-One request split into its steps shows that 85% of the nine seconds was spent waiting for an outside provider, so no amount of database tuning would have helped.
+One request split into steps shows 85% of the nine seconds spent waiting for an outside provider, so database tuning would not have helped.
 
-Two things jump out of a waterfall that nothing else shows you. First, time spent waiting on somebody else's system — which changes the fix from "make our code faster" to "add a timeout and show a pending state", which is M05's territory. Second, that `×14 queries` on one line: fourteen separate database round trips to check stock for an order with fourteen items. That pattern — one query per row instead of one query for all rows — is called an N+1, it is invisible in logs and metrics, it is extremely common in generated code, and a trace makes it obvious in one glance.
+Two things jump out of a waterfall and nowhere else. Time waiting on somebody else's system changes the fix from "make our code faster" to "add a timeout and show a pending state". And `×14 queries` is fourteen round trips for a fourteen-item order — one query per row instead of one for all. That pattern is an N+1: invisible in logs and metrics, extremely common in generated code.
 
 ### Where it lives
 
-These are pillars two and three from chapter four. M05 is the other half of this chapter: p95 and the latency numbers worth knowing, timeouts, retries, backoff and error budgets. An error budget is just a promise written in terms of these numbers — "99% of orders complete in under two seconds" — and it cannot exist until something measures them.
+These are pillars two and three from chapter four.
 
-Chapter seven turns these numbers into alerts, and that is where the four signals matter most: alerting on latency and error rate works, alerting on CPU does not. In M12 the same percentiles reappear as performance budgets on real devices, which is where the next point becomes unavoidable.
+- M05 — timeouts, retries, backoff and error budgets, which are promises written in these numbers ("99% of orders under two seconds") and cannot exist until something measures them
+- Chapter 7 — these numbers as alerts: alerting on latency and error rate works, alerting on CPU does not
+- M12 — the same percentiles as performance budgets on real devices
 
 ### Words to own
 
@@ -122,30 +101,24 @@ Chapter seven turns these numbers into alerts, and that is where the four signal
 
 ### Tradeoffs and gotchas
 
-**Measure where the user is, not where the server is.** Your server's p95 excludes the slow 4G between your server and a budget Android phone in Nashik. A 200-millisecond server p95 can be a six-second experience. Server metrics tell you about your code; only measurement in the browser or the app tells you about the user, and the gap between the two is often the whole problem.
-
-**A p95 is meaningless without saying of what, and when.** p95 across all routes mixes a static image with a payment. p95 across a whole day hides the 1pm spike. Always split by route, and look at the shape over time rather than one number for the week.
-
-**Percentiles cannot be averaged.** The average of Monday's p95 and Tuesday's p95 is not the p95 of those two days, and averaging p95 across three servers gives you a number with no meaning. This is a mistake AI makes in generated dashboards; if you see a "mean p95", something is wrong.
-
-**At low traffic, percentiles are noisy.** With 40 requests a day, your p95 is the second-slowest request, and one person on a train moves it. Early on, read it as a direction rather than a fact, and lean on traces and logs for specifics.
-
-**Tracing everything is unaffordable, so you sample.** Typically a small percentage of normal requests plus every request that errored or exceeded a threshold. The consequence to plan for: the exact request a user complains about probably has no trace, so you reproduce rather than retrieve.
-
-**Watch cardinality again.** Splitting latency by route is a handful of series. Splitting it by user id is one series per user, and that is how a free tier dies. Identifiers belong in logs and traces; categories belong in metrics.
+- **Measure where the user is, not where the server is.** Your server's p95 excludes the slow 4G to a budget phone in Nashik, so 200 milliseconds there can be a six-second experience.
+- **A p95 is meaningless without saying of what, and when.** p95 across all routes mixes a static image with a payment; p95 across a day hides the 1pm spike.
+- **Percentiles cannot be averaged.** Monday's p95 averaged with Tuesday's is not the p95 of those two days. AI makes this mistake in generated dashboards; a "mean p95" means something is wrong.
+- **At low traffic, percentiles are noisy.** With 40 requests a day your p95 is the second-slowest one. Read it as a direction, not a fact.
+- **Tracing everything is unaffordable, so you sample** — some normal requests plus everything that errored. The request a user complains about probably has no trace: you reproduce rather than retrieve.
 
 ### Verify it
 
-Ask AI for "monitoring" and you will often get a CPU chart and an average. Six checks.
+Ask AI for "monitoring" and you often get a CPU chart and an average.
 
-1. **Look for percentiles, not means.** If the dashboard shows average response time, that is the finding. **A dashboard with only averages** is the headline red flag of this chapter, because it looks like information and describes nobody.
-2. **Check there is an error rate, as a percentage of traffic.** A dashboard with latency and no errors cannot distinguish a healthy app from one returning instant failures very quickly.
-3. **Check traffic is on the same screen.** Zero errors with zero users is the most common false sense of health there is.
-4. **Confirm durations are recorded as histograms.** Ask directly: can this produce a p95, or only a mean? A mean cannot be converted into a percentile after the fact.
-5. **Find one real slow request and open its trace.** If you cannot get from "checkout is slow" to a span breakdown, you have metrics but not traces, and you will be guessing at causes.
-6. **Compare the server number with your own phone on a throttled connection.** Load the app with the network throttled to slow 4G and time it by hand. If the server says 200 milliseconds and your stopwatch says six seconds, you now know where to look.
+1. **Look for percentiles, not means.** **A dashboard with only averages** is the headline red flag here: it looks like information and describes nobody.
+2. **Check there is an error rate, as a percentage of traffic.** Latency with no errors cannot tell a healthy app from one failing instantly.
+3. **Check traffic is on the same screen.** Zero errors with zero users is the commonest false sense of health there is.
+4. **Confirm durations are recorded as histograms.** Can this produce a p95, or only a mean? A mean never becomes a percentile afterwards.
+5. **Find one real slow request and open its trace.** Without a span breakdown you are guessing.
+6. **Compare the server number with your own phone on a throttled connection.** Server says 200 milliseconds, stopwatch says six seconds: now you know where to look.
 
-Red flags: averages only; no error rate; **p95 measured only inside the server** and quoted as the user experience; latency charts that include failed requests, making outages look fast; a metric labelled with a user id or an order id; and CPU graphs presented as an answer to a complaint about slowness.
+Red flags: averages only; no error rate; **p95 measured only inside the server** but quoted as the user experience; latency charts including failed requests, making outages look fast; a metric labelled with a user id; CPU graphs offered as an answer to slowness.
 
 ## Walkthrough
 1. Open your deployed app's existing dashboard and write down every number it shows you. Mark each as a counter, a gauge or a percentile.

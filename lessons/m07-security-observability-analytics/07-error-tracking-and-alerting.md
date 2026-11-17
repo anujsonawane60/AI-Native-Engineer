@@ -4,7 +4,7 @@ module: m07-security-observability-analytics
 slug: error-tracking-and-alerting
 title: "Error Tracking, Uptime Monitors and Alerting Without Fatigue"
 order: 7
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -22,58 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team wires their app to a chat channel so they will know when something breaks. By week two the channel has 900 unread messages, most of them the same timeout that happens eleven times an hour and recovers by itself. Somebody muted the channel on day four. Everybody muted it by day six.
+A team wires their app to a chat channel so they will know when something breaks. By week two the channel has 900 unread messages, most of them the same timeout recovering by itself eleven times an hour. Everybody had muted it by day six.
 
-In week five the payment flow breaks completely. The alert fires. It arrives in a muted channel, between two identical timeout notices, and sits there for nine hours. They find out from a student in the canteen queue.
-
-A different team has no alerts at all and checks the app each evening. Their database free tier was exhausted on a Saturday morning; they found out on Sunday night, thirty-one hours in.
-
-Both teams failed at the same thing: deciding, in advance, what deserves a human.
+In week five the payment flow breaks completely. The alert fires into the muted channel and sits there nine hours; they find out from a student in the canteen queue. The failure was not technical — nobody had decided in advance what deserves a human.
 
 ### The idea
 
 **An alert is a promise that a human will do something, now. If there is no action, it is not an alert — it is a log line with ambition.**
 
-That single test removes most of what teams set up. Interesting? Dashboard. Needs attention this week? Ticket. Needs a person *right now* or users keep suffering? Alert. The mistake is sending everything to the third destination.
+Interesting? Dashboard. Needs attention this week? Ticket. Needs a person *right now* or users keep suffering? Alert.
+
+Everything an app records about itself goes silent when the app is dead, and silence looks like health. An **uptime monitor** is an outside service that requests a URL of yours every minute and reports when it stops answering. Point it at a **health endpoint** that does one small piece of real work and fails when that work fails. A monitor on your static home page says "up" through a total database outage; an endpoint that always returns success manufactures confidence.
 
 ### The analogy
 
-The canteen has a gas-leak alarm. It has sounded twice in six years, and both times the kitchen emptied in fifteen seconds, because that alarm means exactly one thing and everybody knows what to do.
+The canteen's gas-leak alarm has sounded twice in six years, and both times the kitchen emptied in fifteen seconds, because it means one thing. Now wire a second alarm to the toaster, sounding whenever bread browns. Within a week nobody hears either — the toaster alarm has not added noise, it has destroyed the gas alarm. Alert fatigue is the measurable fact that the fortieth notification of the day makes the forty-first invisible, including the real one.
 
-Now wire a second alarm to the toaster, sounding every time bread browns. Within a week nobody hears either. The toaster alarm has not merely added noise; it has destroyed the gas alarm, which was the one that mattered.
-
-Alert fatigue is not tiredness. It is the measurable fact that the fortieth notification of the day makes the forty-first invisible, including the one that was real.
-
-**Where the analogy breaks:** a gas alarm is single-purpose and cannot be tuned. Your alerts are yours to design, which is why "delete an alert nobody acts on" is a healthy weekly act rather than an admission of failure. The channel is a working tool, not a record, and it needs pruning.
-
-### Error tracking: from four thousand events to three issues
-
-Your logs record every failure as a separate line. An error tracker adds the one thing that makes errors usable: it **groups** them.
-
-It reads the shape of each failure — where it happened, what kind of error, the chain of calls — and computes a fingerprint. Four thousand failures with the same fingerprint become one **issue**, with a count of events and a count of distinct users affected. That second number decides priority: four thousand events from one bot is a shrug, forty events from forty students is an emergency.
-
-What a tracker gives you that raw logs do not:
-
-| Feature | What it means | Why it matters |
-|---|---|---|
-| Grouping | Identical failures become one issue | Three problems, not 4,000 lines |
-| User impact | How many distinct people hit it | Priority, not volume |
-| First and last seen | When it started; whether it is ongoing | "14 minutes after our deploy" |
-| Release tagging | Which version introduced it | The change to revert |
-| Breadcrumbs | The user's last actions before it broke | Reproducing without asking |
-| Regression detection | A resolved issue has returned | The fix did not hold |
-
-Release tagging deserves a note. An issue that first appeared fourteen minutes after a deploy, in that release only, has told you where the bug is without anybody reading code — which is worth more to you than to someone who wrote it themselves.
-
-### Uptime monitors: checking from outside
-
-Everything so far runs *inside* your app. If the app is completely down it reports nothing, and silence looks identical to health.
-
-An **uptime monitor** is a service elsewhere that requests a URL of yours every minute or two and tells you when it stops answering. It is the only check that survives your app being dead, and the cheapest useful thing in this chapter. Two details decide whether it is real or theatre.
-
-**What it requests.** A monitor hitting your home page — a static file on a CDN — reports "up" through a total database outage. Give it a **health endpoint** that does one small piece of real work, such as a trivial database query, and fails when that work fails. An endpoint that returns success unconditionally is worse than no monitor, because it manufactures confidence.
-
-**Where it checks from.** Pick a location near your users. A monitor in Virginia tells you little about a student in Nashik on 4G — the same argument as measuring p95 where the user is. Add a free **status page** if your platform has one; it turns "is it down for everyone?" into a link you send people.
+**Where the analogy breaks:** a gas alarm cannot be tuned. Your alerts are yours to design, which is why deleting an alert nobody acts on is a healthy weekly act, not an admission of failure.
 
 ### Picture it
 
@@ -101,29 +66,27 @@ An **uptime monitor** is a service elsewhere that requests a URL of yours every 
    runbook: what to check first, who to tell
 ```
 
-Failures are grouped before anyone is told, then routed by one question — is a person needed now — and only the "yes" branch reaches a human, carrying a runbook with it.
+Failures are grouped before anyone is told, then routed by one question — is a person needed now — and only "yes" reaches a human, carrying a runbook.
 
-### Alerting without fatigue
+An error tracker **groups** failures by a fingerprint computed from each one's shape, so four thousand failures become one **issue** with an event count and a count of distinct users. The second number decides priority: four thousand events from one bot is a shrug, forty from forty students is an emergency.
 
-Six rules. They are not opinions; each one is a specific failure mode that student teams hit within a month.
-
-**1. Alert on symptoms, not causes.** "Error rate above 5% for five minutes" is a symptom; users are feeling it. "CPU above 80%" is a guess about a cause, and it fires during every healthy traffic spike. Causes cannot be enumerated in advance; symptoms are a short, stable list — users getting errors, users waiting too long, the app not answering at all.
-
-**2. Every alert needs a duration.** "Error rate above 5%" fires on one bad second; "above 5% for five minutes" fires when something is wrong. Without a duration you get flapping — fire, resolve, fire, resolve — and a muted channel.
-
-**3. Two severities, not five.** *Page* means wake someone. *Notice* means look at it next session. A student team needs to know which messages may be read tomorrow, not a taxonomy.
-
-**4. Every alert carries a runbook line.** One sentence, written when you create the alert: what to check first, and who to tell. "DB connections exhausted → open the database dashboard, restart the app if above 18, tell the group." At 2am nobody invents this.
-
-**5. Start with two alerts.** Usually the uptime check failing for three minutes, and the error rate above a threshold for five. Add a third only after one of those has fired and been acted on. Teams that start with fifteen have fifteen muted alerts by month end.
-
-**6. Delete the ones nobody acts on.** Review the channel weekly. The honest question is not "is it interesting?" but "did anybody do anything?"
+| Feature | What it means | Why it matters |
+|---|---|---|
+| Grouping | Identical failures become one issue | Three problems, not 4,000 lines |
+| User impact | How many distinct people hit it | Priority, not volume |
+| First and last seen | When it started; whether it is ongoing | "14 minutes after our deploy" |
+| Release tagging | Which version introduced it | The change to revert |
+| Breadcrumbs | The user's last actions before it broke | Reproducing without asking |
+| Regression detection | A resolved issue has returned | The fix did not hold |
 
 ### Where it lives
 
-This is where chapter four's three pillars become somebody's phone buzzing. The error-rate and latency signals come from chapter six; the detail you open afterwards is chapter five's logs, which is why a request id on every line matters at 2am.
+This is where chapter four's pillars become somebody's phone buzzing. The error-rate and latency signals come from chapter six; the detail you open afterwards is chapter five's logs — which is why a request id matters at 2am.
 
-M05's error budgets are the mature version of rule one: you alert when you are burning your allowance of failures faster than the month can absorb. M06's CI is the other half — a test that fails before deploy is cheaper than an alert after it. M11's going-live checkpoint asks for working monitoring and alerting before you call the product live, and this mission is what you will show there. M12 revisits all of it as mobile crash reporting.
+- M05 — error budgets: alert when you burn failures faster than the month absorbs
+- M06 — CI: a test that fails before deploy is cheaper than an alert after it
+- M11 — the going-live checkpoint wants working alerting; this mission is what you show
+- M12 — all of it again as mobile crash reporting
 
 ### Words to own
 
@@ -142,29 +105,24 @@ M05's error budgets are the mature version of rule one: you alert when you are b
 
 ### Tradeoffs and gotchas
 
-**Alerting on causes is the most common design error.** CPU, memory, disk and queue depth all feel like the right things to watch and all fire when nothing is wrong. Watch what users feel; investigate causes afterwards.
-
-**A free tier can be your outage.** A database row limit, a log quota, an AI spend cap. None looks like a bug, none appears in an error tracker before it bites, and all of them stop your app. Put your nearest quota on the dashboard; it is a strong candidate for your third alert.
-
-**One person on call, in writing, one week at a time.** In a group of three this is a rota in your team agreement, not "we all watch it". Shared responsibility is how an alert goes unanswered with three people awake.
-
-**Error trackers have event quotas too.** A loop reporting an exception per item can consume a month's free events in an afternoon, and a user's wrong password is not an error.
-
-**Do not alert on the p99.** It moves for one person on a train. Alert on the error rate and on a p95 that stays bad for several minutes.
-
-**Resolve means fixed, not hidden.** An issue marked resolved that reappears forty times teaches the team to ignore the tracker.
+- **Alert on symptoms, not causes.** "Error rate above 5% for five minutes" is something users feel; "CPU above 80%" is a guess that fires on every healthy spike. Nor the p99 — it moves for one person on a train.
+- **Every alert needs a duration and a runbook line.** No duration means flapping and a muted channel. The runbook is one sentence — "DB connections exhausted → open the database dashboard, restart if above 18, tell the group" — because at 2am nobody invents one.
+- **Two severities, and start with two alerts.** *Page* means wake someone; *notice* means next session. Begin with the uptime check failing three minutes and the error rate above a threshold for five. Start with fifteen, get fifteen muted alerts.
+- **Delete the ones nobody acts on,** weekly, asking not "is it interesting?" but "did anybody do anything?" Resolve means fixed, not hidden.
+- **A free tier can be your outage.** A row limit, a log quota, an AI spend cap — none looks like a bug and all stop your app. Error trackers have quotas too.
+- **One person on call, in writing, one week at a time.** Shared responsibility is how an alert goes unanswered with three people awake.
 
 ### Verify it
 
-Five checks, and the first two catch almost everything a generated setup gets wrong.
+The first two checks catch most generated mistakes.
 
-1. **Read your alert channel for the last week and count the actions taken.** If twenty messages produced zero actions, you have **an alert that fires so often nobody reads it** — the headline red flag of this chapter. Tune or delete it today.
-2. **Break your health endpoint and confirm the uptime monitor notices.** Point its database check at a wrong address. If the monitor still reports "up", it is checking a static page or returning success unconditionally — a common generated shape, and pure theatre.
-3. **Cause one real error and follow it end to end.** Did the tracker group it, name the release, show the user count and leave breadcrumbs? Could you then find the matching log lines by request id?
-4. **Read every alert's runbook line.** If one has none, write it or delete the alert. Then hand it to a teammate to follow without you; anything they cannot do is missing from the line.
-5. **Check the quota on every free tier you depend on**, and write down the date each runs out at current usage.
+1. **Read your alert channel for the last week and count the actions taken.** Twenty messages and zero actions means **an alert that fires so often nobody reads it** — the headline red flag here.
+2. **Break your health endpoint and confirm the monitor notices.** If it still says "up", it is checking a static page or always returning success: pure theatre.
+3. **Cause one real error and follow it end to end.** Did the tracker group it, name the release, show the user count, leave breadcrumbs? Can you find the log lines by request id?
+4. **Read every alert's runbook line,** then hand it to a teammate to follow without you. If an alert has no runbook line, write it or delete the alert.
+5. **Check the quota on every free tier you depend on** and note when each runs out at current usage.
 
-Red flags: every error event forwarded straight to chat with no grouping; a health endpoint that always returns success; alerts on CPU with no user-facing symptom; errors grouped per user so one bug appears as four hundred issues; no duration on any threshold; and "we all watch the channel" instead of a named on-call.
+Red flags: error events forwarded straight to chat with no grouping; a health endpoint that always returns success; alerts on CPU with no user-facing symptom; errors grouped per user, so one bug looks like four hundred issues; no duration on any threshold; "we all watch the channel" instead of a named on-call.
 
 ## Walkthrough
 1. Write down the three worst things that could happen to your product this month, in user terms: "nobody can place an order", "payments silently fail", "the app does not load at all".

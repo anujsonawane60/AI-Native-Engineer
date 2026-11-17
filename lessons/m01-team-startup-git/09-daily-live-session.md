@@ -4,7 +4,7 @@ module: m01-team-startup-git
 slug: daily-live-session
 title: "The Daily Live Session: Standups, Blockers and Reviews"
 order: 9
-duration_min: 20
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -24,27 +24,19 @@ last_reviewed: 2026-11-16
 
 A group joins the live session every day for two weeks. Each day, each person says "yeah, still working on the frontend" and the session moves on.
 
-In week three it emerges that one of them has been stuck on the same deployment error for nine days. They did not raise it because it felt like something they should be able to solve, and every day the admission got slightly more embarrassing. Nine days became a sunk cost that made it harder to mention, not easier.
-
-The error took four minutes to fix once it was said out loud.
-
-This is the single most common way a self-paced learner loses a month, and the session exists specifically to prevent it.
+In week three it emerges that one of them has been stuck on the same deployment error for nine days. They did not raise it because it felt like something they should be able to solve, and each day the admission got more embarrassing. The error took four minutes to fix once said out loud. This is the commonest way a self-paced learner loses a month.
 
 ### The idea
 
 **The daily session is for the things that are slow or impossible alone: being unblocked, having your reasoning checked, and showing work to someone who will be honest about it.**
 
-Reading lessons is something you do alone. Briefing an agent is something you do alone. Discovering that your entire approach is wrong is much faster with another person in the room.
+Reading lessons and briefing an agent are things you do alone. Discovering that your entire approach is wrong is much faster with another person in the room.
 
 ### The analogy
 
-A canteen has a five-minute huddle before lunch rush.
+A canteen has a five-minute huddle before lunch rush. Nobody reports their whole plan; they say three things — cylinder is low, the paneer did not arrive, we are short one at the counter — decide who handles what, and start. The huddle is for **exceptions**: nobody says "I will be cooking today." A huddle where everyone describes their normal day is one people stop attending.
 
-Nobody reports their whole plan. They say three things: gas cylinder is low, the paneer did not arrive, and we are short one person at the counter. Then they decide who deals with what, and they start.
-
-What makes it work is that the huddle is for **exceptions**. Nobody says "I will be cooking today." The norm is assumed; only the deviations are spoken. A huddle where everyone describes their normal day is a huddle people stop attending.
-
-**Where the analogy breaks:** the canteen's huddle is purely operational. Your session has a second half that a canteen does not need — reviewing each other's reasoning and architecture, which is where most of the actual learning in this program happens.
+**Where the analogy breaks:** the canteen's huddle is purely operational. Your session has a second half a canteen does not need — reviewing each other's reasoning and architecture, where most of the learning happens.
 
 ### Picture it
 
@@ -67,11 +59,7 @@ What makes it work is that the huddle is for **exceptions**. Nobody says "I will
   └────────────────────────────────────────────────────┘
 ```
 
-The shape matters less than the two bookends: blockers surfaced at the start, and something shown at the end. Everything in the middle is work that happens to be done in the same room.
-
-### The three-sentence standup
-
-A useful update has exactly three parts. Longer is not better.
+The shape matters less than the two bookends: blockers surfaced at the start, something shown at the end. A useful update has exactly three parts, and longer is not better.
 
 ```
 1. Yesterday I <finished / got to>  — checkable, not "worked on"
@@ -79,48 +67,19 @@ A useful update has exactly three parts. Longer is not better.
 3. I am blocked on <X> / not blocked — say it plainly
 ```
 
-Compare:
-
 | Weak | Strong |
 |---|---|
 | "Still working on the frontend" | "Got the menu rendering from real data. Today: the order form. Not blocked." |
 | "Doing the backend stuff" | "Orders now save to Supabase. Today: making staff-only actually staff-only. Blocked on how to check the role server-side." |
 | "Nothing much, had classes" | "Nothing shipped — two labs. Today: one hour on the order form. Not blocked." |
 
-The third weak example and the third strong one describe the same day. The difference is that one is checkable and one invites nothing.
-
-Say the blocker even when it feels small. The nine-day deployment error was never once mentioned, because every individual day it seemed like it would be solved in the next hour.
-
-### Raising a blocker properly
-
-A blocker raised well gets solved in the session. Raised badly, it consumes twenty minutes of guessing.
-
-Bring four things:
-
-**What I am trying to do.** One sentence of intent, not a description of your code.
-**What I expected to happen.**
-**What actually happened.** The exact error text, not a paraphrase. Paraphrased errors are unsearchable and often wrong.
-**What I have already tried.** So nobody suggests the first three things you did.
-
-This is the same shape as good feedback to an agent in M00: symptom, expected versus actual, one thing at a time. The skill transfers in both directions, which is not a coincidence — you are learning to describe a problem precisely, and it works on people and on models.
-
-**The two-hour rule:** if you have been stuck on the same thing for two hours with no progress, it stops being your problem and becomes the group's. Not a day. Two hours.
-
-### What to do when you have nothing to show
-
-This will happen — exams, a week where everything broke, a stretch of reading. Two failure modes to avoid.
-
-**Do not skip the session.** The day you have nothing is the day the session is most valuable, because that is usually the day you are stuck and have not said so.
-
-**Do not invent progress.** "Still working on it" for the fourth day running is a blocker wearing a disguise. Say the true thing: "Three days on this deploy error, no progress, I need help."
-
-A legitimate update is "I read the caching chapter and wrote my brief; nothing is built yet." Learning is work. Pretending is not.
+The third weak example and the third strong one describe the same day; one is checkable and one invites nothing.
 
 ### Where it lives
 
-The session is where several threads in this program become real rather than theoretical. The role split from chapter 1 shows up as who answers which question. The PR reviews from chapter 8 happen here, with the author in the room — which is enormously faster than comment threads. The decision log from the next chapter is written at the end of the session, while the decision is still fresh.
+A blocker raised well gets solved in the session. Bring four things: **what I am trying to do** (intent, not a description of your code), **what I expected**, **what actually happened** with the exact error text rather than a paraphrase, and **what I already tried**. That is the same shape as good feedback to an agent in M00 — precise problem description works on people and on models. **The two-hour rule:** two hours stuck with no progress makes it the group's problem, not a day.
 
-It is also the honest answer to the biggest weakness of self-paced learning. The lessons are text, read alone. The session is where someone notices you have misunderstood something, which is the thing text cannot do.
+Several threads in this program become real here. The chapter 1 role split shows up as who answers which question. Chapter 8's PR reviews happen with the author in the room, far faster than comment threads. The next chapter's decision log is written at the end, while the reason is fresh. And it answers the weakness of self-paced learning: text cannot notice that you have misunderstood something.
 
 ### Words to own
 
@@ -137,28 +96,28 @@ It is also the honest answer to the biggest weakness of self-paced learning. The
 
 ### Tradeoffs and gotchas
 
-**Standup is for exceptions, not status.** If all three of you describe your whole day, it takes forty minutes and nobody listens to the third person. Three sentences each.
+**Standup is for exceptions, not status.** Three people describing a whole day takes forty minutes and nobody listens to the third.
 
-**Do not debug in the standup.** The moment someone says "oh, that's because…" and a technical discussion starts, the other person stops existing. Note it and take it to the unblock slot. This is the discipline that keeps ten minutes at ten minutes.
+**Do not debug in the standup.** The moment someone says "oh, that's because…", the other person stops existing. Note it, take it to the unblock slot; that is what keeps ten minutes at ten minutes.
 
-**Attendance is not participation.** Being present with your camera off and nothing to say is not the same as being in the session. The measure is whether you said a true thing and showed something.
+**On a day with nothing to show, come anyway and say the true thing** — that is usually the day you are stuck and have not said so. "Still working on it" for the fourth day is a blocker in disguise; "I read the caching chapter and wrote my brief, nothing is built yet" is legitimate. Learning is work, pretending is not.
 
-**The quiet one needs asking directly.** In a group of three, one person usually talks least and is often most stuck. "What are you blocked on?" is a better question than "anything to add?", because the second one is answerable with "no".
+**The quiet one needs asking directly.** In a group of three the person who talks least is often the most stuck, and "what are you blocked on?" beats "anything to add?", which is answerable with "no".
 
-**Explaining it out loud solves a startling number of problems.** You will begin describing a bug and realise the answer halfway through the sentence. This is not a waste of the group's time; it is one of the reasons the session works.
+**Explaining it out loud solves a startling number of problems**, often halfway through the sentence. That is one reason the session works.
 
-**Mentors are for judgement, not answers.** "What is the error in line 12" is a question for your agent, and it will answer faster. "Is this the right architecture for what we are trying to do" is a question for a human, and the agent will tell you yes regardless. Spend the human time on the second kind.
+**Mentors are for judgement, not answers.** "What is the error on line 12" is for your agent; "is this the right architecture" is for a human, because the agent will say yes regardless.
 
 ### Verify it
 
-Four checks on your own session habit, honestly, at the end of a week.
+Four checks on your own session habit, at the end of a week.
 
-1. **Did every person name a blocker or say plainly that they had none, every day?** Vague answers are the warning sign, not silence.
+1. **Did every person name a blocker or say plainly they had none, every day?** Vague answers are the warning sign, not silence.
 2. **Did anything get shown working?** Five days of discussion with nothing demonstrated means the session has become a meeting.
-3. **Was anyone stuck for more than a day on something they did not raise?** Ask directly. This is the failure the session exists to catch, and it hides.
-4. **Were decisions written down?** If the same question is debated twice in one week, the answer was not recorded.
+3. **Was anyone stuck more than a day on something they did not raise?** Ask directly. This is the failure the session exists to catch, and it hides.
+4. **Were decisions written down?** The same question debated twice in one week means the answer was not recorded.
 
-A useful question to ask yourself before joining: **what is the one thing I need from another human today?** If the answer is nothing, you are probably about to say "still working on it."
+Red flag: you join with nothing you need from another human. That is usually the day you say "still working on it."
 
 ## Walkthrough
 1. Agree a fixed daily time with your team and write it in `TEAM.md`. A time that moves is a time people miss.

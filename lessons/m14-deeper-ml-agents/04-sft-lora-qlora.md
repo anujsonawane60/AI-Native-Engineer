@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: sft-lora-qlora
 title: "SFT, LoRA and QLoRA in Practice"
 order: 4
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -19,32 +19,23 @@ last_reviewed: 2026-11-16
 - Catch a tune that learned your format and lost the ability it used to have
 
 ## Lesson
-
 ### The pain
 
-M09 chapter 11 put LoRA in a glossary with the note "practised in M14". Chapter 3 of this module decided whether you belong on this rung at all. This chapter is the practice, and what is new is that the hard part is not the training — it is the file of examples and the comparison afterwards.
+M09 chapter 11 put LoRA in a glossary noting "practised in M14"; chapter 3 decided whether you belong on this rung. New here is the practice — and the hard part is the example file, not the training.
 
-The shape of the failure is specific. A team has 900 examples of support messages and the ideal reply in their house style. They run a QLoRA fine-tune on a free notebook GPU. The loss falls beautifully from 2.1 to 0.4. Everyone is pleased.
-
-Then they use it. Every reply is in the house style — including the replies to questions the model should have refused, and including a reply to "what is 15% of ₹240" which now reads in perfect house style and says ₹42. Worse, nobody ever ran the well-prompted original model on the same thirty cases, so they cannot say whether two weekends of work improved anything at all.
-
-Three separate defects, all invisible in the loss curve. The loss was computed over the prompts as well as the answers, so the model partly learned to generate support messages rather than to answer them. The 900 examples all came from one month and one category, so it learned that category. And there was no baseline, so "better" was never a number.
+A team tunes 900 house-style support replies with QLoRA on a free notebook GPU; loss falls from 2.1 to 0.4. Then they use it: every reply is in house style, including the ones it should have refused, and "15% of ₹240" now says ₹42. Three defects, none visible in the loss curve — loss computed over prompts too, every example from one month, and no prompted baseline.
 
 ### The idea
 
 **A fine-tune is chapter 1's loop with almost every weight frozen, and the thing you are really designing is the example file.**
 
-Full supervised fine-tuning updates every weight, which needs several times the model's size in memory. **LoRA** freezes the base model and trains two small matrices beside each targeted layer — a few million extra numbers instead of billions — producing an **adapter** file of a few megabytes. **QLoRA** adds one more trick: hold the frozen base in 4-bit to halve its memory again, and train the adapter in higher precision on top. That combination is what puts a 1-to-3-billion-parameter instruct model inside a free notebook GPU.
+Full fine-tuning updates every weight and needs several times the model's size in memory. **LoRA** freezes the base and trains two small matrices beside each targeted layer, producing an **adapter** of a few megabytes. **QLoRA** holds the frozen base in 4-bit, halving memory again — which is what fits a 1-to-3-billion-parameter instruct model inside a free notebook GPU.
 
 ### The analogy
 
-The canteen hires an experienced cook who can make three hundred dishes. You need every plate presented a particular way: the chutney at four o'clock, the papad leaning left, the name card in Marathi.
+The canteen hires a cook who knows three hundred dishes; you need every plate presented one way. Full fine-tuning sends the cook away for six months. LoRA is a laminated card clipped to the counter: skills untouched, one thin layer at plating time. QLoRA reprints the recipe book smaller to fit your shelf.
 
-Full fine-tuning is sending the cook away for six months of retraining. LoRA is a laminated card clipped to the counter: the cook's skills untouched, one thin layer of instruction applied at the moment of plating. The card is small, you can keep ten of them for ten different events, and you can remove it in a second.
-
-QLoRA is the same card, used in a kitchen where the recipe book has been reprinted in smaller type to fit on the shelf you actually have. Mostly fine. Occasionally a number is harder to read.
-
-**Where the analogy breaks.** The card is clipped on the outside, but a LoRA adapter sits *inside* the cook's hands. Train it on plating and you may find the cook also became worse at tasting, because the adapted layers are the same layers that did the tasting. A card cannot do that; an adapter can, and chapter 3 named it catastrophic forgetting.
+**Where it breaks.** The card is clipped outside; an adapter sits inside the cook's hands — train it on plating and tasting gets worse.
 
 ### Picture it
 
@@ -68,35 +59,30 @@ The base model's weights stay frozen in 4-bit while two small matrices beside ea
 
 ### The example file is the project
 
-Everything that matters about your result is decided here, before any GPU time.
-
-**Shape.** One row per example, each with the instruction the user would send and the response you want, rendered through the exact chat template of the model you are tuning. A template mismatch between training and serving is the single most common silent failure: the model trained with one set of turn markers and is served with another, and quality collapses for no visible reason.
-
-**Loss on the answer only.** Mask the prompt tokens so the loss is computed over the response. Train on both and the model spends half its learning capacity getting better at generating the kind of question users ask, which you do not want and will not notice in the loss curve.
-
-**Volume and diversity.** Five hundred to five thousand well-chosen examples is the useful range for behaviour. Diversity beats volume by a wide margin: 400 examples spread across every category, length and awkward edge case will beat 4,000 from one month and one topic. Chapter 2's whole discipline applies — agreement, deduplication, a split rule, a dataset card.
-
-**The examples you must include deliberately.** Refusals, so the tune does not teach the model to answer everything. Short inputs and very long ones. At least a few in every language your users actually write in. And the cases your prompted baseline already gets wrong, since those are the reason you are here.
+- **Shape** — instruction and wanted response, rendered through the exact chat template of the model you are tuning
+- **Loss on the answer only** — mask the prompt tokens, or half the capacity learns to generate questions
+- **Volume and diversity** — 400 rows across every category beat 4,000 from one month
+- **Include deliberately** — refusals, very short and very long inputs, every user language, and the cases your baseline already fails
 
 ### The four knobs
 
-**Rank.** The size of the two small matrices. Low rank means fewer trainable numbers and a smaller behavioural change; higher rank means more capacity and more risk of forgetting. Start low — 8 or 16 — and only raise it if the eval says the tune is underfitting. Rank is not a quality dial you turn up.
-
-**Target modules.** Which layers get adapters. Attention projections are the usual choice; adding the feed-forward layers increases capacity and memory. Changing this changes your results more than rank does, and most AI-written configs copy whatever was in a blog post.
-
-**Learning rate.** Higher than full fine-tuning, because far fewer parameters are moving — the common range is around one ten-thousandth, where full tuning sits ten times lower. This is the one knob worth a three-run sweep.
-
-**Epochs.** One to three. Beyond that a small example file is memorised, and the symptom is a model that reproduces training answers verbatim and generalises worse. Watch validation loss, keep the best checkpoint, exactly as in chapter 1.
+- **Rank** — start at 8 or 16; raise only if the eval says underfitting
+- **Target modules** — attention projections usually; moves results more than rank does
+- **Learning rate** — around one ten-thousandth, higher than full tuning; worth a sweep
+- **Epochs** — one to three; beyond that a small file is memorised
 
 ### Tools today
 
-A free notebook GPU with roughly 15 GB handles QLoRA on an open-weight instruct model of 1 to 3 billion parameters comfortably, and 7 to 8 billion at short sequence lengths with patience. The ecosystem is Hugging Face Transformers with PEFT for the adapters and bitsandbytes for 4-bit loading, plus a trainer wrapper that handles chat templates and answer-only loss masking. All of those names, and every free-tier limit, change — check them this week.
+A free notebook GPU with roughly 15 GB handles QLoRA on an open-weight instruct model of 1 to 3 billion parameters comfortably, and 7 to 8 billion at short sequence lengths with patience. The ecosystem is Hugging Face Transformers with PEFT for adapters and bitsandbytes for 4-bit loading, plus a trainer wrapper that handles chat templates and answer-only loss masking. All those names and every free-tier limit change — check them this week.
 
 ### Where it lives
 
-Chapter 1 gave you the loop this reuses. Chapter 2 gave you the data discipline the example file needs. Chapter 3 decided you should be here. From here, chapter 5 covers the preference-tuning rung above, chapter 6 quantizes the merged result for cheap hardware, chapter 7 serves it, chapter 10 builds the regression suite that keeps it honest, and chapter 13 versions the adapter alongside the base model and the data.
+The artefact is an adapter loaded beside a base model at serving time — swappable per customer — or one merged file.
 
-In your product, the artefact is either an adapter loaded beside a base model at serving time — which lets you swap behaviours per customer from one deployment — or an adapter merged into the base to produce a single model file. Keep them separate while experimenting; merge only when serving demands it.
+- Chapters 1 to 3 — loop, data, decision
+- Chapter 5 — the preference rung above
+- Chapters 6, 7 — quantizing and serving
+- Chapters 10, 13 — regression suite, versioning
 
 ### Words to own
 
@@ -117,30 +103,24 @@ In your product, the artefact is either an adapter loaded beside a base model at
 
 ### Tradeoffs and gotchas
 
-**You are not allowed to skip the prompted baseline.** Before the tune, run your best prompt — with few-shot examples and a cached stable prefix — over the same eval set and record the score. A tune that does not beat it by a margin you can see is two weekends you should take back. This is the single most skipped step in the chapter.
+**You are not allowed to skip the prompted baseline.** Run your best prompt over the same eval set first. A tune that does not beat it visibly is two weekends you should take back.
 
-**A falling loss is not a result.** Loss measures agreement with your example file, including its mistakes and its narrowness. The only number that counts is the eval score, and it frequently moves in the opposite direction to loss.
+**A falling loss is not a result.** Loss measures agreement with your example file, mistakes and narrowness included. Only the eval score counts, and it often moves the other way.
 
-**Test the skills you did not tune.** Before and after, run a small fixed set of unrelated tasks: a little arithmetic, a refusal case, something in another language, a reasoning question. If any of them degrade, lower the rank, reduce the epochs, or add those capabilities back into the example file.
-
-**The chat template must be byte-identical at training and serving.** It is the quietest and most expensive bug here. Print one fully rendered training example and one fully rendered serving prompt and compare them character by character.
-
-**Keep the adapter, keep the config, keep the data version.** An adapter without the base model version, the rank, the target modules and the data file version is an artefact nobody can reproduce — including you in three weeks. Chapter 13 formalises this; start the habit now.
-
-**Fine-tuning will not install facts.** It is worth repeating here because this is where people try. If your eval failures are about current information, go back to chapter 3 and down to rung 3.
+**The chat template must be byte-identical at training and serving.** An adapter without its base version and data file cannot be reproduced.
 
 ### Verify it
 
 AI will produce a working QLoRA script in one reply. Verifying it is six checks.
 
-1. **Find the loss masking.** Ask which tokens the loss is computed over and demand to see the line. If prompts are included, the tune is learning the wrong half.
-2. **Print one fully rendered training example.** Not the raw row — the final string with every turn marker. Then print the serving prompt and compare them.
-3. **Demand the prompted baseline score before training.** Same eval set, best prompt, written down. No baseline, no decision.
-4. **Ask which modules were targeted and why.** A config that cannot justify its target list was copied.
-5. **Ask what the untouched-capability check is.** A named set of tasks unrelated to the tune, scored before and after.
-6. **Check the example file against chapter 2.** Row count, category spread, duplicates, refusals present, every language your users use present.
+1. **Find the loss masking** and demand the line — prompts included means the tune learned the wrong half.
+2. **Print one rendered training example** and compare it to the serving prompt.
+3. **Demand the prompted baseline score before training.**
+4. **Ask which modules were targeted and why** — a config that cannot justify its targets was copied.
+5. **Ask for the untouched-capability check** — arithmetic, a refusal, another language, scored before and after.
+6. **Check the file against chapter 2:** spread, duplicates, refusals, languages.
 
-Red flags: a loss curve presented as the result; no prompted baseline anywhere; the eval set drawn from the same narrow slice as the training file; loss computed over prompts; a chat template that differs between the notebook and the app; rank raised to 64 "for better quality"; an adapter with no record of its base model version; and a fine-tune proposed again after the first one failed, with more data as the only change.
+Red flags: a loss curve as the result; no prompted baseline; an eval set from the training file's slice; a chat template differing between notebook and app; rank 64 "for quality".
 
 ## Walkthrough
 1. Open your chapter 3 decision-log entry and re-read the falsifiable test you wrote. The number in it is what this chapter has to beat.

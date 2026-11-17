@@ -4,7 +4,7 @@ module: m06-cloud-linux-devops-testing
 slug: what-the-cloud-is
 title: 'What "the Cloud" Is: IaaS, PaaS, SaaS, BaaS and Serverless'
 order: 5
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,37 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Three teams build the same canteen pre-ordering app in the same week.
-
-The first rents a bare virtual machine because a video said real engineers do. They spend nine days on Linux, a web server, a database install, certificates, a firewall and a service file. The app is a weekend's work and is not started. Their free-tier credit is being consumed by an idle machine.
-
-The second uses a platform where they connect their repository and it deploys. The app is live on day two. On day nine they are testing with real students.
-
-The third writes their backend as a handful of functions that only run when called. Live on day two as well, costing nothing while nobody uses it. Then a student loads the menu after a quiet hour and waits three seconds for the first response, because the function had to be woken up.
-
-None of the three made a mistake, exactly. They made different trades, and only one of them chose deliberately.
+Three teams build the same canteen pre-ordering app in one week. The first rents a bare virtual machine and spends nine days on Linux, a web server, a database, certificates and a firewall. The app itself is a weekend's work, and is not started. The second connects their repository to a platform that deploys it: live on day two. The third writes functions that run only when called — also live, costing nothing, and a student loading the menu after a quiet hour waits three seconds. Three trades; one deliberate choice.
 
 ### The idea
 
 **"The cloud" is a ladder of rentals, and each rung up hands more of the boring responsibility to someone else in exchange for less control and more lock-in.**
 
-At the bottom you rent a machine and everything on it is yours to manage. At the top you rent the execution of one function for the two hundred milliseconds it runs. Every hosting decision you will ever make is a choice of rung, and the question is never "which is best" but "what do I want to stop being responsible for this month".
+At the bottom you rent a machine and everything on it is yours; at the top you rent one function for the 200 milliseconds it runs. The question is never "which is best" but "what do I want to stop being responsible for this month".
 
 ### The analogy
 
-The canteen ladder, bottom to top.
+The canteen ladder, bottom to top. **Rent an empty shop** and you bring the stove, gas, cook and licence — total control, and you fix the plumbing at midnight: IaaS, a virtual machine. **Rent a fitted kitchen**, bring only the recipes: PaaS. **Order cooked food by the plate**: SaaS. **Use a shared central kitchen** doing rice, dal and billing while you cook your one dish: BaaS — hosted auth, database and storage. **Hire a cook paid per dish who goes home between orders**: serverless.
 
-**Rent an empty shop.** You bring the stove, the gas, the cook, the menu and the licence. Total control; you also fix the plumbing at midnight. That is IaaS — Infrastructure as a Service — a virtual machine.
-
-**Rent a fitted kitchen.** Stove, gas line, sink and exhaust are there and maintained. You bring the recipes and the cooking. That is PaaS — Platform as a Service.
-
-**Order the cooked food.** You do not run a kitchen at all; you pay per plate and eat. That is SaaS — Software as a Service — what your users do when they use your product, and what you do when you use a spreadsheet or an email service.
-
-**Use a shared central kitchen that handles rice, dal and billing for every stall.** You cook only your one special dish; the common parts come ready. That is BaaS — Backend as a Service — hosted authentication, database, file storage and real-time updates.
-
-**Hire a cook who is paid per dish and goes home between orders.** No standing cost, and a few minutes of delay on the first order after a quiet spell. That is serverless.
-
-**Where the analogy breaks:** a fitted kitchen you have rented stays rented and stays yours for the month. A cloud platform can change its free-tier limits, deprecate a feature, or raise a price with thirty days' notice, and your product is built on it. The landlord in this analogy can rearrange the kitchen while you are cooking — which is the real reason the lock-in question matters.
+**Where the analogy breaks:** a kitchen you rent stays yours for the month. A provider can change free-tier limits, deprecate a feature or raise a price with thirty days' notice while your product sits on it.
 
 ### Picture it
 
@@ -76,9 +58,9 @@ The canteen ladder, bottom to top.
    Linux        code         features      functions    team
 ```
 
-The double line in each column is the handover point: everything above it is your responsibility and everything below it is the provider's, and the line climbs as you move right.
+The double line in each column is the handover point: above it is your responsibility, below it is the provider's, and the line climbs as you move right.
 
-### What you stop owning, rung by rung
+### Where it lives
 
 | Rung | You stop managing | You give up | Typical student use |
 |---|---|---|---|
@@ -88,23 +70,7 @@ The double line in each column is the handover point: everything above it is you
 | Serverless | Capacity planning entirely | Long-running work, warm state | Webhooks, cron, light APIs |
 | SaaS | Everything | All of it; you are a user | Email, analytics, payments |
 
-The useful reading of this table is downward through column two. Every row is work you are not doing. For a team of three students with two hours a day, work you are not doing is the only resource you have.
-
-### Serverless, and the cold start
-
-Serverless means your code is not running until something calls it. A request arrives, the provider starts a container with your function in it, runs it, returns the answer, and after a while of nothing happening, shuts it down.
-
-The consequence is the **cold start**: the first request after an idle period waits for that container to be created. Depending on the language and the provider this is typically somewhere between a hundred milliseconds and a few seconds. Subsequent requests are fast, because the container is still warm.
-
-Who this hurts matters. A webhook from a payment provider does not care about two seconds. A background job does not care. A student on slow 4G tapping your menu at 11 a.m., when nobody has used it since yesterday, cares a great deal — and in India, where your user is already paying a 4G round trip, you are stacking one delay on another. The honest rule: serverless is excellent for work triggered by machines and for traffic that is steady; it is a judgement call for the first human interaction of the day.
-
-It is also the rung where cost is most directly tied to use, which is why it is both the cheapest at zero traffic and the one that can surprise you in chapter 7.
-
-### Where it lives
-
-Your product will almost certainly sit on more than one rung at once, and that is correct. A typical student stack in this program: a PaaS running the web app, a BaaS providing login and the database from M04, serverless functions handling payment webhooks, and SaaS for email and analytics. One IaaS VM, maybe, for an experiment.
-
-M04's database, auth and file uploads are BaaS decisions. M05's load balancers and replicas are things PaaS and above do for you. Chapter 6 maps the actual services; chapter 7 maps what they cost; chapter 8's containers are how you keep the option of moving down the ladder later. M13 is where you deliberately climb back down for control you have earned a reason to want.
+Read column two downward: every row is work you are not doing, and for a team of three that is the only resource you have. Your product will sit on several rungs at once: a PaaS web app, BaaS login and database from M04, serverless payment webhooks, SaaS email. Chapter 6 maps the services; chapter 7 what they cost.
 
 ### Words to own
 
@@ -124,28 +90,21 @@ M04's database, auth and file uploads are BaaS decisions. M05's load balancers a
 
 ### Tradeoffs and gotchas
 
-**Start as high up the ladder as you can stand.** This is the single most useful piece of advice in the module. You have two hours a day and six months. Every hour spent patching Linux is an hour not spent on the thing only your team can build. Climb down later, with a reason, which is what M13 is for.
-
-**Convenience is paid for in lock-in, and the bill comes due at migration.** A hosted auth and database service can save your team three weeks. It also means your users' identities and your data model live in that provider's shape. The practical mitigation is not avoidance; it is knowing which parts are portable. Your business logic should not know which provider stores the rows.
-
-**Free tiers are real, generous, and move.** Every number you read about a free tier — request counts, build minutes, database size, bandwidth — is true on the day it was written and may not be true today. Quote the dashboard, not the blog post, and never let an AI's remembered figure be the basis of a plan. This chapter is marked for frequent review for exactly that reason.
-
-**Serverless does not fit long work.** Functions have an execution time limit. Video processing, a large export, a slow third-party call — these will be cut off mid-run. That work belongs in a queue with a worker, which M04 covered.
-
-**"Serverless" still has servers.** The name means you do not manage them. It does not mean there is no machine, no limit, and no cold start.
-
-**Scaling to zero cuts both ways.** Nothing running means nothing costing, and also nothing in memory. Any in-process cache, counter or session is gone between calls. State belongs in the database.
+- **Start as high up the ladder as you can stand.** Every hour patching Linux is an hour not spent on what only your team can build. Climb down later, with a reason.
+- **Convenience is paid for in lock-in.** Hosted auth and a hosted database save three weeks and put your users' identities in that provider's shape. Know which parts are portable: your logic must not know who stores the rows.
+- **Serverless does not fit long work and keeps nothing in memory.** Functions have a time limit, so a large export is cut off mid-run; that work belongs in a queue with a worker. Scaling to zero means caches, counters and sessions vanish between calls, so state belongs in the database.
+- **A cold start is the first request after idle,** typically 0.1 to a few seconds. A payment webhook does not care; a student on 4G tapping your menu at 11 a.m. does.
 
 ### Verify it
 
-AI is strongly opinionated about architecture and consistently over-builds. Four checks.
+AI is opinionated about architecture and over-builds.
 
-1. **Did it ask about your team before recommending a rung?** The right answer for three students with two hours a day is different from the right answer for a funded team. A recommendation that arrives without a question about your constraints is a recommendation about someone else.
-2. **Check every free-tier number against the provider's own pricing page, today.** This is the recurring red flag of the module: a confidently quoted limit that is out of date. "Free tier includes 100 GB of bandwidth" may be last year's figure. Open the page, read the number, write the date next to it in your notes.
-3. **Ask what you would have to do to move off.** If the answer is "rewrite the data layer", that is fine as an informed choice and not fine as a surprise. Ask the question before you build, not after.
-4. **Ask where the cold start lands for your users.** Specifically: which user action hits a function that is likely to be cold? If the answer is "opening the app", ask for alternatives.
+1. **Did it ask about your team before recommending a rung?** A recommendation that arrives with no question about your constraints is about someone else.
+2. **Check every free-tier number against the provider's pricing page today.** Free tiers move, and every limit an AI quotes was true the day it was written. Write the date beside the number.
+3. **Ask what it would take to move off.** "Rewrite the data layer" is fine as a choice, not as a surprise.
+4. **Ask where the cold start lands for your users.** If it is "opening the app", ask for alternatives.
 
-Red flags: a recommendation to start with Kubernetes or a self-managed VM for a three-person student project; a cost estimate with no numbers in it; an architecture that puts your session state in a serverless function's memory; and a plan where every single component comes from one provider with no mention of what that costs you later.
+Red flags: Kubernetes or a self-managed VM for a three-person project; a cost estimate with no numbers; session state in a function's memory; one provider for everything.
 
 ## Walkthrough
 1. List every piece your product currently needs: the web app, the database, login, file storage, email, payments, any background job. One line each, no technology names yet.

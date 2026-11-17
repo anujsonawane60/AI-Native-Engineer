@@ -4,7 +4,7 @@ module: m12-ship-apps-for-real
 slug: performance-budgets
 title: "Performance Budgets on Real Devices"
 order: 9
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,37 +22,29 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your team's app feels instant. Everyone on the team has a phone that cost at least ₹25,000.
+Your team's app feels instant, and every phone on the team cost at least ₹25,000. Then you hand your release build to a classmate with a ₹8,000 Android phone and 3 GB of RAM. The download is 38 MB and she asks whether it will finish before her data pack runs out. The first open takes nine seconds, the screen white, and she taps twice more. The list scrolls in visible jerks. She switches to WhatsApp for a minute; when she returns the app restarts from scratch, because Android reclaimed its memory. None of that appeared on your phone, which is four times faster, had the app warm, and was running a development build anyway.
 
-Then you hand your release build to a classmate with a ₹8,000 Android phone, 3 GB of RAM and 11 GB of free storage. You watch over her shoulder, which is the most uncomfortable and most valuable ten minutes of this whole module.
-
-The download is 38 MB and she asks whether it will finish before her data pack runs out. The install takes a while. The first open takes nine seconds, during which the screen is white and she taps twice more, thinking it did not register. The main list scrolls in visible jerks. She switches to WhatsApp for a minute; when she comes back the app restarts from scratch, because Android reclaimed its memory. By the time she reaches the screen that is the actual point of your product, she has spent forty seconds and most of her patience.
-
-None of this appeared on your phone. Your phone is four times faster, has eight times the memory headroom, had the app already warm, and was running a development build whose behaviour is different anyway.
-
-Now the second failure, which is subtler. The team "optimises". Someone asks an AI to make the app faster, applies six suggestions, and reports that it is "much snappier". There is no before number and no after number. Nobody knows whether anything improved, and the 24 MB of uncompressed images that caused most of the problem is still there.
+Then the team "optimises": someone asks an AI to make the app faster, applies six suggestions, and reports it is "much snappier". No before number, no after number, and the 24 MB of uncompressed images that caused most of the problem is still there.
 
 ### The idea
 
 **A performance budget is a number you agreed before you built anything, measured on the cheapest device you promise to support, using a release build.**
 
-Every word in that sentence is load-bearing. A *number*, so you can fail. Agreed *before*, so it is a constraint and not an excuse. On the *cheapest device you support*, because that is where your users are. A *release build*, because a development build is always slow and measuring it tells you nothing.
+Every word is load-bearing. A *number*, so you can fail. Agreed *before*, so it is a constraint and not an excuse. On the *cheapest device you support*, because that is where your users are. A *release build*, because a dev build is always slow.
 
-Five budgets are enough for a student product. Reasonable starting values for a ₹8,000 Android phone on patchy mobile data:
+Five budgets are enough. Reasonable starting values for a ₹8,000 Android phone on patchy mobile data:
 
 **Cold start under 3 seconds**, from tap to a usable screen.
 **Download size under 25 MB** for the Play Store listing's figure.
 **First meaningful list rendered under 1 second** after the screen opens.
-**No frozen frames while scrolling** your main list — no visible jerks.
+**No frozen frames while scrolling** your main list.
 **Under 1 MB of data** for a typical session.
 
-Write those five numbers down, measure them honestly, and you will usually find that one cause owns most of the gap. It is almost always images.
+Measure them honestly and you will usually find one cause owns most of the gap. It is almost always images.
 
 ### The analogy
 
-The canteen promises to serve a thali within 90 seconds. That promise is only meaningful if it is measured at 1:10 pm with forty people in the queue, on the day the second gas cylinder is empty.
-
-Measured at 4 pm with nobody waiting, every canteen in India serves within 90 seconds. The number is true and useless. The budget has to be measured at the worst moment you have promised to survive, or it is marketing.
+The canteen promises to serve a thali within 90 seconds. That promise only means something measured at 1:10 pm with forty people queuing on the day the second gas cylinder is empty. At 4 pm with nobody waiting, every canteen in India serves within 90 seconds — true and useless.
 
 **Where the analogy breaks:** the canteen can respond to a bad measurement by hiring a second server or buying a bigger pan. You cannot upgrade your users' phones. Your only lever is to do less — fewer bytes, fewer requests, less work on the main thread. That asymmetry is why mobile performance work is mostly subtraction.
 
@@ -76,11 +68,14 @@ A nine-second cold start broken into its four stages, with one stage — unoptim
 
 ### Where it lives
 
-M05 taught you that slowness is a sum of measurable delays and that averages lie. This chapter is that lesson on a device whose CPU is slow, whose memory is scarce, and whose network you are paying for. The ideas transfer exactly; the numbers are worse.
+M05 taught you that slowness is a sum of measurable delays and that averages lie. This is that lesson on a device whose CPU is slow, whose memory is scarce, and whose network the user pays for. You measure in four places:
 
-Practically you measure in four places. **A stopwatch and your eyes** on a real phone, which is the measurement that matters most and costs nothing. **The Play Console listing**, which tells you the download size real users see. **Android vitals**, which reports startup time and frozen frames from the field across all your users' devices. And **a development profiler** on your own machine for finding the cause once you know there is one — but never for the headline number.
+- **A stopwatch and your eyes** on a real phone — the measurement that matters most, and it costs nothing
+- **The Play Console listing** — the download size real users see
+- **Android vitals** — startup time and frozen frames from the field
+- **A development profiler** — for finding the cause once you know there is one, never for the headline number
 
-A release build matters because the differences are large: production JavaScript is minified and loaded differently, the development bundle is served over the network from your laptop, and development mode runs extra checks on every render. A dev build can be three times slower than the release build of identical code. Measuring it produces a number that is both wrong and discouraging.
+The release build matters because the gap is large: production JavaScript is minified, the development bundle is served over the network from your laptop, and development mode runs extra checks on every render. A dev build can be three times slower than the release build of identical code.
 
 ### Words to own
 
@@ -100,33 +95,27 @@ A release build matters because the differences are large: production JavaScript
 
 ### Tradeoffs and gotchas
 
-**Images are almost always the answer.** Before you restructure any code, count the bytes of images your first screen downloads and the pixel dimensions of each one. A 1600-pixel-wide photo displayed in a 120-pixel thumbnail is 99% waste. Serve the size you display, compress properly, and use a modern format. Teams routinely find half their cold start here.
+**Images are almost always the answer.** Before restructuring any code, count the bytes of images your first screen downloads and the pixel dimensions of each. A 1600-pixel photo displayed in a 120-pixel thumbnail is 99% waste. Teams routinely find half their cold start here.
 
-**Measure one change at a time.** Applying six suggestions at once and declaring victory is how the second team in the pain story learned nothing. One change, measure, keep or revert, record. This is the Director's Loop from M00 applied to numbers.
+**Measure one change at a time.** Applying six suggestions at once and declaring victory teaches you nothing. One change, measure, keep or revert, record — the Director's Loop from M00 applied to numbers.
 
-**Three runs minimum, and report the worst.** Cold start on a cheap phone varies a lot depending on what else the phone is doing. One measurement is an anecdote. Take three or five, and quote the slowest, because that is a user's real experience on a bad day.
+**Five runs, and report the worst.** Cold start on a cheap phone varies with whatever else the phone is doing, so one measurement is an anecdote. Quote the slowest: that is a user's experience on a bad day.
 
-**Animations cost more than you think on 3 GB phones.** The motion you designed in M03 looked good on a fast device. On a budget phone, a continuous animation competing with a list render is exactly where frozen frames come from. Respect the system's reduce-motion setting and keep decorative animation off your heaviest screens.
+**Animations cost more than you think on 3 GB phones**, and a low-memory kill is a design problem, not only a performance one. Keep decorative animation off your heaviest screens, and save the user's place locally — chapter 4's local store doing double duty.
 
-**Low-memory kills are a design problem, not just a performance one.** You cannot stop Android reclaiming your app. You can save the user's place and their in-progress input locally, which is chapter 4's local store doing double duty.
-
-**Do not optimise what is not in the budget.** A function that runs once at startup and takes 4 milliseconds is not your problem, however satisfying it is to improve. Find the stage that owns the largest share and work only there, exactly as in M05.
-
-**Budgets that are too strict get ignored.** Five achievable numbers your team actually checks beat twelve aspirational ones nobody measures. Start where you can hit them in a month.
+**Do not optimise what is not in the budget.** A startup function that takes 4 milliseconds is not your problem, however satisfying it is to improve. Work only on the stage that owns the largest share, as in M05. And five achievable numbers your team checks beat twelve aspirational ones nobody measures.
 
 ### Verify it
 
-**Red flag: a number from an emulator or a flagship phone.** An emulator uses your laptop's CPU and memory and is not evidence about anything. Ask one question of any performance claim: which physical device, what price, how much RAM, and was it a release build? If any of the four is missing, the number is not a measurement.
+**Red flag: a number from an emulator or a flagship phone.** Ask four questions of any performance claim: which physical device, what price, how much RAM, and was it a release build? If one is missing, the number is not a measurement.
 
-**Red flag: no before number.** "This will make your app faster" is unfalsifiable. Insist on the pattern: measure, change one thing, measure again, state the difference in milliseconds or megabytes. An AI that proposes optimisations without asking for your current numbers is pattern-matching on the word "slow" — the exact failure from M05.
+**Red flag: no before number.** "This will make your app faster" is unfalsifiable. Insist on the pattern: measure, change one thing, measure again, state the difference in milliseconds or megabytes.
 
-**Red flag: a dev build in the measurement.** If the instructions say to run the dev server and time the app, the number will be wildly pessimistic and the conclusions wrong. The build you measure must be the build you ship.
+**Red flag: a dev build in the measurement.** The build you measure must be the build you ship.
 
-**Red flag: optimisation aimed at a stage that was never the problem.** Ask of every suggestion: which of my four startup stages does this remove time from, and how many milliseconds was that stage? If the AI cannot answer, it is guessing. Memoising a component is not a fix for 24 MB of images.
+**Red flag: optimisation aimed at a stage that was never the problem.** Ask which startup stage the change removes time from, and how many milliseconds that stage was. Memoising a component is not a fix for 24 MB of images.
 
-**Red flag: averages instead of the worst case.** "Average startup improved to 2.1 seconds" hides the user whose phone takes six. Report your slowest of five runs, and use Android vitals' field data to see the tail across real users.
-
-**Red flag: a claim with no field confirmation.** Your one phone is one data point. After you ship an improvement, check Android vitals a week later and confirm that real users' startup times moved too. That is the only proof that your laptop-side reasoning was about reality.
+**Red flag: an average instead of the worst case, or no field confirmation.** "Average startup improved to 2.1 seconds" hides the user whose phone takes six, and your one phone is one data point. A week after shipping, check Android vitals.
 
 ## Walkthrough
 1. Agree your five budgets as a team, as numbers, and name the exact budget device: make, model, price, RAM. Write all of it in your decision log.

@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: kinematics-slam-ros2
 title: "Kinematics, SLAM, ROS 2 and Embodied AI"
 order: 14
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -24,23 +24,23 @@ last_reviewed: 2026-11-16
 
 The canteen's delivery trolley robot is given a route: counter, hall, hostel corridor, back. It works for nine days.
 
-On the tenth, a plate of dal is spilled near the hall entrance. The robot's wheels slip for half a second, so its wheel-turn count says it travelled 80 centimetres when it travelled 40. Nothing reports an error. The robot now believes it is 40 centimetres further along than it is, and every subsequent measurement is added to that wrong starting point, so by the hostel corridor it is off by a metre and a half and turns into a doorframe. Separately, the chairs in the hall were rearranged for an event, so the map it is navigating by is yesterday's hall. And the path planner that chose its route was written assuming the position estimate is correct, because that is what a position estimate looks like from the outside: a number, with no warning label.
+On the tenth, a plate of dal is spilled near the hall entrance. The robot's wheels slip for half a second, so its wheel-turn count says 80 centimetres when it travelled 40. Nothing reports an error. Every later measurement is added to that wrong starting point, so by the hostel corridor it is off by a metre and a half and turns into a doorframe. The chairs were also rearranged for an event, so the map it navigates by is yesterday's hall.
 
-Nobody wrote a bug. Every component did its job. The robot failed because moving a body through a real room means being wrong about where you are, continuously, and the engineering is entirely about managing that wrongness.
+Nobody wrote a bug. Every component did its job. Moving a body through a real room means being wrong about where you are, continuously, and the engineering is about managing that wrongness.
 
 ### The idea
 
-**Moving a machine needs three layers: geometry, which relates joint and wheel motion to where the parts end up; localisation and mapping, which estimates where you are in a world you are simultaneously learning; and a framework that lets many such pieces talk. On top of those, embodied AI learns policies — and it inherits every weakness of the three layers below it.**
+**Moving a machine needs three layers: geometry, localisation and mapping, and a framework that lets the pieces talk. Embodied AI sits on top and inherits every weakness below it.**
 
-Geometry comes in two directions. Forward: given the wheel turns or joint angles, where did the hand or the body end up. That is arithmetic and it always has one answer. Inverse: given where you want the hand to be, what joint angles get it there. That may have many answers, or none, or an answer that passes through a position where the arm loses the ability to move in some direction — a singularity. Inverse is the hard direction and the one that surprises people.
+Geometry comes in two directions. Forward: given the joint angles, where did the hand end up — always one answer. Inverse: given where you want the hand, what angles get it there — many answers, none, or one passing through a pose where the arm loses a direction of motion, called a singularity. Inverse is the hard direction.
 
-Localisation and mapping is the dal problem. Counting wheel turns is called odometry, and its errors accumulate, so the estimate drifts away from the truth and never comes back on its own. Simultaneous localisation and mapping fuses odometry with a sensor that sees the room — a laser scanner, a camera, a depth sensor — to correct the estimate against landmarks. When the robot recognises a place it has already mapped, it can correct the whole accumulated path at once, which is called loop closure.
+Localisation and mapping is the dal problem. Counting wheel turns is odometry, and its errors accumulate, so the estimate drifts and never returns on its own. Simultaneous localisation and mapping fuses odometry with a sensor that sees the room — a laser scanner, a camera — to correct against landmarks.
 
 ### The analogy
 
-A canteen waiter crossing a crowded hall with a loaded tray and his eyes shut, counting paces. For six paces he is nearly right. By twenty he is a metre out, and the error only grows, because each pace's small error is added to all the previous ones. Open his eyes for one second and he sees the pillar, recognises it, and corrects everything at once. That one second is loop closure.
+A canteen waiter crosses a crowded hall with a loaded tray and his eyes shut, counting paces. For six paces he is nearly right. By twenty he is a metre out, and the error only grows, because each pace's error adds to the previous ones. Open his eyes for one second: he sees the pillar, recognises it, and corrects everything at once. That second is loop closure.
 
-**Where the analogy breaks**, in three ways that are the chapter: the waiter has a model of his own body and knows when he has stumbled; a wheel encoder reports a confident number while the wheel is spinning in spilt dal. The waiter can ask someone; the robot cannot. And the waiter's memory of the hall updates automatically when the chairs move, while the robot's map is a file from yesterday that it will trust until someone replaces it.
+**Where the analogy breaks**, in two ways that are the chapter. The waiter knows when he has stumbled; a wheel encoder reports a confident number while the wheel spins in spilt dal. And the waiter's memory of the hall updates when the chairs move, while the robot's map is a file from yesterday that it trusts until someone replaces it.
 
 ### Picture it
 
@@ -86,13 +86,9 @@ Each box is a node and each named channel is a topic, so a robot is a set of sma
 
 ### Where it lives
 
-M05 is the structural parent: ROS 2 nodes and topics are publishers, subscribers and named channels, with the same consequences. A topic that publishes late is a sensor reading arriving stale, which is chapter 13's delay problem destabilising a loop. A dropped message is a missing scan.
+M05 is the structural parent: a topic that publishes late is a stale sensor reading, which is chapter 13's delay problem destabilising a loop. M10 matters more, because a robot is an agent acting on a physical system, so what it may do has a blast radius in metres and kilograms rather than rows deleted — and the bound must hold mechanically: a torque limit, a bumper, a speed cap in the motor controller, a physical stop that works when the software has crashed.
 
-M10 is the more important parent. A robot is an agent acting on a physical system, so M00's agent-permission question — what is this thing allowed to do, and what is the worst it can do — now has a blast radius measured in metres and kilograms rather than in rows deleted. Everything M10 taught about bounding an agent's authority applies, with the addition that the bound must hold mechanically: a torque limit, a bumper, a speed cap in the motor controller, and a physical stop that works when the software has crashed mid-motion.
-
-M09 supplies the perception models, and M06 the Linux underneath. M13's operations thinking is what turns a demo into a fleet: how you know a robot is lost, how you update it, who goes to fetch it.
-
-Access is free. Robot simulators run in a browser or on a laptop at no cost, with a simulated differential-drive robot, a simulated laser scanner, a map and a navigation stack. You can spill the equivalent of dal by adding wheel slip, and watch the estimate diverge from the truth — which is the single most valuable thing a simulator shows you, because on real hardware you cannot see the truth to compare against. A student with a real robot sees other failures; nobody needs to buy one.
+Access is free. Robot simulators run in a browser at no cost, with a differential-drive robot, a laser scanner, a map and a navigation stack. Add wheel slip and watch the estimate diverge from the truth — the most valuable thing a simulator shows you, because on real hardware you cannot see the truth to compare against.
 
 ### Words to own
 
@@ -117,33 +113,27 @@ Access is free. Robot simulators run in a browser or on a laptop at no cost, wit
 
 ### Tradeoffs and gotchas
 
-**Every sensor lies, differently.** Wheels lie when they slip. Laser scanners lie on glass and polished floors. Cameras lie in low light and in glare. Inertial units drift. The design question is never whether a sensor is accurate but what each one's failure looks like and which other sensor catches it.
+**Every sensor lies, differently.** Wheels lie when they slip, laser scanners lie on glass, cameras lie in low light and glare, inertial units drift. The design question is never whether a sensor is accurate but what its failure looks like and which other sensor catches it.
 
-**Inverse kinematics is not unique.** Many joint configurations reach the same point, some of them through a wall or a person. A plan that assumes one solution has skipped the part where you choose.
+**Inverse kinematics is not unique.** Many joint configurations reach the same point, some through a wall or a person. A plan assuming one solution has skipped the part where you choose.
 
-**A static map and a dynamic room are different things.** Chairs move, people stand still, doors close. A robot navigating yesterday's map needs a way to notice the world disagrees and to re-map or stop.
+**The sim-to-real gap is mostly friction, latency and sensor noise.** A policy that works perfectly in a simulator frequently fails on hardware, and the standard mitigation is randomising the simulation rather than perfecting it.
 
-**The sim-to-real gap is real and it is mostly friction, latency and sensor noise.** A policy that works perfectly in a simulator frequently fails on hardware, and the standard mitigation is deliberately randomising the simulation rather than perfecting it.
+**Embodied AI demos are cherry-picked.** A video of a learned policy folding laundry represents many attempts in one setting. The honest state of the field is rapid progress on manipulation research and no general-purpose household robot, and the bottleneck is data: there is no internet-scale corpus of robot bodies doing physical tasks.
 
-**Embodied AI demos are cherry-picked.** A learned policy folding laundry in a video represents many attempts in one setting. The honest state of the field is rapid progress on manipulation research and no general-purpose household robot, and the bottleneck is data: there is no internet-scale corpus of robot bodies doing physical tasks.
-
-**Compute and power fight each other on board.** A model large enough to be interesting needs power, and power is weight and heat, and weight reduces runtime. This is chapter 10's power budget with a motor attached.
-
-**Liability is different from software.** A robot that injures someone is not an outage. Safety standards exist, insurance asks questions, and the physical protections must exist regardless of how good the software is.
+**Liability is different from software.** A robot that injures someone is not an outage.
 
 ### Verify it
 
-**Red flag: perfect sensors assumed.** The diagnostic test of this chapter. Ask what each sensor's error is, what its failure mode looks like, and which other sensor would catch it. If the plan never mentions noise, slip or drift, it is a plan for a simulator with the noise turned off.
+**Red flag: perfect sensors assumed.** The diagnostic test of this chapter. Ask what each sensor's error is, what its failure looks like, which other sensor catches it, and how drift gets corrected. A plan that never mentions noise, slip or drift is a plan for a simulator with the noise turned off, and it fails on its tenth run rather than its first.
 
-**Red flag: no drift or recalibration story.** Ask how the position estimate is corrected, how the system notices it is lost, and what it does then. A navigation plan with no loop closure and no lost-state behaviour will fail on its tenth run, not its first.
-
-**Red flag: no defined behaviour when localisation is lost.** This is the one that matters for safety. Ask directly: the robot no longer knows where it is — does it stop, does it rotate in place to re-scan, does it call a human, or does it keep driving on a stale estimate? There is only one wrong answer and it is the fourth.
+**Red flag: no defined behaviour when localisation is lost.** The one that matters for safety. Ask directly: does it stop, rotate in place to re-scan, call a human, or keep driving on a stale estimate? There is only one wrong answer and it is the fourth.
 
 **Red flag: a single inverse-kinematics solution presented as the answer.** Ask how many solutions exist and how the chosen one is screened for collisions and singularities.
 
-**Red flag: results only from simulation.** Ask what has been demonstrated on hardware, in what environment, over how many trials, and what the failure rate was. One successful video is not a success rate.
+**Red flag: results only from simulation.** Ask what has been demonstrated on hardware, over how many trials, with what failure rate. One video is not a success rate.
 
-**Red flag: an agent given actuator authority with no mechanical stop.** Ask what protection holds when the controller crashes mid-motion. If every safeguard is software, there is no safeguard.
+**Red flag: actuator authority with no mechanical stop.** If every safeguard is software, there is no safeguard.
 
 ## Walkthrough
 1. Open a free robot simulator with a wheeled robot, a laser scanner and a navigation stack. Load the default world and drive the robot manually once around it.

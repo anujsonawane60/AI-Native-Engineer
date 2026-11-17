@@ -4,7 +4,7 @@ module: m03-design
 slug: design-systems-and-tokens
 title: "Design Systems, Tokens and Component Libraries"
 order: 7
-duration_min: 30
+duration_min: 25
 is_free: false
 mission: true
 volatility: medium
@@ -22,27 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team is four weeks into their canteen app. Six screens exist. They were built in six separate AI sessions, and nobody wrote anything down between them.
-
-There are now four button styles. The primary blue is `#2563EB` on three screens, `#1D4ED8` on two, and `#3B82F6` on the checkout screen because that session happened on a Thursday. Card padding is 16 px, 20 px, 12 px and 24 px. There are two different "sold out" badge designs. The heading size on the orders page is 22 px and on the menu page 24 px, and nobody can remember deciding either.
-
-Then the team changes their brand colour. It is in forty-one places. They ask AI to update it, which it does — along with changing two layouts and the sold-out badge, because it had no idea which blues were the brand and which were incidental.
-
-Nothing here was a mistake at the time. Each session was fine. The problem is that no decision survived its own session.
+A team is four weeks into their canteen app: six screens, six AI sessions, nothing written down between them. The primary blue is `#2563EB` on three screens, `#1D4ED8` on two and `#3B82F6` at checkout. Then they change their brand colour, which lives in forty-one places, and AI updates it along with two layouts and the sold-out badge, because nothing told it which blues were the brand.
 
 ### The idea
 
 **A design system is your decisions written down in a form AI can be handed at the start of every session.**
 
-It has three layers. Tokens are named values. Components are the reusable pieces built from those values. Patterns are the agreed way of solving a recurring problem. You are not building a Material Design clone; you are writing roughly two pages of named decisions, and then refusing to accept any output that ignores them.
+Three layers: tokens are named values, components are built from them, patterns are the agreed way of solving a recurring problem. Not a Material clone — two pages of named decisions, then refusing output that ignores them.
 
 ### The analogy
 
-Every canteen has a system, whether or not anybody calls it one. One portion of rice is one specific ladle. Chai comes in one cup size. The ₹20 thali always contains the same four items. The sold-out sign is the same piece of card, reused.
+Every canteen has a system whether anybody calls it one: one portion of rice is one specific ladle, and the ₹20 thali holds the same four items. A new worker serves correctly by Tuesday because the decisions live in the ladle, not in anybody's memory.
 
-That is why a new worker can start on Monday and serve correctly by Tuesday. The decisions are embodied in the ladle and the cup — nobody has to remember them, and nobody has to re-decide them at 1 pm with sixty people waiting.
-
-**Where the analogy breaks:** a ladle enforces itself physically. You cannot accidentally serve a different portion. Your tokens enforce nothing at all — they are a document, and AI can ignore them silently while telling you it followed them. In the canteen the system is the equipment; in your product the system is only as real as your verification. That is most of this chapter.
+**Where the analogy breaks:** a ladle enforces itself — you cannot accidentally serve a different portion. Tokens enforce nothing. They are a document AI can ignore silently while telling you it followed them, so the system is only as real as your verification.
 
 ### Picture it
 
@@ -61,9 +53,7 @@ That is why a new worker can start on Monday and serve correctly by Tuesday. The
 
 Tokens are named values in one place, components are the reusable pieces assembled from those tokens, and patterns are the agreed way of handling a recurring situation — each layer built only from the one before it.
 
-### Tokens: naming by role, not by appearance
-
-A token is a name bound to a value. The naming is the entire skill, and there is one rule: **name it for what it does, never for what it looks like.**
+A token is a name bound to a value, and naming is the skill: **name it for what it does, never what it looks like.**
 
 | Bad name | Good name | Why |
 |---|---|---|
@@ -73,33 +63,21 @@ A token is a name bound to a value. The naming is the entire skill, and there is
 | `font-22` | `text.heading.size` | Ties to a role in the hierarchy |
 | `light-grey` | `color.text.secondary` | Carries its contrast obligation |
 
-`blue-600` is a trap because the day your brand turns green, every name in your system is a lie. `color.action.primary` is still correct.
+A minimum viable set is about twenty-five values: eight colour roles, six spacing steps, six type sizes, two radii, a shadow. Encode two obligations with them — `color.status.*` never used alone, `text.body.size` at 16 px minimum.
 
-A minimum viable token set for a student product is about twenty-five values: eight colour roles, six spacing steps, six type sizes with their weights, two border radii, and one or two shadows. That is small enough to fit in one brief and large enough that every screen stops being improvised.
+You do not need a component library, only a written inventory — name, purpose, states, where the canonical version lives — so AI extends it instead of inventing alongside it. Twelve is a complete product: Button (primary, secondary, danger), Input, Select, Card, Badge, List row, Dialog, Toast, Empty state, Loading skeleton, Error block, Header. A thirteenth means AI invented a fourth button.
 
-Two tokens worth calling out for an Indian product. A `color.status.*` set that is never used alone — chapter 5's rule, encoded. And a `text.body.size` of 16 px minimum, written into the system so it cannot quietly drift to 14 px in session nine.
-
-### Components: an inventory, not a library
-
-You do not need to build a component library. You need to maintain a list of what already exists, so that AI extends it rather than inventing alongside it.
-
-An inventory row is four short things: the name, what it is for, its states, and the one place its canonical version lives. Twelve components is a complete product:
-
-Button (primary, secondary, danger), Input, Select, Card, Badge, List row, Dialog, Toast, Empty state, Loading skeleton, Error block, Header. That is it. If a thirteenth appears in session nine, something is wrong — either you genuinely needed it, or AI invented a fourth button because nobody told it a button already existed.
-
-The practical mechanism: a short `DESIGN.md` in your repository, under version control alongside `PRD.md` from M01. It holds your tokens and your inventory. Every design session starts by pasting it in, and in M10 this becomes part of the rules file that gets loaded automatically. This is the M00 brief's CONTEXT and CONSTRAINTS sections made permanent — exactly the mechanism that chapter described.
-
-### Patterns: the decisions above components
-
-A pattern is how you always solve a recurring problem, so you stop solving it differently each time.
-
-"How we confirm a destructive action" is a pattern: a dialog, a danger-coloured confirm, a cancel that is visually quieter, and the item's name repeated in the question so the user knows what they are deleting. "How we show that something is unavailable" is a pattern. "How we handle a failed payment" is a pattern, and in India it includes saying explicitly whether money moved — which M04's payment work depends on.
-
-Three or four written patterns prevent more inconsistency than twenty components.
+Above components sit patterns: how you *always* solve a recurring problem. "How we confirm a destructive action" is a dialog, a danger confirm, a quieter cancel, the item's name in the question. Three or four written patterns prevent more inconsistency than twenty components.
 
 ### Where it lives
 
-`DESIGN.md` lives in your repository from this chapter onwards. The tokens become CSS variables, which you met in M02. Chapter 8 is where you decide what the values actually *are* — this chapter is only the structure that holds them. Chapter 9's contrast and focus requirements get encoded here as token obligations, which is how accessibility stops being a final-week panic. M10 turns the file into an agent rules file. M11's checkpoint reviews it directly. M15 extends the same tokens to your brand surfaces outside the product.
+All of it lives in a short `DESIGN.md` beside M01's `PRD.md`, pasted in at the start of every session.
+
+- **M02** — the tokens become CSS variables
+- **Chapter 8** — decides what the values *are*; this chapter is the structure
+- **Chapter 9** — contrast and focus become token obligations
+- **M10** — the file becomes the agent rules file
+- **M11** — the checkpoint reviews it directly
 
 ### Words to own
 
@@ -118,27 +96,27 @@ Three or four written patterns prevent more inconsistency than twenty components
 
 ### Tradeoffs and gotchas
 
-**A system built too early is guesswork, and too late is a migration.** Three or four real screens is the right moment: enough to see what repeats, little enough that extracting it is an afternoon.
+**Too early is guesswork, too late is a migration.** Three or four real screens is the moment: enough to see what repeats, little enough to extract in an afternoon.
 
-**Over-tokenising is real.** Forty-one colour tokens for an eight-screen app is worse than twelve, because nobody can remember which is which and AI will pick wrong. If two tokens always have the same value, they are one token.
+**Over-tokenising is real.** Forty-one colour tokens for eight screens is worse than twelve. Two tokens sharing a value are one token.
 
-**A system you do not paste in does not exist.** This is the failure mode that actually happens. The file is written in week four and never opened again, and by week eight the product has drifted completely. Pasting it must be the first move of every design session.
+**A system you do not paste in does not exist.** Written in week four, never reopened, fully drifted by week eight.
 
-**AI will claim compliance it did not deliver.** You will be told "I used your design tokens throughout" and find three hardcoded hex values. This is not deceit, it is the model summarising its intent. It is also trivially checkable.
+**AI will claim compliance it did not deliver.** "I used your design tokens throughout", plus three hardcoded hex values — the model summarising its intent, and trivially checkable.
 
-**A third-party component library is a real option with a real cost.** It gives you accessible, tested components immediately and saves genuine time. The cost is that it comes with someone else's visual defaults, which is chapter 8's entire problem — and it is why so many student projects look identical. If you use one, override the tokens deliberately rather than accepting the defaults.
+**A third-party library is a real option with a real cost.** Tested accessible components immediately, plus someone else's visual defaults — chapter 8's problem. Override the tokens deliberately.
 
 ### Verify it
 
-The system is only as real as these checks.
+The system is only as real as these five checks.
 
-1. **Grep for raw values.** Ask AI: "list every colour, spacing and font-size value in these files that is not a token reference." Any raw hex or pixel value outside the token definitions is drift. This is the highest-value check in the chapter and it takes thirty seconds.
-2. **Count components of each type.** Ask for a list of every button variant that exists in the code. If there are five and your inventory says three, two were invented.
-3. **Change one token and see what moves.** Set `color.action.primary` to bright pink and load every screen. Everything that should be pink and is not, is hardcoded. Everything that turns pink and should not have, is using the wrong token. Then set it back. This is the single most reliable test that a system exists.
-4. **Check the token names, not the values.** If you see `blue`, `red`, `gap16` or `font22`, the naming failed and the next rebrand will be forty edits again.
-5. **Verify the obligations.** Does `text.body.size` equal 16 px or more? Does every `color.status.*` pairing still pass 4.5:1? Does the focus ring token exist at all? These are the ones that silently degrade.
+1. **Hunt raw values.** Ask: "list every colour, spacing and font-size value here that is not a token reference." Anything outside the definitions is drift — thirty seconds, highest value in the chapter.
+2. **Count variants.** Five button variants against an inventory of three means two are invented.
+3. **The swap test.** Set `color.action.primary` to bright pink and load every screen: what stays unpink is hardcoded, what turns pink wrongly uses the wrong token. The most reliable proof a system exists.
+4. **Check the names, not the values.** `blue`, `gap16`, `font22` mean the next rebrand is forty edits again.
+5. **Verify the obligations.** Is `text.body.size` 16 px or more? Does every `color.status.*` pairing pass 4.5:1? Does a focus-ring token exist?
 
-Red flags: a hex value inside a screen file; two tokens with the same value and different names; a component that exists in the product but not the inventory; token names describing colours or pixel counts; and any claim of compliance without a list of files you can check.
+Red flags: a hex value inside a screen file; two tokens with one value and two names; a component in the product but not the inventory; token names describing colours or pixels; a compliance claim with no file list.
 
 ## Walkthrough
 1. Open three to four existing screens of your own product side by side on one page, as screenshots.

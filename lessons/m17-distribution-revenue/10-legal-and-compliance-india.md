@@ -4,7 +4,7 @@ module: m17-distribution-revenue
 slug: legal-and-compliance-india
 title: "Legal and Compliance Basics for an Indian Startup"
 order: 10
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -24,37 +24,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team takes a ₹5,000 advance from a college society to run their event-registration product for a fest. The money lands in a founder's personal UPI account. The fest is cancelled, the society asks for it back, and two of the three have already spent part of it on hosting and a domain.
+A team takes a ₹5,000 advance from a college society to run their event-registration product for a fest. The money lands in a founder's personal UPI account. The fest is cancelled, the society asks for it back, and two of the three have already spent part of it. Nothing criminal happened — but there is no entity, no separate account, no written refund terms, and no agreement about who owns what. The argument that follows ends the team, over ₹5,000 that a one-page document in week two would have prevented.
 
-Nothing criminal happened and nobody was dishonest. But there is no entity, no account separate from personal spending, no written refund terms, and no agreement about who owns what. The disagreement that follows ends the team — over ₹5,000, which a one-page document written in week two would have prevented.
-
-A second team has forty paying users and wants to leave test mode. The gateway asks for entity proof, a PAN, a bank account in the business's name, and published refund and privacy policies. None of it exists, and Friday's feature is blocked for three weeks.
-
-Neither team hit a legal problem. They hit the wall where other people's money begins, without having looked at it.
+A second team has forty paying users and wants to leave test mode. The gateway asks for entity proof, a PAN, a bank account in the business's name, and published refund and privacy policies. None of it exists, and Friday's feature is blocked for three weeks. Neither team hit a legal problem; they hit the wall where other people's money begins.
 
 ### The idea
 
 **Compliance is not a checklist you complete; it is a set of decision points, each triggered by something you do.** The useful question is never "are we compliant?" but "which decisions have been triggered for us, today?"
 
-Four triggers matter at your stage.
-
-**You take real money from strangers.** Not test mode — actual rupees. This triggers the entity question, the bank account, the gateway's onboarding, a published refund policy, and tax treatment.
-
-**You hold other people's personal data** — names, phone numbers, locations, messages. This triggers the DPDP Act whether or not you have incorporated.
-
-**You sign something with an institution**, which triggers who is signing, on behalf of what, with what liability. And **you split ownership or money between founders**, which triggers the one document every student team should have and almost none do.
-
-Most of you will trigger only the last two, because payments stay in test mode.
+Four triggers matter at your stage. **You take real money from strangers** — not test mode, actual rupees — which triggers the entity question, the bank account, gateway onboarding, a refund policy and tax treatment. **You hold other people's personal data**, which triggers the DPDP Act whether or not you have incorporated. **You sign something with an institution**: who signs, on behalf of what, with what liability. And **you split ownership between founders**, which triggers the one document every student team should have and almost none do. Most of you trigger only the last two.
 
 ### The analogy
 
-Three food operations at the same college, with three completely different obligations.
+Three food operations at the same college carry three different obligations. Brownies sold from a hostel room need no licence and no entity. A one-day stall at the fest needs the organisers' permission, a fee, and somebody recording who is responsible if a customer falls ill. The permanent canteen needs a food licence, a registration, bills for everything it buys, and a person whose name is on it all. Same food, driven by **scale, permanence, and whose money and safety are involved** — not by how good the food is.
 
-A student selling homemade brownies from a hostel room needs no licence, no registration and no entity, and nobody minds. A one-day stall at the fest needs permission from the organisers, a fee, and somebody recording who is responsible if a customer falls ill. The permanent canteen at the gate needs a food licence, a registration, bills for everything it buys, a register, and a person whose name is on it all.
-
-Same food, three sets of obligations, driven by **scale, permanence, and whose money and safety are involved** — not by how good the food is.
-
-**Where the analogy breaks:** food rules are local and visible; you can see the licence on the wall. Software reaches users in states and countries you have never visited, and the obligation often follows the user rather than your laptop — which is why "we are just students in Nashik" answers none of the questions.
+**Where the analogy breaks:** food rules are local and visible — the licence is on the wall. Software reaches users in states you have never visited, and the obligation often follows the user rather than your laptop, which is why "we are just students in Nashik" answers none of the questions.
 
 ### Picture it
 
@@ -74,43 +58,19 @@ Same food, three sets of obligations, driven by **scale, permanence, and whose m
 
 The short list to do during a student program, and the longer list to understand before real money arrives.
 
-### Entity: the four options and the actual decision points
+| Entity option | What it is, and what it costs you |
+|---|---|
+| Sole proprietorship | Not a separate legal person — you, trading under a name. Simplest and cheapest, liability personal, fine for small revenue and one owner |
+| Partnership | Two or more people doing that, with shared personal liability; rarely right today |
+| LLP | Limited liability with lighter ongoing compliance than a company, but awkward for outside investment and cannot issue ESOPs |
+| Private limited | What you need to raise money, grant equity or sign substantial contracts — real recurring annual compliance, which continues whether or not the company does anything |
+| The decision points | Outside investment; ownership that must survive a disagreement; a bank account in a business name; a counterparty refusing to sign with an individual; real personal liability |
 
-**Sole proprietorship** is not a separate legal person — it is you, trading under a name. Simplest, cheapest, liability personal. Fine for small revenue and one owner. **Partnership** is two or more people doing that, with shared personal liability; rarely right today. **LLP** gives limited liability with lighter ongoing compliance than a company, but is awkward for outside investment and cannot issue ESOPs.
-
-**Private limited company** is what you need to raise money, grant equity, or sign substantial contracts with large organisations. It costs money to create and carries real recurring annual compliance — filings, records, an auditor — and that recurring cost is what students underestimate, because it continues whether or not the company does anything.
-
-The decision points, rather than a recommendation: are you taking outside investment; are three people splitting ownership that must survive a disagreement; do you need a bank account in a business name; is a counterparty refusing to sign with an individual; is personal liability real. If every answer is no, you probably do not need an entity this month. **If unsure, pay a CA for an hour.**
-
-### Money, GST and invoices
-
-The payment gateway is the real wall between test mode and live. Gateways run their own KYC and their requirements change — **read your gateway's current onboarding documentation rather than any list, including this one.** Expect identity, a bank account, and published policies.
-
-GST is where invented facts do the most damage. Whether you must register depends on thresholds, your state and the nature of your supply, and digital services have their own treatment — so check the official GST portal and ask a CA. What you *can* decide now is whether your displayed price includes tax, because changing your mind later breaks every autopay mandate you have collected.
-
-### Data: the DPDP Act as a design input
-
-India's Digital Personal Data Protection Act, 2023 most likely applies to you *today*, because it attaches to holding personal data and not to having a company. Its rules have been notified in stages, so **check the current status and the official text rather than any summary, including this one.**
-
-The concepts are design decisions, not paperwork. You are a **data fiduciary** — the one deciding why and how personal data is processed; your user is a **data principal**. You need a **notice** saying in clear language what you collect and why, and **consent** that is specific, informed and freely given, at the point of collection rather than buried. **Purpose limitation** means using data for the stated purpose, not a new idea you had later. Collect the minimum, delete what you no longer need. Users can ask for **correction and erasure**, so you need a mechanism that is not "edit the database by hand". And **breach notification** duties mean you must be able to say who was affected — M07's logging and M04's reconciliation, again.
-
-Two specifics matter unusually for campus products. **Children's data** gets stricter treatment and some of your users may be under eighteen. And **AI features send user data to a third party** — your model provider — which your notice must disclose.
-
-### The documents to write now
-
-**A founder agreement.** One page, written in week two: who owns the code and the accounts, how decisions are made when you disagree, what happens if someone leaves, and who owns the work if the team dissolves. Not a legal instrument — a memory device that prevents the ₹5,000 argument.
-
-**A privacy notice that matches reality.** The dangerous version is a copied template, because it describes a company you are not.
-
-**A refund and cancellation policy** — chapter 4's decision, written and published, which gateways generally require. And **terms of service** if you host user content or promise a service level.
-
-### When to actually pay a professional
-
-At these moments, not "eventually": before you take real money from strangers; before you sign with an institution; before you split equity, because that mistake is very expensive to undo; before you raise outside money; before you build on minors' data at scale; and whenever you have a tax question with a number in it, because that is exactly what an AI answers confidently and wrongly. A CA for entity formation, GST and filings; a lawyer for contracts, terms and liability.
+If every one is a no, you probably do not need an entity this month. If unsure, pay a CA for an hour.
 
 ### Where it lives
 
-Chapter 4 is where most of this becomes code: the refund policy, the invoice fields, the tax-inclusive price. Chapter 7's capture mechanism needs the consent wording from here, and chapter 9's support channel is where an erasure request arrives — not an ordinary ticket. M07's consent and logging and M16's privacy chapter are the implementation. And M18 will ask what you would need before taking real money, which is this chapter's second column.
+Chapter 4 is where most of this becomes code: the refund policy, the invoice fields, the tax-inclusive price. Chapter 7's capture mechanism needs the consent wording from here, and chapter 9's support channel is where an erasure request arrives. M07's consent and logging and M16's privacy chapter are the implementation. M18 will ask what you would need before taking real money, which is this chapter's second column.
 
 ### Words to own
 
@@ -129,25 +89,51 @@ Chapter 4 is where most of this becomes code: the refund policy, the invoice fie
 
 ### Tradeoffs and gotchas
 
-**Incorporating too early costs real money for nothing**, and too late blocks a gateway or a contract at the worst moment. A company with no revenue is an annual compliance bill. The trigger list, not the calendar, decides.
+| Gotcha | What to do about it |
+|---|---|
+| The gateway is the real wall between test mode and live | Gateways run their own KYC and change their requirements — read your gateway's current onboarding documentation rather than any list, including this one |
+| GST is where invented facts do the most damage | Whether you must register depends on thresholds, your state and what you supply: check the official GST portal and ask a CA |
+| Tax-inclusive or not is yours to decide now | Changing your mind later breaks every autopay mandate you have already collected |
+| A copied privacy policy is worse than a short honest one | It states untrue things about you; publish chapter 4's refund policy as well, which gateways generally require |
+| Incorporating too early, or too late | Too early is an annual compliance bill with no revenue; too late blocks a gateway or a contract at the worst moment. The trigger list, not the calendar, decides |
 
-**A copied privacy policy is worse than a short honest one.** It states untrue things about you, which is the opposite of what the document is for.
+**The DPDP Act is a design input, not a document.** India's Digital Personal Data Protection Act, 2023 most likely applies to you *today*, because it attaches to holding personal data rather than to having a company. Its rules were notified in stages, so **check the current status and the official text rather than any summary, including this one.**
 
-**The founder agreement is the highest-value document here and the one nobody writes.** It costs an hour while everyone is friendly and is impossible to write once they are not.
+| DPDP concept | What it means in your product |
+|---|---|
+| Data fiduciary, data principal | You decide why and how personal data is processed; your user is the person it is about |
+| Notice and consent | Clear language on what you collect and why, specific and freely given, at the point of collection rather than buried |
+| Purpose limitation | Use data for the stated purpose, not for a new idea you had later |
+| Minimisation | Collect the minimum and delete what you no longer need |
+| Correction and erasure | A mechanism users can use, which cannot be "edit the database by hand" |
+| Breach notification | You must be able to say who was affected — M07's logging and M04's reconciliation, again |
+| Children's data | Stricter treatment, and some of your users may be under eighteen |
+| Third-party processing | An AI feature sends user data to your model provider, which your notice must disclose |
 
-**Personal accounts and project money must not mix.** Even without an entity, open a separate account or keep a ledger. The first team's problem was bookkeeping before it was law.
+**The founder agreement is the highest-value document here and the one nobody writes.** One page in week two: who owns the code and the accounts, how decisions get made when you disagree, what happens if someone leaves. It costs an hour while everyone is friendly and cannot be written once they are not. Keep project money out of personal accounts too.
+
+**Pay a professional at these moments, not "eventually"** — a CA for entity formation and filings, a lawyer for contracts and liability.
+
+| Pay for an hour before | Why |
+|---|---|
+| You take real money from strangers | Entity, bank account, tax treatment and policies all land at once |
+| You sign with an institution | Who signs, on behalf of what, with what liability |
+| You split equity | The most expensive mistake on this list to undo |
+| You raise outside money | The structure has to exist before the money does |
+| You build on minors' data at scale | Stricter duties, and the ones most easily got wrong |
+| Any tax question with a number in it | Exactly what an AI answers confidently and wrongly |
 
 ### Verify it
 
-AI is useful here for mapping the landscape and listing questions, and dangerous in one specific way: it states numbers, deadlines and fees with complete confidence, from a point in time you cannot see, for a jurisdiction it may have guessed.
+AI is useful here for mapping the landscape, and dangerous in one way: it states numbers, deadlines and fees with complete confidence, from a point in time you cannot see, for a jurisdiction it may have guessed.
 
-**Red flag, the headline one: a specific threshold, fee, deadline or form number stated as fact.** Any figure about GST registration, filing dates, incorporation cost or penalties must come from the official source, read today, with the date written down. Ask which page to read, not what the number is. A model volunteering a number without that caveat is the warning.
+**Red flag, the headline one: a specific threshold, fee, deadline or form number stated as fact.** Any figure about GST registration, filing dates, incorporation cost or penalties must come from the official source, read today, with the date written down. Ask which page to read, not what the number is. A model volunteering a number without that caveat is itself the warning.
 
-**Red flag: advice that assumes a different country**, or **DPDP treated as GDPR with the names changed.** Delaware, a "DBA", an LLC, CCPA, a 1099 — American answers to Indian questions, appearing because of what the training data contains.
+**Red flag: advice that assumes a different country, or DPDP treated as GDPR with the names changed.** Delaware, a "DBA", an LLC, CCPA, a 1099 — American answers to Indian questions, from what the training data contains.
 
-**Red flag: a recommendation to incorporate without asking why**, or **generated terms presented as ready to publish.** If nothing in the answer depends on whether you are raising money or signing contracts, it is a default and not advice; and terms are a promise about your own conduct.
+**Red flag: a recommendation to incorporate without asking why, or generated terms presented as ready to publish.** If nothing in the answer depends on whether you are raising money or signing contracts, it is a default, not advice.
 
-**Red flag: a privacy notice that does not mention your model provider**, or **"we will figure out compliance later" where other people's money is involved.** The first is your most likely real DPDP exposure in this program. The second is the opening story, two weeks before the fest was cancelled.
+**Red flag: a privacy notice that does not mention your model provider, or "we will figure out compliance later" where other people's money is involved.** The first is your most likely real DPDP exposure; the second is the opening story, two weeks before the fest was cancelled.
 
 ## Walkthrough
 1. Run the four triggers against your own project today and write yes or no for each: real money from strangers, personal data held, something signed with an institution, ownership split between founders. Be honest about the second one.

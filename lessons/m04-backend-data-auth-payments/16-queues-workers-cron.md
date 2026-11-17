@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: queues-workers-cron
 title: "Background Work: Queues, Workers, Cron and Event-Driven Patterns"
 order: 16
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,33 +22,32 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student taps "Place order". The server saves the order, sends a confirmation email, generates a PDF receipt, resizes the dish photo for the order history, and notifies the canteen's WhatsApp group. Then it replies.
-
-Four seconds on a good day. Nine when the email provider is slow. On the day the WhatsApp provider has an outage, the request hangs for thirty seconds, the serverless host kills it at ten, and the student sees an error — even though the order was saved perfectly in the first 80 milliseconds. She taps again. Now there are two orders.
-
-The team's fix is to wrap the whole thing in a try-catch and ignore failures. Now the order succeeds and nobody ever finds out that emails stopped sending three days ago.
-
-Meanwhile the canteen wants a daily 10 p.m. summary of sales. Somebody implements it as an endpoint and sets a phone alarm to open it in a browser every night. It works until the day they forget, and nobody notices for a week because nothing fails loudly.
+A student taps "Place order". The server saves the order, emails a confirmation, generates a PDF receipt, notifies the canteen's WhatsApp group, then replies — four seconds on a good day. On the day the WhatsApp provider has an outage the host kills the request at ten seconds, and she sees an error even though her order was saved in 80 milliseconds. She taps again; now there are two orders. The team's fix is a try-catch that ignores failures, so nobody finds out emails stopped sending three days ago.
 
 ### The idea
 
 **A request handler should do the smallest amount of work that makes the user's action true, and hand everything else to a worker.**
 
-A **queue** is a list of jobs waiting to be done. The request handler **enqueues** a job — a tiny record saying "send confirmation for order 91" — and returns immediately. A **worker** is a separate process that takes jobs off the queue and does them, slowly if necessary, retrying on failure, with nobody waiting.
+A **queue** is a list of jobs waiting. The handler **enqueues** a tiny record — "send confirmation for order 91" — and returns immediately; a **worker** drains the queue, retrying on failure, with nobody waiting. **Cron** is work triggered by a clock, not a user. **Event-driven** is the generalisation, and harder to debug.
 
-**Cron** is the other shape: work triggered by a clock rather than by a user. The 10 p.m. summary, the nightly cleanup of orphaned files from chapter 15, the hourly check for payments stuck in pending.
+The test for what stays is one question: **is the user's action true without this?**
 
-**Event-driven** is the generalisation. Instead of the order handler knowing about emails, PDFs and WhatsApp, it announces "order placed" and whatever cares subscribes. Powerful, and genuinely harder to debug, which is why it belongs later than you think.
+| Work | Inside the request? | Why |
+|---|---|---|
+| Save the order row | yes | the action itself |
+| Recompute the price server-side | yes | correctness, and it is fast |
+| Check stock and reserve it | yes | two students, one samosa |
+| Send a confirmation email | no | informs, takes seconds, can retry |
+| Generate a PDF receipt | no | slow, nobody is waiting for it |
+| Resize an uploaded image | no | seconds to minutes |
+| Notify a WhatsApp group | no | third party, can be down |
+| Update a daily sales total | no | cron can recompute it |
 
 ### The analogy
 
-At the canteen counter, the cashier takes your money, writes a token, and hands it to you. Eight seconds. She does not cook your food while you stand there.
+The cashier takes your money, writes a token, and hands it over in eight seconds; she does not cook your food while you stand there. The slip goes on a spike by the kitchen — that is the queue — and the cooks work through it. A failed dish goes back on the spike; after three failures it goes in the manager's tray, the dead-letter queue.
 
-The order slip goes on a spike by the kitchen — that is the queue. The cooks work through the spike in order — they are the workers. If a dish fails because the gas ran out, the slip goes back on the spike to be retried. If it fails three times, it goes in a separate tray the manager looks at — the dead-letter queue.
-
-The nightly count of the till is cron: nobody requests it, the clock does.
-
-**Where the analogy breaks:** a cook who drops a slip can see the gap. A queue failing silently looks exactly like a quiet day — no slips, no errors, no symptom. You need to watch the queue's depth and its failure tray deliberately, which is M07's observability, because "nothing appears to be wrong" is also what a stopped worker looks like.
+**Where the analogy breaks:** a cook who drops a slip sees the gap, but a queue failing silently looks exactly like a quiet day. "Nothing appears to be wrong" is also what a stopped worker looks like.
 
 ### Picture it
 
@@ -75,42 +74,9 @@ The handler does the one thing that must be true and enqueues the rest; a worker
 
 ### Where it lives
 
-The queue sits beside your server rather than in front of it, and the worker is a second place your code runs. On free tiers this is usually a scheduled function that runs every minute and drains a database table used as a queue, or a managed queue your platform provides. For a team of three, **a table in Postgres with a status column is a perfectly respectable queue** — rows with `pending`, `processing`, `done`, `failed`, and a worker that picks the oldest pending row.
+The worker is a second place your code runs — usually a scheduled function draining a table every minute. **A Postgres table with a status column is a perfectly respectable queue**: rows marked `pending`, `processing`, `done`, `failed`, and a worker that picks the oldest pending one.
 
-It connects backwards to almost every chapter in this module. Chapter 5's ten-second timeout is why this exists. Chapter 11's transactions matter because the job insert must be part of the same transaction as the order — otherwise you can commit an order whose confirmation job was never queued. Chapter 15's resize is a job. Chapter 3's webhook handler verifies, records and queues, because the provider is waiting. And chapter 17's payment reconciliation is the most important cron job you will write.
-
-Forward: M05 covers retries, backoff and circuit breakers properly. M07 is where you watch queue depth and alert on the dead-letter queue. M13 is where event-driven architecture and Kafka become a real conversation at a scale where they earn their complexity.
-
-### What belongs in a request, and what does not
-
-The test is one question: **is the user's action true without this?**
-
-A student placed an order. The order row makes that true. The confirmation email does not — it informs her of something already true. So: save the row, queue the email, respond.
-
-| Work | Inside the request? | Why |
-|---|---|---|
-| Save the order row | yes | the action itself |
-| Recompute the price server-side | yes | correctness, and it is fast |
-| Check stock and reserve it | yes | two students, one samosa |
-| Send a confirmation email | no | informs, takes seconds, can retry |
-| Generate a PDF receipt | no | slow, nobody is waiting for it |
-| Resize an uploaded image | no | seconds to minutes |
-| Notify a WhatsApp group | no | third party, can be down |
-| Update a daily sales total | no | cron can recompute it |
-
-The pattern that falls out: anything involving a third party, anything slow, and anything the user is not literally staring at goes in the queue. Anything that determines correctness stays in the request, inside the transaction.
-
-### Jobs run twice. Design for it.
-
-This is the part that catches everyone, and it is the same lesson chapter 17 builds on.
-
-A worker takes a job, does the work, and then crashes before it can mark the job done. The queue, seeing no acknowledgement, hands the job to another worker. The work happens twice. This is not a rare edge case — it is the normal behaviour of every queue, because the alternative (marking done before doing the work) loses jobs entirely, which is worse.
-
-So every job must be **idempotent**: running it twice produces the same result as running it once.
-
-Sending an email twice is annoying. Crediting a wallet twice is a loss. The techniques are simple once you know to apply them: give each job a unique key and record that key when it completes, so the second run sees it and stops. Or make the operation naturally idempotent — "set status to paid" is safe twice, "add ₹240 to the balance" is not.
-
-The same discipline applies to cron. A nightly job that runs twice because the scheduler double-fired must not send two summaries, and a job that takes eleven minutes when it runs every ten minutes must not have two copies racing each other.
+Chapter 5's timeout is why this exists; chapter 11's transaction is where the job insert belongs; the webhook, the resize and reconciliation are all jobs; M07 is where depth becomes an alert.
 
 ### Words to own
 
@@ -129,31 +95,27 @@ The same discipline applies to cron. A nightly job that runs twice because the s
 
 ### Tradeoffs and gotchas
 
-**Enqueue inside the transaction.** If you commit the order and then enqueue, a crash between the two loses the job silently. If the queue is a table in the same database, the insert is part of the same transaction and the problem disappears — which is a real argument for the simple approach.
+**Every job will run twice, so every job must be idempotent.** A worker does the work, then crashes before acknowledging it, and the queue hands the job to another worker — normal behaviour, because acknowledging before working loses jobs entirely. Crediting a wallet twice is a loss. Give each job a unique key, or make it naturally idempotent: "set status to paid" is safe twice, "add ₹240 to the balance" is not.
 
-**Never swallow job failures.** A try-catch that logs nothing turns a broken email system into a system nobody knows is broken. Failures go to a dead-letter queue and somebody looks at it.
+**Enqueue inside the transaction,** or a crash between commit and enqueue loses the job silently.
 
-**Retry only what is worth retrying.** A network timeout is worth retrying. A malformed job that will fail identically forever is not — it belongs in the dead-letter queue immediately. Infinite retries on a permanent failure burn your free tier and bury the real failures.
+**Never swallow job failures.** A try-catch that logs nothing hides a broken email system. Retry a network timeout; send a malformed job straight to the dead-letter queue.
 
-**The user needs to see the in-between state.** If the receipt is generating, say so. "Processing" with a spinner is honest; a blank space looks broken and generates support messages.
+**Free-tier cron is not guaranteed.** Write jobs that catch up — "process everything unprocessed", not "the last hour" — so a missed run self-heals.
 
-**Cron on free tiers is often minute-granularity at best, and not guaranteed.** A job scheduled for exactly 10 p.m. may run at 10:02, or be skipped if the platform is busy. Design jobs that catch up — "process everything unprocessed" rather than "process the last hour" — so a missed run self-heals.
-
-**Do not go event-driven early.** Announcing `order.placed` and having four subscribers is elegant until you need to know why one of them did not fire. With three people and no users, a direct queue with named jobs is easier to reason about and to debug.
-
-**Watch the depth.** A queue that is growing faster than it drains is a slow-motion outage. One number on a dashboard; M07 makes it an alert.
+**Watch the depth.** A queue growing faster than it drains is a slow-motion outage; "Processing" beats a blank space.
 
 ### Verify it
 
-Five checks, and the second is the one that tells you whether you have a real system.
+Five checks; the second tells you whether you have a real system.
 
-1. **Time the request.** Place an order and read the server's response time. If the user's action takes more than about 500 milliseconds, something slow is still inside the handler. Find it.
-2. **Make a job fail on purpose.** Break the email provider's credentials, or make the job throw. Then look: did it retry? How many times? Where is it now? If you cannot answer those three questions by looking at something, you have a queue with no visibility and you will not notice real failures either.
-3. **Run a job twice, deliberately.** Take a completed job and re-run it. Count whatever it produces — emails, credits, rows. Two of anything that should be one is a missing idempotency key.
-4. **Kill the worker mid-job,** then let it restart. Confirm the job either completes or retries, and that nothing was done twice in a way that matters.
-5. **Skip a cron run.** Disable the schedule for an hour, then re-enable it. A well-designed job catches up on everything it missed. A job that processes "the last hour" has silently lost that hour forever.
+1. **Time the request.** More than about 500 ms means something slow is still in the handler.
+2. **Make a job fail on purpose.** Did it retry? How many times? Where is it now? If you cannot answer those three by looking at something, you will not notice real failures.
+3. **Run a job twice, deliberately.** Two of anything that should be one is a missing idempotency key.
+4. **Kill the worker mid-job.** On restart it must complete or retry, with nothing done twice that matters.
+5. **Skip a cron run.** A well-designed job catches up; one written against "the last hour" loses it.
 
-Red flags: an email or third-party call inside a request handler; an enqueue after the commit rather than inside the transaction; a try-catch around job execution that logs and continues; no dead-letter queue, so failures vanish; no idempotency key on a job that touches money; a cron job that assumes it ran on time and exactly once; retries with no maximum; and a background system with no number anywhere showing how many jobs are waiting.
+Red flags: a third-party call in a request handler; an enqueue after the commit; a try-catch around job execution that logs and continues; no dead-letter queue; no idempotency key on a job touching money; a cron job assuming it ran on time and exactly once; retries with no maximum; no number showing how many jobs wait.
 
 ## Walkthrough
 1. Pick your most important write action — placing an order, submitting a form, completing a signup. List every single thing your code currently does inside that request, in order.

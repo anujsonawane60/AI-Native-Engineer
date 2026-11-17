@@ -4,7 +4,7 @@ module: m16-users-analytics-growth
 slug: event-taxonomy
 title: "Instrumenting Behaviour Properly: Event Taxonomy"
 order: 2
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,31 +22,29 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team reaches demo day rehearsal in week six with analytics they have been quietly proud of. Then somebody checks one number against the database.
+In week six a team checks the dashboard against the database: 1,900 orders versus 614. Four faults: Android fires `orderPlaced` and web fires `order_placed`, so each chart counts half the traffic; the event fires on the Pay tap, so abandoned payments count; a catch-all `button_clicked` holds 1,400 free-text labels, nine with a phone number; and `price` arrived in week four, so averages across the full history exclude three weeks.
 
-The dashboard says 1,900 orders. The database says 614. The investigation takes a whole evening and finds four separate faults. The Android build fires `orderPlaced` and the web build fires `order_placed`, so one chart counts half the traffic and another counts the other half. The event fires when the Pay button is tapped, so every abandoned payment counts as an order. Somebody added a catch-all `button_clicked` event with a free-text `label` property that now holds 1,400 distinct values, including, in nine cases, a user's typed delivery note with their phone number in it. And a `price` property was added in week four, so any average across the full history silently excludes three weeks.
-
-None of this is fixable. You cannot re-record behaviour that already happened. The team's first six weeks of user history is gone, and it is gone during the week they most needed it.
+None of it is fixable: behaviour cannot be re-recorded, and six weeks of history are gone.
 
 ### What M07 covered, and what is new here
 
-M07's chapter eight gave you the vocabulary and the naming convention: object then action in past tense, fire on success rather than intent, variation in properties rather than in names, a dozen events rather than a hundred, never personal data. Re-read it rather than waiting for this chapter to repeat it.
-
-What is new is everything that only matters once real people are generating real history. A taxonomy document you actually maintain. A versioning rule. Identity, which M07 never raised, and which is where Indian shared devices break things. Which events must come from the server. What late-arriving events do to yesterday's numbers. And the discipline of deciding not to track things.
+M07 gave you the naming convention: object then action in past tense, fire on success, variation in properties, never personal data. New here is what only matters once real history exists — a maintained file, versioning, identity, client versus server, and not tracking things.
 
 ### The idea
 
 **A taxonomy is a contract with your future self: a written list in which every event has exactly one meaning, one firing condition and typed properties — and a meaning is never changed, only versioned.**
 
-The contract matters because of an asymmetry. Code can be rewritten; history cannot. If `order_placed` meant "button tapped" in March and "payment confirmed" in April, every chart that crosses March is wrong, nothing warns you, and no amount of later work recovers the truth about March.
+Code can be rewritten; history cannot. If `order_placed` meant "tapped" in March and "paid" in April, every chart crossing March is wrong and nothing warns you.
+
+The contract must also say whose behaviour each event is. An **anonymous id** sits on the device from the first visit, before there is an account; a **user id** is your internal id after signup; **stitching** tells your analytics tool the two are one person. Without it your signup funnel breaks at step one, because the browser and the account are different rows.
+
+Then India breaks it: one hostel phone used by three students puts three people under one anonymous id, and one user id if they share a login. Treat per-user numbers as approximate and write that limitation into the file.
 
 ### The analogy
 
-The canteen register again, but look at the top of the page. Someone printed column headings there: date, dish, plates, student id, payment mode. Every line written for the next year fits those columns, and anyone can read page 200 the same way they read page 1.
+The canteen register, with headings at the top: date, dish, plates, student id, payment mode. Every line for the next year fits them, so page 200 reads like page 1. In month three the manager adds a "discount" column, and a human reading the old pages knows blank means none.
 
-Now suppose in month three the manager adds a "discount" column by hand. The old pages have no discount column, but a human reading them understands that blank means none, and adjusts.
-
-**Where the analogy breaks:** nobody reads your event history. A dashboard reads it, and a dashboard cannot infer that blank means none. A property added in week six is simply absent for weeks one to five, and an average across the whole period quietly reports the wrong number with full confidence. The register's forgiveness comes from the human; your taxonomy has to supply that forgiveness in advance, as a written rule.
+**Where the analogy breaks:** a dashboard reads your event history, not a human, and cannot infer that blank means none. A property added in week six is absent for weeks one to five, and the average reports a wrong number with full confidence.
 
 ### Picture it
 
@@ -68,39 +66,15 @@ Now suppose in month three the manager adds a "discount" column by hand. The old
              before this date is not comparable
 ```
 
-Every event in your taxonomy needs those eight lines: name, firing condition, what one event represents, typed properties with allowed values, the forbidden fields, the known ways it could fire wrongly, and the date of any change.
-
-### Identity: the part M07 skipped
-
-An event is useless unless you can say which person it belongs to. Three ideas do that work.
-
-An **anonymous id** is a random identifier stored on the device the first time someone arrives, before they have an account. A **user id** is your own internal id, available after signup. **Stitching** is the one-time operation that tells your analytics tool "this anonymous id and this user id are the same person", so the menu views from before signup join up with the orders from after.
-
-Without stitching, your signup funnel is broken at its first step, because the person who browsed is a different row from the person who signed up. This is the single most common instrumentation fault in a student product with a real funnel, and chapter three is where you will feel it.
-
-Then India breaks it. One hostel phone used by three students produces three people's behaviour under one anonymous id and, if they share a login, one user id. A sibling's phone borrowed for ten minutes attaches a stranger's session to your user. You cannot fix this, so handle it honestly: treat per-user numbers as approximate, prefer logged-in events for anything that must be attributed, and write the limitation into the taxonomy file so nobody in M18 is surprised by it under questioning.
-
-### Client or server, and events that arrive late
-
-An event fired from the phone can be blocked, dropped on a weak signal, or lost when the app is killed. An event fired from your server cannot. So the rule is: **anything that must be approximately complete fires from the phone; anything that must be nearly exact fires from the server.** Menu views and screen opens are client events. Payment confirmed, order created, subscription started are server events.
-
-Patchy connectivity adds a second problem. A good analytics SDK queues events while offline and sends them when the signal returns, which is what you want — but only if it preserves the time the action happened rather than the time it was received. If it does not, a student who ordered on Tuesday in a basement lab appears in Thursday's numbers, and Tuesday's funnel changes after you have already presented it. Check this behaviour explicitly and write down which it does.
-
-### What not to track
-
-Deciding against events is as much of the job as choosing them.
-
-- **No catch-alls.** `button_clicked` with a `label` property becomes an unbounded list nobody can query and burns your free-tier event quota. One named event per decision instead.
-- **No free text from users.** Search terms, notes, messages. These contain names, phone numbers and worse, and they are the usual route by which personal data reaches a vendor.
-- **No high-cardinality properties.** A property with thousands of distinct values cannot be grouped, charted or filtered usefully. Bucket it or drop it.
-- **Nothing you cannot attach a decision to.** If you cannot finish the sentence "if this number halved we would…", the event is cost without benefit.
-- **No scroll, hover or mousemove events.** They look rich, they are enormous in volume, and chapter five's replays answer those questions far better on a free tier.
+Every event needs those eight lines: name, firing condition, what one event represents, typed properties with allowed values, the forbidden fields, the known ways it could fire wrongly, and the date of any change.
 
 ### Where it lives
 
-M04 is where the schema discipline came from, and your taxonomy is the same discipline applied to behaviour rather than to rows: typed fields, allowed values, a migration note when something changes. M06's CI is where a naming check belongs, so a pull request introducing `orderPlaced` fails before it merges rather than six weeks later.
+An event fired from the phone can be blocked, dropped on a weak signal or lost when the app is killed; a server event cannot. **Anything that must be approximately complete fires from the phone; anything that must be nearly exact fires from the server.** Menu views are client events; payment confirmed and order created are server.
 
-Downstream, chapter three builds funnels on this file, chapter four builds retention on the activation event you define here, chapter nine's experiments read the primary metric from it, and M13's warehouse and BI layer loads these events for good. M07's chapter nine's minimisation rule — user id, never phone number — is the forbidden-fields line in every entry above, and chapter eleven of this module is where it becomes a legal position rather than a tidy one.
+A good SDK queues events while offline, which helps only if it keeps the time the action happened rather than the time it was received. Otherwise Tuesday's basement-lab order lands in Thursday's numbers. Check which yours does.
+
+On the map: M04's schema discipline applied to behaviour; M06's CI, where a naming check stops `orderPlaced` before it merges; chapter three's funnels and chapter four's activation event; chapter eleven's legal position on forbidden fields.
 
 ### Words to own
 
@@ -119,28 +93,22 @@ Downstream, chapter three builds funnels on this file, chapter four builds reten
 
 ### Tradeoffs and gotchas
 
-**Twelve events, argued down rather than up.** Every team wants thirty. Thirty events means thirty firing conditions to verify, thirty ways to drift, and a quota spent on questions nobody asked. Add the thirteenth only when you can name the decision it changes.
+**Twelve events, argued down rather than up.** Thirty means thirty firing conditions to verify. Free tiers meter events rather than users, so one chatty client event exhausts the monthly cap and recording stops in your busiest week. And no feature merges without its taxonomy entry, or the file rots — a team rule, not a tool.
 
-**Free tiers meter events, not users.** A monthly event cap is easy to exhaust with one chatty client event, and when you hit it the tool stops recording — usually in the busiest week, which is the week you needed. Estimate events per active user per session before you instrument, not after.
+**Never change an event's meaning.** Add a property, add an event, or deprecate the old one with a date, and read any chart crossing it as two charts.
 
-**Never change an event's meaning.** Add a property, add a new event, or deprecate the old one with a date. If you must change a firing condition, write the date in the taxonomy and treat every chart crossing it as two charts.
-
-**Deduplicate on purpose.** A confirmation screen that re-fires its event on reload turns one order into three. Decide what "once per" means for each event — once per order, once per session, once per user — and test it by reloading.
-
-**The taxonomy must be reviewed when features ship, or it rots.** The file is only worth maintaining if a new feature cannot merge without an entry in it. That is a team rule, not a tool.
+**Not tracked, on purpose.** No catch-alls like `button_clicked` with a `label`. No free text typed by users: search terms and notes carry phone numbers. No high-cardinality properties: they cannot be grouped or charted. Nothing you cannot finish "if this number halved we would…" about. No scroll or hover; chapter five's replays answer those better.
 
 ### Verify it
 
-AI will instrument your whole product in one pass and tell you it is done. Six checks, each done by hand on a real device.
+AI will instrument your product in one pass and tell you it is done. Four checks, by hand, on a real device.
 
-1. **Do the action yourself and confirm the event appears exactly once**, with the right properties. Then reload the confirmation screen and confirm it does not appear again.
-2. **Check the firing condition for each event.** **Events fired on page load rather than on the action** remain the most common fault, and they inflate precisely the steps you most want to trust.
-3. **Read every property of one real event, field by field.** **A phone number, email, name or typed user note inside a property** is a privacy breach and a legal one, and it is usually there because a generated snippet sent the whole form or state object.
-4. **Grep your own instrumentation for near-duplicate names.** `order_placed`, `orderPlaced` and `placed_order` are three events and nothing will warn you.
-5. **Test stitching.** Browse while logged out, sign up, then check whether your pre-signup activity is attached to the new user. If it is not, chapter three's funnel will be wrong at step one.
-6. **Check where money events fire from, and what timestamp they carry.** A payment event fired in the browser will undercount; an event stamped at receipt rather than at occurrence will rewrite yesterday.
+1. **Do the action once and confirm one event**, with the right properties, then reload the screen and confirm no second one.
+2. **Read every property of one real event, field by field.** A phone number or typed note in a property is a privacy breach, usually because a snippet sent the whole form object.
+3. **Test stitching.** Browse logged out, sign up, and check whether the earlier activity attached to the new user.
+4. **Check where money events fire from and what timestamp they carry.** A browser payment event undercounts; one stamped at receipt rewrites yesterday.
 
-Red flags: a taxonomy with event names but no firing conditions; any property whose values are free text; a catch-all click event; properties added without a dated note; "we will add analytics to the new feature later"; and an event list longer than the number of decisions your team actually makes.
+Red flags: names with no firing conditions; events that fire on page load; near-duplicates like `orderPlaced` and `order_placed`; any free-text property; properties added without a dated note.
 
 ## Walkthrough
 1. List every decision your team expects to make in the next month, in plain sentences — "whether to remove the address step", "whether the WhatsApp reminder brings people back". Aim for six to ten.

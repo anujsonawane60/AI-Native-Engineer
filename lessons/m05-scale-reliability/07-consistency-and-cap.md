@@ -4,7 +4,7 @@ module: m05-scale-reliability
 slug: consistency-and-cap
 title: "Consistency, the CAP Theorem and What You Trade Away"
 order: 7
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,35 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-There is one paneer plate left. Two students tap "Order" within the same second, from two phones, served by two of your three app instances.
-
-Both instances read `quantity = 1`. Both decide the order is fine. Both write. Two students pay ₹60 each for one plate, and the canteen now has an argument at the counter, a refund to process through UPI, and a student who tells forty friends your app took her money and gave her nothing.
-
-Your database never lied. Both reads were correct at the moment they happened. Nobody wrote buggy code. The failure is that you treated "is there stock" as a question with a stable answer, when in a system with more than one reader it is a question whose answer can change between the reading and the acting.
-
-Now notice something uncomfortable. If you had asked for the strictest possible correctness here, your app would also have refused to serve anybody during the two seconds your database was failing over last Tuesday. Correct and always-answering are not both available to you. That is what this chapter is about.
+There is one paneer plate left. Two students tap "Order" in the same second, served by two of your three instances. Both read `quantity = 1`, both decide the order is fine, both write. Two students pay ₹60 for one plate. Your database never lied: both reads were correct when they happened. And had you demanded the strictest correctness here, your app would also have refused everybody during the two seconds your database was failing over last Tuesday.
 
 ### The idea
 
 **You cannot have data that is simultaneously correct everywhere, instantly, and still answerable when the network between your machines breaks. So you choose — and you choose per feature.**
 
-**Strong consistency** means every read sees the most recent write. Ask any copy and you get the truth, or you get an error rather than a guess. **Eventual consistency** means the copies converge after a while, so a read may return something slightly old, and "a while" is usually milliseconds.
-
-The **CAP theorem** says that when the network between parts of your system is broken — a *partition* — you may keep consistency or keep availability, not both. That is a narrow claim and it is often quoted far too widely. Partitions are rare. The choice you actually make every single day is the softer cousin: speed versus freshness. Reading from the nearby replica is faster and sometimes stale; reading from the distant primary is slower and right.
-
-The practical skill is not reciting CAP. It is being able to say, for each feature you build, which answer you want and what you will do when you are wrong.
+**Strong consistency** means every read sees the most recent write: the truth, or an error rather than a guess. **Eventual consistency** means copies converge after a while, usually milliseconds, so a read may be slightly old. The **CAP theorem** says that during a *partition*, when parts of your system cannot reach each other, you keep consistency or availability but not both. Partitions are rare; the daily choice is the softer cousin — the nearby replica is faster and sometimes stale, the distant primary slower and right.
 
 ### The analogy
 
-The canteen has two serving points and one stock of paneer.
+Two serving points, one stock of paneer. The strongly consistent arrangement is a single token window: the last paneer token is issued exactly once — and when that window's power fails, nobody eats, though there is food on the counter. The eventually consistent arrangement is each counter keeping its own slips and reconciling at closing: everybody eats immediately, and twice a week the slips show the last paneer was sold at both counters. Real canteens run the second, because they have what distributed systems only have if you build it: a human who says "sorry, that's finished, take chole instead, no charge". That apology is a **compensating action**, and it is the price of availability.
 
-The strongly consistent arrangement is a single token window. Nobody gets food without a token, tokens come from one place, and the last paneer token is issued exactly once. It is correct — and when the token window's power fails, nobody eats, even though there is food on the counter. Correct and unavailable.
-
-The eventually consistent arrangement is each counter keeping its own slips and reconciling at closing time. Everybody eats immediately, service never stops, and twice a week the slips reveal that the last paneer was sold at both counters. Available and occasionally wrong.
-
-Real canteens run the second one, because they have something distributed systems only have if you build it: a human who says "sorry, that's finished, take chole instead, no charge" and writes it off. That apology is a **compensating action**, and it is the price of availability.
-
-**Where the analogy breaks:** the canteen can improvise. Your code cannot. If you choose eventual consistency, the apology has to be written in advance — the refund path, the "sold out after all" email, the retry. A feature that is eventually consistent with no compensating action is not a design decision, it is a bug you have not met yet.
+**Where the analogy breaks:** the canteen improvises and your code cannot, so the apology must be written in advance. An eventual feature with no compensating action is a bug you have not met yet.
 
 ### Picture it
 
@@ -69,9 +53,7 @@ Real canteens run the second one, because they have something distributed system
 
 When the two halves cannot talk, each must either refuse to answer until the link returns, which keeps the stock count correct, or answer from what it knows, which keeps the app open and risks selling the same plate twice.
 
-### Consistency per feature, not per app
-
-This table is the whole chapter in practice. Fill in your own version for your own product.
+This table is the chapter in practice. Fill in your own version.
 
 | Feature | What it needs | What you accept |
 |---|---|---|
@@ -83,15 +65,16 @@ This table is the whole chapter in practice. Fill in your own version for your o
 | UPI payment status | Strong, plus idempotency | Slower confirmation screen |
 | Wallet balance | Strong | No offline writes at all |
 
-Two patterns run through it. Anything that can be **counted approximately** can be eventual: nobody audits a like count. Anything where **two people can take the same thing**, or where **money moves**, needs the strict answer — and the mechanism is usually a single-writer check inside a transaction (M04), or a reservation that expires, not a cleverer cache.
-
-And note the middle row. Read-your-own-writes is not strong consistency and not plain eventual consistency; it is a targeted exception, which is why Chapter 6 had you list those reads by name.
+Anything **counted approximately** can be eventual, because nobody audits a like count. Anything where **two people can take the same thing**, or where **money moves**, needs the strict answer — a single-writer check inside a transaction (M04), or a reservation that expires, not a cleverer cache.
 
 ### Where it lives
 
-This chapter explains, formally, the bills that the previous five chapters ran up. Your 60-second menu TTL from Chapter 3 is a consistency decision: you chose eventual with a bound of one minute. Your read replica from Chapter 6 is a consistency decision. Even your browser cache is one. The moment you make a second copy of anything, you have opted into eventual consistency, whether or not anybody said the words.
+This chapter names, formally, the bills the previous five ran up. Your 60-second menu TTL was a consistency decision: eventual, bounded at one minute. So was your read replica, and so is your browser cache. Every second copy opts you into eventual consistency, whether or not anybody said the words.
 
-Outward: M04's transactions and idempotency keys are the tools that implement the strong-consistency rows in that table, and its queues are where compensating actions belong. Chapter 8 next covers what to do when the strongly consistent thing is temporarily unreachable. M07 is where you measure how often you are actually wrong. M13 takes this into quorums, consensus and multi-region.
+- M04 — transactions and idempotency keys implement the strong rows; queues hold compensating actions
+- Chapter 8 — what to do when the strongly consistent thing is unreachable
+- M07 — measuring how often you are actually wrong
+- M13 — quorums, consensus and multi-region
 
 ### Words to own
 
@@ -112,33 +95,25 @@ Outward: M04's transactions and idempotency keys are the tools that implement th
 
 ### Tradeoffs and gotchas
 
-**CAP is the most misquoted idea in this module.** It applies during a partition and says nothing about normal operation. "We picked availability" is not a licence to be wrong on a Tuesday afternoon when the network is fine. The honest everyday version is: freshness costs latency, and you pay it where it matters.
+**CAP is the most misquoted idea in this module.** It applies during a partition and says nothing about normal operation, where the honest trade is that freshness costs latency.
 
-**Last-write-wins loses data silently, and it is the default.** Two instances both increment a counter from 10 to 11 and the result is 11, not 12. One student's edit overwrites another's with no error anywhere. If your conflict resolution is "whichever timestamp is later", say out loud what gets destroyed, and for counters use an operation the store can merge — an atomic increment — rather than read-modify-write.
+**Last-write-wins loses data silently, and it is the default.** Two instances increment a counter from 10 to 11 and the result is 11, not 12. Counters need an operation the store merges atomically.
 
-**A cache in front of a strongly consistent database makes the read eventual.** This catches people constantly. Your database is perfect; your 60-second cached copy is not. Any claim that a feature is strongly consistent must account for every layer in Chapter 2's diagram, including the browser.
+**A cache in front of a strongly consistent database makes the read eventual.** Any claim of strong consistency must account for every layer in Chapter 2's diagram, including the browser.
 
-**"Eventually consistent" without a bound is not a design.** Eventual means it converges; it does not say when. Put a number on it — "stale by at most 60 seconds, enforced by a TTL" — or you have described a hope.
+**Put a number on everything eventual, and accept the cost of everything strong.** "Stale by at most 60 seconds, enforced by a TTL" is a design; "eventually consistent" alone is a hope. A strong feature should stop during a failover rather than answer wrongly.
 
-**Strong consistency is slower and sometimes unavailable, by design.** If you choose it for a feature, accept that the feature stops working during a failover rather than giving wrong answers. For a wallet balance, that is correct behaviour. Decide it deliberately and write it in your decision log so nobody "fixes" it later.
-
-**Every eventual feature needs its apology written first.** Overselling the last paneer is acceptable only if the refund path exists, is automatic, and tells the student clearly. Without that, you did not choose availability, you chose an incident.
+**Every eventual feature needs its apology written first.** Overselling the last paneer is acceptable only if the refund is automatic; without that you did not choose availability, you scheduled an incident.
 
 ### Verify it
 
-**Make it produce the table, not an opinion.** The question is: "for each feature in my app, tell me whether it needs strong or eventual consistency, what a user sees when it is wrong, and what the compensating action is." An AI that answers "we will use an eventually consistent store, which is fine for this use case" has skipped every part that matters.
-
-**Red flag: a system described as consistent while a cache sits in front of it.** Walk every layer. Browser, CDN, shared cache, replica, primary. Ask at each one: how old can this be? The weakest link sets your real consistency, and it is almost never the database.
-
-**Red flag: last-write-wins applied to a counter or to concurrent edits,** with no mention of what is lost. Ask: "if two writes arrive in the same millisecond, what happens to the other one, and does anybody find out?"
-
-**Red flag: no compensating action for anything eventual that touches stock, seats or money.** Ask what the student sees and what your code does when you discover you were wrong. "It won't happen often" is not an answer; at 1:10 pm, simultaneous taps are the normal case, not the edge case.
-
-**Red flag: CAP invoked to justify a normal-operation design.** If the reasoning starts "by CAP we chose availability" and there is no partition in the story, the theorem is being used as decoration.
-
-**Red flag — the recurring one: stronger consistency proposed for the part that was never at risk,** such as a transaction wrapped around a read-only menu query, while the actual last-plate race stays unprotected. And its twin: "more memory" or "a bigger database" offered as a fix for a race condition, which it cannot possibly be.
-
-Then test the race rather than reasoning about it. Set stock to one and have two teammates tap "Order" on the count of three, ten times. Record how often both succeeded. Do the same with a script firing twenty simultaneous requests. If the answer is ever more than one success, you have the paneer bug, and now you have it on video instead of in production.
+- **Make it produce the table, not an opinion:** per feature, strong or eventual, what a user sees when it is wrong, and the compensating action.
+- **Red flag: a system called consistent while a cache sits in front of it.** Walk browser, CDN, shared cache, replica, primary, asking how old each can be.
+- **Red flag: last-write-wins on a counter or concurrent edits.** Ask what happens to the other write, and whether anybody finds out.
+- **Red flag: no compensating action for anything eventual touching stock, seats or money.** At 1:10 pm simultaneous taps are the normal case, not the edge case.
+- **Red flag: CAP invoked with no partition in the story,** and its twin, "more memory" as a fix for a race condition.
+- **Red flag: stronger consistency aimed at the part that was never at risk,** such as a transaction around a read-only menu query while the last-plate race stays unprotected.
+- Test the race: set stock to one, have two teammates tap on the count of three ten times, then fire twenty simultaneous requests from a script. More than one success is the paneer bug, on video instead of in production.
 
 ## Walkthrough
 1. List every feature in your app on one page. Aim for ten to twenty lines; include the boring ones like profile photos and counters.

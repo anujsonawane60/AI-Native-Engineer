@@ -4,7 +4,7 @@ module: m02-the-web
 slug: html-tags-and-structure
 title: "HTML: Tags, Elements, Attributes and Semantic Structure"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team asks an AI builder for a canteen menu page. It arrives, it looks fine, and three things are quietly broken.
+A team asks an AI builder for a canteen menu page. It arrives, it looks fine, and three things are quietly broken: a classmate using a screen reader hears "clickable, clickable, clickable" because every button is a `<div>` with a click handler; a classmate on a laptop presses Tab and never reaches "Order"; and when the team says "make the dish names bigger", the AI enlarges the prices, because in the markup the name and the price are both `<div class="text">`.
 
-A classmate who uses a screen reader opens it and hears "clickable, clickable, clickable, clickable" — because every button is a `<div>` with a click handler attached. A second classmate on a laptop tries to tab to the "Order" control and the key does nothing, because only real interactive elements are reachable by keyboard. And when the team says "make the dish names bigger", the AI changes the price text instead, because in the markup the dish name and the price are indistinguishable: both are `<div class="text">`.
-
-The page was not badly designed. It was badly *named*. Nothing in it says what anything is, so neither a browser, nor a screen reader, nor the AI, nor the team can tell the parts apart.
+The page was not badly designed. It was badly *named*. Nothing in it says what anything is, so no browser, screen reader, AI or teammate can tell the parts apart.
 
 ### The idea
 
 **HTML gives every part of a page a name, and the name you choose is a promise that browsers, screen readers and search engines act on.**
 
-A `<button>` is not a box that happens to look like a button. It is a declaration: this is a control, it is focusable, Enter and Space activate it, and a screen reader should announce it as a button. You get all of that free by choosing the right name. Choose `<div>` and you get none of it, and then somebody has to rebuild each behaviour by hand — badly.
+A `<button>` is not a box that happens to look like a button. It is a declaration: this is a control, it is focusable, Enter and Space activate it, and a screen reader announces it as a button. Choose `<div>` instead and you get none of that, and somebody has to rebuild each behaviour by hand — badly.
 
 ### The analogy
 
-Picture the printed board above the canteen counter.
+A bad canteen board is one font, one column: thali, rice, dal, 60, 20, 25, closed, samosa. Every character is legible and nobody can find the thali price. A good board has a big "SOUTH INDIAN" heading and rows with the name left and the price right. Same information — but it tells you what each piece of text *is*. Semantic HTML is that board.
 
-A bad board is one font, one size, one column: thali, rice, dal, sambar, 60, 20, 25, 30, closed, samosa. Every character on it is legible. Nobody can find the thali price.
-
-A good board has a big heading "SOUTH INDIAN", item rows where the name sits left and the price sits right, and a stamp over the ones that are finished. Same information. The difference is that the board tells you what each piece of text *is*, so your eye can jump straight to the part you want. Semantic HTML is that board.
-
-**Where the analogy breaks:** the canteen board only ever has to satisfy human eyes, and a human can work out from position and context that ₹60 is a price. HTML is also read by things that cannot see it at all — a screen reader announcing the page out loud, Google's crawler deciding what the page is about, your own JavaScript looking for "the submit button", and the AI you are directing. For those readers, position means nothing and the name is the only information there is.
+**Where the analogy breaks:** the board only has to satisfy human eyes, and a human infers from position that ₹60 is a price. HTML is also read by things that cannot see it at all — a screen reader, Google's crawler, your own JavaScript hunting for "the submit button", and the AI you are directing. For those readers position means nothing, and the name is the only information there is.
 
 ### Picture it
 
@@ -65,9 +59,11 @@ An HTML document is a nest of named boxes: `<body>` holds the landmarks, `<main>
 
 ### Where it lives
 
-HTML sits in the client box from M00's four boxes — it is what arrives in the browser and what the browser draws. In a plain page you write it directly. In a framework (chapter 15) a component produces it, and in a server-rendered app (chapter 16) the server assembles it before sending. Either way the markup that reaches the browser is HTML, which is why reading it is the skill that survives every framework change.
+HTML sits in the client box from M00's four boxes — what arrives in the browser and what the browser draws. You may write it, a component may produce it (chapter 15) or a server may assemble it (chapter 16), but the markup that reaches the browser is always HTML, which is why reading it survives every framework change. What depends on it:
 
-Three later modules depend on this chapter being solid. CSS (chapter 4) selects elements by their names and attributes, so sloppy markup makes styling fragile. JavaScript (chapter 8) finds elements before changing them. And M03's accessibility chapter is largely the consequences of the choices you make here.
+- CSS (chapter 4) selects elements by name and attribute, so sloppy markup makes styling fragile
+- JavaScript (chapter 8) has to find an element before it can change it
+- M03's accessibility chapter is largely the consequences of the choices you make here
 
 ### Words to own
 
@@ -86,30 +82,25 @@ Three later modules depend on this chapter being solid. CSS (chapter 4) selects 
 
 ### Tradeoffs and gotchas
 
-**Div soup is the default failure.** Left to itself, an AI will produce a page built entirely from `<div>` and `<span>`, because those always work and never complain. It renders correctly, so nothing tells you it is wrong until a keyboard user or a screen-reader user arrives. The fix is to ask for it: name the landmarks you want.
+**Div soup is the default failure.** Left alone, an AI builds the whole page from `<div>` and `<span>`, because those always render and never complain. Nothing tells you it is wrong until a keyboard or screen-reader user arrives, so you have to ask for landmarks by name.
 
-**Headings are structure, not font size.** Picking `<h3>` because it "looks the right size" is the most common honest mistake. Heading levels are how a screen-reader user navigates a page — they jump heading to heading, the way you scan with your eyes. Skipping from `<h1>` to `<h4>` tells them a level of structure exists that does not. If a heading is the wrong size, that is a CSS problem.
+**Headings are structure, not font size.** Picking `<h3>` because it "looks right" makes the outline lie — screen-reader users navigate by jumping heading to heading. Wrong size is a CSS problem. One `<h1>` per page; three `<h1>` elements claim three main subjects.
 
-**One `<h1>` per page, and it should match what the page is for.** Three `<h1>` elements means the page claims three main subjects.
+**A `<div>` with a click handler is a trap with no warning label.** Not focusable, Enter does nothing, not announced as a control, no disabled state — all four invisible in a screenshot, which is why they survive review.
 
-**A `<div>` with a click handler is a trap with no warning label.** It is not keyboard-focusable, Enter does nothing, a screen reader does not announce it as a control, and it has no disabled state. All four are invisible in a screenshot, which is exactly why they survive review.
+**Meaning beats appearance in pairs.** `<strong>` and `<em>` mean "this matters" and are announced with emphasis; `<b>` and `<i>` only say "draw it bold".
 
-**`<b>` versus `<strong>`, `<i>` versus `<em>`.** The second of each pair means "this matters" and is announced with emphasis; the first only means "draw it bold". Prefer the meaning.
-
-**Attributes are where accessibility actually lives.** `alt` on images, `for` on labels, `lang` on `<html>`. An AI will frequently emit `alt=""` or `alt="image"` to satisfy the rule without doing the work. Empty `alt` is correct for a purely decorative image and wrong for a photo of the dish you are selling.
+**Attributes are where accessibility actually lives** — `alt` on images, `for` on labels, `lang` on `<html>`. An AI often emits `alt="image"` to satisfy the rule without doing the work. Empty `alt` is correct for a decorative image and wrong for a photo of the dish you are selling.
 
 ### Verify it
 
-Four checks, none of which need you to read the whole file.
+1. **Tab through the page.** Every mouse-clickable control must be reachable, show a focus ring and fire on Enter; a skipped button is not a `<button>`.
+2. **Read the heading outline.** List the headings in order: exactly one `<h1>`, levels descending without gaps, reading like a table of contents.
+3. **Check every `alt`.** "Plate of two samosas, ₹20" is useful; `alt="image"`, `alt="img1"` and a missing `alt` are failures.
+4. **Search for `onclick`.** Any hit on something that is not a `<button>` or `<a>` is a control keyboard users cannot use.
+5. **Count the landmarks.** No `<main>`, `<nav>` or `<header>` anywhere means the AI skipped structure entirely.
 
-1. **Tab through the page.** Press Tab repeatedly from the top. Every control you can click with a mouse must be reachable, must show a visible focus ring, and must activate with Enter. If a button is skipped, it is not a `<button>`.
-2. **Read the heading outline.** In DevTools (chapter 3) or by searching the markup for `<h`, list the headings in order. Is there exactly one `<h1>`? Do the levels descend without skipping? Does the outline read like a sensible table of contents for this page?
-3. **Check every image's `alt`.** For each `<img>`, ask what a person who cannot see it would need. "Plate of two samosas, ₹20" is useful. `alt="image"`, `alt="img1"` and a missing `alt` are all failures.
-4. **Ask what each element claims to be.** Search the markup for `onclick` on anything that is not a `<button>` or `<a>`. Count the `<div>` elements; if there is no `<main>`, no `<nav>` and no `<header>` anywhere, the AI skipped structure entirely.
-
-Red flags to name out loud when you push back: a page with zero semantic landmarks; `<div onclick>`; multiple `<h1>` elements; `alt="image"`; a "link" with no `href`, which is a `<a>` that cannot be opened in a new tab or copied; and tables used to lay out a page rather than to show tabular data.
-
-The useful instruction to add to any brief, from M00's Director's Brief template, is a constraint and an acceptance criterion rather than a request: "use semantic HTML landmarks and real `<button>` and `<a>` elements for anything interactive" under CONSTRAINTS, and "every control is reachable and activatable by keyboard alone" under ACCEPTANCE.
+Red flags: zero semantic landmarks · `<div onclick>` · multiple `<h1>` elements · `alt="image"` · an `<a>` with no `href` · tables used for layout rather than tabular data. Put the fix in the brief as a rule, not a wish: "real `<button>` and `<a>` for anything interactive" under CONSTRAINTS, "every control reachable by keyboard alone" under ACCEPTANCE.
 
 ## Walkthrough
 1. Open any page you did not build — your college website, a food delivery site, the canteen's Instagram page in a browser. Right-click and choose "View page source".

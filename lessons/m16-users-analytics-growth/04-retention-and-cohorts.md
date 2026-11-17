@@ -4,7 +4,7 @@ module: m16-users-analytics-growth
 slug: retention-and-cohorts
 title: "Retention Curves, Cohorts and the Flattening Point"
 order: 4
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,37 +22,27 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team plots their first real retention curve in week three of this module. Day zero is signup. By week four, 4% of each cohort is still active. The curve does not flatten; it falls to the floor. They spend an evening seriously discussing a pivot.
+A team plots their first real retention curve with day zero at signup. By week four 4% of each cohort is still active: the curve does not flatten, it falls to the floor. They spend an evening discussing a pivot.
 
-The next morning somebody re-plots the same data with day zero set at each user's first completed order instead of their signup, counting only people who ever got that far. The curve flattens at 31% by week four and stays there.
-
-Both numbers are correct. They answer different questions. The first says that most people who sign up never reach value, which is an onboarding problem. The second says that among people who did reach value, roughly a third built a habit, which means there is a product here. Measuring from signup told them to throw the product away when the correct action was to fix the first five minutes. One choice of day zero nearly ended the company.
+Next morning somebody re-plots it with day zero at each user's first completed order. It flattens at 31% and stays there. Both numbers are correct and answer different questions: most signups never reach value, an onboarding problem, and a third of those who do build a habit, which means there is a product here. One choice of day zero nearly ended the company.
 
 ### What M07 covered, and what is new here
 
-M07's chapter eight defined a cohort, showed the shape of a retention curve, explained that the flattening point is the share of people for whom the product became a habit, insisted that you define "active" as the action that is the point of your product, and warned that the period must match your product's natural frequency. That vocabulary is assumed here.
-
-New in this chapter: choosing day zero, which M07 did not raise; the two competing definitions of retention and when each lies; the cohort triangle, which is how you tell whether your product changes actually helped; the minimum cohort size for an honest percentage; resurrection; and closing the loop on the baseline you recorded in M01 before you built anything.
+M07 defined cohorts, the curve, the flattening point and the rule that the period must match your natural frequency. New here is day zero, the two definitions, the triangle, minimum cohort size, resurrection, and closing the loop on your M01 baseline.
 
 ### The idea
 
 **A retention curve means nothing until you say what day zero is, and day zero should be the moment the user first received value — not the moment they filled in a form.**
 
-Signup-anchored retention measures your onboarding and your product mixed together, and when the two disagree it reports the worse of them. Value-anchored retention measures the product. You want both, labelled, side by side, because the gap between them is the size of your onboarding problem and chapter six's whole agenda.
+Signup-anchored retention mixes onboarding with product and reports the worse of the two. Value-anchored retention measures the product. Keep both, labelled: the gap is the size of your onboarding problem and chapter six's agenda.
+
+Then say how you measured. **N-day retention** asks whether a user was active on day N exactly; it suits genuinely daily products and makes everything else look dead. **Bracketed retention** asks whether they were active at any point during week N, the right default for almost every student product. Neither is more honest; what is dishonest is not saying which, because the same product can be at 8% by one definition and 34% by the other.
 
 ### The analogy
 
-Of the students who ate at the canteen during the first week of term, how many were still eating there in week eight? That is a cohort and a retention measurement, and the canteen can answer it from a register with names in it.
+Of the students who ate at the canteen in week one of term, how many still ate there in week eight? That is a cohort, answerable from a register with names.
 
-**Where the analogy breaks, twice.** First, the canteen has a captive audience: students who cannot easily leave campus at lunchtime will keep coming regardless of how good the food is, so a flat line there may measure convenience rather than preference. Your users can close your app forever at no cost, so your flat line is a stronger claim than the canteen's. Second, the canteen empties completely during exam break and everyone returns in July. On a chart that looks like total churn followed by a miracle. It is a holiday. Your product has the same seasons — exam weeks, vacations, placement season — and a curve drawn across one of them is a chart of the academic calendar.
-
-### Two definitions, and saying which you used
-
-**N-day retention** asks: was this user active *on* day N exactly? It is the right measure only for products that are genuinely daily, and it produces brutally low numbers for everything else. A weekly product measured as N-day retention looks dead.
-
-**Bracketed retention** asks: was this user active at any point *during* week N? This is the right default for almost every student product, because it tolerates the natural rhythm of a user who orders on Tuesday one week and Friday the next.
-
-Neither is more honest. What is dishonest is not saying which one a number came from, because the same product can be at 8% by one definition and 34% by the other. Write the definition beside the number, every time.
+**Where the analogy breaks, twice.** The canteen has a captive audience, so a flat line there may measure convenience rather than preference, while your users can close your app forever at no cost. And the canteen empties during exam break and refills in July, which on a chart looks like churn followed by a miracle: a curve drawn across one of your own seasons is a chart of the academic calendar.
 
 ### Picture it
 
@@ -74,19 +64,11 @@ Neither is more honest. What is dishonest is not saying which one a number came 
 
 Each row is one cohort's story over time; each column compares different cohorts at the same age, which is the only way to tell whether your changes helped.
 
-Reading across a row tells you about one group of people. Reading down a column tells you about your product, because every cell in a column is measured at the same age — so a column that rises from 44% to 63% is evidence that something you shipped in October worked. That is the single most useful thing a cohort triangle does, and it is why cohorts exist at all rather than one blended number.
-
-### Resurrection, and the curve that smiles
-
-Some users come back after weeks of absence. A student who stops ordering during exams and returns in the new term is **resurrected**, not churned, and a product with a real academic rhythm will have many of them. Counted properly, some cohorts stop falling and tick upward — the curve smiles.
-
-Two warnings. A smile is only real if your bracket is long enough to contain the absence, so a weekly bracket will record an exam break as churn no matter what happens afterwards. And resurrection is easy to confuse with your own re-engagement effort: if you sent a WhatsApp reminder to 200 lapsed users, the uptick is your message, not your product, and it belongs in chapter ten's ledger rather than in this curve.
-
 ### Where it lives
 
-M01's chapter three is the loop this chapter closes. There you wrote a baseline from five real conversations: skipped lunch twice last week, pays a senior ₹20 on Thursdays, asked a friend to bring food up four times this month. Those were measurements of behaviour before your product existed. Your retained cohort's behaviour now is the measurement after. If your flat line is 30% and those users have stopped skipping lunch, you changed something real. If your flat line is 30% and the baseline behaviour is unchanged, you have a habit that is not solving the problem you set out to solve — which is worth knowing, and is a sentence M18's panel will ask you for.
+M01's chapter three is the loop this chapter closes: there you wrote a baseline from five conversations — skipped lunch twice last week, pays a senior ₹20 on Thursdays. That was behaviour before your product existed; your retained cohort's behaviour now is the after. A 30% flat line whose users have stopped skipping lunch means you changed something real; an unchanged baseline means a habit that is not solving the problem you set out to solve.
 
-Chapter three's funnel is the first week of a cohort's life, in detail. Chapter six attacks the gap between the signup curve and the activation curve. Chapter ten is churn, the same measurement read from the other side. M10 matters more here than teams expect: if an AI feature in your product gives a bad answer on a user's second visit, that user is in this curve's steep section and your retention is partly a model-quality number. M13's warehouse is where these cohorts eventually get computed properly.
+Around it: chapter three's funnel is a cohort's first week; chapter six attacks the gap between the two curves; chapter ten is the same measurement from the other side.
 
 ### Words to own
 
@@ -105,28 +87,26 @@ Chapter three's funnel is the first week of a cohort's life, in detail. Chapter 
 
 ### Tradeoffs and gotchas
 
-**A cohort under about fifty people is an anecdote.** At n = 20, one person is five percentage points and a cohort can "improve" by eleven points because two friends ordered on a Thursday. Write n beside every row and say out loud which rows you are not allowed to interpret.
+**A cohort under about fifty people is an anecdote.** At n = 20 one person is five percentage points, so a cohort can "improve" by eleven points because two friends ordered on a Thursday. Write n beside every row.
 
-**Your flattening point may not exist yet.** It takes several periods to appear, and a six-month track gives you perhaps eight to twelve weekly periods of real data. A curve still falling at week four has not told you anything final. Say "not yet flat" rather than inventing the number you would like.
+**Your flattening point may not exist yet.** A curve still falling at week four has told you nothing final; say "not yet flat" rather than inventing a number.
 
-**A generous definition of active destroys the measurement.** "Opened the app" is the classic, and it flatters every row of the triangle. Keep the definition from your taxonomy and do not change it because a number became embarrassing. If you must change it, every earlier row becomes incomparable and needs a dated note.
+**A generous definition of active destroys the measurement.** "Opened the app" flatters every row. Keep your taxonomy's definition even when a number becomes embarrassing.
 
-**Cohorts of very different sizes do not compare cleanly.** A 61-person cohort recruited by hand in a classroom and a 142-person cohort from a WhatsApp link are different populations as well as different weeks. Note the acquisition channel beside each cohort, or your column is measuring your recruiting rather than your product.
+**Resurrection is not churn, and not always yours.** A student who stops during exams and returns next term is resurrected, and counted properly some cohorts tick upward — the curve smiles. But a smile is only real if your bracket contains the absence, and if you messaged 200 lapsed users the uptick is your message.
 
-**Survivorship will shape everything you hear.** The users who talk to you are the ones who stayed. The 70% who left have the information you need and no reason to answer. Chapter ten is about going after them anyway.
+**Survivorship shapes everything you hear.** The users who talk to you are the ones who stayed; the 70% who left hold the information.
 
 ### Verify it
 
-AI will produce a retention chart that looks professional and is wrong in one of six specific ways.
+AI will produce a retention chart that looks professional and is wrong in one of four specific ways.
 
-1. **Ask what day zero is.** **Retention measured from signup rather than from first value** is the single most consequential error in this chapter and it produces a curve that recommends a pivot.
-2. **Ask for the definition of active, in the words of your taxonomy.** If the answer is "opened the app" or "was logged in", the chart is decoration.
-3. **Ask whether it is N-day or bracketed, and whether the period matches your natural frequency.** A weekly product measured daily looks like a collapse.
-4. **Demand n for every cohort.** Any row under about fifty gets labelled as a lead, not a result.
-5. **Check that cohorts are defined by a date range you can state**, not by a tool's default "last 30 days" that slides every time you reload. A sliding cohort cannot be compared with yesterday's chart.
-6. **Check whether the curve was smoothed or interpolated.** A missing week drawn as a straight line between two real points is invented data, and tools do this quietly.
+1. **Ask what day zero is.** Signup rather than first value is the most consequential error here, and it produces a curve that recommends a pivot.
+2. **Ask for the definition of active, in your taxonomy's words.** If the answer is "opened the app", the chart is decoration.
+3. **Demand n for every cohort**, and label any row under about fifty a lead rather than a result.
+4. **Check whether the curve was smoothed.** A missing week drawn as a straight line between two real points is invented data, and tools do this quietly.
 
-Red flags: a curve with no day-zero definition; "active users" with no stated action; a cohort triangle with no n column; a flat line declared after two periods; a curve that crosses an exam break without a note; and a number that improved on the same day somebody changed the definition of active.
+Red flags: no day-zero definition; "active users" with no stated action; a sliding "last 30 days" cohort you cannot restate.
 
 ## Walkthrough
 1. Write down, from your taxonomy, the exact event that counts as active. Copy the wording rather than paraphrasing it.

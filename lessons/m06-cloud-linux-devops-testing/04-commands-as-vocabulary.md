@@ -4,7 +4,7 @@ module: m06-cloud-linux-devops-testing
 slug: commands-as-vocabulary
 title: "Commands as Vocabulary: ls, grep, top, df, curl"
 order: 4
-duration_min: 30
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,25 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student's deployed app is down. An AI assistant gives them seven commands to run. They paste all seven. The sixth one is `rm -rf node_modules package-lock.json && npm cache clean --force`, which is harmless, and the fifth was `docker system prune -a`, which deleted the one image that still worked. The app is now down for a different reason, and the original cause is still unknown.
+A student's deployed app is down. An AI gives seven commands and they paste all seven. The fifth, `docker system prune -a`, deleted the one image that still worked — the app is now down for a different reason and the original cause is still unknown.
 
-A second student, same outage, types four commands. One shows the app's process is not running. One shows the disk is 100% full. One shows which directory is consuming it. One confirms the log file grew to 4 GB because of a loop. They now know the cause, and the fix is obvious.
-
-The difference is not knowledge of Linux. It is that the second student was answering questions, and the first was applying remedies to a problem they had not identified. Commands are how you ask a server questions. Running the answers to someone else's question is how you get a second outage.
+A second student, same outage, runs four read-only commands: the process is not running, the disk is 100% full, one directory is consuming it, and the log grew to 4 GB in a loop. The difference is not Linux knowledge — the second asked questions; the first applied remedies to a problem nobody had identified.
 
 ### The idea
 
-**You do not memorise commands. You learn a small vocabulary of questions you can ask a machine, and you learn to sort every command into read-only, changes-things, or destroys-things before it runs.**
+**You do not memorise commands. You learn a small vocabulary of questions you can ask a machine, and you sort every command into read-only, changes-things or destroys-things before it runs.**
 
-Five questions cover most of what goes wrong. What is here? Where does this text appear? What is using the machine? Is there room left? What does the server actually say when I ask it? Those are `ls`, `grep`, `top`, `df` and `curl`, and all five are read-only. You can run them in any order, on any machine, at any time, and nothing changes.
+Five questions cover most of what goes wrong: what is here (`ls -la`), where does this text appear (`grep -r`), what is using the machine (`top`, `ps aux`), is there room left (`df -h`, `du -sh *`), and what does the server actually say (`curl -i`). All five are read-only: run them in any order, at any time, and nothing changes. `grep` matters most when you work with AI, because it answers "did it change what it said it changed?" `curl` tells you which half is lying when your app works in one place and not another.
 
 ### The analogy
 
-A new cook on their first shift at the canteen does not start by changing the recipe. They look: what is in the store room, how much gas is left in the cylinder, which pot is already on the fire, what the order slips say. Five glances, no decisions. Only then do they act.
+A new cook on their first shift does not start by changing the recipe. They look: what is in the store room, how much gas is in the cylinder, which pot is on the fire, what the order slips say. Five glances, no decisions. The experienced cook's advantage is not more recipes; it is looking before acting.
 
-The experienced cook's advantage is not knowing more recipes. It is that they look before they act, and when the dal tastes wrong they taste it, check the salt tin, and check the slip — rather than adding things and hoping.
-
-**Where the analogy breaks:** a cook who adds too much salt can usually dilute it. Many commands have no dilution. `rm` does not move a file to a recycle bin; there is no undo, no confirmation, and no trace. This is the read-versus-destroy distinction from M00, and it is the whole reason the vocabulary is taught in three categories rather than as one list.
+**Where the analogy breaks:** a cook who adds too much salt can usually dilute it. Many commands have no dilution. `rm` does not move a file to a recycle bin — no undo, no confirmation, no trace. This is the read-versus-destroy distinction from M00, and it is why the vocabulary comes in three categories rather than one list.
 
 ### Picture it
 
@@ -64,33 +60,9 @@ The experienced cook's advantage is not knowing more recipes. It is that they lo
 
 Every command belongs in exactly one of three columns, and the only column you may run without thinking is the left one.
 
-### The five questions
-
-**What is here?** `ls` lists a directory; `ls -l` adds owner and permissions, which is what chapter 1 taught you to read; `ls -la` includes hidden files, which is how you confirm `.env` exists without opening it.
-
-**Where does this text appear?** `grep` searches inside files for a string. `grep -r "DATABASE_URL" .` finds everywhere a name is used across a project. This is the single most useful command in this list for a student working with AI, because it answers "did it actually change what it said it changed?" and "is this variable used anywhere, or is it dead?"
-
-**What is using the machine?** `top` shows live CPU and memory, highest consumer first. `ps aux` shows the full list of processes once, which is easier to read and easier to paste into a conversation. Together they answer "is it busy, or is it stuck, or is it not running at all?"
-
-**Is there room left?** `df -h` shows free space per file system in human units. `du -sh *` shows how big each thing in the current directory is. A full disk is one of the most common causes of a completely baffling outage, because almost everything fails at once and none of the error messages say "disk full".
-
-**What does the server actually say?** `curl` makes an HTTP request from the command line and prints the raw response. `curl -i https://your-app/health` shows you the status code and headers with no browser, no cache, no extension and no service worker in the way. When your app works in one place and not another, this is how you find out which half is lying.
-
-### Reading output as evidence
-
-A command's output is only useful if you read it as evidence for or against a specific claim. Three habits make the difference.
-
-**Expect something before you look.** "If the app is running, `ps aux | grep node` shows one line." Now the output either confirms or refutes. Without the expectation you are just staring at text.
-
-**Copy the exact text.** Not "it says something about permissions". The precise string, including the path and the number. Chapter 11 is built entirely on this discipline, and M01's blocker format asks for it for the same reason.
-
-**Notice absence.** No output is output. An empty `grep` result means the string is genuinely not there — which is often the finding. A `ps` result with no match means the process is not running, which answers the question completely.
-
 ### Where it lives
 
-These commands run everywhere: a free browser dev environment, your platform's web shell, inside a container in chapter 8, inside a CI run in chapter 12. The same five work in all of them, which is most of why they are worth learning.
-
-They are also what you use to verify an agent's work, which is their real role in this program. M00 introduced the read-versus-destroy table and the permission allowlist; this chapter is the vocabulary that makes the allowlist usable. M10's agent-ready repository assumes you can check what an agent did, and `git status`, `git diff` and `grep` are how. M07 scales the same instinct up into real log tooling.
+These commands run everywhere: a free browser dev environment, your platform's web shell, a container in chapter 8, a CI run in chapter 12. They are also how you verify an agent's work, which is their real role here. M00 introduced the read-versus-destroy table and the permission allowlist; this chapter is the vocabulary that makes it usable, and M10's agent-ready repository assumes you can check what an agent did with `git status`, `git diff` and `grep`.
 
 ### Words to own
 
@@ -111,26 +83,21 @@ They are also what you use to verify an agent's work, which is their real role i
 
 ### Tradeoffs and gotchas
 
-**The dangerous commands look like the safe ones.** `rm -rf build` and `rm -rf /` differ by six characters. There is no visual warning, no confirmation and no recovery. The habit that protects you: say the command out loud as a sentence before pressing Enter. "Delete the build folder and everything in it, permanently" is fine. "Delete everything on this machine, permanently" stops your hand.
-
-**A flag can change the category.** `git checkout branch-name` is a normal, reversible move. `git checkout -- .` throws away every uncommitted change in the project with no undo. Same verb, different category, and no indication in the shape of the command. When an agent hands you a command with flags you do not recognise, ask what each flag does before running it.
-
-**Copy-pasting a block of commands is the actual risk.** Individually you would have questioned the fifth one. As a block you ran it. Run them one at a time, read each output, and stop as soon as something surprises you.
-
-**`curl` tells you the truth your browser will not.** A browser caches, follows redirects silently, runs a service worker, and may be logged in. More than one student has spent an hour on a bug that `curl -i` would have shown in four seconds to be a 500 from the server all along.
-
-**Pipes make output readable, not different.** `| head -20` and `| grep error` cut noise down to what you can actually read. Both are read-only. This is the cheapest skill in the chapter and the one students most often skip, then complain that the output is too long.
+- **The dangerous commands look like the safe ones.** `rm -rf build` and `rm -rf /` differ by six characters, with no confirmation and no recovery. Say it out loud as a sentence first: "delete the build folder and everything in it, permanently" is fine; "delete everything on this machine, permanently" stops your hand.
+- **A flag can change the category.** `git checkout branch-name` is reversible; `git checkout -- .` throws away every uncommitted change with no undo. Same verb, different category — ask what an unfamiliar flag does before running it.
+- **Copy-pasting a block of commands is the actual risk.** Individually you would have questioned the fifth one. Run them one at a time; stop when something surprises you.
+- **`curl` tells you the truth your browser will not.** Browsers cache, follow redirects silently, run service workers and may be logged in. Students have lost an hour to a bug `curl -i` would have shown to be a 500.
 
 ### Verify it
 
-The point of the vocabulary is to check AI's work, so verification here is about the commands themselves.
+Read output as evidence: expect something specific before you look ("if the app is running, `ps aux | grep node` shows one line"), copy the exact text, and treat absence as output — an empty `grep` is a finding. Then four checks.
 
-1. **Demand a label on every command.** The habit for the rest of this program: ask for READ-ONLY, CHANGES-THINGS or DESTROYS-THINGS on each line, plus the undo for anything in the middle category. An agent that will not label a command has not thought about it.
-2. **Can you describe it in one sentence?** If not, you may not run it. "It cleans things up" is not a sentence about what it does. Ask what exactly is deleted, and what would be lost.
-3. **Did it diagnose before prescribing?** A reply that opens with seven fixes and no read-only check is applying remedies to an unidentified problem. Ask for the read-only checks first, in order, with what each result would mean.
-4. **Does its claim survive `grep`?** "I updated all references to the old variable name" is checkable in three seconds. Do that, every time. This is the highest-value use of the whole vocabulary.
+1. **Demand a label on every command** — READ-ONLY, CHANGES-THINGS or DESTROYS-THINGS, plus the undo for anything in the middle category.
+2. **Can you describe it in one sentence?** If not, you may not run it. "It cleans things up" is not a sentence about what it does.
+3. **Did it diagnose before prescribing?** Seven fixes and no read-only check is a remedy for an unidentified problem. Ask for the read-only checks first.
+4. **Does its claim survive `grep`?** "I updated all references to the old variable name" is checkable in three seconds.
 
-Red flags: `sudo` in front of anything in your own project folder, from chapter 1; `rm -rf` on a path you have not read character by character; a command pasted without flags explained; a prune or clean command offered as a first step; and an agent that reports success on a change you can disprove with `grep`.
+Red flags: `sudo` inside your own project folder; `rm -rf` on a path you have not read character by character; a command pasted without its flags explained; a prune or clean command as a first step; an agent reporting success on a change `grep` disproves.
 
 ## Walkthrough
 1. Open a free browser-based Linux environment with your team's project in it, or your platform's web shell. Everything here is read-only, so nothing you do can break the project.

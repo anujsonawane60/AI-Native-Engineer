@@ -4,7 +4,7 @@ module: m13-production-engineering
 slug: data-engineering-for-products
 title: "Data Engineering for Products: Pipelines, Warehouses, ELT and BI"
 order: 12
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,33 +22,27 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-This chapter exists because a reviewer of this syllabus argued, correctly, that data engineering should not be cut. Nothing in the Sprint teaches it. M04 taught you the database your product writes to, M05 chapter 6 taught you its connection limit and its replicas, and M07's analytics chapters taught you to instrument what users do. None of that answers the question a founder actually asks, which is the first failure of this chapter.
+Nothing in the Sprint teaches data engineering. M04 taught the database your product writes to, M05 its connection limits and replicas, M07 how to instrument users. None of that answers the question a founder asks.
 
-A mentor asks: "how many students who ordered once came back within seven days?" Somebody writes a forty-line query and runs it against the production database at 1:05 p.m. It scans the whole orders table, holds three connections out of a free-tier limit of thirty, and for ninety seconds the app is slow for every student in the lunch rush. Then the answer comes back — 23% — and nobody can defend it, because "came back" was never defined. Does a cancelled order count? An order placed by the same phone number on a different account? The number goes in a slide deck anyway.
+A mentor asks: "how many students who ordered once came back within seven days?" Somebody runs a forty-line query against the production database at 1:05 p.m. It scans the whole orders table and the app slows through the lunch rush. The answer, 23%, cannot be defended, because "came back" was never defined. Worse and more confident: a nightly job runs twice after a retry, revenue doubles for that day, and nobody questions a slightly too good number.
 
-Second failure, which is worse because it is confident. The team builds a nightly job that loads "yesterday's orders" into a reporting table. One night the job fails halfway, retries, and runs twice. That day's revenue is now double. Nobody notices, because the only evidence is a number being slightly too good, and a slightly too good number is exactly the kind nobody questions. Six weeks later the monthly revenue chart goes to a potential investor with one inflated bar in it.
-
-Note the boundary: **document ingestion, PDF extraction and data quality for AI features are M10's subject, not this chapter.** This chapter is about your product's own operational data and the questions your team needs answered from it.
+**Document ingestion, PDF extraction and data quality for AI features are M10's subject, not this chapter.** This is your product's own operational data.
 
 ### The idea
 
 **Operational databases and analytical questions want opposite designs, so you copy the data somewhere shaped for questions — raw first, transformed afterwards, with every metric defined exactly once.**
 
-Your product's database is **OLTP**: many tiny reads and writes, optimised for one order at a time. An analytical question is **OLAP**: one enormous read across every row, optimised for aggregation. Running the second against the first is how you take down your own app.
+Your product's database is **OLTP**: many tiny reads and writes. An analytical question is **OLAP**: one enormous read across every row. Running the second against the first takes down your app.
 
-**ELT** rather than ETL is the modern order and the reason is practical. Extract from the source, **Load** it raw and unchanged into the warehouse, then **Transform** with SQL inside the warehouse. Because the raw layer is kept, a changed definition — "active user now means two orders, not one" — is re-derived by re-running a query over data you still have. With ETL you transform before loading, the original is gone, and a changed definition means a change you cannot apply backwards.
+**ELT** rather than ETL is the modern order, for a practical reason. Extract from the source, **Load** it raw and unchanged, then **Transform** with SQL inside the warehouse. Because the raw layer is kept, a changed definition — "active user now means two orders" — is re-derived over data you still have. With ETL the original is gone.
 
 ### The analogy
 
-The canteen keeps two books.
+The canteen keeps two books. The **daily register** takes every order as it happens. It is the truth, and useless for "which dish sells best in the monsoon", because that means reading nine months of pages while the cashier is still writing in it.
 
-The **daily register** is written in all day: every order, in order, as it happens. It is the truth. It is also almost useless for answering "which dish sells best in the monsoon", because that means reading nine months of pages while the cashier is still trying to write in it.
+The **month-end summary book** is copied over each night and shaped for questions: dishes down the side, days across the top. It is never the truth and always a few hours old, and that is fine. The clerk writes "copied up to Tuesday 11 p.m.": the **watermark**.
 
-The **month-end summary book** is copied over each night from the register and shaped for questions: dishes down the side, days across the top, totals at the edges. The manager reads it in thirty seconds. It is never the truth, it is always a few hours old, and that is fine — nobody charges a student from the summary book.
-
-Two details matter. The clerk copying each night writes "copied up to Tuesday 11 p.m." at the bottom of the page, so tomorrow they know where to resume. That is the **watermark**. And the register pages are kept, which is why when the manager changes their mind about what counts as a "repeat customer", the clerk can recompute it rather than shrug.
-
-**Where the analogy breaks:** the clerk notices they already copied Tuesday. A pipeline has no memory unless you give it one, so a job that ran twice copies Tuesday twice, silently, and the summary is wrong in a way nobody can see by looking at it. All the discipline in this chapter exists because the clerk's common sense has to be written down as code.
+**Where the analogy breaks:** the clerk notices they already copied Tuesday. A pipeline has no memory unless you give it one, so a job that runs twice copies Tuesday twice and nothing looks wrong.
 
 ### Picture it
 
@@ -72,11 +66,11 @@ Data is extracted from the product database since a recorded watermark, landed r
 
 ### Where it lives
 
-This sits beside your product rather than inside it. The extract is a read, and it should come from a replica from M05 chapter 6 rather than the primary — and even then at a quiet hour. The orchestration is M04 chapter 16's cron and queues, with the idempotency rule from chapter 2 of this module applied to a whole table rather than a single message. The transformations live in git and get reviewed like code, per M01, and tested like code, per chapter 6 — a transformation with no test is a number nobody can trust. Chapter 9's backup list must include the warehouse's raw layer, because that is the thing you cannot regenerate once the source has moved on.
+- The extract is a read, and it comes from M05 chapter 6's replica at a quiet hour, never the primary.
+- Orchestration is M04 chapter 16's cron and queues, with chapter 2's idempotency applied to a table instead of a message.
+- Transformations live in git, reviewed per M01 and tested per chapter 6; chapter 9's backups must include the raw layer.
 
-Forward: M16 is where this data becomes growth work — funnels, retention curves and the experiments that change them — and that module assumes a defined metric exists. M18's handover asks what your product's numbers are and where they come from, and "a query someone ran once" is not an answer.
-
-Free paths are genuinely good here. A local single-file analytical database runs on your laptop for nothing and will handle years of a student startup's data. One major cloud warehouse offers a free sandbox with a monthly query allowance and no card. A second small managed Postgres, separate from production, is a respectable warehouse at your scale. For the BI layer, free tiers exist, and a committed notebook is enough to start.
+Free paths are good: a local single-file analytical database, a cloud warehouse sandbox tier with a monthly allowance and no card, or a second small managed Postgres.
 
 ### Words to own
 
@@ -100,33 +94,27 @@ Free paths are genuinely good here. A local single-file analytical database runs
 
 ### Tradeoffs and gotchas
 
-**Never point an analytics query at the production primary.** It is the single rule of this chapter. A read replica is acceptable, a warehouse is correct, and the primary is how you cause an outage during lunch. The giveaway is a query with no `limit` and a date range of months.
+**Never point an analytics query at the production primary.** A replica is acceptable, a warehouse is correct.
 
-**Make every load idempotent, which usually means delete-then-insert the window.** A pipeline that appends "yesterday's rows" doubles them when it runs twice. A pipeline that deletes everything for yesterday and then inserts yesterday is safe to run five times. This is chapter 2's idempotency at table scale, and the failure is silent in both cases — which is why you test it by running the job twice on purpose and comparing a total.
+**Make every load idempotent, which usually means delete-then-insert the window.** Appending "yesterday's rows" doubles them on a second run.
 
-**Keep the raw layer forever and treat it as read-only.** It is what makes a changed definition cheap. Never edit a raw table to fix a value; fix it in a transformation, where the fix is visible, reviewable and reversible.
+**Keep the raw layer forever and read-only** — that is what makes a changed definition cheap. Fix bad values in a transformation, never in a raw table.
 
-**Define each metric exactly once and put the definition in git.** "Active user" computed in the dashboard, again in a spreadsheet, and again in someone's notebook gives you three different numbers and an argument. One SQL definition, one name, one owner. When someone disagrees with the number, you change the definition rather than the query — and everything downstream updates.
+**Define each metric exactly once, in git.** "Active user" computed in the dashboard, a spreadsheet and a notebook gives three numbers and an argument.
 
-**Show freshness on every number, always.** A dashboard tile with no "as of" timestamp is dangerous, because a pipeline that failed at 2 a.m. leaves yesterday's figures looking exactly like today's. Make a broken pipeline visible on the dashboard itself rather than only in a log nobody reads.
+**Show freshness on every number.** A pipeline that failed at 2 a.m. leaves yesterday's figures looking like today's, so a break must show on the dashboard.
 
-**Expect schema drift and fail loudly.** Someone adds a column, renames one, or changes a type in the product database, and a transform silently starts producing nulls — or worse, a column of zeros that gets averaged. A transformation test that asserts row counts and non-null rates is the cheap defence, and it belongs in your chapter 6 suite.
-
-**Five numbers, not forty.** A founder reads a five-tile dashboard and ignores a forty-tile one. Pick the five that would change a decision this month and delete the rest. A dashboard nobody opens is a pipeline maintained for nothing.
-
-**Never put personal data in the warehouse unless a question needs it.** Phone numbers and names rarely belong in an analytics copy; a hashed identifier answers "how many distinct students" without storing anyone. This is chapter 11's data-minimisation argument applied to a second copy of your data that is easy to forget exists.
+**Expect schema drift and fail loudly.** A renamed column makes a transform produce nulls, so assert row counts and non-null rates in your chapter 6 suite. Keep five tiles rather than forty, and no personal data unless a question needs it.
 
 ### Verify it
 
-1. **Ask which database the extract reads from.** If the answer is the production primary, stop there. A replica at a quiet hour is the minimum.
-2. **Run the pipeline twice and compare a total.** If revenue changed, it is not idempotent. This is a two-minute test that catches the most expensive bug in the chapter.
-3. **Ask for the watermark and where it is stored.** "It loads yesterday" is not a watermark; a recorded position that survives a crash is.
-4. **Demand the metric definition as SQL, by name.** Then check nothing else computes the same metric differently. Two definitions of one metric is a guaranteed future argument.
-5. **Check the dashboard shows freshness,** and then deliberately skip a pipeline run and confirm the dashboard makes that visible rather than showing stale numbers confidently.
-6. **Ask what happens when the source adds a column.** The correct answer is a loud failure or a recorded warning, never "the transform ignores it", which is how a column of zeros gets averaged into a slide.
-7. **Look for personal data in the warehouse** and ask which question needs it. Most of it is there because the extract copied everything.
+1. **Ask which database the extract reads from.** The production primary stops the conversation; a replica at a quiet hour is the minimum.
+2. **Run the pipeline twice and compare a total.** If revenue changed, it is not idempotent.
+3. **Ask for the watermark and where it is stored.** "It loads yesterday" is not a watermark; a position that survives a crash is.
+4. **Demand the metric definition as SQL, by name,** then check nothing else computes it differently.
+5. **Skip a run deliberately** and confirm the dashboard shows the staleness.
 
-Red flags: analytics queries against the production primary; a pipeline with no watermark; appending rows rather than replacing a window; a raw layer that gets edited; two places defining "active user"; a dashboard tile with no "as of" time; transformations that live only in a BI tool rather than in git; a nightly job whose failure is visible only in a log; forty tiles nobody reads; and personal data copied into the warehouse because it was easier than selecting columns.
+Red flags: analytics against the production primary; no watermark; appending rows rather than replacing a window; an edited raw layer; two definitions of "active user"; transformations living only in a BI tool.
 
 ## Walkthrough
 1. Write down the five questions your team actually needs answered this month — the ones that would change a decision. Not twenty. For each, write who would act on the answer.

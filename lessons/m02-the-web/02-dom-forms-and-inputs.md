@@ -4,7 +4,7 @@ module: m02-the-web
 slug: dom-forms-and-inputs
 title: "The DOM as a Tree; Forms, Inputs, Links and Images"
 order: 2
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,9 +22,7 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team ships a "Pre-order your thali" form. It has a name field, a phone field and a submit button, and it works — the page says "Thanks, order placed".
-
-Three real failures are hiding in it. The phone field has no `name` attribute, so the phone number never leaves the browser; every order arrives with a blank number and the canteen cannot call anybody. The phone field is `type="text"`, so on an Android phone the user gets the full alphabet keyboard and has to hunt for digits. And neither field has a label — only grey placeholder text, which disappears the moment you start typing, so a user who is interrupted cannot tell which box was which.
+A team ships a "Pre-order your thali" form. It works — the page says "Thanks, order placed" — and three failures are hiding in it. The phone field has no `name`, so the number never leaves the browser and the canteen cannot call anybody. It is `type="text"`, so Android shows the alphabet keyboard. And neither field has a label, only grey placeholder text that vanishes the moment you type.
 
 None of this is visible in a screenshot. All of it is visible in ten seconds if you know where to look.
 
@@ -32,17 +30,13 @@ None of this is visible in a screenshot. All of it is visible in ten seconds if 
 
 **The browser reads your HTML once and builds a live tree of objects from it — the DOM — and from then on the DOM, not your file, is what you see and what everything changes.**
 
-Forms are the one part of HTML that can send data to a server on their own, with no JavaScript at all. That makes them the oldest and most reliable interactive thing on the web, and also the place where a missing attribute causes silent data loss rather than an error.
+Forms are the one part of HTML that can send data to a server on their own, with no JavaScript at all — and the place where a missing attribute causes silent data loss rather than an error.
 
 ### The analogy
 
-The canteen's paper order slip.
+The printed blank order slip is your HTML file. The clipboard the counter staff work from is the DOM — it starts as a copy of the slip, then gets filled in, crossed out and corrected, and it is the clipboard that decides what the kitchen cooks. The `name` attribute is the little printed label next to each box; a box with no label reaches the kitchen as a number with nothing saying what it is, and gets thrown away. That is exactly what a browser does with an unnamed input.
 
-The printed blank slip is your HTML file: the boxes, the labels next to each box, the dotted line for the total. The clipboard the counter staff actually work from is the DOM — it starts as a copy of the blank slip, but then it gets filled in, crossed out and corrected, and it is the clipboard that decides what the kitchen cooks. Nobody goes back and consults the original blank slip.
-
-The `name` attribute is the little printed label next to each box. If a box has no label, the kitchen receives a number with nothing saying what it is, and throws it away. That is exactly what a browser does with an unnamed input.
-
-**Where the analogy breaks:** a paper slip is written once and stays written. The DOM is rewritten constantly — by JavaScript (chapter 8), by data arriving from the network (chapter 10), by the user typing. So when you look at the page in DevTools you are looking at the clipboard as it is right now, which may share very little with the blank slip the server sent. That one difference is the single biggest source of confusion for beginners, and chapter 3 is entirely about it.
+**Where the analogy breaks:** a paper slip is written once and stays written. The DOM is rewritten constantly — by JavaScript (chapter 8), by data from the network (chapter 10), by the user typing. What you see in DevTools is the clipboard right now, which may share very little with the blank slip the server sent. Chapter 3 is about that gap.
 
 ### Picture it
 
@@ -63,9 +57,7 @@ HTML arrives as text, the browser turns it into a tree of live objects, and that
 
 ### Where it lives
 
-The DOM lives entirely in the client box from M00. Nothing on the server ever sees your DOM; the server only ever sent text and later receives whatever the form or your JavaScript sends back.
-
-Forms are the hinge between the client box and the server box. A `<form>` with an `action` and a `method` sends the values of its named inputs as an HTTP request — which is chapter 13. What the server then does with them, and whether it trusts them, is M04. And the rule you will meet there, stated early so it sinks in: **every validation you put in the browser is a courtesy to the user, never a security control.** Anyone can send the request without ever loading your page.
+The DOM lives entirely in the client box from M00. Nothing on the server ever sees it; the server sent text and later receives whatever the form sends back. Forms are the hinge between the two boxes: a `<form>` with an `action` and a `method` sends the values of its named inputs as an HTTP request (chapter 13), and what the server does with them is M04. The rule, stated early: **every validation you put in the browser is a courtesy to the user, never a security control** — anyone can send the request without ever loading your page.
 
 ### Words to own
 
@@ -85,31 +77,25 @@ Forms are the hinge between the client box and the server box. A `<form>` with a
 
 ### Tradeoffs and gotchas
 
-**No `name`, no data — and no error.** This is the most expensive five-character mistake in web development. The field looks fine, the user fills it in, the form submits successfully, and the value is simply not in the request. You only find out when someone asks why half the orders have no phone number.
+**No `name`, no data — and no error.** The most expensive five-character mistake on the web: the field looks fine, the form submits successfully, and the value is simply not in the request. You find out when someone asks why half the orders have no phone number.
 
-**A placeholder is not a label.** It vanishes when the user types, it is usually too low-contrast to read in sunlight on a cheap screen, screen readers treat it inconsistently, and when autofill puts a value in, the user has lost all record of what the box was for. Use a real `<label>` whose `for` matches the input's `id`. The side benefit is that tapping the label focuses the input, which matters a lot on a 5-inch screen.
+**A placeholder is not a label.** It vanishes when the user types, and autofill leaves them with no record of what the box was for. Use a `<label>` whose `for` matches the input's `id` — tapping it then focuses the field, which matters on a 5-inch screen.
 
-**`type` picks the keyboard, and on a phone that is the whole experience.** `type="tel"` gives a big digit pad. `type="email"` puts `@` on the main keyboard. `type="number"` gives digits but also spinner arrows and will silently reject a leading zero — so for an Indian phone number, `type="tel"` is right and `type="number"` is wrong.
+**`type` picks the keyboard, and on a phone that is the whole experience.** `type="tel"` gives a digit pad; `type="email"` puts `@` on the main keyboard; `type="number"` adds spinner arrows and drops a leading zero, so for a phone number it is wrong.
 
-**Links and buttons do different jobs.** A link goes somewhere and must have an `href`; that is what makes it openable in a new tab, copyable, bookmarkable and crawlable. A button performs an action here. An AI will often give you a `<a>` with no `href` styled as a button, which is neither.
+**Every image needs `width` and `height`,** or the page jumps as images load and the user taps the wrong thing. That jump is chapter 16's CLS.
 
-**Every image needs width and height.** Without them the browser does not know how much room to leave, so the page jumps when the image loads and the user taps the wrong thing. That jump has a name and a score — chapter 16's CLS.
-
-**Enter should submit.** Inside a real `<form>` with a submit button, pressing Enter in a text field submits it. Rebuild the form out of `<div>` elements and that stops working, and nobody notices because everyone testing it uses a mouse.
+**Enter should submit.** Inside a real `<form>` it does. Rebuild the form from `<div>` elements and that breaks — along with autofill and the browser's own validation — and nobody notices, because everyone testing uses a mouse.
 
 ### Verify it
 
-The checks here are mostly about looking at what actually travelled, not at what the page claims.
+1. **Watch the request.** Submit the form with DevTools' Network panel open and read the payload: every field you typed must appear under a sensible key; a missing key means a missing `name`.
+2. **Check `for` and `id` pair up.** Click the label text; if the cursor does not jump into the field, the pairing is broken.
+3. **Open it on a real phone.** Tap each field — a phone-number field that offers letters has the wrong `type`.
+4. **Submit it empty, then with nonsense.** Both must say something useful in plain language, not show a blank screen or a raw error.
+5. **Tab from the top, then press Enter.** Order is top to bottom with nothing skipped, and Enter in the last text field submits.
 
-1. **Fill the form and watch the request.** Open DevTools, go to the Network panel, submit the form, click the request and read the payload. Every field you typed must appear, under a sensible key. A missing key means a missing `name`. This single check catches the most common failure in this chapter.
-2. **Check `for` and `id` pair up.** For each input, there must be a `<label for="x">` and an input with `id="x"`, spelled identically. Fastest test: click the label text and confirm the cursor jumps into the field.
-3. **Open it on a phone, not a simulator.** Tap each field and look at the keyboard you get. A phone number field that offers letters is a wrong `type`.
-4. **Submit it empty, then submit it with nonsense.** A form with no handling for either is a form that will show your users a blank screen or a raw error. Both states must say something useful in plain language.
-5. **Press Tab from the top and then Enter.** The order should be top to bottom, with nothing skipped, and Enter in the last text field should submit.
-
-Red flags worth naming when you push back on AI output: inputs with no `name`; placeholders used in place of labels; `type="number"` on a phone field; an `<a>` with no `href` used as a button; `<img>` with no `width`/`height`; and a form that is a pile of `<div>` elements with a click handler instead of a real `<form>`. The last one is the one that breaks Enter, autofill and the browser's own validation all at once.
-
-One more, subtler: if the AI tells you it "added validation" and the only validation is in the browser, that is not wrong but it is not finished. Say so, and note it for M04.
+Red flags: inputs with no `name` · placeholders used as labels · `type="number"` on a phone field · an `<a>` with no `href` used as a button · `<img>` with no `width`/`height` · a pile of `<div>` elements with a click handler instead of a real `<form>`. And if the AI says it "added validation" but all of it is in the browser, that is unfinished — say so, and note it for M04.
 
 ## Walkthrough
 1. Find a real form you did not build — your college's enquiry form, a food delivery signup, any page with a login. Open it on a laptop.

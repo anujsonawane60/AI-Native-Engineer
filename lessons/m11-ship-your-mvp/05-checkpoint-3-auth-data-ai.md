@@ -4,7 +4,7 @@ module: m11-ship-your-mvp
 slug: checkpoint-3-auth-data-ai
 title: "Checkpoint 3 · Auth, Data and One AI Feature, With Tests"
 order: 5
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -24,29 +24,21 @@ last_reviewed: 2026-11-16
 
 **Checkpoint 3 is due at the end of week three of the Sprint.** Checkpoint 1 was the problem, the PRD and the diagram. Checkpoint 2 was one path, deployed, with the data really saved. This week the product stops being a skeleton: it has people in it, it has a shape for their data, and it has the thing that makes it an AI product rather than a web page.
 
-Everything here was taught elsewhere. Accounts, sessions, roles and row-level rules are M04.12–M04.14. Schema and migrations are M04.7 and M04.11. Rate limiting is M05.4. Tests and CI are M06.10 and M06.12. Secrets, OWASP and prompt injection are M07.1–M07.3 and M10.7. Model choice and token cost are M09.13 and M09.14. The AI feature is M10. This chapter is the gate.
-
 ### The pain
 
-A group demos at the end of week three and it looks strong. There is a login. Staff see a staff menu; students do not. There is a "suggest a meal for ₹50" button that calls a model and writes a sensible paragraph. There are twenty-two passing tests.
-
-Three things are true that the demo does not show. The staff menu is hidden by an `if` in the page, so a student who types the URL directly gets it, and the endpoint behind it never asks who is calling. The model's API key was put in the frontend so the button would work, and it is now in the repository's history and in every visitor's browser. And when the model is slow — which on college wifi it often is — the button spins forever, because nobody asked what should happen if it does not answer. None of the twenty-two tests touch any of that; they test that the page renders and that a valid order is accepted.
-
-The demo was honest. The product is not finished. This gate exists to find the gap between those two sentences while there is still a week left.
+A group demos on day twenty-one: a login, a staff-only menu, a "suggest a meal for ₹50" button, twenty-two passing tests. But the staff menu is hidden by an `if` in the page, so a student who types the URL gets it; the key sits in the frontend, so it is in git history and every visitor's browser; and when the model is slow the button spins forever. None of the tests touch any of it.
 
 ### The idea
 
-**Week three is where a product acquires the three things that can genuinely hurt someone: other people's accounts, other people's data, and a bill that grows while you sleep. Each needs a check on the server and a behaviour when it fails.**
+**Week three is where a product acquires the three things that can hurt someone: other people's accounts, other people's data, and a bill that grows while you sleep. Each needs a server-side check and a behaviour when it fails.**
 
-A feature without a failure state is not a feature. A permission enforced in the interface is not enforced. A model call with no ceiling is an open tap.
+A permission enforced in the interface is not enforced, and a feature with no failure state is not a feature.
 
 ### The analogy
 
-The stall has grown. There is a till with money in it, a storeroom with a lock, a ledger of what was sold, and a new coffee machine that is wonderful and fails about one time in twenty.
+The stall has grown: a till with money, a storeroom with a lock, and a coffee machine with a sign telling staff what to do when it fails. Two people hold the key, and it is checked at the door, not by how someone looks.
 
-The rules change with the growth. Only two people hold the storeroom key, and the key is checked at the door rather than by asking whether someone looks like staff. The ledger is in pen, so last week's entries still mean something. And a handwritten sign is taped to the coffee machine: *if it does not start in thirty seconds, switch it off, refund the customer, tell the owner.* That sign is what makes the machine usable by someone who is not its designer.
-
-**Where the analogy breaks:** a lock on a storeroom door is physical, so you can see whether it is locked. A permission check is invisible, and the interface will look identical whether the check exists on the server or only in the page. You cannot see this one. You have to test it as the wrong kind of user, deliberately, which is why that test is a line item at this gate.
+**Where the analogy breaks:** a lock is physical; you can see whether it is locked. A permission check is invisible, and the interface looks identical whether it lives on the server or only in the page. You test it as the wrong user, deliberately.
 
 ### Picture it
 
@@ -74,29 +66,29 @@ Every request passes three gates on the server — who is this, may they, and wh
 
 ### What must exist by the end of week three
 
-**1. Real accounts.** A sign-up and a login that create a durable session. Not a name in a text box. From M04.12.
+**1. Real accounts** — a login creating a durable session, not a name in a text box. M04.12.
 
-**2. At least two roles, enforced on the server.** One ordinary user, one elevated. The check lives in the endpoint or the middleware, not in the page. An ordinary logged-in user who requests a privileged URL or calls the endpoint directly is refused with a status code. From M04.14.
+**2. Two roles, enforced on the server** — in the endpoint or middleware, not the page. An ordinary user who asks for a privileged URL is refused with a status code. M04.14.
 
-**3. A schema with at least one relationship, and one migration applied to existing rows.** Users to orders, orders to items — something joined. Plus one real change to the shape of stored data, applied to rows already there, with what happened to them written down. From M04.7 and M04.11.
+**3. A schema with one relationship, and one migration applied to existing rows**, with the result written down. M04.7, M04.11.
 
-**4. One AI feature, live, called from your server.** The key is in the host's environment settings and has never been in the repository or the browser. You wrote the prompt and can explain its shape. From M10.
+**4. One AI feature, live, called from your server**, its key in environment settings and never in git or a browser. M10.
 
-**5. That AI feature's failure states, visible.** What the user sees when the model is slow, returns something unusable, or is unavailable. At minimum a timeout, a truthful message, and a way to carry on without it. From M10.14.
+**5. Its failure states, visible** — a timeout, a truthful message, a way to carry on. M10.14.
 
-**6. A cost ceiling and a rate limit on the model call.** A cap per user and a cap overall, plus the arithmetic for what the feature costs at a hundred users. From M09.14 and M05.4.
+**6. A cost ceiling and a rate limit**, per user and overall, with the arithmetic for a hundred users. M09.14, M05.4.
 
-**7. At least three tests in CI, green on every push.** One must cover authorization — the wrong user is refused. One must cover a failure state. All three must go red when you break what they test. From M06.10 and M06.12.
+**7. Three tests in CI** — one on authorization, one on a failure state, all going red when broken. M06.10, M06.12.
 
-**8. A security pass, written down.** No secret anywhere in git history. Every input validated on the server. One paragraph on prompt injection: what untrusted text reaches your prompt, and what you did about it. From M07.1–M07.3 and M10.7.
+**8. A security pass, written down** — no secret in git history, inputs validated on the server, a paragraph on untrusted text reaching your prompt. M07.1, M10.7.
 
-**9. Two more decision-log entries, dated this week** — six in total, on the way to eight by Checkpoint 4.
+**9. Two more dated decision-log entries** — six in total, on the way to eight.
 
 ### Where it lives
 
-This is the gate where your product becomes something you are responsible for. Three weeks ago nobody could lose anything by using it; now a stranger's account and a stranger's data are inside it, which is what DPDP is about and why M07.9's consent material stops being theoretical. Next week M11.6 puts it on a real domain with monitoring, and M11.7 puts ten real people through it.
+This is where your product becomes something you are responsible for: a stranger's account and data are inside it, which is why M07.9's consent material stops being theoretical.
 
-**Each of you submits your own evidence.** The three roles from M01.1 excuse nobody here: whoever did not build the auth still has to demonstrate it failing for the wrong user, on their own device, in their own submission. M18's defence is individual, and "my teammate did that part" is the one answer that cannot pass it.
+**Each of you submits your own evidence.** Whoever did not build the auth still demonstrates it failing for the wrong user, on their own device.
 
 ### Words to own
 
@@ -115,31 +107,25 @@ This is the gate where your product becomes something you are responsible for. T
 
 ### Tradeoffs and gotchas
 
-**A hidden button is not a permission.** The interface is a convenience for honest users. Anyone can type a URL or call your endpoint with a tool, and the server is the only place a decision is real. This is M01.8's highest-value review question and the most common defect at this gate.
+**Never let the model key reach the browser.** Any key shipped to a client is public, and your server is the only place a ceiling applies.
 
-**Never let the model key reach the browser.** Any key shipped to a client is public — it is in the network tab, whatever wraps it. Model calls go through your server, which is also the only place a limit or a ceiling can be applied.
+**Choose the cheap model first** — the cheapest that passes your own examples, with its cost per call measured (M09.13).
 
-**Choose the cheap model first and measure.** M09.13's point in practice: start with the cheapest model that passes your own examples, measure what it costs per call, then decide whether a better one is worth it. Starting with the most capable model and economising later means you never learn what the feature actually needs.
-
-**Apply the migration to real rows, not an empty table.** A new required column is harmless on an empty database and breaks every existing row in production. Do it this week, on the rows your Checkpoint 2 users created, and write down what happened to them.
-
-**Your prompt is part of your product, so put it in git.** A prompt edited live in a dashboard is a change nobody reviewed, cannot revert and cannot explain. Keep it in a file, change it through a pull request, and Checkpoint 4's eval set will have something stable to measure.
+**Keep your prompt in git.** A prompt edited in a dashboard is a change nobody reviewed, and Checkpoint 4's eval set needs something stable.
 
 ### Verify it
 
-Nine checks. Run them yourself; do not accept a summary.
+Run these yourself.
 
-1. **Log in as an ordinary user and request a privileged URL directly.** You must be refused. Then call the endpoint behind that page directly, bypassing the page entirely. You must be refused again, with a status code. If the second one succeeds, your permission lives in the interface and does not exist.
-2. **Log out and request the same URL.** You must be sent to the login, not shown a blank version of the page.
-3. **Read someone else's data on purpose.** Change an id in a URL or a request to one that belongs to another account. You must be refused. This is the eleven-character bug from M11.4, tested rather than read.
-4. **Search your whole git history for your keys**, not just the current files. The first six characters of each is enough to search for. A key that was ever committed must be rotated.
-5. **Open the browser's network tab while using the AI feature.** If the model key or the raw model endpoint appears there, the key is public.
-6. **Make the model fail three ways.** Set the timeout to one second so it times out. Point it at a wrong key so it errors. Feed it input that produces something unusable. Each must produce a truthful message and a way to carry on.
-7. **Hit the rate limit on purpose** and confirm you get a refusal rather than a bill. Then do the arithmetic for a hundred users and write the number down.
-8. **Break each of your three tests' subject in turn** and confirm each goes red. Then restore and confirm green.
-9. **Apply the migration on a copy with real rows in it** and look at those rows afterwards. Not the new ones — the old ones.
+1. **As an ordinary logged-in user, request a privileged URL, then the endpoint behind it.** If either succeeds, the permission lives in the interface and does not exist.
+2. **Change an id to another account's** — M11.4's eleven-character bug, tested not read.
+3. **Search your whole git history for your keys**, and open the network tab while the AI feature runs. A key that appears in either is public.
+4. **Make the model fail three ways:** timeout, wrong key, unusable output.
+5. **Hit the rate limit**, then do the arithmetic for a hundred users.
+6. **Break each test's subject** and confirm it goes red.
+7. **Apply the migration on a copy with real rows** and look at the old rows.
 
-The red flags here: a feature with no failure state; permissions enforced only in the interface; a model key anywhere a browser can see it; a spinner with no timeout; tests that pass with the feature removed; a prompt that exists only in a dashboard; and a migration only ever run on an empty table. Every one of them demos perfectly.
+Red flags: permissions only in the interface; a key a browser can see; a spinner with no timeout; tests that pass with the feature removed. Every one demos perfectly.
 
 ## Walkthrough
 1. Brief the auth work as a whole feature using M11.3: a plan of five to eight steps, with the role check in the first half, and a dedicated step for failure states.

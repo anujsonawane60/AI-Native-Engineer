@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: tool-and-function-calling
 title: "Tool and Function Calling"
 order: 4
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,23 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team's canteen bot gets asked "kitne idli bache hain". The model has no idea — stock lives in a database it has never seen. So the team pastes the entire inventory table into every prompt. That is four thousand tokens on every single call, it is stale the moment it is sent, and it still fails the moment someone asks about yesterday.
+A team's canteen bot gets asked "kitne idli bache hain". Stock lives in a database the model has never seen, so the team pastes the inventory table into every prompt: four thousand tokens a call, stale when sent.
 
-Worse is the other half. A student types "mera order cancel kar do". The bot replies, warmly and at length, that it has cancelled the order. Nothing was cancelled. There was never any mechanism by which anything could be cancelled. The model produced the most plausible next sentence, which is exactly what it does, and the student went to class believing a refund was coming.
+Then a student types "mera order cancel kar do" and the bot warmly replies that it has cancelled the order. Nothing was cancelled; there was never any mechanism by which anything could be. The model produced the most plausible next sentence, and the student went to class expecting a refund.
 
 ### The idea
 
 **A tool is a function in your code that you describe to the model. The model does not run it. It asks you to run it, by name, with arguments — and your code decides whether to.**
 
-That sentence is the most important one in the module. Everything about agent safety in chapters seven, fourteen, seventeen and nineteen rests on it. The model has no hands. It emits a structured request that says `get_stock(dish_id: "idli")`. Your code receives that request, checks it, runs it or refuses, and sends the result back. The power never leaves your side of the wire.
+That sentence carries the rest of the module. The model has no hands: it emits a request saying `get_stock(dish_id: "idli")`, and your code checks it, runs it or refuses, and returns the result. Power never leaves your side of the wire.
 
 ### The analogy
 
-The canteen helper at the counter cannot walk into the storeroom. The storeroom is locked and the storekeeper has the key.
+The canteen helper cannot walk into the storeroom; it is locked and the storekeeper has the key. What the helper can do is fill in a requisition chit — item, quantity, signed. The storekeeper reads it, decides whether it is reasonable, and brings the rice or says no.
 
-What the helper can do is fill in a requisition chit: item, quantity, signed, dated. They hand it over. The storekeeper reads it, decides whether it is reasonable, and either brings out two kilos of rice or says no. The helper's authority is the chit, and the chit is only a request.
-
-**Where the analogy breaks:** the storekeeper has been there eleven years and will laugh at a chit for four hundred kilos of rice. Your code has no such instinct. Every refusal it will ever make has to be written down in advance as an explicit rule — a bound, an allowlist, an approval gate. The intuition does not come free, and assuming it does is how teams ship a `delete_order` tool with no checks.
+**Where the analogy breaks:** the storekeeper has been there eleven years and will laugh at a chit for four hundred kilos. Your code has no such instinct. Every refusal it will ever make must be written down in advance as a bound, an allowlist or a gate — assuming otherwise is how `delete_order` ships with no checks.
 
 ### Picture it
 
@@ -62,10 +60,6 @@ What the helper can do is fill in a requisition chit: item, quantity, signed, da
 
 The model asks, your code decides and acts, the result goes back, and the model turns it into a sentence. Every arrow between the model and the database passes through code you wrote.
 
-### What a tool definition is
-
-A tool definition has four parts, and one of them matters far more than people expect.
-
 ```
 name:        get_stock
 description: Returns remaining quantity for ONE dish on
@@ -76,33 +70,15 @@ parameters:  { "dish_id": { "enum": [...from menu...] } }
 returns:     { "qty": integer, "as_of": string }
 ```
 
-The **description is a prompt**. It is the only thing the model reads when deciding whether this tool is the right one, and the sentence that begins "Do NOT use for" prevents more wrong calls than any amount of system-prompt tightening. A tool described as "gets stock" will be called for prices, for yesterday, and for dishes that do not exist.
-
-The **parameters are a JSON Schema**, which is chapter three pointed in the other direction. An enum here means the model cannot ask about a dish you do not sell. A bounded integer means it cannot ask for quantity 999.
-
-### Narrow tools, and the escape hatch you must not build
-
-The tempting shortcut is one powerful tool. `run_sql(query)` answers every possible database question in one definition. `http_get(url)` fetches anything. `run_command(cmd)` does literally everything.
-
-Do not build these. A generic tool hands the model your entire database or your entire machine, and it converts every later safety question into an unanswerable one. You cannot bound `run_sql`. You cannot allowlist `run_command`. You have given away the storeroom key and kept the chit book.
-
-Narrow instead. `get_stock(dish_id)`, `get_price(dish_id)`, `list_todays_menu()`. Each is boring, bounded, and individually reviewable. And crucially, each is *either* read or write — never both, so that the read set can be auto-approved while every write passes a gate.
-
-### Read tools and write tools
-
-Split your list in two and treat the halves differently.
-
-**Read tools** are reversible, idempotent and safe to retry. Look up stock, fetch a menu, search the FAQ. These can run without asking anyone, which is what makes the product feel fast.
-
-**Write tools** change the world: cancel an order, issue a refund, send a WhatsApp message, update a price. These need an idempotency key so a retry does not double-charge — exactly the discipline M04 established for UPI payments — and they need a human gate when the action is irreversible or outward-facing. M00's permissions chapter drew that line; a tool list is where you actually implement it.
-
-Return errors as *data*, not as exceptions. `{"error": "dish_id not found"}` lets the model apologise usefully or try a different dish. A thrown exception just ends the conversation.
+The **description is a prompt** — the only thing the model reads when choosing between tools, and the sentence beginning "Do NOT use for" prevents more wrong calls than any system-prompt tightening. The parameters are chapter three's schema reversed: an enum means the model cannot ask about a dish you do not sell.
 
 ### Where it lives
 
-Tools are the bridge between the model and the four boxes from M00: your server, your database, the network. Each tool is an endpoint in miniature, so M04's rules apply unchanged — validate input, authorise the caller, be idempotent on writes.
+Each tool is an endpoint in miniature, so M04's rules apply: validate input, authorise the caller, be idempotent on writes. The rest of the module builds on it.
 
-This chapter is the mechanism under most of the rest of the module. Retrieval in chapter ten is usually a read tool called `search_docs`. An agent in chapter fourteen is this loop run repeatedly until a stopping condition. MCP in chapter sixteen is a standard way to publish tool definitions so you stop rewriting them per harness. And in chapter seventeen you will discover that your coding agent's whole personality is a list of tools: read file, write file, run command.
+- Retrieval in chapter ten is a read tool, `search_docs`
+- An agent in chapter fourteen is this loop run until a stopping condition
+- Your coding agent in chapter seventeen is a tool list: read, write, run command
 
 ### Words to own
 
@@ -121,31 +97,25 @@ This chapter is the mechanism under most of the rest of the module. Retrieval in
 
 ### Tradeoffs and gotchas
 
-**Too many tools makes choice worse.** Past roughly ten, selection accuracy falls and the model starts picking neighbours — `get_price` when asked about stock. Group related tools, delete the ones nobody calls, and write descriptions that say when *not* to use each.
+**Never build a generic tool.** `run_sql(query)`, `http_get(url)` and `run_command(cmd)` each hand the model your whole database or machine, and cannot be bounded or allowlisted. Narrow instead — `get_stock(dish_id)`, `list_todays_menu()` — boring, bounded, reviewable.
 
-**Arguments arrive wrong, routinely.** A dish id that does not exist, a date in the wrong format, a quantity as a string. Validate on arrival, every time, and return the validation error as data so the model can correct itself.
+**Split read from write, never both in one tool.** Reads are reversible and can be auto-approved, which makes a product feel fast. Writes need an idempotency key so a retry does not double-charge — M04's UPI discipline — and a human gate when irreversible. Return errors as data, not exceptions that end the conversation.
 
-**Tool results are untrusted content.** This is the one people miss. A tool that fetches a web page, reads a user's uploaded note or returns a free-text `notes` column is injecting text written by someone else straight into the model's context, where it may be read as an instruction. The tool is the attack surface. Chapter seven is entirely about this.
+**Tool results are untrusted content.** A tool that fetches a web page or returns a free-text `notes` column injects someone else's writing into the model's context, where it may be read as an instruction. The tool is the attack surface — chapter seven.
 
-**A read tool can still be an exfiltration channel.** `list_all_users()` is read-only and perfectly safe-sounding, and combined with any outward action it is a data breach. Scope read tools to the current user wherever the data is per-user.
+**A read tool can still be an exfiltration channel.** `list_all_users()` sounds safe, and combined with any outward action it is a data breach. Scope read tools to the current user.
 
-**Every tool call is another round trip.** The model calls, you answer, the model calls again. Three tool calls is four model calls' worth of latency and tokens. Batch where you can — one `get_stock_many(dish_ids)` instead of five calls — and remember M09's token maths applies to the growing transcript each time.
-
-**A tool the model cannot see, it cannot use.** If a feature is not working, check whether the tool is actually in the list sent on that call. This is the most common cause of "it just ignores my tool".
+**Past roughly ten tools, choice degrades** — the model picks neighbours, `get_price` for a stock question. Batch related calls rather than adding more tools.
 
 ### Verify it
 
-**Read your tool list as a permission list.** Print the names on one page and ask: if a hostile user could choose any sequence of these, what is the worst outcome? That is your blast radius, and it is defined by this list and nothing else — not by your system prompt.
+- **Read your tool list as a permission list.** If a hostile user could choose any sequence of these, what is the worst outcome? That is your blast radius, defined by this list and not your system prompt.
+- **Find the generic tool.** Search for `sql`, `query`, `exec`, `command`, `url`, `eval`. If AI wrote your tool layer, one probably exists.
+- **Check every write tool for three things:** an idempotency key, a bound on what it can affect, an approval gate if it is irreversible.
+- **Test the wrong-argument path.** Call each tool with a nonexistent id, a negative number and an empty string; it should refuse cleanly and return the error as data.
+- **Test the wrong-user path.** As student A, ask the bot to cancel student B's order. If the tool does not re-check ownership server-side, you have shipped M07's missing authorization with a chat interface on it.
 
-**Find the generic tool.** Search for `sql`, `query`, `exec`, `command`, `url`, `eval`, `script`. If AI wrote your tool layer, there is a decent chance one of these exists because it was the shortest way to satisfy the brief.
-
-**Check every write tool for three things:** an idempotency key, a bound on what it can affect, and an approval gate if the action is irreversible or leaves your system. A `cancel_order` that can cancel any order id, not merely the caller's, is a vulnerability regardless of how politely the model behaves.
-
-**Test the wrong-argument path.** Call each tool with a nonexistent id, a negative number and an empty string. Your code should refuse cleanly and return an error as data. If anything throws into the user's face, it is not finished.
-
-**Test the wrong-user path.** Ask the bot, as student A, to cancel student B's order. If the tool does not re-check ownership server-side, you have shipped M07's authentication-without-authorization with a conversational interface on top.
-
-Red flags: a tool named `run_sql`, `exec` or `http_get`; a write tool with no idempotency key; a tool description that does not say when not to use it; arguments used without validation; a read tool that returns all users' rows; a tool result pasted into context with no marker saying it is data; and a claimed action — "cancelled your order" — with no corresponding tool in the list at all.
+Red flags: a tool named `run_sql`, `exec` or `http_get`; a write tool with no idempotency key; a description that never says when *not* to use it; unvalidated arguments; a read tool returning all users' rows; a tool result with no marker saying it is data; a claimed action with no matching tool.
 
 ## Walkthrough
 1. List the three questions users most ask your product that the model cannot answer from the prompt alone. These are your first read tools.

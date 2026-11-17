@@ -4,7 +4,7 @@ module: m00-orientation
 slug: inside-the-machine
 title: "Inside the Machine: CPU, RAM, Disk, OS and Processes"
 order: 4
-duration_min: 25
+duration_min: 15
 is_free: true
 mission: false
 volatility: low
@@ -22,31 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your deployed app was fine for three weeks. This morning it is slow, and by lunchtime it stops responding entirely. You restart it and it works again — for four hours. Then the same thing.
+Your deployed app was fine for three weeks. This morning it is slow; by lunchtime it stops responding. You restart it and it works again — for four hours.
 
-You will meet some version of this. The explanation is always in this chapter: something ran out. Memory, CPU, disk or connections. If you do not know what those four things are, you can only restart and pray. If you do, you can read a dashboard and say "it is memory, and it is growing in a straight line, so something is not letting go of it."
-
-A server is just a computer. Understanding the computer is not optional background — it is the thing that lets you diagnose rather than guess.
+The explanation always has the same shape: something ran out — memory, CPU, disk or connections. Without those four words you can only restart and pray; with them you can read a dashboard and say "it is memory, growing in a straight line."
 
 ### The idea
 
-**A computer has one part that thinks fast and forgets instantly (CPU and RAM), one part that remembers slowly (disk), and a manager that shares them out between competing programs (the operating system).**
+**A computer has one part that thinks fast and forgets instantly (CPU and RAM), one part that remembers slowly (disk), and a manager that shares them between competing programs (the operating system).**
 
-Every performance problem you will ever see is one of those resources being exhausted, or one of them waiting on another.
+Every performance problem you will ever see is one of those resources exhausted, or one waiting on another.
 
 ### The analogy
 
-The canteen kitchen again, which is a surprisingly exact model.
+The canteen kitchen is a surprisingly exact model. **The CPU is the cook**: fast, but only a few things at a time — four cooks cook four dishes at once, which is what "four cores" means. **RAM is the counter space**: ingredients within arm's reach, instant to grab, wiped at closing time every night. **The disk is the storeroom**: enormous, cheap, survives the night — but a cook who walks there per ingredient makes the kitchen crawl. **The OS is the kitchen manager**: who cooks what, who gets counter space, who waits.
 
-**The CPU is the cook.** It does the actual work, extremely fast, but only a few things at a time. A kitchen with four cooks can genuinely cook four dishes at once — that is what "four cores" means.
-
-**RAM is the counter space** next to the cook: the ingredients currently chopped and out, within arm's reach. Grabbing something from the counter is instant. But the counter gets wiped at closing time, every night, without exception. Nothing on the counter survives.
-
-**The disk is the storeroom.** Enormous, cheap, and everything in it survives the night. But walking to the storeroom and back takes real time, and if the cook does it for every single ingredient, the kitchen crawls.
-
-**The operating system is the kitchen manager.** It decides which cook works on which order, who gets counter space, who waits, and it stops two cooks from grabbing the same pan. Nobody thanks the manager, but without one the kitchen is a brawl.
-
-**Where the analogy breaks:** a cook who runs out of counter space puts something back in the storeroom and continues, a bit slower. A computer that runs out of RAM may do that (it is called swapping, and it is brutally slow), or it may simply kill your program outright. Running out of memory is often fatal rather than merely slow.
+**Where the analogy breaks:** a cook out of counter space puts something back in the storeroom and continues, slightly slower. A computer out of RAM may do that — swapping, which is brutally slow — or it may simply kill your program. Running out of memory is often fatal, not merely slow.
 
 ### Picture it
 
@@ -70,27 +60,18 @@ The canteen kitchen again, which is a surprisingly exact model.
   └──────────────┘
 ```
 
-Reading from RAM is about a thousand times faster than reading from disk, and disk is the only one that remembers. That trade — fast but forgetful versus slow but permanent — is the reason databases, caches and files all exist as separate ideas.
+Reading from RAM is about a thousand times faster than reading from disk, and disk is the only one that remembers — the trade that makes databases, caches and files separate ideas.
 
 ### Where it lives
 
-Hold on to those two numbers: **RAM is ~1000× faster than disk, and RAM forgets.** Almost everything later in the program follows from them.
+Two numbers to hold on to: **RAM is ~1000× faster than disk, and RAM forgets.** Almost everything later follows from them.
 
-- A **database** (M04) exists to put things on disk so they survive, while being clever enough not to walk to the storeroom for every question.
-- An **index** (M04) is a small summary kept close at hand so you do not have to read the whole storeroom to find one order.
-- A **cache** (M05) is deliberately keeping an answer in RAM because recomputing or re-fetching it is slower — and accepting that you lose it on restart, because it can always be rebuilt.
-- **Stateless servers** (M05) exist because RAM forgets. If a server holds a student's cart only in RAM, then restarting that server loses the cart, and you can never run two servers. Putting the cart in the data box instead is what lets you run twenty.
-- **Containers** (M06) are a way of packaging a program with everything it needs so the operating system underneath stops mattering.
+- **Databases and indexes** (M04) put things on disk so they survive, without a full storeroom search per question.
+- A **cache** (M05) keeps an answer in RAM, accepting that a restart loses it because it can be rebuilt.
+- **Stateless servers** (M05) exist because RAM forgets. A cart held only in RAM dies with the process; moving it to the data box lets you run twenty servers.
+- **Containers** (M06) package a program with what it needs, so the OS underneath stops mattering.
 
-### Program versus process
-
-A distinction worth getting right, because error messages depend on it.
-
-A **program** is the recipe sitting on disk — a file, inert, not doing anything. A **process** is the program actually running: loaded into RAM, given CPU time, holding open files and network connections, with a number called a PID.
-
-One program can become many processes. Your browser is one program and perhaps thirty processes — which is why one frozen tab does not take the whole browser down with it. Your server is one program that your platform might run as four processes to use four cores.
-
-This is why "restart it" often works. Restarting kills the process, discarding everything it had accumulated in RAM — including the leak that was slowly strangling it — and starts a clean one from the same unchanged program on disk.
+One distinction error messages depend on: a **program** is the inert file on disk, a **process** is that program running — in RAM, given CPU time, holding files and connections open, identified by a PID. One program can be many processes, which is why a frozen browser tab does not take the browser down, and why "restart it" works: killing the process discards everything in RAM, leak included.
 
 ### Words to own
 
@@ -109,7 +90,7 @@ This is why "restart it" often works. Restarting kills the process, discarding e
 
 ### Tradeoffs and gotchas
 
-**The four classic exhaustions.** When a server misbehaves, it is almost always one of these, and each has a distinct signature:
+**The four classic exhaustions**, each with a signature:
 
 | Symptom | Resource | What it usually means |
 |---|---|---|
@@ -118,21 +99,21 @@ This is why "restart it" often works. Restarting kills the process, discarding e
 | Everything slow, disk light constant | Disk / swap | Out of RAM and swapping, or slow queries hitting disk |
 | "Too many connections" | Connections | Each request opened a database connection and never closed it |
 
-**More memory is not a fix for a leak.** Doubling RAM on a leaking process buys you twice the time before the same crash. It is a legitimate thing to do at 2 am to stop the bleeding; it is not a fix, and AI will often propose it as one.
+**More memory is not a fix for a leak.** Doubling RAM buys twice the time before the same crash. Legitimate at 2 am to stop the bleeding; not a fix, and AI often proposes it as one.
 
-**CPU at 100% is not automatically bad.** A server that is deliberately doing heavy work should use the CPU you are paying for. The problem is CPU at 100% *while requests are waiting*. Idle capacity is wasted money; saturated capacity with a queue is a broken user experience. Knowing which one you are looking at is the skill.
+**CPU at 100% is not automatically bad.** A server doing heavy work should use the CPU you pay for; idle capacity is wasted money. The problem is CPU at 100% *while requests are waiting*.
 
-**"It works on my machine" is a resource story more often than a code story.** Your laptop has 16 GB and no other users. The free-tier server has 512 MB and runs your database on the same box. The code is identical; the counter space is not.
+**"It works on my machine" is usually a resource story.** Your laptop has 16 GB and no other users; the free-tier server has 512 MB and runs your database too. The code is identical; the counter space is not.
 
 ### Verify it
 
-When AI proposes something that will run on a server, three questions catch most resource problems before they happen.
+Three questions catch most resource problems early:
 
-1. **"How much memory does this hold, and when is it released?"** Anything that loads a whole file, a whole table, or a whole AI model into memory needs a real number attached. "It loads the CSV into memory" is fine for 200 rows and fatal for 20 million.
-2. **"Does this work if the process restarts right now?"** If the answer is "the user loses their session" or "the queue is lost", the state is in RAM and needs to move to the data box. This single question prevents a whole class of bug you would otherwise meet in production.
-3. **"What is opened here, and where is it closed?"** Files, database connections and network connections are finite. AI frequently opens them in a loop and closes none, which works perfectly in testing and fails at exactly 100 users.
+1. **"How much memory does this hold, and when is it released?"** Anything loading a whole file, table or AI model needs a real number attached. "It loads the CSV into memory" is fine for 200 rows and fatal for 20 million.
+2. **"Does this work if the process restarts right now?"** If the answer is "the user loses their session" or "the queue is lost", that state is in RAM and belongs in the data box.
+3. **"What is opened here, and where is it closed?"** Files and connections are finite. AI frequently opens them in a loop and closes none — perfect in testing, broken at 100 users.
 
-Red flag phrases in AI output: "we'll keep it in memory for speed" (fine for a cache, fatal for anything you cannot lose), and "load all the records then filter" (fine for 100 rows, never for a real table).
+Red flags: "we'll keep it in memory for speed" (fine for a cache, fatal for anything you cannot lose) and "load all the records then filter".
 
 ## Walkthrough
 1. Open your machine's resource monitor. On Windows press Ctrl+Shift+Esc for Task Manager; on macOS open Activity Monitor; on Linux run `top` or `htop` in a terminal.

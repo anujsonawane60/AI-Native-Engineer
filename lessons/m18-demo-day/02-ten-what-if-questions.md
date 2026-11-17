@@ -4,7 +4,7 @@ module: m18-demo-day
 slug: ten-what-if-questions
 title: "The Ten What-If Questions"
 order: 2
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -24,25 +24,25 @@ last_reviewed: 2026-11-16
 
 Three students are asked the same question: *what happens if ten times as many people use this tomorrow?*
 
-The first says they would scale horizontally and add a load balancer. Asked which part of their system would refuse work first, they say the server. Asked how many database connections their free tier allows, they do not know. The answer was fluent and contained no information about their own product — it would have fitted any product in the room.
+The first says they would scale horizontally and add a load balancer. Asked which part refuses work first, they say the server. Asked how many database connections their free tier allows, they do not know. Fluent, and it would have fitted any product in the room.
 
-The second has rehearsed. They recite a tidy three-part answer about caching, queues and read replicas. The panel asks one follow-up: *which of those three would you do first, and what does it cost?* The recitation has no next line and the student stops talking.
+The second has rehearsed a tidy three-part answer about caching, queues and read replicas. One follow-up — *which would you do first, and what does it cost?* — and the recitation has no next line.
 
-The third says: *the connection pool goes first. My free tier gives sixty connections and my load test in M13.7 started refusing at about forty concurrent users, roughly four times my 1 pm peak. I would know within five minutes, because the uptime check on `/health` touches the database. In the first hour I would turn on the connection pooler, which is a setting rather than a deploy. The real fix is caching today's menu for sixty seconds: no money, about half a day. What I would not do is add a queue — I have no background work, and a queue I have never run under load is a second thing to debug at 1 pm.*
+The third says: *the connection pool goes first — my free tier gives sixty and my M13.7 load test refused work at about forty concurrent users. I would know within five minutes, because the uptime check on `/health` touches the database. First hour: turn on the pooler, a setting rather than a deploy. Real fix: cache the menu for sixty seconds, half a day. What I would not do is add a queue I have never run under load.*
 
-All three know roughly the same amount of theory. Only one of them knows their own system.
+All three know the same theory. Only one knows their own system.
 
 ### The idea
 
 **A what-if question is not asking for a plan. It is asking whether you know the limits of the thing you built — so answer in five fixed moves, and put a number from your own system in every one.**
 
-The five moves work for all ten questions here and for ones nobody has thought of yet. That is the point of a shape rather than ten answers: a script breaks at the first follow-up, and the follow-up is where the real question lives.
+The five moves work for all ten questions here and for ones nobody has thought of yet. A script breaks at the first follow-up, and the follow-up is where the question lives.
 
 ### The analogy
 
-Ask a canteen owner what happens if the gas cylinder runs out at 1:15 pm. A weak owner says it will not happen. A good one says: the flame drops before it dies, so I get about a minute's warning; there is a spare behind the door and swapping takes four minutes; the real fix is a two-cylinder manifold the supplier quoted at ₹3,200; and what I will not do is pre-cook sixty plates at noon, because cold poha loses me more customers than four minutes of waiting.
+Ask a canteen owner what happens if the gas cylinder runs out at 1:15 pm. A weak owner says it will not happen. A good one says: the flame drops before it dies, so I get a minute's warning; the spare behind the door takes four minutes to swap; the real fix is a ₹3,200 two-cylinder manifold; and what I will not do is pre-cook sixty plates at noon, because cold poha costs me more than the waiting.
 
-**Where the analogy breaks:** the owner can see and smell the failure, and there are maybe eight things that go wrong in a canteen, all familiar. Your system has dozens of failure modes, every one invisible, several arriving in combinations nobody has rehearsed. So your answers cannot come from feel. They come from written-down numbers: your bill, your free tier's stated limits, your load test, your alert thresholds. A feel-based answer in software is indistinguishable from a bluff.
+**Where the analogy breaks:** the owner can see and smell the failure, and maybe eight familiar things go wrong in a canteen. Your system has dozens of failure modes, every one invisible, so your answers cannot come from feel. They come from written-down numbers: your bill, your free tier's limits, your load test. A feel-based answer is indistinguishable from a bluff.
 
 ### Picture it
 
@@ -57,15 +57,11 @@ Ask a canteen owner what happens if the gas cylinder runs out at 1:15 pm. A weak
   └────────────────────────────────────────────────────┘
 ```
 
-Five moves in a fixed order, each about fifteen seconds, with at least one number of your own in moves one, three and four.
+Five moves in a fixed order, each about fifteen seconds, with a number of your own in moves one, three and four. Move five distinguishes an engineer from a student: naming the tempting wrong move shows you considered more than one option — the REJECTED line from your M01.10 decision log, spoken out loud.
 
-Move five distinguishes an engineer from a student. Naming the tempting wrong move shows you considered more than one option, which is exactly what a REJECTED line does in your decision log from M01.10.
+One clause belongs in your vocabulary before the room, not after: *I do not know, and here is how I would find out.* Finish it properly — the dashboard you would open, the number you would look for, how long it would take. A panel marks that as a strong answer. A bluff that collapses on one follow-up is fatal, because after it every other answer becomes suspect.
 
-One clause belongs in your vocabulary before the room, not after: *I do not know, and here is how I would find out.* Finish it properly — name the dashboard you would open, the number you would look for, and how long it would take. A panel marks that as a strong answer. A bluff that collapses on one follow-up is fatal, because after it every other answer you gave becomes suspect.
-
-### The ten questions
-
-These are the ten, and they are not a secret. Between them they cover every box on the map you drew in M18.1.
+The ten questions are not a secret, and together they cover every box on your M18.1 map.
 
 | What if… | What it really tests | A good answer names |
 |---|---|---|
@@ -98,15 +94,13 @@ A worked answer, so the shape is concrete:
     charge you were trying to prevent.
 ```
 
-One question, five moves, a real index on a real table, and a refusal with a reason.
+One question, five moves, a real index on a real table, a refusal with a reason.
 
-The last two questions are not technical, and they are where strong engineers most often fail. *Your co-founder leaves* is really: which credentials and knowledge exist in exactly one head. *A competitor ships your main feature* is really: what do you have that is not copyable in a weekend — your users, your data, your distribution. "We would build it better" is not an answer.
+The last two are not technical, and they are where strong engineers most often fail. *Your co-founder leaves* means: which credentials and knowledge exist in exactly one head. *A competitor ships your main feature* means: what do you have that is not copyable in a weekend.
 
 ### Where it lives
 
-Every question draws on a module you have done. Traffic is M05 and your load test in M13.7. Duplicate webhooks are M04.17. Model cost and failure are M09.14, M10.14 and M17.6. Deletion is M07.9 and M16.11, under India's DPDP framework. Losing the database is M04.11 and M13.9. A leaked key is M07.2, an incident M13.10, the CVE M13.11. Channels are M17.7 and unit economics M17.5. The co-founder question is M01.1 plus M18.5; the competitor question is M17.1.
-
-Forward, these ten written answers are the material for the questioning block in M18.6, and the gaps they expose are what you study before it.
+Every question draws on a module you have done: traffic from M05 and M13.7, duplicate webhooks from M04.17, model cost from M17.6, deletion from M16.11 under India's DPDP framework, database loss from M13.9, keys from M07.2, the CVE from M13.11, channels from M17.7, the co-founder question from M18.5, the competitor question from M17.1. Forward, these ten answers are the material for M18.6's questioning block.
 
 ### Words to own
 
@@ -125,27 +119,25 @@ Forward, these ten written answers are the material for the questioning block in
 
 ### Tradeoffs and gotchas
 
-**Do not memorise ten answers.** A memorised answer is detectable in two sentences: it is too smooth, it contains no number from your own product, and it has no second paragraph. Learn the five moves and the numbers; the sentences can be built in the room.
+**Do not memorise ten answers.** A memorised answer is detectable in two sentences: too smooth, no number from your own product, no second paragraph. Learn the five moves and the numbers; the sentences get built in the room.
 
-**Every number you quote will be asked for its source.** "About forty concurrent users" invites *how do you know?* Have the load-test output, the usage page or the bill ready to open. A number you cannot source is worse than no number, because it reads as invention.
+**Every number you quote will be asked for its source.** A number you cannot source is worse than no number, because it reads as invention.
 
 **"That will not happen" is the one fatal answer.** Even for genuinely unlikely scenarios, say how unlikely and why you accepted the risk — an accepted risk, named, is good engineering.
 
-**Do not promise work you have not costed.** "We would move to a paid tier" invites: which one, how much a month, and at what revenue does it pay for itself. If you have not done M17.5's arithmetic, say so rather than inventing a figure.
-
-**Rehearse with someone who does not know your system.** A teammate fills your gaps without noticing. Someone from another group asks the question you have not thought about, which is what the room will do.
+**Do not promise work you have not costed.** "We would move to a paid tier" invites: which one, how much a month, at what revenue does it pay for itself.
 
 ### Verify it
 
-Five checks, done out loud with a timer.
+Five checks, out loud, with a timer.
 
-1. **Answer all ten cold, ninety seconds each, recorded.** Cold means no notes. Listen back and count how many answers contained a number of your own.
-2. **For every number, open its source in front of someone.** Any number you cannot show in thirty seconds comes out of your answer.
-3. **Have someone ask one follow-up on each answer** — *how do you know that, what would it cost, why not the other option.* A script dies here; the five moves do not.
+1. **Answer all ten cold, ninety seconds each, recorded.** Count how many contained a number of your own.
+2. **For every number, open its source in front of someone.** Anything you cannot show in thirty seconds comes out of the answer.
+3. **Have someone ask one follow-up on each** — *how do you know, what would it cost, why not the other option.* A script dies here; the five moves do not.
 4. **Count your move-five answers.** Fewer than eight naming something you would not do means you are describing plans rather than choices.
-5. **Take the two you answered worst and give the honest-unknown version instead.** Name the dashboard, the number, and the time it would take. Practise until it sounds like information rather than apology.
+5. **Take the two you answered worst and give the honest-unknown version.** Dashboard, number, time. Practise until it sounds like information rather than apology.
 
-The red flags: an answer that would fit any product in the room; a number with no source; a memorised recitation with no second paragraph; "that will not happen"; a fix with no cost; a student who answers the eight technical questions well and goes silent on the co-founder and the competitor; and a confident invention that collapses on one follow-up, which retrospectively discredits everything else you said.
+The red flags: an answer that would fit any product in the room; a number with no source; a recitation with no second paragraph; "that will not happen"; a fix with no cost; silence on the co-founder and the competitor; and a confident invention that collapses on one follow-up.
 
 ## Walkthrough
 1. Create `WHAT-IF.md` and paste the ten questions in as headings, with the five move labels under each one, all blank.

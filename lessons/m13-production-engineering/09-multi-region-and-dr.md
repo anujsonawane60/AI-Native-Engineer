@@ -4,7 +4,7 @@ module: m13-production-engineering
 slug: multi-region-and-dr
 title: "Multi-Region, Failover, Backups and Disaster Recovery"
 order: 9
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-M05 chapter 6 taught replicas, replication lag and failover at overview level, and promised M13 would go deep on failover and multi-region. M05 chapter 7 taught CAP and said M13 would take it into quorums and consensus. M06 chapter 7 taught regions, the latency floor between Nashik and Virginia, and the bills that come with both. This chapter is the operational half: what you actually do at 10:04 a.m. when a region or a database is gone.
+M05 chapter 6 taught replicas, replication lag and failover at overview level and promised M13 would go deep. M05 chapter 7 taught CAP and promised quorums and consensus. M06 chapter 7 taught regions, the latency floor and the bills. This chapter is the operational half: what you do when a region or a database is gone.
 
-A team says, honestly, "we have backups". They do: a daily snapshot, fourteen days of retention, visible in the dashboard. At 10:04 on a Tuesday a migration written in a hurry drops a column and rewrites order totals in paise as rupees. They decide to restore last night's snapshot. Four things then happen that nobody had thought about. The snapshot list contains two databases with similar names and they are not sure which is production. Nobody has ever performed a restore, so the first attempt goes to the wrong target. The restore itself takes forty-one minutes, a number they learn for the first time during the incident. And the dish photos in object storage are in no backup at all, because what they set up was the database's built-in one.
-
-Second failure, cheaper but sharper. A team adds a read replica in Singapore to speed up reads. A student pays through UPI, the confirmation page reads from the replica, the replica is 1.4 seconds behind, and the page says "you have no orders". The student pays again. Now there are two charges, a support conversation, and a refund — caused by an optimisation, in a system where nothing was broken.
+A team says, honestly, "we have backups" — a daily snapshot, fourteen days. Then a hurried migration rewrites order totals in paise as rupees, and three things nobody considered: nobody has ever restored, so the first attempt goes to the wrong target, the restore takes forty-one minutes, and the dish photos in object storage are in no backup at all.
 
 ### The idea
 
 **Disaster recovery is two numbers you choose and one drill you run. Everything else is a diagram.**
 
-**RPO**, recovery point objective, is how much data you accept losing — measured in time. A daily snapshot is an RPO of up to twenty-four hours. **RTO**, recovery time objective, is how long you accept being down. These are business decisions, not technical ones: for a canteen app, losing an hour of orders is survivable and being down for a day is not. For a payments feature, neither is acceptable, which is why you were told in M05 chapter 7 not to be the source of truth for money.
-
-And the drill: a backup you have never restored is a hypothesis. The restore drill converts it into a capability and, incidentally, gives you the RTO number you would otherwise learn during an incident.
+**RPO** is how much data you accept losing, in time: a daily snapshot means up to twenty-four hours. **RTO** is how long you accept being down. Both are business decisions. And a backup you have never restored is a hypothesis — restoring it makes it a capability and hands you the RTO you would otherwise learn mid-incident.
 
 ### The analogy
 
-M05 gave you photocopies of the canteen's stock board as replicas. This chapter is about two different objects.
+M05 gave you photocopies of the stock board as replicas. This chapter is about two other objects. The first is the recipe binder's photocopy in a locked drawer: everyone knows it exists, nobody has opened it in a year, and the key might be with the manager who left. The second is a whole second canteen in another block, stocked and staffed and cooking nothing, which costs two kitchens every day until Block A floods.
 
-The first is the recipe binder's photocopy, kept in a locked drawer. Everyone knows it exists. Nobody has opened it in a year. It might be last year's binder, it might be missing the new supplier's pages, the key might be with the manager who left. Opening it — reading a page, cooking from it — is the only thing that converts it from a comfort into a capability.
-
-The second is a whole second canteen in another hostel block, stocked, staffed, cooking nothing. It will serve students the day Block A floods. It also costs two kitchens' worth of staff and stock every day until then, and its menu must be kept in step with Block A or it will serve last month's prices on the day it matters.
-
-**Where the analogy breaks:** opening the drawer proves the photocopy is readable in one glance. A backup can be silently unusable for months — pointed at the wrong database, encrypted with a key that was rotated, truncated by a quota, or perfectly valid and twelve hours older than you believed. There is no equivalent of "looking at it". The only test is a full restore into a scratch environment, which is why it is a drill with a date on it rather than an inspection.
+**Where the analogy breaks:** opening the drawer proves the photocopy readable. A backup can be silently unusable for months — wrong database, rotated key, truncated by a quota, or twelve hours older than you believed.
 
 ### Picture it
 
@@ -70,11 +62,12 @@ Failover promotes a replica to primary, so the data you lose is whatever had not
 
 ### Where it lives
 
-A second region is only sane as a chapter 4 module you instantiate twice, because a console session repeated from memory under pressure is how regions drift apart. Failover is driven by chapter 3's health checks deciding the primary is gone. And M06 chapter 13's DNS TTL applies directly: if your failover changes a DNS record and your TTL is an hour, your RTO is at least an hour no matter how fast the database promotes. Chapter 10 is the human process that wraps all of this.
+- A second region is only sane as a **chapter 4** module instantiated twice; failover is triggered by **chapter 3's** health checks, with **chapter 10** around it.
+- M06 chapter 13's **DNS TTL** applies directly: a failover changing a record with an hour TTL has an RTO of at least an hour.
 
-The honest verdict for your startup: **you should not be multi-region, and you must have a tested restore.** Multi-region doubles your bill and your deployment surface, and adds replication lag as a correctness problem, for a reliability gain you cannot measure at two hundred users. A tested restore costs one afternoon and protects against what actually happens to student teams: a bad migration, a careless delete, or a destroy plan nobody read.
+**The honest verdict: you should not be multi-region, and you must have a tested restore.** Multi-region doubles your bill and makes replication lag a correctness problem, for a gain you cannot measure at two hundred users. A tested restore costs one afternoon.
 
-**Quorum and consensus**, promised by M05 chapter 7, belong here in one paragraph. When several copies must agree, a write is accepted once a majority confirms it: three copies tolerate one failure, five tolerate two. Consensus protocols are how managed databases pick a new primary without two copies both believing they are — the split-brain case, where two primaries accept conflicting writes that someone must reconcile by hand. You will not implement this. You need to know it is why managed failover is worth paying for and a hand-rolled failover script is dangerous.
+**Quorum and consensus**, promised by M05 chapter 7: a write is accepted once a majority of copies confirms it, and consensus is how a managed database picks a new primary without **split-brain** — two primaries accepting conflicting writes. Hence managed failover is worth paying for.
 
 ### Words to own
 
@@ -98,33 +91,28 @@ The honest verdict for your startup: **you should not be multi-region, and you m
 
 ### Tradeoffs and gotchas
 
-**Back up more than the database.** What student teams lose is rarely the database. It is the object storage holding dish photos, the environment variables nobody wrote down, the DNS record set, and chapter 4's state file. List everything that cannot be regenerated from git, and give each item its own backup method.
+**Back up more than the database:** object storage, environment variables, DNS records, chapter 4's state file — everything that cannot be regenerated from git.
 
-**Point-in-time recovery is worth far more than snapshots for the failure you will actually have.** A nightly snapshot answers "restore yesterday". PITR answers "restore to 10:03, one minute before the migration", which is the question a bad migration asks. Check whether your database's free tier includes it, because many do for a short window, and if it does not, your RPO is the snapshot interval and you should say that out loud.
+**Point-in-time recovery beats snapshots.** A snapshot answers "restore yesterday"; PITR answers "restore to 10:03, before the migration". Without it your RPO is the snapshot interval.
 
-**Replication lag is a correctness problem, not a performance one.** A replica serving a user's own confirmation page is the double-payment bug above. The rule from M05 chapter 7: route a user's reads to the primary for a short window after their own write, and route everything else wherever is fastest. Decide this per feature, not per app.
+**Replication lag is a correctness problem.** A confirmation page reading a replica 1.4 seconds behind tells a student "you have no orders", so they pay twice. Route a user's reads to the primary briefly after their own write.
 
-**The failover runbook's missing steps are always the same ones.** The database promotes in two minutes and the outage lasts forty, because the connection string still points at the old primary, the DNS TTL is an hour, the cache in the dead region is unreachable and treated as a hard dependency, the workers still consume from a queue that is gone, and cron now runs in two places. Write all five into the runbook as numbered steps, because nobody remembers them at 10:04.
+**The runbook's missing steps are always the same five:** connection strings pointing at the old primary, an hour-long DNS TTL, the dead region's cache as a hard dependency, workers on a dead queue, cron running twice.
 
-**Decide in advance who declares a failover.** It is destructive and hard to reverse — failing back is often harder than failing over. One named person, one written trigger. This is chapter 10's incident commander, and failover is the decision that most needs one.
+**Decide in advance who declares a failover.** It is destructive, and failing back is harder than failing over: one named person, one trigger.
 
-**Active-active is a different product, not a configuration.** Two regions accepting writes means conflicting writes, which you must resolve somehow — M05 chapter 7's last-write-wins, which silently loses increments, or a rule you design per entity. It is a correctness project, not a reliability improvement.
-
-**Put a real number on the cost first.** A second region is a second set of every meter from M06 chapter 7 — compute, storage, and cross-region egress, which surprises people because replication traffic is egress and it runs continuously. Price it per month in rupees before the architecture discussion, not after.
+**Active-active is a different product, not a configuration:** two regions accepting writes means conflicting writes to resolve. Price it first, including cross-region egress.
 
 ### Verify it
 
-The single question that exposes a fake disaster-recovery plan: **when did you last restore, and how long did it take?** If the answer is "we have backups enabled", there is no plan.
+One question exposes a fake plan: **when did you last restore, and how long did it take?**
 
-1. **Restore into a scratch environment and query the data.** Not "the restore completed" — open it, count the orders, check a total. A restore that completes and contains the staging database is a successful restore of the wrong thing.
-2. **Time it and write the number down.** That is your real RTO, and it is almost always several times what anyone guessed.
-3. **Ask what is *not* backed up.** Make the list explicitly: object storage, environment variables, DNS records, infrastructure state, third-party configuration. Every item without a named backup method is a gap.
-4. **Ask for the RPO as a number and check it against the backup schedule.** An RPO of five minutes with a nightly snapshot is a contradiction, and it is a very common one in generated plans.
-5. **Read the failover runbook for the five forgotten steps**: connection strings, DNS TTL, cache, queue consumers, cron. Any runbook that stops at "promote the replica" is a third of a runbook.
-6. **Ask who declares it and on what trigger.** A plan with no named person is a plan that will be debated for twenty minutes during the thing it was written for.
-7. **Check read-your-writes per feature.** Find every page a user sees immediately after their own write and confirm which database it reads from.
+1. **Restore into a scratch environment and query it.** Count the orders and check a total; a successful restore of staging is the wrong thing.
+2. **Time it — that is your real RTO.** Then check the stated RPO against the backup schedule.
+3. **Ask what is *not* backed up:** object storage, environment variables, DNS records, infrastructure state.
+4. **Read the runbook for the five forgotten steps,** and check read-your-writes on every page shown right after a write.
 
-Red flags: a backup nobody has ever restored; an RTO nobody has measured; object storage absent from the backup list; a nightly snapshot paired with a five-minute RPO; a failover runbook that ends at promotion; multi-region proposed for a product with two hundred users; active-active described as a reliability improvement; a DNS-based failover with an hour-long TTL; and a hand-written failover script with no protection against two primaries.
+Red flags: a backup nobody has restored; an unmeasured RTO; a nightly snapshot paired with a five-minute RPO; a runbook that ends at promotion.
 
 ## Walkthrough
 1. Write down your RPO and your RTO as two numbers, and next to each one write the sentence that justifies it from your product rather than from your tooling. For a canteen app: "we can lose up to one hour of orders; we cannot be down for more than two hours at lunch."

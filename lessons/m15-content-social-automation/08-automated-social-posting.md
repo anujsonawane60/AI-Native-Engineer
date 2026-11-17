@@ -4,7 +4,7 @@ module: m15-content-social-automation
 slug: automated-social-posting
 title: "Automated Social Posting: Scheduling, Queues and Multi-Channel"
 order: 8
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: high
@@ -22,27 +22,37 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team wires up an automation they are proud of: one spreadsheet row per post, fanned out to four channels every morning at 9:00. It works for eight days.
-
-Day 9: the access token expires. Nothing posts. Nothing errors visibly, because the failure is logged to a console nobody opens. They discover it on day 14.
-
-Day 14, an hour after fixing it: the worker retries a failed post immediately, in a tight loop. Four identical posts go out in ninety seconds, the API starts returning `429`, the loop keeps retrying, and the account is restricted for a day. A rate limit became a ban because of the retry strategy.
-
-Meanwhile the content itself is wrong everywhere. The same 900-character paragraph is truncated mid-word on the short-form channel. A post says "link in bio" on a channel where a real link is allowed. A WhatsApp message arrives with four hashtags, which no human has ever sent on WhatsApp. And because the server runs in UTC and nobody checked, the "9:00 am" post goes out at 2:30 pm IST, after the audience has gone back to class.
-
-None of these are content problems. Every one of them is a problem you already know how to solve from M05 and M06.
+A team fans one spreadsheet row per post out to four channels every morning at 9:00. On day 9 the token expires and nothing posts, with no visible error because the failure is logged to a console nobody opens — they find out on day 14. An hour after fixing it the worker retries in a tight loop: four identical posts in ninety seconds, `429`s, and the account restricted for a day. Meanwhile the content is wrong everywhere — a paragraph truncated mid-word, four hashtags on a WhatsApp message — and because the server runs in UTC the "9:00 am" post goes out at 2:30 pm IST. None of these are content problems; every one you already know how to solve from M05 and M06.
 
 ### The idea
 
 **A scheduler is a queue with a worker in front of a hostile, rate-limited API. Build it as the distributed-systems problem it is, not as a calendar.**
 
-Five pieces, and they are the same five you would build for payments or email: an approved item, a queue row per channel, a worker that runs on a schedule, an idempotency key so a retry cannot double-post, and a dead-letter list with an alarm on it.
+Five pieces, the same five you would build for payments: an approved item, a queue row per channel, a scheduled worker, an idempotency key, and a dead-letter list with an alarm on it.
+
+Every social API limits you per app and per account, per hour and per day — lower than you expect on a new account. Cross one and you get `429 Too Many Requests`, often with a `Retry-After` header. M05's rule applies: **respect `Retry-After`, and otherwise back off exponentially with jitter** — 2s, 4s, 8s, 16s, each with a random offset so three workers do not wake in the same millisecond. Retry only on `429` and `5xx`; a `400` fails identically a hundred times, so dead-letter it at once. A tight loop is not persistence — to the platform it is indistinguishable from an attack, and the escalation to a ban is fast and unappealable.
+
+The companion rule is **idempotency**: a unique key per queue row, and a record of which keys succeeded, so a retry after an ambiguous failure — request sent, response lost — cannot create a second post. At-least-once delivery with no idempotency equals duplicates.
+
+The rows for one item should also differ, because the most visible failure here is the same text everywhere.
+
+| What changes | Why |
+|---|---|
+| Length | A paragraph that fits one feed truncates mid-word in another |
+| Links | Some channels allow real links; some demote them |
+| Hashtags | Normal on some feeds, bizarre on WhatsApp |
+| Format | Carousel, thread, vertical video, plain text |
+| First line | The hook has to work before the "more" cut-off |
+| Language | Marathi caption on one channel, English on another |
+| Voice | Same voice from chapter 6; tone shifts with the room |
+
+Chapter 9 produces those variants; the scheduler only carries them.
 
 ### The analogy
 
-The canteen counter at 1:10 pm. Forty students want food; one counter can hand over one plate at a time. That is a rate limit, and nobody tries to beat it by shouting louder — they take a slip, the slips go on a spike in order, and one cook works through them. If the gas runs out, the slip stays on the spike instead of being thrown away, and the cook tells the queue. Nobody gets the same plate twice because the slip is taken off the spike only once.
+The canteen counter at 1:10 pm. One counter hands over one plate at a time — a rate limit nobody beats by shouting louder. Students take a slip, the slips go on a spike in order, one cook works through them. If the gas runs out the slip stays on the spike rather than being thrown away, and nobody gets the same plate twice because each slip comes off once.
 
-**Where the analogy breaks** in the way that causes the day-9 failure: the canteen's queue is visible and loud. Forty students will tell you within seconds that nothing is moving. Your posting queue is silent. Nothing in the world complains when it stops, so the alarm is not a nice extra — it is the only thing standing between you and five days of silence.
+**Where the analogy breaks**, in the way that causes the day-9 failure: the canteen's queue is loud, and forty students tell you within seconds that nothing is moving. Your posting queue is silent, so the alarm is the only thing between you and five days of nothing.
 
 ### Picture it
 
@@ -63,49 +73,11 @@ The canteen counter at 1:10 pm. Forty students want food; one counter can hand o
               └──────────────┘
 ```
 
-An approved item becomes one queue row per channel, a worker picks up whatever is due and calls each API, failures wait and retry with increasing delay, and anything that fails five times lands in a dead-letter list that raises an alert instead of disappearing.
-
-### Rate limits, retries and how accounts get restricted
-
-Every social API limits you, per app and per account, per hour and per day, and the limits are lower than you expect on a new account. Cross one and you get HTTP `429 Too Many Requests`, often with a `Retry-After` header saying how long to wait.
-
-The rule from M05 applies directly: **respect `Retry-After`, and otherwise back off exponentially with jitter.** Wait 2 seconds, then 4, then 8, then 16, each with a small random offset so three workers do not wake up in the same millisecond. A tight retry loop is not persistence; to the platform it is indistinguishable from an attack, and the escalation from rate limit to temporary restriction to permanent ban is fast and largely unappealable.
-
-The companion rule is **idempotency**. Give every queue row a unique key and record which keys have succeeded. A retry after an ambiguous failure — the request went out, the response never came back — must not create a second post. This is the same key discipline M04 taught for payments, for the same reason: at-least-once delivery plus no idempotency equals duplicates.
-
-### Tokens, timezones and platform rules
-
-**Tokens expire.** Most platforms issue a short-lived access token and a longer-lived refresh token. Your worker must refresh before expiry and alert loudly if refresh fails, because a `401` that nobody sees is the day-9 failure.
-
-**Your server is not in India.** Free-tier infrastructure usually runs in UTC, and a cron expression for "9:00" means 9:00 UTC, which is 2:30 pm IST. Write every schedule with the timezone explicit, and verify the first run by looking at the actual timestamp on the actual post. This one bites nearly every team.
-
-**Platform rules are not suggestions.** Each platform has an automation policy. Scheduled publishing of your own content is normally fine; automated following, bulk messaging and identical cross-posting at volume often are not. WhatsApp in particular is not a broadcast toy — business messaging runs on opt-in and approved templates. Read each channel's policy once, and write down what you are allowed to do.
-
-### One idea, four channels: adapt, do not broadcast
-
-The single most visible failure in this chapter is the same text everywhere. Your queue should hold one row per channel, and the rows should differ.
-
-| What changes | Why |
-|---|---|
-| Length | A paragraph that fits one feed truncates mid-word in another |
-| Links | Some channels allow real links; some demote them |
-| Hashtags | Normal on some feeds, bizarre on WhatsApp |
-| Format | Carousel, thread, vertical video, plain text |
-| First line | The hook has to work before the "more" cut-off |
-| Language | Marathi caption on one channel, English on another |
-| Voice | Same voice from chapter 6; tone shifts with the room |
-
-Chapter 9 is entirely about producing those variants properly. The scheduler's job is only to carry them.
-
-### The approval gate and the kill switch
-
-Two non-negotiables. **Nothing posts without a human approving that specific text for that specific channel** — automation schedules approved items; it does not author them. And **one person must be able to stop everything in under a minute**, because the day a server incident or a public tragedy happens, your cheerful 9:00 am post is the worst thing on your account. A single `paused` flag the worker checks before every send is enough.
-
-Keep an audit trail too: what was posted, where, when, by which approval, with which result. When a post disappears or a platform asks, that log is your only answer.
+An approved item becomes one queue row per channel, a worker picks up whatever is due, failures retry with increasing delay, and anything failing five times lands in a dead-letter list that alerts instead of disappearing.
 
 ### Where it lives
 
-This is M05 and M06 applied to a new API. M05 gave you rate limiting, backoff and queues; M06 gave you scheduled jobs and the discipline of checking a job actually ran. M10's agents can run the adaptation step, as long as the human gate stays in front of publish. Chapter 6 supplies the voice the variants preserve, chapter 7 the assets in the right ratios, chapter 9 the per-channel variants, chapter 10 the reading of what happened.
+This is M05 and M06 applied to a new API: rate limiting, backoff and queues from one, scheduled jobs and the discipline of checking a job ran from the other. M10's agents can run the adaptation step as long as the human gate stays in front of publish. Chapter 6 supplies the voice, chapter 7 the assets, chapter 10 the reading.
 
 ### Words to own
 
@@ -128,37 +100,33 @@ This is M05 and M06 applied to a new API. M05 gave you rate limiting, backoff an
 
 ### Tradeoffs and gotchas
 
-**Do not automate before you have posted manually for four weeks.** You cannot automate a process you have not run. The first month teaches you what to post, what time your audience is awake, and which channels respond. Automate the repeatable part after that.
+**Nothing posts without a human approving that specific text for that specific channel**, and one person must be able to stop everything in under a minute — a `paused` flag the worker checks before every send. The day a public tragedy happens, your cheerful 9:00 am post is the worst thing on the account.
 
-**Automation amplifies whatever you feed it, including slop.** Chapter 5's gate matters more once a pipeline exists, not less.
+**Tokens expire.** Platforms issue a short-lived access token and a longer-lived refresh token. Refresh before expiry and alert loudly if refresh fails, because a `401` nobody sees is the day-9 failure.
 
-**The valuable part cannot be automated.** Replies, comments, DMs and the conversation after the post are where users actually come from. Automate publishing; never automate talking to people.
+**Your server is not in India.** Free-tier infrastructure runs in UTC, so cron "9:00" fires at 2:30 pm IST. Write every schedule with the timezone explicit and verify the first run against the real post's timestamp.
 
-**Scheduling tools are a legitimate shortcut.** A free tier that posts for you is often better than code you maintain. The reason to understand the queue is that the tool's failures are these failures, and you will diagnose them.
+**Platform rules are not suggestions.** Automated following, bulk messaging and identical cross-posting at volume are often forbidden, and WhatsApp is no broadcast toy — business messaging runs on opt-in and approved templates.
 
-**Watch the free quotas.** Free scheduling tiers cap posts per month and channels per account; API tiers cap calls per hour. Plan the month inside the quota rather than discovering it on day 20.
+**Do not automate before four weeks of manual posting**, because you cannot automate a process you have not run, and automation amplifies whatever you feed it, including slop. A free scheduling tool is a legitimate shortcut — understand the queue because its failures are these.
 
-**Never retry on a 4xx that is your fault.** A `400` from a malformed post will fail identically a hundred times. Retry on `429` and `5xx`; dead-letter the rest immediately.
-
-**Timezones, again.** Schedule, verify the first real timestamp, and write the timezone in your decision log.
+**The valuable part cannot be automated.** Replies, comments and DMs are where users come from: automate publishing, never conversation.
 
 ### Verify it
 
-**Red flag: a scheduler that posts the same thing to every channel unchanged.** Read the four rows for one item. Identical strings mean you have a broadcaster, not a pipeline — and your audience sees "link in bio" on a channel with links.
+**Red flag: the same text on every channel.** Read the four rows for one item. Identical strings mean a broadcaster, not a pipeline.
 
-**Red flag: no success log and no alert.** Ask the direct question: if the worker stopped tonight, how would I find out, and by when? If the answer is "I would notice the account is quiet", you have the day-9 failure waiting.
+**Red flag: no success log and no alert.** If the worker stopped tonight, how would you find out, and by when? "I would notice the account is quiet" is the day-9 failure, waiting.
 
-**Red flag: retry with no backoff and no cap.** Look for the delay between attempts and the maximum number of attempts. A loop with neither is how a rate limit becomes a restriction.
+**Red flag: retry with no backoff and no cap.** Check the delay between attempts and the maximum attempts. Neither present is how a rate limit becomes a restriction.
 
-**Red flag: no idempotency key.** Ask what happens if the API accepted the post but the response was lost. Without a key, the answer is a duplicate.
+**Red flag: no idempotency key.** Ask what happens if the API accepted the post but the response was lost. Without a key, a duplicate.
 
 **Red flag: cron in UTC with an IST intention.** Check the timestamp on a real post, not the schedule in the config.
 
-**Red flag: no kill switch.** If stopping all posting requires editing code and deploying, it is too slow for the day you need it.
+**Red flag: no kill switch, or approval implied rather than recorded.** Stopping all posting must not require a deploy, and "we review everything" is not a gate — a field the worker refuses to send without is a gate.
 
-**Red flag: AI-generated automation that ignores the platform's policy.** Ask explicitly which rule of that platform's automation policy the design relies on. If it cannot name one, nobody checked.
-
-**Red flag: approval implied rather than recorded.** "We review everything" is not a gate. A field the worker refuses to send without is a gate.
+**Red flag: automation that ignores the platform's policy.** Ask which rule of the policy the design relies on. If it cannot name one, nobody checked.
 
 ## Walkthrough
 1. Write down your last four weeks of manual posting: what you posted, where, at what IST time, and what response each got. If you have less than four weeks, do that before automating anything.

@@ -4,7 +4,7 @@ module: m06-cloud-linux-devops-testing
 slug: linux-filesystem-permissions
 title: "Why Servers Run Linux; the File System, Users and Permissions"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,23 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team's canteen ordering app works perfectly on a laptop. They push it, the deploy runs for ninety seconds, and it fails with `Module not found: ./components/MenuCard`. The file is right there. They can see it. They open it, close it, push again, and get the same error.
+A team's canteen ordering app works on a laptop. The deploy fails with `Module not found: ./components/MenuCard` — and the file is right there. On disk it is `menuCard.tsx`; Windows and macOS do not care about that difference, Linux does, and the build server is Linux.
 
-The file on disk is `menuCard.tsx`. The import says `MenuCard`. Windows and macOS do not care about that difference. Linux does, and the build server is Linux. This is the single most common first-deploy failure in this program, and it was named in M00 for exactly this reason.
-
-An hour later the same team hits `EACCES: permission denied, open '/app/uploads/photo.jpg'`. The agent's suggestion is `sudo chmod 777 /app/uploads`, which makes the error go away and quietly makes every uploaded file writable by anything running on that machine. Both problems are the same problem: nobody on the team knows what the server actually is.
+An hour later they hit `EACCES: permission denied, open '/app/uploads/photo.jpg'`, and the agent suggests `sudo chmod 777 /app/uploads` — the error goes away and every uploaded file is now writable by anything on that machine. Both failures are the same failure: nobody knows what the server actually is.
 
 ### The idea
 
 **A Linux server is one big tree of files, and every file has an owner and a short list of who is allowed to read it, change it or run it.**
 
-That is nearly the whole model. Processes are files. Devices are files. Configuration is files. Logs are files. When something will not work on a server, the question is almost always "which file, owned by whom, and was the thing trying to touch it allowed to?"
-
-Linux runs servers because it is free to copy a thousand times, it does not need a screen, it starts in seconds, it is the thing every cloud provider and every container image is built on, and it has thirty years of tools for answering that question.
+Processes, devices, configuration and logs are all files. When something breaks, the question is almost always "which file, owned by whom, and was the thing touching it allowed to?" Linux runs servers because it is free to copy a thousand times, needs no screen, starts in seconds, and underpins every cloud provider and container image you will meet.
 
 ### The analogy
 
-Think of the campus canteen's building. There is one entrance, and inside, a fixed layout everyone already knows: the store room for sacks of rice, the kitchen, the serving counter, the notice board, the ledger drawer. A new cook can find the salt on their first day because the layout is a convention, not a choice.
-
-Each area has a rule about who may enter. Students reach the serving counter. Cooks reach the kitchen. Only the manager opens the ledger drawer. The manager has a master key. The manager does not hand the master key to a cook who says "I just need to get something" — because the cost of that is not the thing they wanted, it is everything else they could then reach.
+The canteen has a fixed layout: store room, kitchen, serving counter, ledger drawer. A new cook finds the salt on day one because the layout is a convention, not a choice. Each area has an entry rule — students reach the counter, cooks reach the kitchen, only the manager opens the ledger drawer. The manager has a master key and does not lend it to a cook who "just needs to get something", because the cost is everything else they could then reach.
 
 `sudo` is the master key. The layout is the file system. The entry rules are permissions.
 
-**Where the analogy breaks:** a cook who finds the store room locked knocks and asks, and a human decides. Linux does not negotiate. It returns `Permission denied` and stops, with no suggestion and no hint about which of the three permissions was missing. You have to read the state yourself.
+**Where the analogy breaks:** a cook who finds the store room locked knocks and asks, and a human decides. Linux does not negotiate. It returns `Permission denied` and stops, with no hint about which of the three permissions was missing.
 
 ### Picture it
 
@@ -61,11 +55,9 @@ Each area has a rule about who may enter. Students reach the serving counter. Co
   └── app/               your product, by convention in containers
 ```
 
-Every path on a Linux machine starts at `/` and walks down this tree; there are no drive letters, and the top-level folder names are a convention you can rely on across every server you will ever touch.
+Every path starts at `/` and walks down this tree; there are no drive letters, and these top-level names are a convention on every server you will touch.
 
-### Reading a permission line
-
-Ask a server to list a file in long form and you get something like this:
+Listing a file in long form gives this:
 
 ```
   -rw-r-----  1 deploy  app   412  Nov 16 09:14  .env
@@ -78,15 +70,17 @@ Ask a server to list a file in long form and you get something like this:
    └──────────────────────── a regular file (d = directory)
 ```
 
-The first character says what kind of thing it is, then three groups of three say what the owner, the owning group and everyone else may do: read, write, execute.
-
-Three permissions, three audiences, nine letters. `r` is read the contents, `w` is change or delete the contents, `x` is run it as a program — and on a directory, `x` means "allowed to walk into it", which is why a readable folder you cannot enter is a real and confusing state.
+The first character is the file type, then three groups of three say what the owner, the owning group and everyone else may do: `r` read, `w` change or delete, `x` run as a program. On a directory `x` means "allowed to walk into it", which is why a readable folder you cannot enter is a real and confusing state.
 
 ### Where it lives
 
-You will rarely log into a Linux box in this program. You do not need to. But Linux is underneath everything in the next twelve chapters, so you need to be able to read it:
+You will rarely log into a Linux box here, but Linux sits underneath the next twelve chapters:
 
-Your deploy platform builds your app inside a Linux container. Your CI runner, in chapter 12, is a fresh Linux machine that lives for ninety seconds. Every Dockerfile in chapter 8 starts from a Linux image and spends most of its lines copying files to paths like `/app`. Your logs in M07 are files under `/var/log` before anything collects them. The object storage and uploads in M04 land on a Linux disk somewhere. When M05 scales you to three servers, it is three copies of this same tree.
+- Your deploy platform builds your app inside a Linux container
+- The CI runner in chapter 12 is a fresh Linux machine that lives ninety seconds
+- Every Dockerfile in chapter 8 copies files to paths like `/app`
+- Logs in M07 are files under `/var/log` before anything collects them
+- When M05 scales you to three servers, it is three copies of this tree
 
 ### Words to own
 
@@ -107,26 +101,21 @@ Your deploy platform builds your app inside a Linux container. Your CI runner, i
 
 ### Tradeoffs and gotchas
 
-Nothing in here is optional knowledge, but there are four traps worth knowing by name.
-
-**`chmod 777` is never the right answer.** It means "anyone on this machine may read, change or run this". It makes the symptom disappear and leaves a hole. The correct fix for a permission error is almost always to change the *owner* so the right user owns the file, or to run the process as the user that already owns it. If an agent proposes `777`, ask it for the ownership fix instead.
-
-**Do not run your app as root.** It works, and it means any bug in your code is a bug with full control of the machine. Real deploy platforms run your process as an unprivileged user by default — which is also why your app cannot write to `/etc`, and should not want to.
-
-**Case sensitivity will bite exactly once, and it will cost you an evening.** Your laptop file system is case-insensitive; Linux is not. The rule that prevents it: pick one convention for file names in your repo on day one, write it in your rules file in M10, and when a deploy fails with "module not found" on a file you can see, check the capitalisation before anything else.
-
-**`.env` should be `600`.** Readable and writable by its owner, invisible to everyone else. M01 taught you to keep it out of git; this is the other half — keeping it out of reach of other users on the same machine.
+- **`chmod 777` is never the right answer.** It means "anyone on this machine may read, change or run this": the symptom goes, the hole stays. The real fix changes the *owner*, or runs the process as the user that already owns the file.
+- **Do not run your app as root.** It works, and any bug in your code then has full control of the machine. Deploy platforms use an unprivileged user by default.
+- **Case sensitivity bites exactly once and costs you an evening.** Pick one file-naming convention on day one, put it in your M10 rules file, and check capitalisation first when a deploy cannot find a file you can see.
+- **`.env` should be `600`.** Owner-only read and write. M01 kept it out of git; this keeps it away from other users on the same machine.
 
 ### Verify it
 
-You will mostly meet Linux through an AI that is explaining an error or proposing a command. Four checks.
+You will meet Linux mostly through an AI explaining an error or proposing a command.
 
-1. **Does the command need `sudo`, and should it?** Installing a *system* package — a database, a web server, Python itself — legitimately needs `sudo`. Installing *your project's* dependencies never does. `sudo npm install`, `sudo pip install` into a project, or `sudo` on anything inside your own project folder is a red flag: it means the agent is working around a permissions or path problem rather than fixing it, and it leaves files in your project owned by root that you then cannot edit.
-2. **Does it widen permissions or fix ownership?** Ask: "is there a fix that changes the owner rather than the permission bits?" There almost always is.
-3. **Is the path absolute and plausible?** A command that writes to `/etc` or `/usr` to configure *your app* is misplaced. Your app's files belong under your app's directory.
-4. **Did it check the obvious thing first?** For "module not found on a file that exists", the first hypothesis must be capitalisation. If the agent jumps straight to clearing caches or reinstalling dependencies, redirect it.
+1. **Does the command need `sudo`, and should it?** A *system* package legitimately needs it; your *project's* dependencies never do. `sudo` inside your own project folder means the agent is routing around a permissions problem and leaving root-owned files you cannot edit.
+2. **Does it widen permissions or fix ownership?** Ask for the owner fix instead of the permission-bit fix; there almost always is one.
+3. **Is the path absolute and plausible?** A command writing to `/etc` or `/usr` to configure *your app* is misplaced.
+4. **Did it check the obvious thing first?** For "module not found" on a file that exists, the first hypothesis is capitalisation, not caches.
 
-Red flags, in one line each: `sudo` for a project dependency; `chmod 777` as a fix; instructions that assume you are root; a confident answer about a file's permissions without having listed the file first.
+Red flags: `sudo` for a project dependency; `chmod 777` as a fix; instructions that assume you are root; a confident claim about a file's permissions without having listed the file first.
 
 ## Walkthrough
 1. Open a free browser-based Linux environment — a cloud dev workspace or your deploy platform's web shell. You need a terminal, not a VM of your own.

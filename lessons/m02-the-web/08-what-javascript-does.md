@@ -4,7 +4,7 @@ module: m02-the-web
 slug: what-javascript-does
 title: "What JavaScript Does: Events, State and Changing the Page"
 order: 8
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A canteen app's cart shows "2 items · ₹40". The user taps "Add" on a third dish. The number stays at 2 for a second, then jumps to 4.
+A canteen app's cart shows "2 items · ₹40". The user taps "Add" on a third dish, the number stays at 2, then jumps to 4. The tap added the dish to a list in memory and, separately, incremented the number on screen — and on slow 4G the first tap felt dead, so the student tapped again. The screen says 4, the list holds 3, and the payment total comes from a third place: the prices visible in the DOM.
 
-Here is what happened. The tap added the dish to a list held in memory and also, separately, incremented the number printed on the screen. On slow 4G the first tap felt unresponsive so the student tapped again. Two taps, two items added, and the counter incremented twice more because a second piece of code also updates it when the list changes. Now the screen says 4, the list has 3, and the total on the payment screen is computed from a third place entirely — the sum of the prices visible in the DOM, which does not include the item that is still off-screen.
-
-Three numbers that should all be the same thing, derived three different ways. This is not a JavaScript problem. It is a state problem, and it is the single most common cause of "sometimes the total is wrong" in student projects.
+Three numbers that should be one thing, derived three ways. That is a state problem, and the commonest cause of "sometimes the total is wrong".
 
 ### The idea
 
 **Every interactive thing on a page is the same three-step loop: something happens, you change the data you are keeping, and the page is redrawn from that data.**
 
-Event. State. Render. In that order, always, with the data as the only authority. The screen is a *picture of* the state, never a second copy of it. If the picture and the data can disagree, you have built a bug that will show up under load and never in testing.
+Event. State. Render — in that order, with the data as the only authority. The screen is a *picture of* the state, never a second copy. If the picture and the data can disagree, you have built a bug that shows up under load and never in testing.
 
 ### The analogy
 
-The counter staff at lunch rush.
+A student says "one samosa" — the **event**. The staff member marks the tally sheet — the **state**. They rub out the total on the board and write the new one — the **render**. It works because the sheet is the authority and the board is only a copy. Update the board without marking the sheet and the next order is wrong; add up the board at closing time and nothing reconciles.
 
-A student says "one samosa" — that is the **event**. The staff member marks it on the tally sheet — that is the **state**. Then they rub out the total on the little board and write the new one — that is the **render**.
-
-The whole system works because the tally sheet is the authority and the board is just a copy of it. If somebody updates the board without marking the sheet, the next order is wrong and nobody can tell why. And if somebody computes the day's takings by adding up what is written on the board rather than from the sheet, the numbers will not reconcile at closing time.
-
-**Where the analogy breaks:** the staff member remembers the conversation. They know you already asked for a samosa thirty seconds ago, and they know you are the same person. A web page remembers nothing by itself. Reload it and the tally sheet is blank — the state is gone unless it was deliberately written somewhere that survives, which means the browser's own storage, a URL, or a server. Chapter 10 and M04 are about where it should live.
+**Where the analogy breaks:** the staff member remembers the conversation. A web page remembers nothing — reload and the tally sheet is blank, unless the state was deliberately written somewhere that survives: browser storage, the URL, or a server. Chapter 10 and M04 are about where it should live.
 
 ### Picture it
 
@@ -63,21 +57,17 @@ The whole system works because the tally sheet is the authority and the board is
 
 An event changes the state, the state is the single authority, and the screen is redrawn from it — so the picture can never disagree with the data.
 
-### Two sources of truth, and why they are the real bug
-
-The failure above has a name: **two sources of truth**. The item count existed both as the length of a list and as a number printed on screen, and both were updated independently.
-
-The symptoms are always the same and always confusing. The number is right most of the time. It goes wrong under slow networks, double taps and fast navigation. It cannot be reproduced on the developer's laptop. And every attempted fix adds another update in another place, which widens the window for disagreement.
-
-The cure is a rule you can state in one line and then hold an AI to: **the screen is derived from the state; nothing is ever read back off the screen.** If the total needs to be shown, compute it from the cart list every time the page redraws. Never add to a displayed number, and never parse a price out of the DOM.
+The failure in the pain story has a name: **two sources of truth**. It is right most of the time, breaks under slow networks and double taps, and never reproduces on a developer's laptop. The cure is one line to hold an AI to: **the screen is derived from the state and nothing is read back off the screen.**
 
 ### Where it lives
 
-JavaScript runs in the client box from M00 — in the browser, on the user's device, on their CPU. That has three consequences worth internalising now.
+JavaScript runs in the client box from M00 — in the browser, on the user's device, on their CPU. Three consequences:
 
-It uses the user's battery and processor, which on a ₹8,000 Android is a real constraint, measured in chapter 16. It can be read and modified by the user, which is why nothing in it can be trusted as a security control; M04 and M07 return to this. And it has to be downloaded before it can run, so a page whose buttons only work once a 400 KB script arrives is a page with dead buttons for the first four seconds on slow 4G.
+- It spends the user's battery and processor, a real constraint on a ₹8,000 Android (chapter 16)
+- The user can read and modify it, so nothing in it is a security control (M04, M07)
+- It downloads before it runs, so buttons needing a 400 KB script are dead for four seconds on slow 4G
 
-Chapter 15's frameworks exist almost entirely to make this chapter's loop automatic — you change the state and the re-render happens for you, which removes the whole class of bugs described above.
+Chapter 15's frameworks exist largely to make this loop automatic: change the state and the re-render happens for you.
 
 ### Words to own
 
@@ -97,33 +87,25 @@ Chapter 15's frameworks exist almost entirely to make this chapter's loop automa
 
 ### Tradeoffs and gotchas
 
-**Double taps are not an edge case in India, they are the default.** On slow 4G a tap with no immediate feedback feels broken, so users tap again. Every action that costs money or creates a record needs two defences: disable the control the instant it is pressed, and make the action safe to repeat. The second is a server concern — M04's idempotency — but the first is yours, here, and it is two lines.
+**Double taps are not an edge case in India, they are the default.** On slow 4G a tap with no feedback feels broken, so users tap again. Anything that costs money needs two defences: disable the control the instant it is pressed, and make the action safe to repeat (M04's idempotency).
 
-**State disappears on reload, and that is sometimes correct.** A half-filled form that vanishes is infuriating. A cart that vanishes loses an order. But a "payment in progress" flag that survives a reload can leave a user permanently stuck. Decide deliberately, per piece of state, where it should live: memory, the URL, browser storage, or the server.
+**State disappears on reload, and that is sometimes correct.** A vanishing half-filled form is infuriating; a vanishing cart loses an order; a "payment in progress" flag that survives can leave a user stuck forever. Decide per piece of state: memory, URL, browser storage, or server.
 
-**Optimistic updates lie convincingly.** Showing the item as added before the server confirms makes the app feel instant, which on slow 4G is worth a lot. It also means that when the request fails you must undo the lie, visibly and clearly. An optimistic update with no rollback path is worse than a spinner. Never use one for a payment.
+**Optimistic updates lie convincingly.** Showing the item as added before the server confirms feels instant, but when the request fails you must undo the lie visibly. No rollback is worse than a spinner, and never for a payment.
 
-**Putting state in the URL is underrated.** A filter or a selected tab stored in the URL survives reload, can be shared, works with the back button, and needs no storage code. An AI will usually not suggest this unless asked.
-
-**The back button is part of your app.** Users on Android use the system back gesture constantly. If your interaction changes what is on screen without changing the URL, back takes them out of your app entirely instead of to the previous step.
-
-**Listeners that are never removed leak.** Attaching a new listener every time something renders means the handler runs twice, then five times, then thirty. The symptom is an action that fires multiple times after a while on the page — which looks exactly like a double-tap bug and is not.
+**The back button is part of your app, and the URL is underrated state.** A filter kept in the URL survives reload, can be shared and works with Android's back gesture. Change the screen without changing the URL and back throws the user out.
 
 ### Verify it
 
-Interaction verification is about deliberately being a difficult user.
+1. **Ask "what is the source of truth for this number?"** One answer per value, and it must be data, not a DOM element.
+2. **Tap twice, fast, throttled to Slow 4G,** then check the data. Two records from one intention is the bug.
+3. **Reload mid-form, mid-cart and mid-payment,** and decide whether what survives is what you want.
+4. **Press back after every interaction.** Leaving the app where the user expected the previous step is a failure no screenshot shows.
+5. **Cross-check the screen against the data** in DevTools: count and total must match the stored list.
+6. **Throttle, tap, watch for feedback** within about 100ms. Silence is what causes the second tap.
+7. **Interact twenty times without leaving the page.** A handler firing twice is a listener never removed.
 
-1. **Ask "what is the source of truth for this number?"** For every value on screen that can change, there should be exactly one answer, and it should be data, not a DOM element. If the AI cannot answer in one sentence, there are two sources.
-2. **Tap twice, fast, on everything that matters.** Add, submit, pay. Then check the resulting data. Two records from one intention is the bug. Do this with the network throttled to Slow 4G, because that is where the window is wide enough to hit.
-3. **Reload at three different moments.** Mid-form, mid-cart, mid-payment. Record what survives and what is lost, and decide whether each outcome is the one you want. This is a product decision, not a technical one.
-4. **Press the back button after every interaction.** Note where it takes you. Leaving the app when the user expected the previous step is a complete failure that no screenshot shows.
-5. **Cross-check the screen against the data.** Open DevTools and compare the displayed count and total against the actual stored list. They should match exactly, every time, including after rapid interaction.
-6. **Throttle, then tap, and watch for feedback.** From the moment of the tap, something must change within about 100 milliseconds — a pressed state, a spinner, a disabled button. Silence is what causes the second tap.
-7. **Stay on the page and interact twenty times.** If the handler starts firing twice, you have a listener leak.
-
-Red flags in AI output: reading a value out of the DOM to compute something — a price parsed from text is the classic; a counter that is incremented rather than recomputed; a submit button with no disabled state; an optimistic update with no rollback; `setTimeout` used to "wait for the data to be there", which is a race condition with a delay bolted on; and an interaction that changes the whole screen without touching the URL.
-
-The brief line that prevents most of it, under CONSTRAINTS: "state is the only source of truth; the UI is derived from it and never read back. Every action that creates or charges must disable its control immediately and be safe to repeat."
+Red flags: a value read out of the DOM, a parsed price being the classic · a counter incremented rather than recomputed · a submit button with no disabled state · an optimistic update with no rollback · `setTimeout` used to "wait for the data" · a screen change that never touches the URL.
 
 ## Walkthrough
 1. Open any shopping or food-ordering site and add an item to the cart. Watch the cart counter in the header closely as you do it.

@@ -4,7 +4,7 @@ module: m16-users-analytics-growth
 slug: privacy-dpdp-gdpr
 title: "Privacy, Consent, DPDP and GDPR With Real User Data"
 order: 11
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,29 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team is three weeks from demo day with six hundred real users. Somebody asks one question: if a user emailed tomorrow asking you to delete everything you hold about them, could you?
+A team is three weeks from demo day with six hundred users. Somebody asks: if a user emailed tomorrow asking you to delete everything you hold about them, could you?
 
-They start listing. The users and orders tables. The server logs, which contain phone numbers in request bodies. The analytics tool, a company in another country. The replay tool, holding four hundred recordings including one where a masking rule was wrong. A warehouse table built for a dashboard. The WhatsApp chats from chapter one's recruitment, on three personal phones. A CSV a teammate exported in week two and emailed to himself. Yesterday's database backup. A mission screenshot with a real phone number in it.
-
-Twelve places. They can delete from four. The consent they collected was a pre-ticked box with no record of when anybody agreed or to what, so they cannot even show what they were permitted to do.
+They start listing. Users and orders tables. Server logs with phone numbers in request bodies. The analytics and replay tools, both companies abroad. A warehouse table. Chapter one's WhatsApp chats, on three phones. A CSV a teammate emailed himself. Yesterday's backup. Twelve places; they can delete from four. And their consent was a pre-ticked box with no record of when anybody agreed, or to what.
 
 ### What M07 covered, and what is new here
 
-M07's chapter nine taught the law: data fiduciary and data principal; notice and consent that is free, specific, informed and a clear affirmative action; purpose limitation; minimisation; rights of access, correction and erasure; verifiable parental consent under eighteen and no behavioural tracking of children; and GDPR the moment you have EU users. Re-read it for the definitions; this chapter does not restate them.
-
-What is new is doing it with six hundred real people, a replay tool, three vendors in other countries and chats on your own phone. The data map. A consent record you could produce. One erasure run end to end. An age gate on a college product. And what refusal does to every number in this module.
+M07 taught the law: free, specific, informed consent by clear affirmative action; purpose limitation and minimisation; access, correction and erasure; parental consent under eighteen; GDPR once you have EU users. New here is doing that with six hundred real people and three vendors abroad.
 
 ### The idea
 
-**Compliance is not a banner. It is a map of where personal data sits, a record of what each person agreed to, and a procedure you have actually run at least once.**
+**Compliance is not a banner. It is a map of where personal data sits, a record of what each person agreed to, and an erasure procedure you have actually run at least once.**
 
-The banner is the part everyone builds and the part that proves nothing. Those three artefacts are what "can you delete this person?" is answered with.
+Consent is a thing that happened, so it is recorded, not merely requested: who agreed, when, which version of the notice they saw, and to what. If your notice covered showing users their past orders and you later send behavioural reminders, consent does not cover the new purpose — that is purpose limitation, and the remedy is a new notice and fresh consent, which you can only aim correctly if you stored the version. Record refusals too, and make consent withdrawable with a settings toggle, not an email.
 
 ### The analogy
 
-The canteen asks students to sign a register for the monthly meal plan: name, room number, phone. The register lives in a drawer behind the counter.
+The canteen asks students to sign a register for the meal plan, kept in a drawer behind the counter.
 
-**Where the analogy breaks completely:** the register is one book in one drawer, and if a student asks for their page back the manager tears it out and hands it over. Your user's data is in a dozen places, three owned by companies in other countries, one a backup that cannot be edited without restoring it, one a chat on a teammate's phone. Nothing about your situation is a drawer, which is why the map comes before the policy.
+**Where the analogy breaks completely:** if a student asks for their page, the manager tears it out and hands it over. Your user's data is in a dozen places: three companies abroad, a backup that cannot be edited, a chat on a teammate's phone. Nothing here is a drawer, which is why the map comes before the policy.
 
 ### Picture it
 
@@ -68,49 +64,13 @@ The canteen asks students to sign a register for the monthly meal plan: name, ro
 
 A data map lists every store, its personal data, its retention and whether one person can actually be removed from it — and the honest answer is never "all of them".
 
-### The consent record
-
-Consent is a thing that happened, so it has to be recorded, not merely requested. Store four fields when someone agrees: who, when, which version of the notice they saw, and what they agreed to.
-
-The version matters more than teams expect. If your notice said "we use your order history to show you your past orders" and six weeks later you start sending behavioural reminders, your consent does not cover the new purpose — that is purpose limitation, and the remedy is a new notice and fresh consent, which you can only identify as necessary if you know which version each person saw.
-
-Two further rules. A refusal is recorded as deliberately as an acceptance, because an unanswered banner is not consent. And consent must be withdrawable as easily as it was given — a settings toggle, not an email.
-
-### Consent that works on a phone on slow data
-
-**Nothing may load before consent.** Not the analytics snippet, not the replay recorder, not a vendor's font. This check takes thirty seconds in a network tab and almost nobody runs it. A banner that fires trackers before the tap is worse than no banner: it collects the data anyway and documents that you knew permission was needed.
-
-**The banner must not break the product on a slow connection.** A full-screen modal weighing two hundred kilobytes that renders after four seconds on 3G is an activation killer as well as a legal artefact.
-
-**Dark patterns are not consent.** A pre-ticked box, a coloured Accept beside a smaller grey Reject, or a flow where refusing takes three taps and accepting takes one. A design built to produce yes is not a free and informed affirmative action.
-
-### Running one erasure, for real
-
-Pick a real user id and do it, once, before anybody asks: delete or anonymise the rows in your database; purge or rotate the logs holding the identifier; call the analytics vendor's deletion endpoint; delete the replay recordings; delete the copied warehouse rows; delete the chat and contact on every team phone; delete the CSV, if you can find it.
-
-Then write down where you failed. A nightly backup cannot be edited, so the honest answer is that it expires in seven days and you record that limit. A replay somebody has already watched cannot be unwatched.
-
-Writing the gaps down is the deliverable. A procedure with three named gaps is real; one with none has never been run.
-
-### Under-18 users, which you have
-
-A college product has first-year students who are seventeen. That is not an edge case: processing a child's data requires verifiable parental consent, and behavioural tracking aimed at children is prohibited outright.
-
-Two honest options. Ask for age and, for anyone under eighteen, run no behavioural analytics or replays on them — a flag that suppresses tracking. Or do not collect age, in which case you do not know, and not knowing is not a defence when your users are visibly a college cohort. The second is what most teams pick by accident. Pick the first deliberately, and write down what the flag suppresses.
-
-### Vendors, countries and a breach plan
-
-Everything you send to an analytics or replay tool is processed by a company on your behalf, and that company may use others. Write down each vendor, what you send, which country the data sits in, and their stated retention. Under the DPDP Act transfer abroad is generally permitted except to countries the government restricts; GDPR adds its own requirements for EU users. The list takes twenty minutes.
-
-Then one page on what you do if data leaks: who finds out first, who is told, what users are told and when. The Act requires notifying both the Data Protection Board and affected individuals, and a plan written in advance is the difference between a bad week and a disaster.
-
-**Tools today.** The Act passed in 2023 and its rules have been phased in since, on timelines that have moved more than once. Treat anything here about deadlines, thresholds or the Board's procedures as a pointer to check, not settled fact. Nothing here is legal advice.
-
 ### Where it lives
 
-Chapter two's forbidden-fields line and chapter five's masking are this chapter's rules applied earlier. Chapter one's WhatsApp recruitment log is personal data on a personal phone, which teams never classify as such. Chapter ten's exit interviews collect fresh personal data from people who have left.
+Everything you send to an analytics or replay tool is processed by a company on your behalf. List each vendor, what you send, which country it sits in and their retention: under the DPDP Act transfer abroad is generally permitted except to restricted countries, and GDPR adds rules for EU users. Write one page on what you do if data leaks, since the Act requires notifying the Board and those affected.
 
-M04 is where the rows live and where erasure must be answerable. M07's never-log list is the same discipline for logs. M13's warehouse makes a second copy of everything, which is a second place to erase from. M17's legal chapter is the company-level version, and M18 is where you are asked whether you could delete a user, in front of people.
+Earlier chapters are this one applied in advance — chapter two's forbidden fields, chapter five's masking, chapter one's log on a personal phone — and M18 asks whether you could delete a user, in front of people.
+
+**Tools today.** DPDP's rules arrived on shifting timelines, so check any deadline yourself; nothing here is legal advice.
 
 ### Words to own
 
@@ -129,30 +89,25 @@ M04 is where the rows live and where erasure must be answerable. M07's never-log
 
 ### Tradeoffs and gotchas
 
-**Refusal shrinks and biases your data, and there is no legitimate way around it.** People who decline tracking are not a random slice, so every funnel and cohort in this module rests on a self-selected subset. Say so when you present numbers.
+**Nothing may load before consent** — not the analytics snippet, not the replay recorder, not a vendor's font. A banner that fires trackers before the tap collects the data anyway and documents that you knew permission was needed. A pre-ticked box, or a coloured Accept beside a grey Reject, is built to produce yes.
 
-**Server-side events are not a consent loophole.** Moving a tracker to your backend changes who delivers the data, not whether you had permission to process it.
+**You have under-18 users, so decide deliberately.** A college product has first-years who are seventeen; a child's data needs verifiable parental consent, and behavioural tracking of children is prohibited. Either ask for age and set a flag that suppresses analytics and replay, or stay ignorant by accident, which is no defence.
 
-**"We will add consent before launch" is already too late if you are live.** The data you collect today is collected under whatever notice exists today.
+**Run one erasure before anybody asks, and write down where you failed.** A nightly backup cannot be edited, so record that it expires in seven days; one untracked CSV defeats every other control. A procedure with named gaps is real; one with none has never been run.
 
-**Untracked exports are the hardest gap to close.** One CSV on one laptop defeats every other control you have. Ban them, and find the existing one first.
-
-**Minimisation is cheaper than protection.** A field you never collect cannot leak, cannot be asked for and cannot be fined over. The best privacy work in a student product is deleting a form field.
-
-**Your own missions contain personal data.** Recruitment logs, replay stills, interview quotes. Initialise names, blur numbers, treat submissions as publication.
+**Refusal shrinks and biases your data.** People who decline tracking are not a random slice, so every funnel and cohort in this module rests on a self-selected subset; say so when you present numbers.
 
 ### Verify it
 
-Six checks, each done by you on the live product, not read from a configuration.
+Five checks, each done by you on the live product, not read from a configuration.
 
-1. **Open the app in a fresh browser with the network tab recording and touch nothing.** **Any analytics or replay request firing before consent** is the most common red flag.
-2. **Read every field of one real analytics event.** A phone number, email, name or typed user note is a breach, usually there because a generated snippet sent the whole object.
-3. **Record yourself typing a fake password and OTP, then watch your own replay.** **A replay that captured a password or OTP field** is the red flag here; an unwatched setting is not a guarantee.
-4. **Ask to see one stored consent record.** Without a row carrying a person, a time and a notice version, you cannot show what you were permitted to do.
-5. **Run one erasure end to end and count the stores you could not clear.** No named gaps means it has not been run.
-6. **Check what happens to a user who says they are seventeen.** "Nothing different" means you are behaviourally tracking children.
+1. **Open the app in a fresh browser, network tab recording, and touch nothing.** Any analytics or replay request before consent is the red flag.
+2. **Record a fake password and OTP, then watch your own replay.** An unwatched setting is not a guarantee.
+3. **Ask to see one stored consent record**, with a person, a time and a notice version.
+4. **Run one erasure end to end and count the stores you could not clear.**
+5. **Check what happens to a user who says they are seventeen.**
 
-Red flags: a pre-ticked consent box; Reject styled smaller than Accept; a notice in legal English a first-year could not read; no retention period on any store; no vendor list; replays kept "until the quota rolls over"; an erasure procedure that stops at the database; and a notice that changed without anyone re-consenting.
+Red flags: a pre-ticked box; Reject smaller than Accept; an erasure procedure that stops at the database.
 
 ## Walkthrough
 1. List every place a user's personal data could sit, including your own phones, laptops, exports, backups and every third-party tool. Aim for more than ten entries; fewer means you have not looked.

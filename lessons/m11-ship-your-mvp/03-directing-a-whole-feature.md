@@ -4,7 +4,7 @@ module: m11-ship-your-mvp
 slug: directing-a-whole-feature
 title: "Directing an Agent Across a Whole Feature"
 order: 3
-duration_min: 30
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -24,29 +24,23 @@ last_reviewed: 2026-11-16
 
 **Read this at the start of week three**, between Checkpoint 2 and Checkpoint 3. It is the only chapter in this module with no gate attached, and it is here because of what changes in week three: Checkpoint 2 asked for one path and one small change at a time, and Checkpoint 3 asks for authentication with roles, a schema with migrations, and an AI feature with tests. Those are not one brief each. They are features, and a feature is where single-brief directing stops working.
 
-M00.8 taught the Director's Loop for one task. This chapter is that loop at feature scale, where the loop runs five or eight times before anything is finished.
+M00.8 taught the Director's Loop for one task; this is that loop at feature scale.
 
 ### The pain
 
-A student needs staff accounts: a login, a role on each user, pages only staff can open, and a way to make the first staff member. They write a decent brief and send it.
-
-Eleven minutes later the agent reports success. It has touched nineteen files. It added a login page, a users table, a middleware check, a seed script, and — unasked — swapped the session library and reformatted four unrelated components. Something is broken, but the student cannot tell what, because nineteen files changed at once and there is no moment in the history where the project worked with only part of this in it.
-
-They describe the symptom. The agent fixes it and breaks something else. Forty minutes later the conversation is long, the agent has started contradicting constraints it was given at the beginning, and the student's only honest options are to throw the whole thing away or to ship something nobody understands. Both of those cost more than the two hours they thought they were saving.
+A student needs staff accounts: a login, a role on each user, pages only staff can open. Eleven minutes after a decent brief, the agent reports success across nineteen files, having also swapped the session library and reformatted four unrelated components. Something is broken and they cannot tell what, because no commit holds only part of this.
 
 ### The idea
 
-**A feature is a sequence of small changes, each one verifiable and revertable on its own. Your job is to decide the sequence, approve it before any file is written, and make the agent stop at the end of every step.**
+**A feature is a sequence of small changes, each verifiable and revertable on its own. You decide the sequence, approve it before any file is written, and make the agent stop at every step.**
 
-The agent is perfectly capable of doing the whole feature in one go. That is the problem. Capability without checkpoints produces work you cannot review, cannot revert in pieces, and cannot explain.
+Capability without checkpoints produces work you cannot review, revert or explain.
 
 ### The analogy
 
-The canteen is adding paneer tikka to the menu. The head chef does not announce "add paneer tikka" and leave for the day. The work is sequenced: find a supplier and check the price; cook it once and taste it; set a price that covers the cost; put it on the board; show the two helpers how to plate it; add a button on the till. Six steps, in that order, and the chef checks the result of each one before starting the next.
+The canteen is adding paneer tikka. The chef does not announce it and leave for the day: find a supplier, cook it once and taste it, set a price, put it on the board, add a button on the till — each result checked before the next.
 
-If the price is wrong, you fix the price. You do not re-cook the dish, re-train the staff and reprint the board.
-
-**Where the analogy breaks:** the chef's own mouth is the test, available instantly and for free at every stage. You have no equivalent sense for code. Your "taste" has to be written down *before* the step runs, as an acceptance check for that step — otherwise you will look at the output, decide it seems fine, and that is not verification, it is hope.
+**Where the analogy breaks:** the chef's mouth is the test, instant and free. You have no such sense for code, so your "taste" must be written down *before* the step runs.
 
 ### Picture it
 
@@ -71,41 +65,28 @@ Each step ends in a check you wrote beforehand and a commit, so a failure sends 
 
 ### Writing the plan
 
-Ask the agent to plan before it builds, and say explicitly that no file may be written yet. You are not asking for a to-do list; you are asking for a sequence with a property: **after every step, the product still works.**
+Ask for a plan before any file is written: a sequence with one property, **after every step the product still works.**
 
-A good step has four marks.
+A good step is:
 
-**It is independently verifiable.** You can state, in one sentence, a check that passes after this step and would fail before it. "Visiting `/staff` while logged out sends me to the login page."
+- **Independently verifiable** — "`/staff` while logged out sends me to the login page" fails before it, passes after
+- **Independently revertable** — undoing step three does not undo steps one and two
+- **Small** — under roughly four hundred changed lines, where review stops being real (M01.8)
+- **Still working** — a step that leaves main broken is two steps merged
 
-**It is independently revertable.** If step three is wrong, undoing it does not undo steps one and two.
-
-**It touches a small number of files.** Roughly under four hundred changed lines, which is the limit at which human review stops being real, from M01.8.
-
-**It leaves the product working.** Not feature-complete — working. A step that leaves main broken is really two steps merged.
-
-Then you edit the plan, because this is where your judgement is worth the most. Typical edits: split a step that touches both the schema and the UI; move the permission check earlier, because everything after it depends on it; delete a step that is actually a nice-to-have; and add an explicit step for the failure states, which no agent-written plan has ever included on its own.
+Then edit it: move the permission check earlier, and add the failure-states step no agent plan includes.
 
 ### Stopping conditions
 
-An agent left to itself will carry on to the end of the plan. Say what must happen at each boundary, in the brief, in words:
+An agent left to itself runs to the end of the plan. Say what happens at each boundary:
 
-> Do step 1 only. Stop when it is done and report: which files you changed, what you did not do that the plan listed, and how I can verify this step. Do not start step 2 until I reply.
+> Do step 1 only. Stop and report which files you changed, what the plan listed that you did not do, and how I can verify this step. Do not start step 2 until I reply.
 
-This single paragraph is the difference between reviewing five changes of eighty lines and one change of nineteen files. M10.14 covers stopping conditions as a general property of agent loops; this is the smallest useful version of it.
-
-The report matters as much as the stop. "What you did not do" is the question that surfaces the quiet shortcut — the validation it skipped, the test it marked as pending, the error it swallowed.
-
-### When it goes wrong: revert, do not patch
-
-The instinct when a step breaks something is to describe the symptom and let the agent fix it. At feature scale that instinct is expensive. Each patch is another unreviewed change on top of a state you already do not understand, and three patches later nobody can say what the code is supposed to do.
-
-The discipline instead: **go back to the last commit where the check passed, and re-brief that one step with what you learned.** You lose ten minutes of work and keep a history you can explain. This is only possible if you committed after every step, which is why the commits are part of the plan rather than housekeeping.
+"What you did not do" surfaces the quiet shortcut — the skipped validation, the test marked pending, the swallowed error. When a step breaks, **revert to the last commit where the check passed and re-brief that step** rather than patching forward.
 
 ### Context decay and the handoff note
 
-Long conversations get worse, not better. Forty messages in, the agent is contradicting constraints from message two, re-introducing code you asked it to delete, and spending a large part of its context window re-reading its own earlier output. M09.12 explains why: the context window is finite and crowded, and the oldest instructions compete with the newest noise.
-
-The fix is to start a fresh conversation at a step boundary and carry a short handoff note:
+Long conversations get worse, not better. Forty messages in, the agent contradicts constraints from message two: the oldest instructions compete with the newest noise (M09.12). Start a fresh conversation at a step boundary with a handoff note:
 
 ```
   HANDOFF
@@ -117,13 +98,11 @@ The fix is to start a fresh conversation at a step boundary and carry a short ha
   OPEN      the first-staff seed script is still manual
 ```
 
-Six lines, written by you, that replace forty messages of history.
-
-Notice that CONSTRAINTS is repeated rather than assumed. That is the whole point: a fresh conversation knows nothing, and a fresh conversation that knows the five things that matter beats a stale one that knows everything and has started ignoring it.
+Six lines replace forty messages, and CONSTRAINTS is repeated because the new conversation knows nothing.
 
 ### Where it lives
 
-This is the method behind every multi-step mission from here on. M04.13's OAuth work, M10.10's RAG pipeline and M10.19's agent-ready repository are all features, not tasks. The plan-and-stop pattern is also what makes M11.4's review tractable: five reviewable commits instead of one unreviewable diff. And the plan itself, with your edits visible, is good evidence for M18 — it shows the sequencing was yours.
+This is the method behind every multi-step mission from here — M04.13's OAuth, M10.10's RAG pipeline, M10.19's agent-ready repository. It also makes M11.4's review tractable, and your edited plan proves the sequencing was yours.
 
 ### Words to own
 
@@ -141,32 +120,25 @@ This is the method behind every multi-step mission from here on. M04.13's OAuth 
 
 ### Tradeoffs and gotchas
 
-**Do not plan a one-step task.** A colour change needs no plan. The pattern earns its cost when a feature touches data shape, permissions, money or anything already working. Over-planning small changes is its own waste, and it trains you to skip planning when it matters.
+**Do not plan a one-step task.** The pattern earns its cost when a feature touches data, permissions or money.
 
-**A plan with ten steps is usually two features.** If the sequence does not fit in five to eight steps, you are building two things and should ship one of them first. Checkpoint 3's auth work and its AI feature are two features, briefed separately.
+**Ten steps is usually two features.** Checkpoint 3's auth and AI feature are briefed separately.
 
-**The agent's first plan always puts the permission check last.** Watch for it. Permissions, prices and anything the server must re-decide belong early, because every later step then inherits the check rather than needing it retrofitted.
+**The agent's first plan puts the permission check last.** Permissions and prices belong early, so later steps inherit the check.
 
-**Approving a plan is not approving the code.** Students who liked the plan tend to skim the diffs. The plan makes review possible; it does not replace it.
-
-**One feature per branch, one commit per step.** Two features on one branch means you cannot ship or revert either independently, and merge conflicts in week four are far more painful than in week two.
+**Approving a plan is not approving the code.**
 
 ### Verify it
 
-Before you approve a plan, four checks:
+Before you approve a plan:
 
-1. **Can I state a check for every step that would fail before that step and pass after it?** Any step you cannot write a check for is too vague to run.
-2. **Does the product still work at the end of each step?** If a step leaves main broken, split it.
-3. **Is the permission or money check in the first half?** If it is last, move it.
-4. **Is there a step for the failure states?** If not, add one — the agent did not.
+1. **A check per step**, failing before it and passing after. A step you cannot write one for is too vague.
+2. **The permission or money check sits in the first half.**
+3. **One step is for the failure states** — the agent did not add it.
 
-After each step, three checks:
+After each step: run your own check, not the agent's summary; read the changed-file list before the diff, treating anything outside the step's scope as a finding; ask what it did not do.
 
-1. **Run your own check for that step**, not the agent's summary of it. The summary is a claim; the check is evidence.
-2. **Read the file list before the diff.** Any file outside the step's stated scope is a finding, and it is cheaper to revert it now than to explain it at review.
-3. **Ask what it did not do.** Then verify the answer against the diff, because this is the question with the most incentive to be answered optimistically.
-
-The red flags: a plan where step one touches fifteen files; an agent that reports "all steps complete" when you asked for one; a history with a single enormous commit at the end of the day; and a feature that works but where you cannot name the step in which a given decision was made. That last one is the strongest predictor of being unable to defend your own product.
+Red flags: "all steps complete" when you asked for one; one enormous commit at day's end; a feature where you cannot name the step a decision was made in.
 
 ## Walkthrough
 1. Pick a real feature from your `SCOPE.md` that genuinely needs several changes — accounts with roles, the AI feature end to end, or payments in test mode.

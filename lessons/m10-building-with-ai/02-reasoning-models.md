@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: reasoning-models
 title: "Reasoning Models: Decomposition, Verification, Cost and Latency"
 order: 2
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,27 +22,30 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team wires the strongest available reasoning model into every AI call in their canteen app. One of those calls classifies an incoming WhatsApp message as `order`, `complaint` or `other`. It is a three-way choice with a fifteen-word input.
+A team wires the strongest reasoning model into every AI call in their canteen app, including the one that sorts a WhatsApp message into `order`, `complaint` or `other`. That three-way choice on a fifteen-word input now takes nine seconds, and the free quota is gone by eleven in the morning because it is the highest-volume call in the product.
 
-Three things happen. The classification takes nine seconds, so on slow 4G the student sees a spinner long enough to close the app. The free-tier quota is gone by eleven in the morning, because classification is the highest-volume call in the product. And the one task that genuinely needed careful thought — working out whether four students splitting a ₹340 bill by UPI can each pay a whole-rupee amount, and who absorbs the remainder — was done by a cheap model, which produced a tidy, confident, wrong answer.
-
-They had exactly the right tools and had pointed each one at the other one's job.
+Meanwhile the task that genuinely needed thought — whether four students splitting a ₹340 bill by UPI can each pay a whole-rupee amount — went to a cheap model, which produced a tidy, confident, wrong answer. They had the right tools pointed at each other's jobs.
 
 ### The idea
 
 **A reasoning model spends extra tokens thinking before it answers. You are buying decomposition and self-checking, and you pay for it in money and in seconds.**
 
-This is not a smarter model in some general sense. It is the same kind of model given room and training to break a problem into steps, try one, notice it is wrong, and try again — all before the first word of the answer reaches you. On a problem with several dependent steps that is transformative. On "is this message an order", it is nine seconds of thinking about nothing.
+It is not a smarter model in general, just one given room to break a problem into steps, try one, notice it is wrong, and try again before the first word reaches you. On several dependent steps that is transformative. On "is this message an order", it is nine seconds of thinking about nothing.
+
+| Use the cheap fast model for | Use the reasoning model for |
+|---|---|
+| Classification, extraction, reformatting | Multi-step arithmetic and money logic |
+| Translation, summaries, tone rewriting | Planning a change across several files |
+| Choosing from a known list, or any schema-constrained output | Debugging from a symptom, or weighing competing constraints |
+| Your ten-thousand-a-day calls | Writing a schema, a prompt or an eval set |
+
+Most of the right-hand column is work *you* do while designing, not work your product does ten thousand times a day.
 
 ### The analogy
 
-The canteen has a counter boy and a manager. Ask the counter boy the rate of poha and you get "twenty" in half a second. Ask the manager and you get twenty as well, after they have finished the thing they were doing.
+The canteen has a counter boy and a manager. Ask the counter boy the rate of poha and you get "twenty" in half a second. Ask whether switching rice suppliers saves money, given a delivery charge and a bulk discount, and he still gives a confident number — while the manager takes out a calculator, catches his own slip halfway, and gives you a number you can act on. Choosing between them is the skill.
 
-Now ask whether switching to a different rice supplier saves money, given a delivery charge, a bulk discount above forty kilos, and the fact that the cheaper rice has more wastage. The counter boy will give you a confident number. The manager will take out a calculator, work through it, catch their own slip in the middle, and give you a number you can act on.
-
-Both are useful. Choosing between them is the whole skill.
-
-**Where the analogy breaks:** the manager's written working really is how they got the answer, so you can check it line by line. A reasoning model's visible thinking is itself generated text, and it is not guaranteed to be the actual cause of the final answer. It can produce sound-looking working and a wrong answer, or messy working and a right one. The trace is a strong hint, not an audit trail — which changes how you verify, at the bottom of this lesson.
+**Where the analogy breaks:** the manager's working really is how he got the answer. A reasoning model's visible thinking is itself generated text and is not guaranteed to be the cause of the answer — sound-looking working with a wrong answer, or messy working with a right one. The trace is a hint, not an audit trail.
 
 ### Picture it
 
@@ -60,31 +63,13 @@ Both are useful. Choosing between them is the whole skill.
             and usually never see them
 ```
 
-The reasoning model emits a block of thinking tokens before any answer tokens. You are billed for them, you wait for them, and in most products they are hidden from the user.
-
-### Which class for which task
-
-A rough map you can apply today, and tighten with your own measurements.
-
-**Cheap and fast wins for:** classification, extraction, reformatting, translation, short summaries, tone rewriting, choosing one of a known list, and anything where a schema already constrains the output. These are the high-volume calls in almost every product, so this is where your bill lives.
-
-**Reasoning earns its cost for:** multi-step arithmetic and money logic, planning a change across several files, debugging from a symptom, comparing options against several competing constraints, writing a schema or an eval set, and any question where "show me where I am wrong" is the real request.
-
-Notice the shape of the second list. Most of those tasks are things *you* do a handful of times while designing, not things your product does ten thousand times a day. That observation is the most valuable one in this chapter.
-
-### The build-time trick
-
-Use the expensive reasoning model to produce an *artefact*, then let a cheap model serve users against that artefact.
-
-Ask the reasoning model to design your JSON schema, write your system prompt, enumerate the thirty hostile inputs your feature must survive, build your eval set, or work out the paise-rounding rule for a split UPI payment. Save the result in your repository. At runtime, the cheap model follows the schema, obeys the prompt, and applies the rule.
-
-You paid for reasoning once, at design time, where nine seconds costs nothing and nobody is on 4G. Your users get the fast path. This pattern recurs through the whole module: chapter three's schemas, chapter twelve's eval sets and chapter nineteen's rules files are all reasoning-model output serving cheap-model runtime.
+The reasoning model emits a block of thinking tokens before any answer tokens: you are billed for them, you wait for them, and the user never sees them.
 
 ### Where it lives
 
-M09 introduced reasoning models as a training story — what RLHF and reasoning post-training do to a base model — and gave you the token economics to price any of this. This chapter is the engineering decision that follows: which class of model sits behind which call in your product.
+M09 gave you the training story and the token economics; this chapter is the decision that follows. It belongs in one router function that picks the model by task type — auditable, where names scattered through forty call sites are not. A reasoning call also needs M05's per-user limit and a timeout.
 
-Mechanically, that decision lives in one place in your code, a router, and it should. One function that picks the model by task type is auditable and changeable. Model names scattered through forty call sites are neither. M05's work on rate limiting and cost control is the other half of this: a reasoning call is exactly the kind of expensive operation that needs a per-user limit and a timeout.
+The pattern worth stealing is build-time reasoning: use the expensive model once to produce an *artefact* — a schema, a prompt, an eval set, a rounding rule — save it in your repository, and let a cheap model serve users against it. Chapter three's schemas, chapter twelve's eval sets and chapter nineteen's rules files are all this pattern.
 
 ### Words to own
 
@@ -103,31 +88,22 @@ Mechanically, that decision lives in one place in your code, a router, and it sh
 
 ### Tradeoffs and gotchas
 
-**Latency is a product decision, not a technical detail.** Nine seconds is unacceptable in a message reply and completely fine in a nightly report. Decide which one you are building before you choose a model, and measure p95 on a throttled connection rather than on campus wifi.
+**Latency is a product decision, not a technical detail.** Nine seconds is unacceptable in a chat reply and fine in a nightly report. Measure p95 on a throttled connection, not campus wifi.
 
-**Reasoning does not fix missing context.** If the menu is not in the prompt, no amount of thinking will produce today's prices. It will produce a *better-argued* wrong answer, which is more dangerous than an obviously wrong one. Grounding is chapter eight's job and it is not substitutable.
+**Reasoning does not fix missing context.** If the menu is not in the prompt, thinking produces a *better-argued* wrong answer, which is more dangerous than an obvious one.
 
-**Thinking tokens are real money and they are invisible.** A forty-token answer can hide three thousand tokens of thinking. If your cost model only counts what you can see, it will be wrong by an order of magnitude. Price a reasoning call by its total token count, the way M09 taught.
+**Thinking tokens are real money and invisible.** A forty-token answer can hide three thousand tokens of thinking, so price a call by its total tokens.
 
-**Overthinking is a failure mode.** Hand a reasoning model a trivial question and it will sometimes reason itself out of the obvious answer, inventing edge cases that do not exist. If a task is genuinely simple, the simple model is not merely cheaper — it is often more accurate.
-
-**The visible trace is not an audit trail.** Do not show a user the thinking as justification, and do not treat it as an explanation for a decision that matters, such as refusing a refund. If you need a defensible reason, ask for the reason as part of the structured answer, which is chapter three.
-
-**Free tiers punish you for this fastest.** Reasoning calls consume quota several times faster per request than cheap ones. A single unguarded reasoning call inside a loop will end your day's allowance before lunch, which is why chapter fourteen insists on a step cap.
+**Free tiers punish you fastest here.** One unguarded reasoning call inside a loop ends your day's allowance before lunch — hence chapter fourteen's step cap.
 
 ### Verify it
 
-The temptation is to read the lovely working and feel reassured. Resist it.
+- **Check the answer against ground truth, not the trace.** Keep five problems whose right answer you already know: a bill split with an awkward remainder, a date across a month boundary, a discount applied in the wrong order.
+- **Ask the same question twice.** These models are not deterministic; if two runs disagree, the model is guessing and you need a deterministic calculation, which is chapter thirteen.
+- **Time it on a bad connection.** Throttle to slow 4G and record time to the first visible word; over two seconds of nothing means a different model or interface.
+- **Count total tokens, including thinking**, then multiply by expected volume. If the number frightens you, the task is on the wrong model class.
 
-**Check the answer against ground truth, not against the trace.** Keep five problems where you independently know the right answer — a bill split with an awkward remainder, a date calculation across a month boundary, a discount applied in the wrong order. Run them. Right answers with ugly working are fine. Pretty working with a wrong answer is the dangerous case, and only the ground truth catches it.
-
-**Ask the same question twice.** These models are not deterministic. If two runs disagree, you have found a question the model is guessing at, and no amount of prompt polish will fix it — you need a deterministic calculation, which is chapter thirteen.
-
-**Time it on a bad connection.** Throttle to slow 4G and record time to the first visible word. If nothing appears for more than about two seconds, you need a different model for that call or a different interface.
-
-**Count the total tokens, including thinking.** Then multiply by your expected call volume. If the number frightens you, the task is probably on the wrong model class.
-
-Red flags: a confident numeric answer with no working anywhere; a thinking trace whose conclusion does not match the answer given; a reasoning model behind a classification, extraction or formatting call; no measured p95 on a throttled connection; no cap on thinking tokens; and a user-facing explanation that is really the model's thinking trace copied out.
+Red flags: a confident numeric answer with no working anywhere; a trace whose conclusion does not match the answer; a reasoning model behind a classification or formatting call; no measured p95 on a throttled connection; no cap on thinking tokens; a user-facing explanation that is really the thinking trace copied out.
 
 ## Walkthrough
 1. List every AI call in your product on one page. For each, write the input size, the output size, how many times a day you expect it, and whether a human is waiting for it.

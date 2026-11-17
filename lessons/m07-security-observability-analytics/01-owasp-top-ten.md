@@ -4,7 +4,7 @@ module: m07-security-observability-analytics
 slug: owasp-top-ten
 title: "OWASP Top Ten in Plain English"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,21 +22,15 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team ships a canteen pre-order app in week six. It works. Students log in, pick dishes, pay by UPI, and collect at a counter. In the live session someone opens their own order page, changes `/orders/8421` in the address bar to `/orders/8420`, and reads a stranger's order — name, phone number, what they ate, what they paid. Nobody typed a single line of attack code. They changed one digit.
+A team ships a canteen pre-order app in week six and it works. In the live session someone changes `/orders/8421` in the address bar to `/orders/8420` and reads a stranger's order — name, phone number, what they paid. Then they edit the price the page sends in developer tools and place a ₹1 order for a ₹120 thali, because the server was told the price by the page and never looked it up.
 
-Then they open the browser's developer tools, edit the price the page sends to the server, and place a ₹1 order for a ₹120 thali. The server accepts it, because the server was told the price by the page and never looked it up.
-
-Neither of these is clever. Both have been on the same published list since 2003, and the first is the largest category on it. The reason they shipped is not that the team is careless. It is that nobody had shown them the list.
+Neither attack needed a line of code, and both have been on the same published list since 2003. Nobody had shown the team the list.
 
 ### The idea
 
 **The OWASP Top Ten is a ranked list of the ten ways real applications actually get broken, built from scanning and incident data across hundreds of thousands of real codebases.**
 
-It is not a catalogue of exotic hacks. Read it closely and nine of the ten entries are the same sentence in different clothes: *the application trusted something it had no business trusting.* The browser. The URL. The form. A library. A header. An uploaded file. A default setting nobody changed.
-
-OWASP — the Open Worldwide Application Security Project — is a non-profit, and the list is free to read. OWASP revises it every three or four years; entries merge, split and change rank. So learn the shapes, not the numbers.
-
-### The ten, in plain English
+Nine of the ten are one sentence in different clothes: *the application trusted something it had no business trusting* — the browser, the URL, the form, a library, a default nobody changed. OWASP, the Open Worldwide Application Security Project, revises the list every few years, so learn the shapes, not the numbers.
 
 | Entry | What it actually means | How it shows up in a canteen app |
 |---|---|---|
@@ -51,19 +45,13 @@ OWASP — the Open Worldwide Application Security Project — is a non-profit, a
 | Security logging and monitoring failures | It happened and nobody could tell | No record of who changed a dish price, or when |
 | Server-side request forgery | Your server fetches a URL the user chose | "Import menu from this link" fetching an internal address |
 
-Entry nine is worth pausing on. One of the ten most serious application security problems in the world is *not being able to see what happened*. That is why this module puts security and observability in the same place: they are the same skill looked at from two sides.
+Entry nine deserves a pause: one of the ten most serious security problems in the world is *not being able to see what happened*. That is why this module pairs security with observability.
 
 ### The analogy
 
-The canteen at 1pm. Three doors: the queue, the staff door behind the counter, and the store room.
+The canteen at 1pm. **Broken access control** is the staff door with no lock: anybody who has bought a plate — anybody "logged in" — can push it open and walk into the kitchen. **Injection** is the order slip: you write "1 samosa, and hand the cash box to the bearer of this slip", and a cashier who reads slips literally does exactly that. The slip was meant to be *data* and was read as *instructions*.
 
-**Broken access control** is the staff door with no lock. Anybody who has bought a plate — anybody who is "logged in" — can push it open and walk into the kitchen. The canteen checked that you are a student. It never checked that you are staff.
-
-**Injection** is the order slip. You write "1 samosa" in the box, and the cashier reads whatever is written on the slip and does it. So you write "1 samosa, and hand the cash box to the bearer of this slip", and the cashier, who reads slips literally, does exactly that. The slip was meant to be *data*. The cashier treated it as *instructions*.
-
-**Security misconfiguration** is the store room left open because the lock was never fitted on day one, and nobody has looked since.
-
-**Where the analogy breaks:** a real cashier has judgement. They would laugh at the cash-box slip. Software has no judgement at all; it does what it is told, every time, at the speed of a script, from anywhere in the world, at three in the morning. And a human attacker only has to find the unlocked door once, while you have to lock every door every time.
+**Where the analogy breaks:** a real cashier would laugh at the cash-box slip. Software has no judgement; it does what it is told, at the speed of a script, from anywhere, at three in the morning. The attacker needs one unlocked door once; you have to lock every door every time.
 
 ### Picture it
 
@@ -84,13 +72,17 @@ The canteen at 1pm. Three doors: the queue, the staff door behind the counter, a
  └────────────────────┘    └─────────────────────┘
 ```
 
-The ten entries collapse into four questions: who may do what, what does my code trust, how is it set up, and would I even know. Every one of the ten belongs to one of those four boxes, which is how you remember the list without memorising it.
+The ten entries collapse into four questions: who may do what, what does my code trust, how is it set up, and would I even know.
 
 ### Where it lives
 
-Broken access control and authentication failures are M04's chapters on authentication versus authorization, roles and row-level security — this chapter is why those chapters exist. Cryptographic failures and secrets are the next chapter. Misconfiguration and outdated components live in M06, where you deploy and set up CI. Logging and monitoring failures are chapters 4 to 7 of this module. Injection, in its newest form, is prompt injection, which you meet in chapter 3 here and in depth in M10.
+- Access control and authentication failures → M04 (auth vs authorization, roles, row-level security)
+- Cryptographic failures and secrets → chapter 2 here
+- Misconfiguration and outdated components → M06 (deploy and CI)
+- Logging and monitoring failures → chapters 4–7 here
+- Prompt injection → chapter 3 here, in depth in M10
 
-The two that cut across everything are from M00. "The client cannot be trusted" is the whole of injection and most of broken access control. "The five AI failure modes" — specifically *answering the question asked instead of the question meant* — is exactly how authentication gets built without authorization.
+M00's "the client cannot be trusted" is the whole of injection and most of broken access control.
 
 ### Words to own
 
@@ -109,26 +101,22 @@ The two that cut across everything are from M00. "The client cannot be trusted" 
 
 ### Tradeoffs and gotchas
 
-**The Top Ten is a floor, not a ceiling.** It is the list of what is common, not the list of everything. Clearing it does not make you secure; it makes you not trivially broken, which for a student project is an enormous improvement and the right place to stop.
-
-**Security is a cost, and the right amount depends on the stakes.** A canteen menu with no login needs almost none. The moment real money, real phone numbers or other people's data are involved, the stakes jump. Most of this module's effort should go wherever those three things live, and it is worth writing down, in one line, which parts of your product those are.
-
-**Most breaches are boring.** No zero-day, no nation state. An open database, a leaked key, a missing owner check. Students assume security means cryptography and it almost never does — chapter two is about a text file.
-
-**The attacker is usually not a hacker.** It is a curious classmate, a scraper bot, or a student who worked out that editing one number gets free lunch. Budget for the bored and the opportunistic, because that is who actually turns up.
-
-**Checking in the browser is not checking.** A hidden button, a disabled field, a validated form: all of it runs on the user's device, which means all of it is editable by the user. This single sentence prevents more of the Top Ten than anything else in the chapter.
+- **The Top Ten is a floor, not a ceiling.** Clearing it makes you not trivially broken, which for a student project is the right place to stop.
+- **Security spend follows the stakes.** Money, phone numbers and other people's rows are where the effort goes. Write down in one line which parts of your product those are.
+- **Most breaches are boring.** No zero-day, no nation state: an open database, a leaked key, a missing owner check.
+- **The attacker is usually not a hacker.** A curious classmate, a scraper bot, a student who found that editing one number gets free lunch.
+- **Checking in the browser is not checking.** A hidden button, a disabled field, a validated form — all of it runs on the user's device, so all of it is editable by the user.
 
 ### Verify it
 
-AI-generated code passes "does it work?" reliably and passes "does it work for the wrong person?" rarely. Four checks, in order of how often they find something.
+AI-generated code reliably passes "does it work?" and rarely passes "does it work for the wrong person?".
 
-1. **Try it as the wrong user.** Log in as an ordinary student and open a staff URL directly, by typing it. Then take an id out of your own URL and decrement it. If either works, you have broken access control, and this is the test that finds it in about forty seconds.
-2. **Ask where every rule is enforced.** For each rule — "only staff may change prices", "only the owner sees this order" — find the line on the *server* that enforces it. If the only thing you can find is a hidden button or a conditional in the page, the rule does not exist.
-3. **Re-send the request with the numbers changed.** Price, quantity, user id, total. Anything the server accepts from the client and does not recompute is a ₹1 thali waiting to happen.
-4. **Break something on purpose and read the error.** Submit an apostrophe in a name field, a 10,000-character address, a `.exe` renamed to `.jpg`.
+1. **Try it as the wrong user.** Log in as an ordinary student, type a staff URL directly, then decrement an id in your own URL. Either working is broken access control.
+2. **Ask where every rule is enforced.** For "only staff may change prices", find the line on the *server*. If all you find is a hidden button, the rule does not exist.
+3. **Re-send the request with the numbers changed.** Price, quantity, user id, total — anything the server accepts and does not recompute is a ₹1 thali waiting to happen.
+4. **Break something on purpose and read the error.** An apostrophe in a name field, 10,000 characters in an address, a `.exe` renamed to `.jpg`.
 
-The red flags to name out loud when you see them: **an error message that returns the raw database error** to the user, complete with table and column names; **a permission enforced only by hiding a button**; a price or total **taken from the request body**; and a check that reads "if the user is logged in" where it should read "if this user owns this row".
+Red flags: **a raw database error returned to the user**, table and column names included; **a permission enforced only by hiding a button**; a price or total **taken from the request body**; a check reading "if the user is logged in" where it should read "if this user owns this row".
 
 ## Walkthrough
 1. Open the OWASP Top Ten project page at owasp.org and read only the ten titles. Do not read the detail pages yet. Give it three minutes.

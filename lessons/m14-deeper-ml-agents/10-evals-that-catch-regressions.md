@@ -4,7 +4,7 @@ module: m14-deeper-ml-agents
 slug: evals-that-catch-regressions
 title: "Writing Evals That Actually Catch Regressions"
 order: 10
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -19,30 +19,23 @@ last_reviewed: 2026-11-16
 - Catch an expected answer that was edited to make a failing case pass
 
 ## Lesson
-
 ### The pain
 
-M10 chapter 12 built your eval set: 30 to 50 real questions written before you saw any output, scored for retrieval and answer separately, with a judge calibrated against twenty of your own labels, on a scoreboard. It said M14 takes it into production as regression testing. M13 chapter 6 did the same for code — every bug becomes a test that failed first, and a flaky test leaves the gate the same day. This chapter joins the two, and what is new is the gate.
+M10 chapter 12 built your eval set — real questions written before you saw any output, with a calibrated judge — and M13 chapter 6 did it for code. New here is the gate.
 
-Here is why the gate is the whole point. A team has a good eval set. On a Tuesday they change the system prompt to fix a complaint about tone. Nobody runs the evals, because running them is a notebook somebody has to remember. The aggregate score, had anyone measured it, went from 0.86 to 0.84 — which they would have accepted. Hidden inside that two-point drop: refusals fell from 9 of 10 to 3 of 10, because the friendlier tone made the model reluctant to say no. Three weeks later it tells a student their fee was waived.
-
-The eval set existed and was correct. It was not *wired to anything*, and the one number it produced was an average that hid the only category that mattered.
+A team changes the system prompt to fix a tone complaint, and nobody runs the evals: running them is a notebook somebody has to remember. The aggregate moved 0.86 to 0.84 — acceptable, except that refusals fell from 9 of 10 to 3 of 10, and three weeks later it tells a student their fee was waived.
 
 ### The idea
 
 **An eval set tells you whether your feature is good. A regression suite tells you whether your change made it worse, and only the second can be a gate.**
 
-Three differences follow. A regression suite runs on every push as a required check, so it must be fast and cheap. It gates on **per-case movement**, not an average, because an average is where a broken category hides. And it grows by one case every time production fails — M13 chapter 6's rule transplanted: every bug becomes a case that failed first and then stays forever.
+It runs on every push as a required check, so it must be fast and cheap. It gates on **per-case movement**, because an average hides a broken category, and it grows whenever production fails.
 
 ### The analogy
 
-M13 chapter 6 gave you the canteen's complaint book: every complaint ever received, walked each morning before service.
+M13 chapter 6 gave you the canteen's complaint book. The gate is what it lacks: the shutters do not open until every line is signed. Yesterday 48 of 50 lines passed, today 47 — the average is fine, but the line that flipped is "the dal is never served cold to the hostel batch".
 
-The gate is what the book lacks. Add a rule: the shutters do not open until the book has been walked and every line signed. Not "the manager usually checks" — the shutters are locked. That one change turns a document into a control.
-
-Then add a second rule, because the first is not enough. Yesterday 48 of 50 lines passed; today 47 pass. The average is fine. But the line that flipped is "the dal is never served cold to the hostel batch", and it is not interchangeable with the other 49. So the rule is not "score at least 46" — it is "no line that passed yesterday may fail today", with the cold-dal line given its own floor.
-
-**Where the analogy breaks.** A cook tasting the same sambar twice gets the same answer. Your model does not. Ask it the same question three times and you may get three answers, two of which pass. A complaint book has no concept of a line that passes two times in three, and that difference is why the next section exists.
+**Where it breaks.** A cook tasting the same sambar twice gets the same answer. Your model does not.
 
 ### Picture it
 
@@ -70,35 +63,35 @@ Most of a regression suite should be cheap assertions and deterministic scorers 
 
 ### Non-determinism, and how to gate anyway
 
-This is the part code testing never prepared you for. Temperature zero is not determinism: providers batch requests differently, hardware differs, and the model behind a name is updated. A case can pass, pass, fail, pass, with nothing changed. Three mechanics make a gate possible anyway.
+Temperature zero is not determinism: providers batch differently, hardware differs, the model behind a name is updated. A case can pass, pass, fail, pass with nothing changed. Three mechanics make a gate possible anyway.
 
-**Run non-deterministic cases several times and score a pass rate.** Three runs is the practical minimum. A case that passes 3 of 3 is green; 0 of 3 is red; 1 or 2 of 3 is **unstable**, which is information, not an error.
+**Score a pass rate over several runs.** Three is the minimum: 3 of 3 green, 0 of 3 red, 1 or 2 of 3 **unstable**.
 
-**Define a noise band once, empirically.** Run the whole suite three times unchanged and record the spread. If the aggregate moves by a point and a half between identical runs, a one-point drop is not a regression. Skip this and you either gate on noise and stop trusting the check, or set a threshold so loose it never fires.
+**Define a noise band once, empirically.** Run the suite three times unchanged and record the spread. If the aggregate moves a point and a half between identical runs, a one-point drop is not a regression.
 
-**Quarantine unstable cases exactly as M13 chapter 6 quarantines flaky tests.** Out of the gate the same day, an owner, a one-week deadline, then sharpened or deleted. A case permanently at 2 of 3 teaches your team that red is negotiable.
+**Quarantine unstable cases:** out of the gate that day, with an owner.
 
 ### The gate rule that actually works
 
-Not "aggregate must exceed 0.85". Three rules together.
+Not "aggregate must exceed 0.85". Three rules together, plus one for agents.
 
-**The per-case ratchet.** No case that passed on the main branch may fail on this branch. This catches "fixed three, broke five", and it is the most valuable line in the chapter. A deliberate exception is allowed — recorded in the pull request, never silent.
+**The per-case ratchet.** No case that passed on main may fail on this branch. This catches "fixed three, broke five" and is the most valuable line in the chapter. Exceptions are recorded in the pull request, never silent.
 
-**Category floors.** Gate per category, not only overall: refusals, money arithmetic, permissions, each language, long inputs. The refusals disaster above is invisible to an aggregate and obvious to a category floor.
+**Category floors.** Gate per category too: refusals, money, permissions, each language, long inputs. The refusals disaster above is invisible to an aggregate, obvious to a floor.
 
-**A budget ceiling.** The gated run must finish inside a time and a rupee figure you wrote down — three minutes and ₹5, say. A suite costing ₹300 and twenty minutes per push will be made optional within a fortnight, and then it is a notebook again.
+**A budget ceiling.** The gated run must finish inside a time and rupee figure you wrote down — three minutes and ₹5, say. A suite costing ₹300 per push becomes optional within a fortnight.
 
-### Evaluating agents, not just answers
-
-For anything agentic from M10 chapters 13 to 15, the final answer is only half of what can regress. The other half is the **trajectory**: which tools were called, in what order, how many steps were used, whether a forbidden action was attempted. All four are deterministic to check and belong in tier 1.
-
-Four trajectory assertions earn their place immediately. The expected tool was called. No tool outside the allowed list was called. The step count stayed inside its budget. No write or send happened in a read-only case. An agent that reaches the right answer in nineteen steps instead of four has regressed in cost, and only a trajectory check sees it.
+**Trajectory checks for agents:** the expected tool called, nothing outside the allowed list, the step count inside budget, no write in a read-only case. All deterministic, all tier 1 — the only way to see an agent taking nineteen steps instead of four.
 
 ### Where it lives
 
-M06 chapter 12 is the home: a required check in your pipeline, beside your unit tests, with the same authority. M13 chapter 6 supplies the discipline — fail-first cases, quarantine, no production data in fixtures. M07 chapters 5 and 6 supply the traces and percentiles. M10 chapter 12 supplies the cases and the calibrated judge. Chapters 4, 6, 7 and 11 of this module are what this suite referees: a fine-tune, a quantization level, a serving change and a multi-agent design all need the same question answered.
+- M06 chapter 12 — a required check beside your unit tests
+- M13 chapter 6 — fail-first cases and quarantine
+- M07 chapters 5, 6 — traces and percentiles
+- M10 chapter 12 — the cases and the judge
+- Chapters 4, 6, 7, 11 — what this referees
 
-Beyond the push, the same cases run twice more. **Nightly**, the full suite including judged cases, producing a trend. And **online**, where a sample of real production traffic is scored against tier 0 assertions — which is how you find the failures your 50 cases never imagined.
+The full suite runs nightly, and online against sampled traffic.
 
 ### Words to own
 
@@ -120,32 +113,24 @@ Beyond the push, the same cases run twice more. **Nightly**, the full suite incl
 
 ### Tradeoffs and gotchas
 
-**Every production failure becomes a case, and it must fail before the fix.** Reproduce the failure as a case, watch it go red, fix, watch it go green. A case added after the fix proves nothing, exactly as in M13 chapter 6.
+**Every production failure becomes a case that fails before the fix.** A case added afterwards proves nothing.
 
-**Never edit an expected answer in the same pull request as a fix.** This is the most dangerous diff in the chapter. Either the expected behaviour genuinely changed — which deserves its own commit and its own reasoning — or somebody bent the case to fit a bug. Only a person can tell those apart, and an agent told to "make the evals pass" will reliably choose the second.
+**Never edit an expected answer in the same pull request as a fix.** Either the behaviour genuinely changed, which deserves its own commit, or somebody bent the case to fit a bug — and an agent told to "make the evals pass" chooses the second.
 
-**A 100% pass rate means the suite is too easy.** Real suites sit below full marks, with known-hard cases tracked. All-green is a signal to add the cases you have avoided.
-
-**Pin the judge, and treat its prompt as code.** If the judge model updates silently, your measuring instrument changed and every historical number is incomparable. Pin the version, commit the rubric, and re-run M10 chapter 12's twenty-label calibration whenever either changes. And never judge with the model you are testing — it prefers its own style, inflating the thing you are measuring.
-
-**Cost and p95 are scorecard columns, not separate concerns.** A change that gains one quality point and triples cost per request is a regression. Without money and latency columns, half your regressions are invisible.
-
-**Deleting a failing case is the one unforgivable move.** It is the eval equivalent of re-running a red build until it goes green, and it converts your gate into decoration.
+**Deleting a failing case turns the gate into decoration.**
 
 ### Verify it
 
-Everything here depends on cases written honestly, so the red flags are about provenance and timing.
+This rests on cases written honestly.
 
-1. **Ask when each case was written, relative to the output it checks.** An eval set written after seeing the model's answers measures agreement with what the model already does. Demand provenance per case: a real request, a real incident, a date.
-2. **Count the tiers.** If most cases need a judge, the suite is too slow to gate with, and most of them could have been assertions.
-3. **Ask for the noise band, measured.** Three identical runs, spread recorded. A threshold tighter than the noise fires randomly.
-4. **Check the gate rule is per-case, not an average,** and that a pass-to-fail flip blocks, with any exception explicit in the pull request.
-5. **Look for category floors**, specifically refusals, money and permissions.
-6. **Check the judge's version is pinned** and is not the model under test.
-7. **Read the diff for changed expected answers.** Any such change inside a fix commit needs an explanation before anything else is reviewed.
-8. **Confirm it actually blocks.** Break something on purpose, push, watch the merge be refused. A check never seen to fail has not been tested.
+1. **When was each case written,** before or after seeing output?
+2. **Count the tiers.** Mostly judged means too slow to gate with.
+3. **Ask for the measured noise band.**
+4. **Check the gate is per-case, not an average.**
+5. **Look for category floors, and a judge whose version is pinned.**
+6. **Confirm it blocks:** break something, push, watch the merge refused.
 
-Red flags: an eval set written after seeing output; cases with no provenance; a single aggregate as the gate; no per-category breakdown; no noise band; an unrecorded judge version; the model judging itself; expected answers edited in a fix PR; a failing case deleted; 100% pass; no cost or latency column; agents with no trajectory checks; and a suite never observed to block a merge.
+Red flags: cases written after seeing output; no provenance; one aggregate as the gate; no noise band; the model judging itself; expected answers edited in a fix PR; no trajectory checks.
 
 ## Walkthrough
 1. Start from your M10 chapter 12 eval set. For every case, add a provenance column: where it came from and the date. Any case you cannot source, mark as invented — you will replace it.

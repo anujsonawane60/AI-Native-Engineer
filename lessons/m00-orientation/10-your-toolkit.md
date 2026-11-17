@@ -4,7 +4,7 @@ module: m00-orientation
 slug: your-toolkit
 title: "Your Toolkit: Accounts, API Keys, Free Tiers and Billing Alerts"
 order: 10
-duration_min: 30
+duration_min: 25
 is_free: false
 mission: true
 volatility: high
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Two true stories of the kind that happen every term.
+A student pushes a project to a public repository with their AI provider's API key in a config file. Scrapers find keys on GitHub within minutes; by morning someone else has run ₹40,000 of requests on their card.
 
-A student pushes a project to a public repository with their AI provider's API key in a config file. Automated scrapers find keys on GitHub within minutes. By morning someone else has run ₹40,000 of requests on their card.
-
-A second student builds something genuinely good, demos it successfully, and three weeks later the link is dead. Their free database was paused for inactivity and then deleted. No backup. The demo video is all that remains.
-
-Neither story is about skill. Both are about twenty minutes of setup that nobody insisted on first.
+A second student demos something genuinely good, and three weeks later the link is dead — their free database paused for inactivity and was deleted, with no backup. Neither story is about skill. Both are about twenty minutes of setup nobody insisted on.
 
 ### The idea
 
 **Your accounts are infrastructure. Set them up deliberately once, with limits and alerts, before you build anything on top of them.**
 
-Everything in this program runs on free tiers. That is a design constraint, not a compromise — but free tiers have edges, and crossing one either stops your product or starts a bill.
+Everything here runs on free tiers. That is a design constraint, not a compromise — but free tiers have edges, and crossing one either stops your product or starts a bill.
 
 ### The analogy
 
-Opening a canteen stall. Before you cook anything you need a licence, a gas connection, and a bank account. Nobody finds this exciting, and every one of them is blocking.
+Opening a canteen stall. Before you cook you need a licence, a gas connection and a bank account — unexciting, and every one blocking. The gas connection has a meter: a monthly allowance, then you pay per cylinder, and a careful owner gets a warning before crossing the line. An API key is the key to that connection: leave copies around the market and someone else uses your gas on your bill.
 
-The gas connection has a meter. There is a monthly allowance; past it, you pay per cylinder. A careful stall owner knows roughly where the line is and gets a warning before crossing it. A careless one discovers it from the bill.
-
-An API key is the key to your gas connection. If you leave copies of it around the market, someone will use your gas, and the bill is yours.
-
-**Where the analogy breaks:** steal someone's gas cylinder and it is physically gone and obvious. A stolen API key leaves everything working perfectly — your app runs, nothing visibly changes — while someone else runs up charges in another country. There is no symptom until the bill. That absence of symptoms is why the key rules are absolute rather than advisory.
+**Where the analogy breaks:** steal a gas cylinder and it is obviously gone. A stolen API key leaves everything working perfectly while someone runs up charges in another country — no symptom until the bill, which is why the key rules are absolute rather than advisory.
 
 ### Picture it
 
@@ -73,11 +65,7 @@ An API key is the key to your gas connection. If you leave copies of it around t
                         provider
 ```
 
-There is exactly one correct place for a secret key: the private side. "But it is minified" and "but it is in an environment variable in the frontend" are both still the public side — a frontend environment variable is compiled into the file the browser downloads.
-
-### What an API key actually is
-
-A long random string that proves a request is yours, so the provider knows who to bill. It is a password that your code carries instead of you.
+There is exactly one correct place for a secret key: the private side. "But it is minified" and "but it is in a frontend environment variable" are both still the public side — a frontend variable is compiled into the file the browser downloads.
 
 Two kinds, and confusing them is the expensive mistake:
 
@@ -86,44 +74,13 @@ Two kinds, and confusing them is the expensive mistake:
 | **Public / publishable** | Stripe publishable key, Supabase anon key | Yes — designed for it, and limited in what it can do |
 | **Secret** | AI provider key, Stripe secret key, Supabase service-role key | **Never.** Full account power |
 
-If a key's name contains `secret`, `service_role`, `private`, or `sk_`, it belongs on the server. If you are unsure, assume secret.
-
-**What to do if one leaks:** rotate it, immediately. Deleting the file is not enough — git keeps history, and scrapers already have it. Generate a new key, revoke the old one, then clean up. In that order, because every minute the old key lives is billable.
-
-### Reading a free tier
-
-Four questions, before you build anything on a service:
-
-1. **What is the limit, and in what unit?** Requests per month, rows, megabytes, build minutes, concurrent connections.
-2. **What happens when I cross it?** This is the one people skip, and the answers differ enormously: the service stops until next month, or it slows down, or it starts charging your card. The third is the one to find out about in advance.
-3. **Does it expire or pause?** Free databases commonly pause after a week of inactivity and are deleted after a month. This killed the second student's demo.
-4. **Can I cap it?** A hard spending limit — even ₹100 — converts an unbounded risk into a known one.
-
-That second question deserves the habit: **before adding any paid-capable service, find the sentence in its documentation that says what happens at the limit.** If there is no spending cap available and the overage is billed to a card, that is a service to approach carefully on a student budget.
-
-### Billing alerts, before anything else
-
-The order matters. Set the alert when you create the account, not when you start building — because the gap between those two moments is exactly when a mistake is most likely.
-
-For any service that can charge you:
-- Set a spending cap if one exists. Prefer a hard cap over a notification.
-- Set an email alert at a low threshold — ₹100 is plenty to tell you something is wrong.
-- Never save a card on a service you do not yet understand. Prepaid credits are safer than a linked card, because the downside is bounded by what you put in.
-
-### Securing your own accounts
-
-You are about to hold credentials for a product other people will use. The bar is higher than for a personal email.
-
-- **Two-factor authentication on GitHub and your email**, today. Your email is the recovery path for everything else; if it falls, everything falls.
-- **A password manager.** Not reused passwords, and not a notes file.
-- **Recovery codes saved somewhere that is not the device with the authenticator app.** Students lose phones; this is the step that avoids losing a repository with it.
-- **Check what you are granting on "Sign in with GitHub".** Agree to read a public profile, not to write to all your repositories.
+If a key's name contains `secret`, `service_role`, `private` or `sk_`, it belongs on the server. If unsure, assume secret.
 
 ### Where it lives
 
-Accounts, keys and quotas sit in the infrastructure box from chapter 3, underneath everything else — which is why a forgotten billing alert or a paused database takes the whole product down no matter how good the rest of it is.
+Accounts, keys and quotas sit in the infrastructure box from chapter 3 — which is why a forgotten billing alert or a paused database takes the whole product down.
 
-Every later module draws on what you set up today. M01 needs the GitHub account and its 2FA. M04 needs test-mode payment keys. M06 needs the free virtual machine and the deploy platform. M07 is where a leaked key stops being a billing problem and becomes a security chapter. M09 and M10 are where token costs start appearing on a real invoice. The inventory you write in this chapter's mission is the document you will actually open when something stops working in month four.
+You will also hold credentials for a product other people use, so the bar is higher than for personal email: 2FA on GitHub and your email today (email is the recovery path for everything else), a password manager, recovery codes stored off the phone with the authenticator, and a careful read of what "Sign in with GitHub" grants.
 
 ### Words to own
 
@@ -143,26 +100,31 @@ Every later module draws on what you set up today. M01 needs the GitHub account 
 
 ### Tradeoffs and gotchas
 
-**A public repository is a public key.** Scrapers monitor new commits on GitHub continuously and test keys within minutes. There is no window of safety in which you can push and then quietly remove it.
+**A public repository is a public key.** Scrapers test new commits within minutes, and deleting the file does not help because history stays fetchable. After a leak: new key, revoke the old one, then clean up — every minute the old key lives is billable.
 
-**Deleting a committed secret does not remove it.** The commit stays in history and is still fetchable. Rotate first; clean history afterwards if you want to.
+**Rate limits and quotas are different things.** A quota is the monthly total; a rate limit is how fast you may go. Hitting the rate limit looks like your app breaking under load while the quota is nowhere near exhausted.
 
-**Rate limits and quotas are different things.** A quota is the monthly total; a rate limit is how fast you may go. Hitting the rate limit looks like your app breaking at the worst moment — under load — while the quota is nowhere near exhausted. You will build around both in M05.
+**Free tiers shrink.** Every limit quoted in this program may be out of date by the time you read it. Check the provider's current pricing page, not a lesson or an AI answer — pricing sits squarely in the knowledge-cutoff failure mode.
 
-**Free tiers shrink.** Every limit quoted anywhere in this program may be out of date by the time you read it, which is why this chapter is marked high-volatility and reviewed twice a year. **Always check the provider's current pricing page rather than trusting a number in a lesson, a blog post, or an AI answer.** AI is especially unreliable here: pricing and free-tier limits change constantly and sit squarely in the knowledge-cutoff failure mode.
-
-**Test mode is a real feature, not a toy.** Payment providers give you keys that move no money and simulate success, failure and duplicate webhooks. Your entire payments work in M04 happens in test mode. Never put a live payment key in a learning project.
+**Test mode is a real feature, not a toy.** Payment providers give you keys that move no money and simulate success, failure and duplicate webhooks. All of M04 happens there.
 
 ### Verify it
 
-Before you consider your setup done, prove four things:
+**Before you add any service,** answer four questions:
 
-1. **Search your own repositories for secrets.** Look for `sk_`, `service_role`, `API_KEY`, and any long random string. GitHub's secret scanning catches some; your own eyes catch more.
-2. **Confirm `.env` is gitignored and was never committed.** `git log --all -- .env` should return nothing. If it returns something, you have a key to rotate.
-3. **Open your deployed site and view source, then check the network tab.** Search for your key. If it appears anywhere, it is public, regardless of how it was built.
-4. **Confirm a billing alert actually exists** on every service that holds a payment method. Not "I think it defaults to one" — open the settings and read it.
+1. **What is the limit, and in what unit?** Requests per month, rows, megabytes, build minutes.
+2. **What happens when I cross it?** It stops, slows, or charges your card — find the sentence in the docs saying which.
+3. **Does it expire or pause?** Free databases commonly pause after a week idle, then delete after a month.
+4. **Can I cap it?** A hard limit, even ₹100, turns an unbounded risk into a known one — set it when you create the account, not later.
 
-When AI helps you set up a service, two red flags: **a key written directly into a code file** rather than read from an environment variable, and **a frontend making the provider call directly**. Both appear routinely, and both are the ₹40,000 story.
+**Before you call the setup done,** prove four things:
+
+1. **Search your repositories for secrets** — `sk_`, `service_role`, `API_KEY`, any long random string.
+2. **Confirm `.env` is gitignored and was never committed.** `git log --all -- .env` should return nothing; anything returned is a key to rotate.
+3. **View your deployed site's source and network tab and search for your key.** If it appears, it is public.
+4. **Confirm a billing alert exists** on every service holding a payment method.
+
+Two red flags when AI sets up a service: **a key written into a code file** rather than read from an environment variable, and **a frontend calling the provider directly.**
 
 ## Walkthrough
 1. **GitHub.** Create the account if you do not have one. Turn on 2FA. Save the recovery codes somewhere that is not your phone. Apply for the Student Developer Pack with your college email.

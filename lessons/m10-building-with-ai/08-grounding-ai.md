@@ -4,7 +4,7 @@ module: m10-building-with-ai
 slug: grounding-ai
 title: "Grounding AI in Private, Current and Domain-Specific Data"
 order: 8
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,39 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team demos their canteen assistant. A mentor asks it the refund policy for a cancelled order.
+A mentor asks a team's canteen assistant about the refund policy. It answers beautifully: full refund within fifteen minutes, fifty percent after that, UPI in three to five working days. There is no refund policy. Nobody wrote one — the model produced the most plausible refund policy for an Indian food business, because that was the shape of the thing requested.
 
-It answers immediately and beautifully: cancellations within fifteen minutes are refunded in full, after that a fifty percent charge applies, and refunds reach the UPI account in three to five working days.
-
-There is no refund policy. The team has never written one. Nothing in the product implements any of that. The model produced the most plausible refund policy for an Indian food business, because that is the shape of the thing it was asked for, and it had nothing specific to go on.
-
-Then two more questions land. "Aaj ka rate kya hai" gets last semester's prices, which were in the demo data someone pasted weeks ago. And "SPDT kitne ka hai" gets a confused guess, because at this particular college SPDT is the Monday special and that fact exists nowhere outside the campus.
-
-One failure, three different causes. They need three different fixes.
+Two more questions land. "Aaj ka rate kya hai" returns last semester's prices from stale demo data. "SPDT kitne ka hai" gets a guess, because at this college SPDT is the Monday special, a fact that exists nowhere outside the campus. One failure, three causes, three fixes.
 
 ### The idea
 
-**A model knows what was in its training data: public, general and frozen at a cutoff date. Your product needs answers that are private, current and specific to your domain. Grounding means supplying those facts at request time and requiring the answer to come from them.**
+**A model knows what was in its training data: public, general and frozen at a cutoff. Your product needs answers that are private, current and domain-specific. Grounding means supplying those facts at request time and requiring the answer to come from them.**
 
-The second half of that sentence is the part teams skip. Putting the facts nearby is not grounding. Grounding is when the model must point at which fact it used, and must say "I do not know" when the fact is not there.
-
-### The three gaps
-
-**Private.** Your prices, your menu, your policies, your students' orders. Never in any training set, and you would be alarmed if it were.
-
-**Current.** Today's sold-out dishes, this morning's price change, the complaint filed an hour ago. The model's knowledge stops at its cutoff and your product's most valuable facts are from this afternoon.
-
-**Domain-specific.** SPDT. The hostel mess timings. The rule that first-years cannot use the staff counter. Your supplier's minimum order. Real, written down somewhere, and far too local to have ever been on the public internet.
+The second half is the part teams skip: putting facts nearby is not grounding. Grounding is when the model must point at the fact it used — "refunds within fifteen minutes [circular-2026-04]" — and must say "I do not know" when the fact is absent. That refusal has to be a stated rule, or the model will invent.
 
 ### The analogy
 
-You hire a skilled cook from another city. They genuinely know cooking — technique, timing, proportions, far better than you do. That is the training data.
+You hire a skilled cook from another city. They know cooking better than you do — that is the training data. They do not know your prices, do not know the batter ran out, and have never heard of SPDT. Three objects fix that: the **menu board**, small and stable and always visible; the **storekeeper**, asked about stock because it changes hourly; and the **shelf of circulars**, consulted on demand.
 
-They do not know your prices. They do not know the dosa batter ran out twenty minutes ago. And they have no idea that SPDT is a thing.
-
-You fix those three with three different objects. The **menu board on the wall** is small, stable and always visible, so prices need no asking. The **storekeeper** is who you ask about stock, because stock changes hourly and only one person has the live number. And the **shelf of printed circulars** holds the college's rules, the supplier terms and the mess policy — too much to put on a board, consulted only when the question comes up.
-
-**Where the analogy breaks:** after three weeks the cook has learnt the menu and stops glancing at the board. A model never does. Every single conversation starts from zero, so the board, the storekeeper and the shelf are permanent fixtures of the system rather than a training period that ends.
+**Where the analogy breaks:** after three weeks the cook learns the menu and stops glancing at the board. A model never does — every conversation starts from zero, so all three stay permanent fixtures.
 
 ### Picture it
 
@@ -78,39 +60,16 @@ You fix those three with three different objects. The **menu board on the wall**
   (not facts - never facts)                     (rarely)
 ```
 
-Four routes, chosen by the nature of the fact rather than by what sounds impressive. Most product questions stop at the first or second box.
+Four routes, chosen by the nature of the fact rather than by what sounds impressive. Most questions stop at the first or second box.
 
-### Choosing, honestly
-
-**Put it in the prompt** when the data is small and stable. A forty-row menu is about six hundred tokens. It is exact, it is cheap, it caches beautifully from chapter six, and there is no retrieval step to get wrong. Teams routinely build a vector database for data that would have fitted in the system prompt, and the retrieval version is less accurate.
-
-**Give it a tool** when the data is structured and changes. Stock, order status, today's price, a student's own last order. Chapter four's `get_stock` is grounding — the freshest, most exact kind there is, because it reads the row at the moment of asking. For anything with a primary key, a tool beats embeddings.
-
-**Retrieve it** when the data is large, unstructured and you cannot know in advance which part you will need. Two hundred college circulars. A year of WhatsApp complaints. The supplier contracts. That is what chapters ten and eleven build.
-
-**Fine-tune** almost never, and never for facts. This is the single most expensive misconception in applied AI.
-
-### Why fine-tuning does not add facts
-
-Fine-tuning adjusts the model's weights on your examples. What it reliably teaches is *shape*: a house tone of voice, a rigid output format, a classification taste that is hard to describe in words, the knack of writing menu descriptions the way your brand writes them.
-
-What it does not do is install knowledge you can rely on. Facts learnt this way come out blurred and confidently wrong, there is no way to cite a weight, you cannot delete one student's data from a trained model, and the day your prices change your model is stale and retraining is the only fix. Compare that with editing one row in a table.
-
-The test is simple. If the answer changes when the data changes, it is retrieval or a tool. If the answer changes only when your taste changes, it might be fine-tuning.
-
-### Citations and the right to refuse
-
-Grounding is not finished when the facts are in the context. Two more requirements make it real.
-
-**Every factual claim carries a source.** "Cancellations are refunded within fifteen minutes [circular-2026-04]." A citation is how you check the answer in five seconds instead of re-deriving it. Chapter eleven is about making citations trustworthy.
-
-**"I do not know" is a legal answer.** If the retrieved text does not contain the refund policy, the correct output is that there is no refund policy on record — not a plausible one. This has to be stated as a rule, shown in a few-shot example from chapter one, and represented in the schema from chapter three, or the model will do the helpful thing and invent.
+- **In the prompt** when the data is small and stable — a forty-row menu is six hundred tokens, exact and cacheable.
+- **A tool** when it is structured and changes: chapter four's `get_stock` is grounding of the freshest kind, read at the moment of asking.
+- **Retrieval** when it is large, unstructured, and you cannot know which part you need.
+- **Fine-tuning** almost never, and never for facts.
 
 ### Where it lives
 
-Grounding sits in the context-assembly function from chapter five: it is what fills the data block. Where the facts come *from* is M04 — your tables, your object storage, your search index. Freshness is M05's cache-invalidation problem.
-
-This chapter is the hinge of the module. Chapter nine gets messy real documents into a usable state, chapter ten builds the retrieval pipeline, chapter eleven makes the ranking and the citations trustworthy, and chapter twelve measures whether any of it works. Everything after chapter eight assumes you chose retrieval deliberately rather than by default.
+Grounding fills the data block of chapter five's context-assembly function. The facts come from M04 — your tables, your storage, your search index — and keeping them fresh is M05's cache-invalidation problem. This chapter is the module's hinge: chapter nine cleans messy documents, chapter ten builds the pipeline, chapter eleven makes citations trustworthy, chapter twelve measures it.
 
 ### Words to own
 
@@ -129,31 +88,25 @@ This chapter is the hinge of the module. Chapter nine gets messy real documents 
 
 ### Tradeoffs and gotchas
 
-**Retrieval is a system; a prompt is a string.** Choosing RAG means chunking, embeddings, a store, a ranker, an eval set and a refresh job. That is the right cost for two hundred PDFs and an absurd cost for forty menu rows. Start with the cheapest route that could work and move up only when it demonstrably fails.
+**Fine-tuning changes style, not facts.** It teaches shape — a house tone, a rigid format. It does not install knowledge you can rely on: facts come out blurred, you cannot cite a weight or delete one student's data from a trained model, and a price change makes it stale. The test: if the answer should change when the data changes, it is retrieval or a tool.
 
-**Grounding without a refusal rule just produces better-dressed hallucinations.** Supply five chunks that do not contain the answer and a model with no permission to abstain will blend them into something confident. You have added cost and removed nothing.
+**Retrieval is a system; a prompt is a string.** RAG means chunking, embeddings, a store, a ranker, an eval set and a refresh job — absurd for forty menu rows.
 
-**Retrieval must know who is asking.** This is the gap that turns a nice feature into an incident. If your search index holds staff-only circulars and supplier pricing alongside the student FAQ, a student's question can retrieve them and the model will cheerfully quote. Filter by the asker's permissions *before* search, not after — the same row-level thinking M04 taught, applied to your index.
+**Grounding without a refusal rule produces better-dressed hallucinations.** Give a model five chunks that lack the answer and no permission to abstain, and it blends them confidently.
 
-**Stale is worse than absent.** An answer from last semester's prices looks exactly as confident as a correct one. Carry an "as of" timestamp with every grounded fact and show it, so a human can notice.
+**Retrieval must know who is asking.** If your index holds staff-only circulars beside the student FAQ, a student's question will retrieve them. Filter by permissions *before* search.
 
-**Private data in a prompt is still private data leaving your building.** Grounding sends your menu, your circulars and sometimes your users' rows to a provider. Know what you are sending, strip what you do not need, and if something genuinely cannot leave, that is the argument for a local model — which is why this program keeps one in reach.
-
-**Do not grind on prompt wording when the fact is missing.** Half the "the model keeps getting it wrong" problems in student projects are a fact that was never supplied. Check the context first, every time, before touching the prompt.
+**Stale is worse than absent**, because last semester's prices look as confident as correct ones. Carry an "as of" timestamp on every grounded fact, and remember grounding sends that data to a provider.
 
 ### Verify it
 
-**Ask a question whose answer is not in your data, and insist on a refusal.** Your refund policy, if you have not written one. The hostel timings, if they are not in the index. An answer of any kind is a bug, and it is the single most diagnostic test in this chapter.
+- **Ask a question whose answer is not in your data and insist on a refusal.** Any answer at all is a bug — the chapter's most diagnostic test.
+- **Make it cite, then check the citation.** A real citation to a document that does not contain the claim is the module's most dangerous output, because it looks verified.
+- **Change a fact and re-ask.** Edit one price in your source; an unchanged answer means the model is reading training data or a cache.
+- **Ask the same question as two different users**, a student and a staff member. If the student's answer quotes a staff-only document, retrieval is not permission-aware.
+- **Ask "as of when?"** Every grounded answer should know the age of the fact it used.
 
-**Make it cite, then check the citation.** Open the cited document and confirm the sentence is actually there. A real citation to a real document that does not contain the claim is the most dangerous output in the whole module, because it looks verified.
-
-**Change a fact and re-ask.** Edit one price in your source, then ask again. If the answer does not change, the model is answering from training or from a cache, not from your data, and you have been testing nothing.
-
-**Ask the same question as two different users.** A student and a staff member. If the student's answer quotes a staff-only document, your retrieval is not permission-aware.
-
-**Say "as of when?" out loud.** Every grounded answer should be able to tell you the age of the fact it used. If it cannot, you cannot detect staleness and neither can your users.
-
-Red flags: a confident policy nobody in the team ever wrote; any factual answer with no citation; a citation pointing at a document that does not contain the claim; "we will fine-tune on our own data" offered as the fix for freshness; a vector store built for data that would fit in the prompt; retrieval that ignores who is asking; and no timestamp anywhere on grounded facts.
+Red flags: a confident policy nobody wrote; a factual answer with no citation; a citation pointing at a document that does not contain the claim; "we will fine-tune on our data" offered as the fix for freshness; a vector store built for data that would fit in the prompt; retrieval that ignores who is asking; no timestamp on grounded facts.
 
 ## Walkthrough
 1. Write down ten real questions your users will ask your product. Use their actual words, including at least two in Hindi or a regional language.

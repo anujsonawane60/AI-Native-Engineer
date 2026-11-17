@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: webhooks-websockets-sse
 title: "Webhooks, WebSockets and SSE: When the Server Talks Back"
 order: 3
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,39 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-The canteen app ships with a live order tracker. The student taps "Order", and the screen is supposed to move from Placed to Cooking to Ready without them touching anything.
-
-The first version asks the server "any news?" every two seconds. It works. Then 400 students use it during the lunch rush, the free tier's request quota is gone by Wednesday, and phones get warm because the radio never sleeps.
-
-The second version uses WebSockets. It works beautifully on the laptop. On a hostel 4G connection the socket drops every few minutes when the phone switches towers, and because nobody wrote reconnection logic the tracker silently freezes on "Cooking" for an order that was collected twenty minutes ago. No error, no spinner, just a lie on the screen.
-
-The third problem is worse and arrives with payments in chapter 17. The payment provider needs to tell your server that money arrived. It cannot ask your phone. It calls a URL on your server that you published — and if that URL trusts whatever arrives, anyone on the internet can tell your server that they paid.
+The canteen app's live order tracker asks the server "any news?" every two seconds; 400 students use it at lunch, the free tier's quota is gone by Wednesday, and phones get warm because the radio never sleeps. Version two uses WebSockets and works beautifully on the laptop — then on hostel 4G the socket drops on every tower switch, nobody wrote reconnection logic, and the tracker freezes on "Cooking" for an order collected twenty minutes ago. No error, just a lie on the screen.
 
 ### The idea
 
 **Normally the client asks and the server answers. These four patterns are the ways something other than that happens — and each one trades effort against freshness.**
 
-Polling: the client keeps asking on a timer. Simple, cacheable, wasteful.
-
-Server-Sent Events (SSE): the client opens one long-lived connection and the server pushes text down it whenever it likes. One direction only.
-
-WebSockets: a two-way pipe stays open, and either side can speak at any moment.
-
-Webhooks: a different company's server calls *your* server when something happens in their system. Not a browser thing at all.
+Polling: the client keeps asking on a timer — simple, cacheable, wasteful. SSE: one long-lived connection the server pushes text down, one direction only. WebSockets: a two-way pipe, either side can speak. Webhooks: another company's server calls *your* server when something happens in theirs — not a browser thing at all.
 
 ### The analogy
 
-Four ways to find out your canteen order is ready.
+Four ways to learn your order is ready. **Polling** is walking to the counter every thirty seconds; half your trips get the same answer as the last. **SSE** is standing at the counter while the server calls out token numbers — you listen, you do not speak. **WebSockets** is a staff member with a walkie-talkie: both of you can speak, instantly. **Webhooks** are the bank's representative arriving unannounced to say "payment for token 41 has cleared" — and the canteen checks their ID card first, because anyone can claim a payment cleared.
 
-**Polling** is walking to the counter every thirty seconds to ask. You will find out, eventually, and you will do a lot of walking. Half your trips get the same answer as the last one.
-
-**SSE** is standing at the counter with the server calling out token numbers. You listen; you do not speak. One direction, and it works well because that is genuinely all you need.
-
-**WebSockets** is a staff member with a walkie-talkie who can both tell you your food is ready and ask whether you want extra chutney, instantly, in both directions.
-
-**Webhooks** are the bank's representative coming to the canteen's office, unannounced, to say "payment for token 41 has cleared". The canteen did not ask. The canteen does, however, check the representative's ID card before updating the register — because anyone can walk in and claim a payment cleared.
-
-**Where the analogy breaks:** a person standing at the counter does not silently stop hearing. A phone's connection does. The hardest part of every realtime feature is not the pushing; it is noticing that the pipe broke and recovering — a problem the physical canteen simply does not have.
+**Where the analogy breaks:** a person at the counter does not silently stop hearing. A phone's connection does, and noticing the pipe broke is the hardest part of every realtime feature.
 
 ### Picture it
 
@@ -76,28 +56,7 @@ Polling repeats a question; SSE and WebSockets hold one connection open and push
 
 ### Where it lives
 
-Polling, SSE and WebSockets all live on the client-server seam from chapter 1 — they are different ways of using it.
-
-A webhook is somewhere else entirely, and this is the part that confuses everyone the first time. Your server stops being only a server and becomes a client's target. Razorpay's servers, or GitHub's, or a WhatsApp Business provider's, make an HTTP request to a path you own. That path is open to the internet, has no logged-in user behind it, and is therefore one of the most security-sensitive routes you will ever write. Chapter 17 is where it meets money; M07 is where it meets OWASP.
-
-Background jobs in chapter 16 are the other half of this picture: a webhook should do almost nothing except verify the signature, record the fact, and queue the real work.
-
-### Choosing, with a number
-
-The honest question is: **how stale can this screen be before a user is annoyed?**
-
-| Feature | Tolerable staleness | Right answer |
-|---|---|---|
-| Canteen menu sold-out flag | 60 seconds | polling |
-| Order status tracker | 5–10 seconds | polling or SSE |
-| Live chat between two users | under 1 second | WebSockets |
-| Admin dashboard counters | 30 seconds | polling |
-| "Payment received" | must be exact | webhook |
-| Typing indicator | instant | WebSockets |
-
-Four of six are polling. That is not laziness; it is the correct answer most of the time for a small team. A poll every ten seconds on one screen is about six requests a minute per active user, it works through flaky networks because each request is independent, it is cacheable, it is trivially debuggable in the Network tab, and it survives your server restarting.
-
-The number matters more than the technology. "We poll every 10 seconds because a 10-second delay on order status is invisible to a student standing in a queue" is an engineering decision you can defend in M11. "We used WebSockets because it's realtime" is not.
+Polling, SSE and WebSockets all live on the client-server seam from chapter 1. A webhook is elsewhere: your server becomes someone else's target. Razorpay's servers make an HTTP request to a path you own, open to the internet with no logged-in user behind it — one of the most security-sensitive routes you will write. Chapter 17 is where it meets money; chapter 16 is the other half, where a webhook only verifies, records, and queues the real work.
 
 ### Words to own
 
@@ -116,29 +75,36 @@ The number matters more than the technology. "We poll every 10 seconds because a
 
 ### Tradeoffs and gotchas
 
-**Every realtime connection costs you a slot on a free tier.** Free-tier limits are usually expressed in concurrent connections or execution hours, and a WebSocket holds one open for as long as the tab is open. Two hundred students with the app open is two hundred held connections. Polling uses a connection for 80 milliseconds and lets go.
+**How stale can this screen be before a user is annoyed?**
 
-**Serverless and WebSockets fight each other.** Most free serverless platforms (chapter 5's subject) bill and time out per invocation and are a poor host for a connection that must stay open for an hour. If AI proposes WebSockets on a serverless free tier without mentioning this, it has not thought about where the code runs.
+| Feature | Tolerable staleness | Right answer |
+|---|---|---|
+| Canteen menu sold-out flag | 60 seconds | polling |
+| Order status tracker | 5–10 seconds | polling or SSE |
+| Live chat between two users | under 1 second | WebSockets |
+| Admin dashboard counters | 30 seconds | polling |
+| "Payment received" | must be exact | webhook |
+| Typing indicator | instant | WebSockets |
 
-**A dropped socket does not look like an error.** It looks like nothing happening, which is indistinguishable from "nothing has happened". Any WebSocket or SSE feature needs a visible connection state, automatic reconnection with backoff, and a full refetch after reconnect to catch up on what was missed. That is three pieces of work most first drafts omit entirely.
+Four of six are polling — usually correct for a small team, not lazy. The number matters more than the technology: "we poll every 10 seconds because a 10-second delay is invisible to a student in a queue" is defensible; "we used WebSockets because it's realtime" is not.
 
-**An unverified webhook endpoint is a public write to your database.** The URL is guessable, there is no session, and the body is JSON someone else wrote. Without signature verification, anybody can post `{"status":"paid","order_id":91}` and get free food. This is the specific failure chapter 17 is built around.
+**Every realtime connection costs a slot on a free tier, and serverless cannot hold one.** A WebSocket holds a connection open as long as the tab is; polling uses one for 80 milliseconds and lets go. Free serverless platforms (chapter 5) bill and time out per invocation, making them a poor host for an hour-long connection.
 
-**Webhooks arrive twice, out of order, or late.** Providers retry when they do not get a prompt `200`, which means your handler will see duplicates. Design for that from the first line. Also: do the slow work in a background job, because a provider that waits eight seconds for your response will time out and retry, giving you a second copy.
+**A dropped socket does not look like an error — it looks like nothing happening.** Visible connection state, reconnection with backoff, and a full refetch after reconnect are three pieces of work first drafts omit.
 
-**Do not poll every second to look impressive.** At one second, 400 users is 24,000 requests a minute. You will exhaust a free tier before lunch ends, and nobody can tell the difference from ten seconds.
+**An unverified webhook endpoint is a public write to your database.** The URL is guessable and there is no session: without signature verification anybody can post `{"status":"paid","order_id":91}` and get free food. Providers retry without a prompt `200`, so expect duplicates.
 
 ### Verify it
 
-Five checks on any realtime work AI hands you.
+Five checks on any realtime work.
 
-1. **Ask for the staleness number first.** "How out of date can this be?" If the AI never asks and jumps straight to WebSockets, re-brief it. The number chooses the technology.
-2. **Kill the network and watch the screen.** Turn off Wi-Fi mid-session. A correct implementation shows a disconnected state and recovers when you turn it back on. A typical first draft freezes while looking perfectly healthy, which is worse than an error.
-3. **Check for a refetch after reconnect.** Reconnecting is not enough — the updates that happened while you were offline are gone forever. The client must re-read current state once the pipe is back.
-4. **For webhooks, demand signature verification before anything else.** Read the handler. The first thing it does must be verifying the provider's signature header against your secret, and rejecting with `400` if it fails. If the handler reads the body first and verifies later, or not at all, reject the work.
-5. **For webhooks, check it is safe to receive twice.** Send the same payload twice yourself. The second one must change nothing. If the order is marked paid twice or the student is credited twice, you have the bug chapter 17 is named after.
+1. **Ask for the staleness number first.** If the AI never asks how stale the screen may be and jumps to WebSockets, re-brief.
+2. **Kill the network and watch the screen.** A correct implementation shows a disconnected state and recovers; a first draft freezes while looking healthy.
+3. **Check for a refetch after reconnect.** Reconnecting is not enough — updates missed while offline are gone, so the client must re-read current state.
+4. **For webhooks, demand signature verification first.** The handler's first act must be checking the signature header against your secret, rejecting with `400` if it fails. If it reads the body first, reject the work.
+5. **For webhooks, check it is safe to receive twice.** Send the same payload twice; the second must change nothing. If the order is marked paid twice, you have the bug chapter 17 is named after.
 
-Red flags: the phrase "we can add reconnection later"; a webhook handler that does database writes, sends an email and generates a PDF before replying; WebSockets proposed for a feature where the data changes twice an hour; any realtime design that has not been tested with the network throttled to Slow 4G; a webhook secret pasted into the code instead of read from an environment variable, which M07 will fail you for.
+Red flags: "we can add reconnection later"; a webhook handler that writes, emails and builds a PDF before replying; WebSockets for data that changes twice an hour; a design never tested on throttled Slow 4G; a webhook secret in the code instead of an environment variable.
 
 ## Walkthrough
 1. Pick one feature in your own product where a screen must change without the user doing anything. Write it down in one sentence.

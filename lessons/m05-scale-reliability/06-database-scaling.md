@@ -4,7 +4,7 @@ module: m05-scale-reliability
 slug: database-scaling
 title: "Database Scaling: Replicas, Pooling, Sharding and Partitioning"
 order: 6
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,35 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-You scaled to three instances. Capacity is up, students are happy for four days, and then at 1:10 pm the app starts returning errors — not slow pages, outright errors. The message is `too many connections`.
+Four days after scaling to three instances, the app returns outright errors at 1:10 pm: `too many connections`. CPU is at 4%, memory is fine, disk is almost empty. The database is refusing work while doing nothing, until you count: three instances at twenty connections each is sixty, and your free plan allows thirty. You ran out of doors into the database, not out of database.
 
-You look at the dashboard. CPU is at 4%. Memory is fine. Disk is almost empty. The database is doing nothing at all and refusing work, which makes no sense until you count: three instances opening twenty connections each is sixty, and your free plan allows thirty. You did not run out of database. You ran out of doors into it.
-
-So you add a read replica, which is what everyone suggests. Now a student taps "Place order", sees the confirmation, lands on their orders page — and the order is not there. They place it again. Two orders, and the refund is your afternoon.
-
-Both failures come from one gap: the app servers multiplied, and nobody thought about what that does to the one thing they all share.
+So you add a read replica. Now a student taps "Place order", sees the confirmation, lands on their orders page, and the order is not there. They order again, and the refund is your afternoon.
 
 ### The idea
 
 **Your app servers are disposable and your database is not, so the database has exactly four kinds of fix — and they go in a strict order of cost.**
 
-First, do less work: an index (M04) and a cache (Chapters 2 and 3) remove queries entirely, and a query that never runs beats one you optimised. Second, share the doors: a pooler lets fifty app processes take turns through a handful of real connections. Third, add copies for reading: a replica takes `SELECT` traffic off the primary. Fourth, only when the first three are exhausted, split the data across separate stores.
-
-The order is not a style preference. Each step is roughly ten times more disruptive than the last, and skipping to step four is how small teams build systems they cannot change.
+First, do less work: an index (M04) and a cache (Chapters 2 and 3) remove queries entirely, and a query that never runs beats one you optimised. Second, share the doors with a pooler. Third, add copies for reading. Fourth, and only then, split the data. Each step is roughly ten times more disruptive than the last, and skipping to the fourth is how teams build systems they cannot change.
 
 ### The analogy
 
-Four counters, one kitchen. The counters are your app instances and the kitchen is your database, and no number of counters makes the kitchen cook faster.
+Four counters, one kitchen: no number of counters makes the kitchen cook faster. **Pooling** is the serving hatch — without one, every cashier walks in whenever they like, and at 1:10 pm twelve people are in a space built for three. **Read replicas** are photocopies of the stock board at each counter: anyone may read a copy, only the kitchen writes the original, and the copies are a few seconds behind. **Partitioning** separates today's tray shelf from last month's records. **Sharding** builds a second kitchen and splits students by roll number: capacity doubles, and "how much did the whole campus eat today" becomes hard.
 
-**Pooling** is the serving hatch. Without one, every cashier walks into the kitchen whenever they like, and at 1:10 pm there are twelve people in a space built for three and nothing moves. With a hatch, cashiers queue briefly at a fixed opening and the kitchen stays workable. The hatch adds a tiny wait to every order and removes the chaos — which is exactly the trade a connection pooler makes.
-
-**Read replicas** are photocopies of the stock board pinned up at each counter. Anyone may read a photocopy; only the kitchen writes the original. The copies are refreshed constantly but they are always a few seconds behind, so a dish that just ran out may still show as available on the copy.
-
-**Partitioning** is separating today's tray shelf from the cupboard of last month's records. Same kitchen, same staff, but a search through today's food no longer wades through March.
-
-**Sharding** is building a second kitchen in the hostel block and deciding by roll number which kitchen serves which student. Capacity genuinely doubles. And now nobody can easily answer "how much food did the whole campus eat today", because the answer lives in two buildings and somebody has to visit both and add up.
-
-**Where the analogy breaks:** kitchens take months to build, while a replica appears in minutes. But the data has to be copied over the network, and that copying time is the replication lag — a real, measurable delay with no physical equivalent in the canteen, and the direct cause of the vanishing order above.
+**Where the analogy breaks:** a replica appears in minutes rather than months, but its data travels over the network, and that copying time is replication lag — the direct cause of the vanishing order.
 
 ### Picture it
 
@@ -70,8 +56,6 @@ Four counters, one kitchen. The counters are your app instances and the kitchen 
 
 All writes go to the single primary, which streams its changes to read-only replicas that serve `SELECT` traffic slightly behind the truth.
 
-### The four fixes, in order
-
 | Fix | What it does | When you need it | Cost of getting it wrong |
 |---|---|---|---|
 | Index and cache | Removes queries | Immediately | Stale data (Chapter 3) |
@@ -79,23 +63,13 @@ All writes go to the single primary, which streams its changes to read-only repl
 | Read replica | Serves `SELECT` from a copy | Reads are 90% of traffic and the primary is busy | Stale reads, vanishing orders |
 | Partition or shard | Splits the data | Tens of millions of rows, measured | Cross-shard queries become your code |
 
-Two notes. **Pooling is not optional and not advanced** — serverless functions make it urgent, because each concurrent invocation may open its own connection and a hundred will flatten a free-tier limit instantly. Most managed databases offer a pooler you switch on with a different connection string, and that one change fixes the error above.
-
-And **almost nobody here will need sharding.** A single well-indexed database handles tens of millions of rows and thousands of requests a second. If an AI proposes sharding your 10,000-row orders table, it has pattern-matched on the word "scale" and is about to cost you a month.
-
-### Partitioning versus sharding
-
-They sound alike and differ in one way that matters.
-
-**Partitioning** splits one table into pieces inside one database, usually by date: November's orders in one piece, October's in another. Your queries do not change. The database skips pieces that cannot contain matching rows, so a query for today stops scanning last year. It helps only if your queries actually filter on the partition key — partition by month, then search by student id, and you have gained nothing.
-
-**Sharding** splits the data across separate databases by a shard key such as a city or a user id range. Capacity genuinely multiplies, and three things get much harder: a join across shards becomes your job rather than the database's, an aggregate like "total orders today" means querying every shard and adding up, and changing the key later means moving data while serving traffic. Pick a bad key and you get a **hot shard** — shard by city with 60% of users in Mumbai and you have one overloaded database and three idle ones.
+**Pooling is not optional and not advanced.** Serverless makes it urgent, because each concurrent invocation may open its own connection. Most managed databases offer a pooler behind a different connection string, and that one change fixes the error above. **Almost nobody here needs sharding:** one well-indexed database handles tens of millions of rows and thousands of requests a second.
 
 ### Where it lives
 
-The database is the last box in M00's four, and this chapter is about the one thing all your stateless servers share. It builds directly on M04: indexes and query plans are step one here, and transactions and backups are what make a primary trustworthy. Chapter 7 explains what replication lag means formally. Chapter 8 covers the timeouts that stop a pooler queue turning into an outage. M13 goes deep on failover and multi-region.
+The database is the last of M00's four boxes and the one thing all your stateless servers share. M04 supplies step one, indexes and query plans; Chapter 8 covers the timeouts that stop a pooler queue becoming an outage; M13 goes deep on failover.
 
-The realistic sequence this term is: read your query plan, add the missing index, cache the hottest read, switch to the pooled connection string, and stop. Everything past that needs a measurement, not an ambition.
+**Partitioning** splits one table inside one database, usually by date, and your queries do not change — the database skips pieces that cannot match, but only if your queries filter on the partition key. **Sharding** splits data across separate databases by a shard key, and a cross-shard join, a global aggregate and any later change of key all become your problem. Pick badly and you get a **hot shard**: shard by city with 60% of users in Mumbai and you have one overloaded database and three idle ones.
 
 ### Words to own
 
@@ -116,33 +90,25 @@ The realistic sequence this term is: read your query plan, add the missing index
 
 ### Tradeoffs and gotchas
 
-**Replication lag breaks the one read users care about most.** Students forgive a menu that is two seconds stale. Nobody forgives their own order vanishing. The standard fix is a rule: reads immediately after a write by the same user go to the primary, everything else may go to a replica. Decide this per feature and write it down, because the default of "all reads go to the replica" produces exactly the double-order incident above.
+**Replication lag breaks the one read users care about most.** Nobody forgives their own order vanishing, so the rule is: reads immediately after a write by the same user go to the primary, everything else may go to a replica.
 
-**A replica does not help a write problem.** Replicas serve reads. If your primary is busy because students are placing orders, adding replicas changes nothing and adds a lagging copy to worry about. Check your read-write split before you add one.
+**A replica does not help a write problem.** If the primary is busy because students are placing orders, replicas change nothing and add a lagging copy to reason about.
 
-**`max_connections` is not a dial to turn up.** Each connection costs the database real memory and scheduling, so raising the limit trades a clear error for a slow, unpredictable database. This is the same shape of mistake as "add more memory": making room for the symptom instead of removing it. A pooler is the fix.
+**`max_connections` is not a dial to turn up.** Each connection costs real memory, so raising it trades a clear error for a slow, unpredictable database. A pooler is the fix, though it moves the queue rather than deleting it.
 
-**Pooling moves the queue rather than deleting it.** If your queries are slow, requests now wait at the pooler instead of failing at the database. Waiting beats erroring — but a pooler in front of a missing index just hides the index for another week.
+**Partitioning the wrong column is work for nothing.** It helps only when your real queries filter on the key.
 
-**Partitioning the wrong column is work for nothing.** It helps only when your queries filter on the partition key. Check your real queries, not the ones you imagine having.
-
-**Sharding is close to irreversible.** Cross-shard joins, global aggregates and the migration itself all become your problem permanently. Treat a proposal to shard the way you would treat a proposal to change language: possible, occasionally right, never casual.
+**Sharding is close to irreversible.** Treat a proposal to shard like a proposal to change language: possible, occasionally right, never casual.
 
 ### Verify it
 
-**Make it show you the arithmetic.** Ask: "with N instances each holding a pool of M connections, how many connections will my database see, and what is my plan's limit?" If those numbers are not in the answer, nothing else in it is trustworthy. This one calculation prevents the most common free-tier database outage there is.
-
-**Red flag: sharding, or a NoSQL migration, proposed for a small table.** Ask for the row count and the measured query time that justifies it. "Scale" is a word, not evidence. For anything under a few million rows, the honest answer is almost always an index.
-
-**Red flag: a read replica with no mention of lag.** Ask directly: "which of my reads would be wrong if the data were two seconds old, and where do those reads go?" If the AI cannot name your post-write reads as the risk, it has not thought about your app.
-
-**Red flag: "raise `max_connections`" or "upgrade the database plan" as the first suggestion.** Same family as "add more memory". Both may eventually be right; neither is right before you have pooled and indexed.
-
-**Red flag: a replica added when the bottleneck is writes,** or an index that duplicates one already present. Ask what fraction of your queries are reads, with a number.
-
-**Red flag — the familiar one: a cache or a replica placed in front of the part that was never slow,** while the unindexed 900 ms query stays as it is. Ask which measured step each proposal removes.
-
-Then verify by hand. Watch your connection count under load and compare it to the limit. Run your slowest query's plan and confirm it uses an index (M04 taught you to read one). If you have a replica, write a row and immediately read it back through the replica path, repeatedly, and record how often it is missing — that is your lag risk, measured rather than assumed. And log the decision: "pooled connection string, 10 per instance, because three instances against a thirty-connection plan" is the kind of M01 entry that settles an argument in March.
+- **Make it show the arithmetic:** "with N instances each holding a pool of M connections, how many will my database see, and what is my limit?" That one calculation prevents the commonest free-tier outage.
+- **Red flag: sharding or a NoSQL migration for a small table.** Ask for the row count and measured query time; under a few million rows, the answer is an index.
+- **Red flag: a read replica with no mention of lag.** Ask which reads would be wrong at two seconds old.
+- **Red flag: "raise `max_connections`" or "upgrade the plan" first.** Neither is right before pooling and indexing.
+- **Red flag: a replica added when the bottleneck is writes.** Ask what share of queries are reads, with a number.
+- **Red flag: a cache or replica in front of the part that was never slow.**
+- Verify by hand: watch the connection count under load against the limit, confirm your slowest query's plan uses an index, and with a replica, write a row and read it straight back repeatedly, recording how often it is missing.
 
 ## Walkthrough
 1. Open your database dashboard and find the connection limit for your plan. Write the number down. On free tiers it is often between 20 and 60.

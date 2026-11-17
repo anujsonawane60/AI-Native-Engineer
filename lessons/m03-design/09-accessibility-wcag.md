@@ -4,7 +4,7 @@ module: m03-design
 slug: accessibility-wcag
 title: "Accessibility: WCAG, Alt Text, Keyboard and Screen Readers"
 order: 9
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A student in the batch uses a screen reader. They open a classmate's canteen app and hear this:
-
-"Button. Button. Button. Image. Image. Image. Link. Edit text. Button."
-
-That is the entire menu screen. Nine controls, not one of them named. The dish photos have no alt text, so they are announced as "image". The add buttons contain only an icon, so they are announced as "button". The search field has placeholder text instead of a label, so once anything is typed the field has no name at all. There is no way to know which button adds which dish, so the app cannot be used at all — not slowly, not with effort. At all.
-
-The same app is also unusable for a student whose phone's touchscreen is cracked along the bottom third and who navigates with a keyboard, because the AI removed the focus outline in session two for looking cleaner.
-
-Neither student is an edge case. India's 2011 census counted over 26 million people with a disability, and that is an undercount. And every one of these failures took under a minute to fix at the time.
+A student who uses a screen reader opens a classmate's canteen app and hears the whole menu screen as "Button. Button. Button. Image. Image. Image. Edit text." Nine controls, none named: no alt text on the photos, icon-only add buttons, a placeholder that vanishes once anything is typed. Nor can it be used by keyboard, because AI removed the focus outline for looking cleaner.
 
 ### The idea
 
-**Accessibility is a set of checks you can run yourself in twenty minutes, not a specialist discipline you bolt on at the end.**
+**Accessibility is a set of checks you can run yourself in twenty minutes, not a specialist discipline bolted on at the end.**
 
-WCAG — the Web Content Accessibility Guidelines — is organised under four principles: content must be **perceivable**, **operable**, **understandable** and **robust**. AA is the level everyone targets and most legislation references. You do not need to read the specification. You need five habits and four checks.
+WCAG organises everything under four principles: content must be **perceivable**, **operable**, **understandable** and **robust**. AA is the level most legislation references, and you need a few habits and four checks, not the specification.
 
 ### The analogy
 
-The canteen has a step at the entrance. Six inches, and it has been there since 1987. Everybody steps over it without noticing, which is exactly why nobody has ever removed it.
+The canteen has a six-inch step at the entrance, there since 1987. Everybody steps over it without noticing, which is why nobody removed it — but a student on crutches cannot get in, nor can the vendor with a trolley. A ramp costs almost nothing while the floor is being laid, and once built everybody uses it.
 
-A student on crutches cannot get in. Neither can the vendor with a trolley, nor the person carrying a full tray, nor anybody in the dark during a power cut. A ramp would cost almost nothing at the time the floor was laid and costs a great deal to add later. And the ramp, once built, is used constantly by people who are not disabled at all.
-
-**Where the analogy breaks:** the step is visible. Anybody standing at the door can see it. Your app's barriers are invisible to you — you will never notice a missing label, because you can see the icon. This is why accessibility needs *deliberate tests* rather than attention. You cannot find these problems by looking harder at your own screen.
+**Where the analogy breaks:** the step is visible to anybody at the door. Your barriers are invisible to you — you will never notice a missing label, because you can see the icon. Hence *deliberate tests*, not attention.
 
 ### Picture it
 
@@ -68,9 +58,7 @@ A student on crutches cannot get in. Neither can the vendor with a trolley, nor 
 
 Each principle turns into a small number of concrete checks you can run on any screen in minutes, and together those checks catch the overwhelming majority of real problems.
 
-### Alt text depends on the job, not the picture
-
-The single most common mistake is writing alt text that describes the image. The right question is what the image is *doing*.
+The commonest mistake is alt text that describes the image. The right question is what the image is *doing*.
 
 | Image's job | Alt text |
 |---|---|
@@ -80,33 +68,21 @@ The single most common mistake is writing alt text that describes the image. The
 | Text in an image — a price board | The text itself, word for word |
 | Complex — a chart or map | Short alt plus a longer description nearby |
 
-The functional row is where most people go wrong. If a dish photo is tappable and adds the item, its alt text must be "Add vada pav to order", not "Photo of vada pav". Describing the picture when the picture is a button leaves the user knowing what they are looking at and not what will happen.
+The functional row is where people go wrong: a tappable dish photo needs "Add vada pav to order", not "Photo of vada pav". Never begin with "image of".
 
-Two things to never do: do not start with "image of" — the screen reader already says that — and do not leave a decorative divider with alt text, because every meaningless announcement is noise the user has to wade through.
+Then run the keyboard, the highest-return twenty minutes in this module. Mouse aside, Tab, Shift+Tab, Enter, Space and arrows only, watching four things: **can you see where you are**, since a vanishing indicator is `outline: none`; **can you reach everything**, because a control you cannot Tab to does not exist and is usually a `div` with a click handler; **is the order the reading order**; **can you escape** a dialog.
 
-### Keyboard first, because it finds everything
-
-Here is the highest-return twenty minutes in this module. Put your mouse aside, open your product on a laptop, and use only Tab, Shift+Tab, Enter, Space and the arrow keys.
-
-Four things to watch for. **Can you see where you are, at every single step?** If the focus indicator vanishes, that is `outline: none` and it is a hard failure. **Can you reach everything?** Any control you cannot Tab to does not exist for a keyboard user — this is almost always a `div` with a click handler instead of a real button. **Is the order sensible?** Focus should move roughly the way the eye reads. Jumping from the header to the footer and back means the structure is wrong. **Can you escape?** Open a dialog. Can you close it with Escape? Can you Tab out of it into the page behind, which you should not be able to do?
-
-This test requires no tools, no extension and no screen reader, and it catches most of what a screen reader would also catch. It is the one you should run every single week.
-
-### Labels, headings and real controls
-
-Three structural rules that between them fix most screen-reader experiences.
-
-**Every input needs a real label, not a placeholder.** Placeholder text disappears the moment the user types, taking the field's name with it, and it usually fails contrast as well. Visible labels above the field, always.
-
-**Headings must be real headings, in order.** A screen reader user navigates by jumping between headings — it is their equivalent of skimming. Text that is merely large and bold is not a heading, and skipping from a level-one to a level-three heading breaks the outline. One level-one heading per page.
-
-**A button must be a real button.** A styled `div` that responds to clicks is invisible to keyboards and announced as nothing. AI produces these constantly, and the fix is one word in a brief: "every interactive element must be a real semantic control". M02's HTML chapters are where this vocabulary came from.
-
-For an Indian product, two extras. Set the page's language correctly, and set it per-element when you mix scripts — a screen reader reading Marathi text with English pronunciation rules is unusable. And never make a colour the only carrier of meaning, which is chapter 5's rule appearing again because it is also WCAG 1.4.1.
+Three structural rules fix most of the rest. **Every input needs a real label**, not a placeholder that disappears when the user types. **Headings must be real and in order**, because a screen-reader user skims by jumping between them. **A button must be a real button** — a clickable `div` is announced as nothing. And set the language per element where you mix scripts.
 
 ### Where it lives
 
-Accessibility is a constraint on everything in this module, not a chapter after it. Chapter 5's contrast minimums are WCAG 1.4.3. Chapter 6's focus states are 2.4.7 and its tap targets are 2.5.8. Chapter 7 is where these become token obligations so they cannot drift. Chapter 10's motion rules are 2.3.3. Chapter 4's usability testing gets a sibling in M12, which covers mobile and assistive technology properly. In M06 an automated accessibility check can run in CI on every push, which catches regressions you would otherwise ship.
+Accessibility constrains everything here rather than following it.
+
+- **Chapter 5** — contrast is WCAG 1.4.3, colour-alone is 1.4.1
+- **Chapter 6** — focus states 2.4.7, tap targets 2.5.8
+- **Chapter 7** — these become token obligations, so they cannot drift
+- **M06** — an automated check runs in CI on every push
+- **M12** — mobile and assistive technology, properly
 
 ### Words to own
 
@@ -126,28 +102,28 @@ Accessibility is a constraint on everything in this module, not a chapter after 
 
 ### Tradeoffs and gotchas
 
-**Automated checkers find roughly a third of real problems.** They are excellent at contrast, missing alt attributes and missing labels, and blind to whether your alt text is *correct*, whether focus order makes sense, and whether the app is actually usable. A clean automated report is the start of the work.
+**Automated checkers find roughly a third of real problems.** Good at contrast and missing labels, blind to whether your alt text is *correct*.
 
-**Overlay widgets do not fix accessibility.** The one-line script that promises compliance is widely rejected by disabled users and has been the subject of lawsuits. Fix the markup.
+**Overlay widgets do not fix accessibility.** The script promising compliance is rejected by disabled users and has drawn lawsuits. Fix the markup.
 
-**ARIA attributes are a last resort, not a decoration.** Adding `role="button"` to a div is worse than using a button, and AI sprinkles ARIA liberally because it looks diligent. Wrong ARIA is more harmful than none.
+**ARIA is a last resort.** `role="button"` on a div is worse than a button; wrong ARIA is more harmful than none.
 
-**Accessibility and your visual style are not actually in conflict.** Contrast and focus rings are chapter 8's constraints, not its enemies. The look that cannot survive 4.5:1 was never a strong look.
+**Accessibility and visual style are not in conflict.** A look that cannot survive 4.5:1 was never strong.
 
-**Nobody will report these bugs to you.** A user who cannot use your app leaves. You will see it as a flat line in M07's analytics and never know why, which is precisely why the checks have to be scheduled rather than triggered by complaints.
+**Nobody will report these bugs.** The user leaves, and you see a flat line in M07's analytics. Hence scheduled checks.
 
 ### Verify it
 
-Four checks, every one of which you run yourself.
+Four checks, all run by you.
 
-1. **The keyboard run.** Tab through every screen. Write down each control you cannot reach, each point where focus disappears, and each place the order jumps. Any one of these is a blocker, not a nice-to-have.
-2. **The screen-reader pass.** Turn on TalkBack on an Android phone, or VoiceOver on an iPhone, and listen to one screen with your eyes shut. Write down every announcement that is just "button", "image", "link" or "edit text" with no name. Ten minutes, and it will change how you brief design permanently.
-3. **The automated scan, read properly.** Run a browser accessibility audit and read every item rather than the score. Then remember it found about a third of what is there.
-4. **The alt-text audit.** List every image and, for each, decide its job — decorative, informative, functional, text, complex — and check the alt text matches that job. Any functional image whose alt describes the picture rather than the action is wrong.
+1. **The keyboard run.** Tab every screen; note each control you cannot reach, each point focus disappears, each jump in order.
+2. **The screen-reader pass.** TalkBack or VoiceOver, eyes shut. Note every announcement that is just "button" or "image".
+3. **The automated scan, read properly** — every item, not the score, remembering it finds a third.
+4. **The alt-text audit.** Decide each image's job and check the alt matches it.
 
-When briefing AI, ask it for a list it cannot fake: "for every interactive element on this screen, give me the element type, its accessible name, and its focus indicator." Then verify three of them yourself with the keyboard. A table is checkable; "this follows WCAG AA" is not.
+Then ask for a list it cannot fake: "for every interactive element, give the element type, its accessible name, and its focus indicator." Verify three yourself. A table is checkable; "follows WCAG AA" is not.
 
-Red flags: `outline: none` anywhere; placeholder text used as a label; alt text beginning "image of"; a clickable `div`; ARIA roles on elements that already have the right role; a heading level skipped; a contrast claim with no number; an icon-only button with no accessible name; and any claim of compliance that does not name a specific guideline.
+Red flags: `outline: none` anywhere; a placeholder as a label; alt beginning "image of"; a clickable `div`; ARIA roles on elements that already have the role; a skipped heading level; an icon-only button with no name.
 
 ## Walkthrough
 1. Open your product on a laptop, put the mouse out of reach, and reach the main action using only Tab and Enter. Note the exact step where you first lose track of where you are.

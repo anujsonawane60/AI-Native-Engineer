@@ -4,7 +4,7 @@ module: m07-security-observability-analytics
 slug: ab-tests-privacy-consent
 title: "A/B Tests, Significance, Privacy and Consent"
 order: 9
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team changes their Order button from grey to orange. Over two days, 23 of 190 visitors order with orange against 18 of 182 with grey — 12.1% against 9.9%, a 22% relative improvement. They ship orange, put the number on a slide, and move on.
+A team changes their Order button from grey to orange. Over two days, 23 of 190 visitors order with orange against 18 of 182 with grey — a 22% relative improvement. They ship orange and put it on a slide. Nothing changes: the difference was five people, which is what two coin flips of 190 tosses differ by on an ordinary Tuesday.
 
-Nothing changes. The next month's orders look exactly like the last month's. The difference they measured was five people, which is what two coin flips of 190 tosses differ by on an ordinary Tuesday. They measured noise, named it a result, and built on it.
-
-Meanwhile their analytics snippet had been sending the whole signup form to a vendor's server — phone numbers included — with no notice, no consent, and no idea which country the data sat in. That is the more expensive of the two mistakes, and it was the one nobody looked at.
+Meanwhile their analytics snippet had been sending the whole signup form to a vendor's server, phone numbers included, with no notice and no consent — the more expensive mistake, and the one nobody looked at.
 
 ### The idea
 
 **An experiment is a comparison you designed before you looked at the data, and significance is a statement about how surprising your difference would be if nothing were really happening.**
 
-Both halves matter. Decide the metric, the groups, the duration and the threshold in advance, and the result means something. Decide any of them after seeing the numbers and you have found a pattern in noise, which humans do effortlessly and reliably.
+Decide the metric, the groups, the duration and the threshold in advance and the result means something. Decide any of them afterwards and you have found a pattern in noise.
 
 ### The analogy
 
-The canteen wants to know whether a new samosa recipe sells better.
+The canteen wants to know whether a new samosa recipe sells better. The wrong experiment is new recipe Monday, old recipe Tuesday: Monday was a holiday and Tuesday had rain, so the difference measures the week. The right experiment runs both the same day at two counters, students sent to one by a coin flip and always to the same counter, measuring plates per hundred students for two weeks and looked at once at the end.
 
-The wrong experiment: new recipe on Monday, old recipe on Tuesday. Monday was a holiday, Tuesday had rain, and there was a cricket match. The difference measures the week, not the samosa.
-
-The right experiment: both recipes, same day, two counters, students sent to one or the other by a coin flip — and the same student always goes to the same counter, so nobody compares the two and gets confused. Decide in advance that you are measuring plates per hundred students, run two full weeks so every weekday appears in both groups, and look once at the end.
-
-**Where the analogy breaks:** in the canteen you can watch faces, and you can ask the student who put the samosa down why. In software you get a number and nothing else — no expression, no reason, nobody to ask. That absence is why the design has to be right before you start: there is no way to interrogate a disappointing result afterwards.
+**Where the analogy breaks:** in the canteen you can watch faces and ask why. In software you get a number and nothing else, which is why the design must be right before you start.
 
 ### Picture it
 
@@ -66,47 +60,34 @@ The right experiment: both recipes, same day, two counters, students sent to one
    roughly 3,800 per group
 ```
 
-A thousand students split evenly produce a difference of nine orders, which looks like a result and is well inside what chance produces — detecting a move from 10% to 12% reliably needs something like 3,800 people in each group.
+A thousand students split evenly produce a difference of nine orders, which looks like a result but sits well inside what chance produces — detecting a move from 10% to 12% needs some 3,800 per group.
 
-### What significance actually claims
+The number you will be shown is a **p-value**: *if there were truly no difference, how often would a gap this large turn up by chance?* It does **not** mean a 97% chance your change works, and above 0.05 usually means the sample was too small to tell. Decide the **minimum detectable effect** first — halving it roughly quadruples the people needed — compute the **sample size** before you start, and never **peek**.
 
-The number you will be shown is a **p-value**, and almost everybody misreads it.
+**So most student teams should not run A/B tests,** which is a conclusion, not a failure. With a few hundred users, watch chapter eight's funnel, sit with five people, and change what confused them.
 
-A p-value of 0.03 means: *if there were truly no difference between A and B, a gap this large or larger would turn up about 3% of the time by chance alone.* That is all. The usual threshold is 0.05, often displayed as "95% confidence".
+### Privacy and consent
 
-It does **not** mean there is a 97% chance your change works. It does not mean the effect is large, or that it will persist. And a p-value above 0.05 does not mean the variants are the same — far more often it means your sample was too small to tell.
+Analytics and experiments both run on people. Under **India's Digital Personal Data Protection Act, 2023**, you are a **data fiduciary** and your user a **data principal**.
 
-Three terms you need alongside it:
+| DPDP obligation | What it means for your product |
+|---|---|
+| Notice and consent | A plain-language notice before processing, and consent that is free, specific, informed and actively given — a pre-ticked box is not consent |
+| Purpose limitation | Use the data for the stated purpose, not one you thought of later |
+| Data minimisation | Collect what the purpose needs, not the whole form |
+| Rights | The principal can ask what you hold, correct it, and have it erased |
+| Children | Under-18 data needs verifiable parental consent; behavioural tracking of children is prohibited |
 
-**Minimum detectable effect.** How small a difference you want to be able to notice. Smaller effects need dramatically more people — halving the effect roughly quadruples the sample. Decide this first, because it determines whether the experiment is possible at all.
-
-**Sample size.** Computed from your current rate and that minimum effect, *before* you start. If the answer is more users than you will have this term, you cannot run this test, and knowing that in advance saves you from running it badly.
-
-**Peeking.** Checking significance repeatedly and stopping when it crosses the line. This is how honest teams get false results: look twenty times and you cross 0.05 by chance eventually, then declare victory. Fix the duration in advance and look at the end.
-
-**So most student teams should not run A/B tests.** That is the honest conclusion, and not a failure. With a few hundred users the alternative is better: watch chapter eight's funnel, sit next to five people using the product, change the thing that visibly confused all five, and see whether the drop-off moves. A/B testing becomes the right tool when traffic is large enough that you can no longer see individuals — M16's territory, with real users.
-
-### Privacy and consent: the part with legal weight
-
-An experiment runs on people, and so does analytics. Two frameworks govern this for an Indian student product.
-
-**India's Digital Personal Data Protection Act, 2023** — the DPDP Act. You are a **data fiduciary**; your user is a **data principal**. The obligations that bite a small product:
-
-- **Notice and consent.** Before processing personal data you must give a plain-language notice saying what you collect and why, and obtain consent that is free, specific, informed and given by a clear affirmative action. A pre-ticked box is not consent. Silence is not consent.
-- **Purpose limitation.** Use the data for the stated purpose, not a new one you thought of later.
-- **Data minimisation.** Collect what the purpose needs — not the whole form because the form was there.
-- **Rights.** The data principal can ask what you hold, have it corrected, and have it erased. If you cannot delete one person's data, you cannot meet that obligation.
-- **Children.** Processing data of anyone under 18 requires verifiable parental consent, and behavioural tracking aimed at children is prohibited. A college app will have first-year users under 18, so this is not theoretical.
-
-**GDPR** applies the moment you have users in the EU, which a public URL may acquire accidentally. The shape is similar — a lawful basis, minimisation, a defined retention period, rights of access and erasure — and analytics cookies there require consent before they load.
-
-What this means for your setup, in four lines. No personal data in events: user id, never phone number or email. Do not load an analytics script before consent, which is what a generated cookie banner almost always gets wrong. Anonymise or truncate IP addresses if your tool offers it. Set a retention period, because "forever" is not a period.
+A college app will have first-year users under 18, so the last row is not theoretical. **GDPR** applies the moment you have EU users, which a public URL may acquire accidentally, and analytics cookies there need consent before loading. For your setup: user id in events, never phone number or email; no analytics script before consent, which generated banners get wrong; IPs truncated; a retention period set.
 
 ### Where it lives
 
-Chapter eight gave you the events; this chapter is what you may do with them and who you must ask first. M04 is where the personal data lives and where an erasure request has to be answerable. Chapter five's never-log list is the same principle applied to logs — and logs are personal data too.
+Chapter eight gave you the events; this chapter is what you may do with them and who you must ask first.
 
-The practicum is M16 at the Company tier: a real experiment programme, and privacy, consent, DPDP and GDPR with a real user base. This chapter is the vocabulary and the judgement; that module is the practice. M11's going-live checkpoint is where a consent notice stops being optional, because that is when strangers start arriving.
+- M04 — where the personal data lives and erasure must be answerable
+- Chapter 5 — the never-log list, the same principle for logs
+- M11 — the going-live checkpoint, where a consent notice stops being optional
+- M16, Company tier — a real experiment programme, DPDP and GDPR with real users
 
 ### Words to own
 
@@ -125,30 +106,22 @@ The practicum is M16 at the Company tier: a real experiment programme, and priva
 
 ### Tradeoffs and gotchas
 
-**Do not A/B test what you can decide by judgement.** Button wording, spacing, which of two icons. The cost of a test — traffic, weeks, a fork in your product — is only worth paying for decisions that are expensive to reverse or genuinely contested. Taste is cheaper than statistics.
-
-**Novelty fades.** A new thing gets attention because it is new. Run long enough that first-week curiosity has passed, and be suspicious of a lift that lives entirely in days one and two.
-
-**Twenty metrics means one false winner.** Measure twenty numbers at a 5% threshold and one will look significant by chance. Choose one primary metric in advance, keep two or three guardrails, and treat the rest as questions for next time.
-
-**Reassignment destroys an experiment silently.** If the variant is chosen freshly on every page load, a user sees orange, then grey, then orange. Their behaviour belongs to no group, and nothing warns you. Assignment must come from something stable, like a hash of the user id.
-
-**Consent refusals shrink your sample and bias it.** People who refuse tracking are not a random slice. Accept it and read your numbers as directional, rather than looking for a way around asking.
-
-**Experimenting on people has an ethical floor, not only a legal one.** Do not test things that could harm someone: different prices for different students, a variant that hides a safety warning, anything involving money the user cannot see. If you would not describe the test to the person in it, do not run it.
+- **Do not A/B test what you can decide by judgement** — wording, spacing, icons. Taste is cheaper than statistics.
+- **Twenty metrics means one false winner** at a 5% threshold. One primary metric decided in advance, two or three guardrails, the rest questions for next time. And novelty fades, so distrust a lift that lives entirely in days one and two.
+- **Reassignment destroys an experiment silently.** A variant chosen freshly on every page load puts one person's behaviour in no group at all; assignment must come from a hash of the user id.
+- **Consent refusals shrink and bias your sample:** people who refuse tracking are not a random slice.
+- **Experimenting on people has an ethical floor, not only a legal one.** No different prices for different students, no variant hiding a safety warning. If you would not describe the test to the person in it, do not run it.
 
 ### Verify it
 
-Six checks. The first three are about the experiment, the last three are about whether you were allowed to run it.
+1. **Ask what the primary metric is and when it was chosen.** If it came after the data, the result is a story.
+2. **Check that assignment is sticky:** reload ten times and confirm the same variant. **Assignment recomputed on every render** is the classic generated-code flaw.
+3. **Ask for the sample size calculation and the planned end date.** No calculation means nobody knows what the test could detect; no end date invites peeking.
+4. **Watch the network tab before you touch the consent banner.** If a tracker fires first, the banner is decoration.
+5. **Inspect the payload of one analytics event, field by field.** **A phone number, email or full name in an event property** is the red flag, usually because a snippet sent the whole form object.
+6. **Try to answer an erasure request.** Work out how you would delete one user id from your database, your logs and your analytics tool. If you cannot, that obligation is unmet.
 
-1. **Ask what the primary metric is and when it was chosen.** If the answer came after the data, the result is a story. Look for a written hypothesis with a date on it.
-2. **Check that assignment is sticky, by testing it.** Reload the page ten times and confirm you see the same variant every time. **Assignment recomputed on every render** is the classic generated-code flaw and it quietly invalidates everything.
-3. **Ask for the sample size calculation and the planned end date.** No calculation means nobody knows whether this test could have detected anything. No end date means peeking is inevitable.
-4. **Open the network tab and watch what loads before you click anything on the consent banner.** If a tracker fires before consent, the banner is decoration. This takes thirty seconds and is the check almost nobody runs.
-5. **Inspect the actual payload of one analytics event.** Read every field. **A phone number, email or full name inside an event property** is the red flag here, and it is usually there because a generated snippet sent the whole form object rather than the fields you chose.
-6. **Try to answer an erasure request.** Pick a user id and work out, concretely, how you would delete that person from your database, your logs and your analytics tool. If you cannot, you have an obligation you cannot meet — and finding that out now is far cheaper than finding out when someone asks.
-
-Red flags: significance "achieved" after daily checking; a result based on a difference of single-digit people; a test with no primary metric named in advance; variants reassigned per request; analytics loading before consent; personal data in event properties; and a retention policy of "we keep everything".
+Red flags: significance "achieved" after daily checking; a result based on single-digit people; no primary metric named in advance; variants reassigned per request; analytics loading before consent; personal data in event properties; a retention policy of "we keep everything".
 
 ## Walkthrough
 1. Take a change your team is currently arguing about and write it as a hypothesis in one sentence: "Changing X will increase Y because Z."

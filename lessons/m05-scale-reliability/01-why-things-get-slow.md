@@ -4,7 +4,7 @@ module: m05-scale-reliability
 slug: why-things-get-slow
 title: "Why Things Get Slow: Latency Numbers Worth Knowing"
 order: 1
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,29 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-Your team's app works. On your laptop, on campus Wi-Fi, with eleven rows in the database, the menu page appears the instant you click. You demo it to your mentor and nobody has a complaint.
-
-Then forty people open it at 1:10 pm on budget Android phones on college 4G. The page takes nine seconds. Three of them give up and walk to the counter instead. One keeps refreshing, which makes it worse for everybody. Your group's first instinct is "we need a bigger server", and you are about to spend money on exactly the wrong thing — because nothing in those nine seconds was the server running out of CPU.
-
-Slowness is not a mood or a vibe. It is a sum of specific, measurable delays, and almost every one of them is either a trip across a network or a trip to the database. Until you know roughly what each step costs, every performance decision you make — and every performance decision you let an AI make on your behalf — is a guess dressed up as engineering.
+Your app is instant on your laptop with eleven rows in the database. Then forty students open it at 1:10 pm on budget Android phones on college 4G, the page takes nine seconds, and three walk to the counter instead. Your team's instinct is "a bigger server" — and nothing in those nine seconds was CPU.
 
 ### The idea
 
 **A request's time is a budget, and you can only spend a budget sensibly if you know the price of things.**
 
-Four facts carry most of this module. Reading from memory is roughly a thousand times faster than reading from disk. Crossing a network inside one datacentre is roughly a thousand times slower again than reading from memory. Crossing a continent is a hundred times worse than that. And in a normal web app, the place the request actually spent its time waiting is the database.
-
-Memory is near. Disk is far. The network is further. Distance is worst. Hold just those four and you can reason about nine slowness problems out of ten before you open any tool.
+Memory is roughly a thousand times faster than disk. One network hop inside a datacentre is roughly a thousand times slower again. Crossing a continent is a hundred times worse than that. And in a normal web app, the place the request waited is the database: memory is near, disk is far, the network is further, distance is worst.
 
 ### The analogy
 
-Stand behind the canteen counter at 1:10 pm and the distances are physical.
+Behind the canteen counter the distances are physical. The samosas at your elbow are memory: one second. The fresh batch six steps away in the kitchen is disk: half a minute. The gas cylinder across the courtyard is one network hop: three minutes. The supplier in the next town is Mumbai to Virginia: a two-hour round trip. Nobody walks to the next town to serve one plate, yet apps do the equivalent constantly, because in code all four look like one innocent line.
 
-The tray of pre-made samosas is at your elbow. Handing one over costs a second: that is memory. The fresh batch is in the kitchen six steps behind you, so fetching it costs half a minute: that is disk. The spare gas cylinder is in the storeroom across the courtyard, a three-minute walk: that is one network hop to another machine. And the wholesale supplier is in the next town, which is a two-hour round trip: that is a request crossing from Mumbai to Virginia and back.
-
-Nobody running a canteen would walk to the next town to serve one plate. Yet apps do the equivalent constantly, because in code every one of those four actions looks like a single innocent line.
-
-**Where the analogy breaks** in two ways worth naming. First, the real gaps are far more violent than any physical distance: if RAM is one step, disk is a kilometre away and a cross-continent hop is most of the way around the planet. Second, the courtyard does not get longer when more students queue — but a shared database absolutely does get slower under load, because requests start waiting behind each other. That queueing effect is the thing the canteen hides and the next eight chapters are mostly about.
+**Where the analogy breaks:** the courtyard does not get longer when more students queue, while a shared database does get slower under load, because requests wait behind each other — the queueing effect the rest of this module is about.
 
 ### Picture it
 
@@ -61,9 +51,7 @@ Nobody running a canteen would walk to the next town to serve one plate. Yet app
 
 Each step down the ladder is not slightly slower than the one above it but hundreds or thousands of times slower, which is why the two bottom rungs — anything that leaves the building — dominate a request's total time.
 
-### The numbers worth knowing
-
-You do not need these precisely. You need them to the nearest factor of ten, the way you know a samosa costs about ₹15 and not ₹1,500.
+To the nearest factor of ten, as you know a samosa costs ₹15 and not ₹1,500:
 
 | What happens | Roughly | Canteen equivalent |
 |---|---|---|
@@ -76,13 +64,11 @@ You do not need these precisely. You need them to the nearest factor of ten, the
 | Mumbai to Virginia, there and back | ~220 ms | next state |
 | A phone on slow 4G, before any work | 100–300 ms | the student is still walking in |
 
-And three numbers about the human on the other end: under 100 ms feels instant, under 1 second keeps their attention, and past about 10 seconds they assume it is broken and leave. Your nine-second menu page was sitting on the edge of that cliff.
+For the human: under 100 ms feels instant, under 1 second keeps attention, past 10 seconds they leave. Your nine-second page sat on that cliff edge.
 
 ### Where it lives
 
-M00 gave you four boxes — client, network, server, data. Latency does not live in the boxes. It lives in the gaps between them.
-
-Trace the nine seconds honestly and it usually looks like this: 300 ms for the phone to open a connection on 4G, 1,500 ms of cold start because a free-tier server was asleep, 41 separate database queries because the code asked for the dish list and then asked for each dish's details one at a time, and 4 MB of uncompressed photos still downloading after the HTML arrived. Not one of those is a CPU problem. Three of the four are "we crossed a gap more times than we needed to", which is the single most common shape of slowness in student projects and in production systems alike.
+Latency lives in the gaps between M00's four boxes, not in the boxes. Trace the nine seconds and it is usually 300 ms to open a connection on 4G, 1,500 ms of cold start on a sleeping free-tier server, 41 queries because the code asked for the dish list and then each dish separately, and 4 MB of uncompressed photos still arriving. Three of those four are "we crossed a gap more times than we needed to".
 
 ### Words to own
 
@@ -101,31 +87,24 @@ Trace the nine seconds honestly and it usually looks like this: 300 ms for the p
 
 ### Tradeoffs and gotchas
 
-**The average is a liar.** If nineteen requests take 80 ms and one takes 6 seconds, the average is 376 ms and sounds acceptable. Your p95 is 6 seconds and one student in twenty thinks your app is broken. M07 teaches percentiles properly; for now, never accept an average as evidence that something is fast.
+**The average is a liar.** Nineteen requests at 80 ms and one at 6 seconds averages 376 ms, while your p95 is 6 seconds and one student in twenty thinks your app is broken.
 
-**Bandwidth is not latency.** College 4G may download 5 MB a second and still take 200 ms to get the first byte moving. Big files are a bandwidth problem; many small requests are a latency problem, and they need opposite fixes. Shrinking an image does nothing for 41 queries.
+**Bandwidth is not latency.** College 4G may download 5 MB a second and still take 200 ms to get the first byte moving, so shrinking an image does nothing for 41 queries.
 
-**N+1 is the single most common cause of a slow page.** Forty-one queries at 3 ms each is 123 ms and survivable. The same forty-one queries when your server is in Mumbai and your database is in Virginia is nine seconds, and the code looks identical. M04's query chapter is where you learn to spot it in a query plan.
+**N+1 is the commonest cause of a slow page.** Forty-one queries at 3 ms each is 123 ms; the same code with your database in Virginia is nine seconds.
 
-**Free tiers sleep.** A function that has had no traffic for fifteen minutes may take 1–3 seconds to answer the first request. Your 1:10 pm rush is the worst possible moment to discover this. M06 covers what to do about it.
+**Free tiers sleep.** Fifteen quiet minutes can cost 1–3 seconds on the first request, and 1:10 pm is the worst moment to find out.
 
-**Fixing without measuring is gambling with extra steps.** Every number above is an order of magnitude, not a measurement of *your* app. The first job is always to find out where the time went.
+**Every number above is an order of magnitude, not a measurement of *your* app.** Fixing without measuring is gambling with extra steps.
 
 ### Verify it
 
-Ask an AI to make your page faster and you will get something plausible immediately. Here is how to tell whether it understood the problem.
-
-**Demand a breakdown before a fix.** The right first answer is a table of milliseconds per step: connection, cold start, server processing, each query, payload transfer. If it jumps straight to a solution without asking what your timings are, it is pattern-matching on the word "slow", not reasoning about your system.
-
-**Red flag: caching added to the fastest part.** AI very often proposes caching a computed value that already lives in memory and takes microseconds, while leaving the 41 database calls untouched. Caching the cheap thing adds complexity and saves nothing. Always ask: which of my steps does this remove, and how many milliseconds was that step?
-
-**Red flag: "use a bigger instance" or "add more memory" as the first suggestion.** More RAM does not reduce the number of round trips, and if memory use is climbing steadily it is a leak that a bigger box only postpones. Treat "scale up" as an answer that needs a measured bottleneck behind it.
-
-**Red flag: averages in the report.** If the AI says "average response time improved to 180 ms", ask for p50, p95 and p99. The fix that lowers the average while leaving the tail alone has helped nobody who was actually suffering.
-
-**Red flag: optimising a loop that runs once.** Micro-optimising code is attractive to language models because it looks like real work. Ask what fraction of the total time that code accounted for. If the answer is under 5%, you have been handed a distraction.
-
-Record whichever number you measured in your decision log from M01, because in six weeks the only way to prove a change helped is to have written down what it was before.
+- **Demand a breakdown before a fix:** milliseconds per step — connection, cold start, server, each query, payload. Jumping to a solution means it pattern-matched on "slow".
+- **Red flag: caching added to the fastest part.** Ask which step the fix removes and what that step cost.
+- **Red flag: "a bigger instance" or "more memory" first.** More RAM does not reduce round trips, and climbing memory is a leak.
+- **Red flag: averages in the report.** Ask for p50, p95 and p99.
+- **Red flag: optimising a loop that runs once.** Ask what share of total time it accounted for; under 5% is a distraction.
+- Record your measurement in your M01 decision log; in six weeks it is the only proof a change helped.
 
 ## Walkthrough
 1. Open your team's deployed app on a phone, not a laptop, and turn Wi-Fi off so you are on real mobile data. Time how long the main page takes, by stopwatch, three times.

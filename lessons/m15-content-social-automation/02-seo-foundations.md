@@ -4,7 +4,7 @@ module: m15-content-social-automation
 slug: seo-foundations
 title: "SEO Foundations: Crawling, Indexing and Search Intent"
 order: 2
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: medium
@@ -22,25 +22,28 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team in Nashik builds a tiffin-service finder. It works. They decide to "do SEO" and publish twelve articles over four weeks: *The Future of Food Tech in India*, *Why Tiffin Services Are the Next Big Thing*, *10 Productivity Tips for Students*. Six weeks later, Search Console reports 41 total impressions and 2 clicks, one of which was a team member.
-
-Meanwhile people in Nashik were typing, every day: `tiffin service near me`, `tiffin service nashik price per month`, `nashik mein tiffin ka rate`, `नाशिक टिफिन सर्विस`, and `veg tiffin college road nashik`. Not one of the twelve articles answered any of them. The team had written for an imaginary reader who enjoys essays about industries, instead of a real one standing outside a hostel gate at 8:40 pm wanting a monthly price.
-
-Worse, three of the twelve were never in Google's index at all — not ranked low, *absent*. Nobody had checked, because nobody knew there was a difference between "published" and "indexed".
+A team in Nashik builds a tiffin-service finder and decides to "do SEO" by publishing twelve articles like *Why Tiffin Services Are the Next Big Thing*. Six weeks later Search Console reports 41 impressions and 2 clicks, one a team member. Meanwhile people in Nashik were typing `tiffin service nashik price per month`, `nashik mein tiffin ka rate` and `नाशिक टिफिन सर्विस` daily, and not one article answered any of them. Worse, three of the twelve were never in Google's index — not ranked low, *absent* — and nobody had checked, because nobody knew those were different states.
 
 ### The idea
 
-**Search is not one machine, it is four stages in a row — discover, crawl, index, rank — and each one fails silently. Your page is stuck at exactly one of them, and the first job is to find out which.**
+**Search is not one machine but four stages in a row — discover, crawl, index, rank — each failing silently. Your page is stuck at exactly one of them, and the first job is finding out which.**
 
-Then one more rule that decides everything above it: **ranking is downstream of intent.** A query carries a reason. If your page does not serve that reason, no amount of writing moves it, because the engine is matching the reason, not the words.
+Then the rule above it: **ranking is downstream of intent.** A page that does not serve the reason behind a query will not move. Four reasons cover most queries.
+
+| Intent | A query that carries it | What the page must be |
+|---|---|---|
+| Informational | `monthly tiffin cost nashik` | The number, before any story |
+| Navigational | `annapurna tiffin nashik` | Their chosen place; not an SEO win |
+| Commercial | `best veg tiffin service nashik` | A list with honest prices |
+| Transactional | `tiffin service subscribe nashik` | One step from acting |
+
+In India a fifth cuts across all four: **local intent** — `near me`, or no location at all because the phone knows. Those resolve in a map pack, where your Google Business Profile beats any page. And it is one page per intent, never per keyword.
 
 ### The analogy
 
-The campus noticeboard system. Every week a junior clerk walks the whole campus photographing every notice on every board — that is the crawler. The photos go into a register in the office, organised by topic — that is the index. When a student walks up and asks "where is the cheapest thali today?", the clerk hands over the three most useful notices — that is ranking.
+A junior clerk photographs every notice on every campus board — the crawler. The photos go into a register organised by topic — the index. A student asks for the cheapest thali and he hands over the three most useful notices — ranking. Four different things can go wrong: your notice sits behind a door he never opens (discovery), it is in faded pencil (crawl), he decides it duplicates another and does not file it (indexing), or it is filed but two others answer better (ranking).
 
-Four things can go wrong, and they are completely different problems. Your notice is pinned behind a door the clerk never opens: a discovery failure. The clerk walks past but your notice is written in faded pencil he cannot read: a crawl failure. He reads it, decides it is a duplicate of another notice, and does not file it: an indexing failure. It is filed, but two other notices answer the thali question better: a ranking failure.
-
-**Where the analogy breaks** in three ways. The register is rebuilt continuously, not weekly. The clerk weighs hundreds of signals, including how many other boards point at your notice. And most importantly, the clerk cannot read a notice that only appears after a projector warms up — which is exactly what a page that renders entirely in JavaScript looks like to a crawler. M02's rendering chapter is why that matters here.
+**Where the analogy breaks:** the register is rebuilt continuously, the clerk weighs how many other boards point at your notice, and he cannot read a notice that appears only once a projector warms up — what a JavaScript-rendered page looks like to a crawler.
 
 ### Picture it
 
@@ -66,37 +69,11 @@ Four things can go wrong, and they are completely different problems. Your notic
                 └───────────────────────────────┘
 ```
 
-A page moves top to bottom through four independent gates, and "not showing up in Google" means it failed at one specific gate — so the fix for a discovery failure has nothing in common with the fix for a ranking failure.
-
-### Search intent, and why it decides the page
-
-Every query has a reason behind it. There are four common ones, and they want four different pages.
-
-**Informational** — "how much does a monthly tiffin cost in nashik". They want an answer. Give them the number, high on the page, before any story.
-
-**Navigational** — "annapurna tiffin nashik". They already decided; they want a specific place. If that is your brand, this is not an SEO win — they were coming anyway.
-
-**Commercial** — "best veg tiffin service nashik". They are comparing. They want a list with prices and honest differences, not a sales page about you.
-
-**Transactional** — "tiffin service subscribe nashik". They want to act now. The page should be one step from doing it.
-
-And in India, a fifth cuts across all of them: **local intent**. `near me`, a locality name, or no location at all because the phone already knows. Those queries often resolve in a map pack, which means your Google Business Profile can matter more than any page you write.
-
-The practical rule: one page per intent, not one page per keyword. Six near-identical pages chasing six variants of the same intent compete with each other, and Google picks one almost at random. That is keyword cannibalisation, and it is self-inflicted.
-
-### The Indian query, taken seriously
-
-This is where the free traffic is, because most teams write only clean English.
-
-Your users type `tution fees kitni hai` — Hindi words in Latin script. That is **transliteration**, and it is a different string from both `ट्यूशन फीस` and `tuition fees`. They type **Hinglish**: `best tiffin service nashik under 2000 rupees mahina`. They *speak* queries, which makes them longer and conversational: "nashik mein sabse sasta veg tiffin kaun deta hai". They search in Marathi in Nashik, and a page that exists only in English simply does not compete.
-
-Three things follow. Say the price in the query's own language, in ₹, as a number. Keep a natural Hinglish phrasing on the page where your users genuinely use it — forcing it where they do not is worse than leaving it out. And remember that for many of these queries the winning result is a YouTube video or a Maps listing, not a web page, so chapter 9's repurposing is part of your SEO, not separate from it.
+A page moves top to bottom through four independent gates, and "not showing up in Google" means it failed at one of them.
 
 ### Where it lives
 
-M04 taught you what an index and a ranking function are from the inside — inverted indexes, relevance scoring, why a query becomes a set of candidates and then an order. This chapter is the same machinery at internet scale, operated from outside.
-
-Chapter 3 fixes the discover-crawl-index stages mechanically. Chapter 4 scales the page-per-intent idea to hundreds of pages. Chapter 10 is where impressions and positions become a decision. And the M16 boundary holds: search traffic arriving is this module; what those arrivals do next is not.
+M04 taught you indexes and ranking functions from the inside; this is the same machinery at internet scale, from outside. Chapter 3 fixes discover-crawl-index, chapter 4 scales page-per-intent, chapter 10 turns impressions into a decision. The boundary holds: **M15 ends at the visit**, **M16 begins at it**.
 
 ### Words to own
 
@@ -118,33 +95,25 @@ Chapter 3 fixes the discover-crawl-index stages mechanically. Chapter 4 scales t
 
 ### Tradeoffs and gotchas
 
-**High volume is usually a trap.** "Online tuition" has enormous volume and is contested by companies with budgets you cannot see the top of. "Tuition for 10th standard maths near college road nashik" has tiny volume, almost no competition, and the person typing it is three minutes from paying someone. Early on, you want the second kind — twenty of them.
+**High volume is usually a trap.** "Online tuition" is contested by companies with budgets you cannot see the top of. "Tuition for 10th standard maths near college road nashik" has no real competition and the person typing it is minutes from paying someone. Want twenty of the second kind.
 
-**SEO pays out in months, not days.** Expect eight to twelve weeks before a new page settles. This is the clearest reason chapter 1 insists you start in week four, not week eleven.
+**Transliterated and regional queries are where the free traffic is**, because most teams write only clean English. `tution fees kitni hai` is Hindi in Latin script — a different string from both `ट्यूशन फीस` and `tuition fees`. Spoken queries run longer still, and in Nashik people search in Marathi, where an English-only page cannot compete. Say the price in the query's own language, in ₹, as a number — and for many of these the winner is a video or Maps listing, not a page.
 
-**Brand queries are not an SEO result.** If your Search Console traffic is all your own product name, you are measuring people who already knew you. Filter brand queries out before you judge anything.
+**SEO pays out in months.** Expect eight to twelve weeks before a new page settles.
 
-**Zero-click is real.** For many informational queries the SERP answers it directly and your impression never becomes a visit. Your defence is to also own queries where the answer requires your page — a price, a form, a live list.
-
-**Do not write for crawlers.** Keyword-stuffed text reads badly to humans and is detected trivially. The machine is now good enough that writing well for the person is also writing well for the engine.
-
-**Not every query should be a page.** Some belong in a video, some in your Maps listing, some in nothing at all. Deciding "we will not chase this" is a real answer.
+**Brand queries and zero-click SERPs both flatter you.** Traffic that is all your own product name measures people who already knew you, and a SERP that answers directly never sends the visit. Own queries whose answer needs your page: a price, a form, a list.
 
 ### Verify it
 
-AI will cheerfully hand you a keyword plan with a table of monthly search volumes. Treat that table as fiction until proven otherwise.
+**Red flag: invented numbers.** A language model has no volume data, so "2,400 searches/month" with no source was made up. Demand each number be labelled measured or estimated.
 
-**Red flag: invented numbers.** A language model does not have Google's volume data. If it produces "2,400 searches/month" without naming where the figure came from, it made it up. Ask it to label every number as measured or estimated, and go and check a sample in a real free tool.
+**Red flag: no SERP check.** Type the query yourself first. If no real results exist and autocomplete does not offer it, nobody is asking. If the top ten are comparison lists and you are writing about your founders, you will not rank — and should not.
 
-**Red flag: a page for a query nobody searches.** The clearest signal is Search Console showing a handful of impressions after eight weeks. Before you write, type the query yourself and look at whether real results exist and whether autocomplete offers it. If nothing competes, often nobody is asking.
+**Red flag: one page targeting six keywords.** Cannibalisation dressed as efficiency. Name the single intent it serves; cut it if the answer has an "and" in it.
 
-**Red flag: an intent mismatch.** Open the actual SERP for your target query. If the top ten are all comparison lists and you are writing a story about your founders, you will not rank — and should not.
+**Red flag: no indexed check.** "Published" is not "indexed". Search `site:` plus your URL, or use URL inspection, before theorising about rank.
 
-**Red flag: one page targeting six keywords.** That is cannibalisation dressed as efficiency. Ask which single intent the page serves, in one sentence, and cut it if the answer has an "and" in it.
-
-**Red flag: no indexed check.** "Published" is not "indexed". Search `site:` plus your URL, or use the URL inspection tool, before you theorise about rankings.
-
-**Red flag: English-only keywords for Hindi-speaking users.** If your interviews from chapter 1 produced Devanagari or Hinglish queries and the plan has none, your real audience was dropped somewhere between the interview and the brief.
+**Red flag: English-only keywords for Hindi-speaking users.** If your interviews produced Devanagari or Hinglish queries and the plan has none, your audience was dropped somewhere.
 
 ## Walkthrough
 1. Open the free Search Console for your site and connect it if you have not. Read the Performance report for the last 28 days and write down total impressions and total clicks.

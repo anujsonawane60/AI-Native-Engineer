@@ -4,7 +4,7 @@ module: m13-production-engineering
 slug: load-testing
 title: "Load Testing and Finding Your Breaking Point"
 order: 7
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,29 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-M05 chapter 9 taught you back-of-envelope estimates: 1,200 students, 70% arriving in a forty-minute window, three counters plus a spare. It taught you to compute requests per second before designing anything, and it promised M13 would give load testing its own chapter. M05 chapter 1 taught you why things get slow, and M07 chapter 6 taught you p95 and histograms. Estimating is the Sprint. Measuring is this.
+M05 chapter 9 taught you back-of-envelope estimates: 1,200 students, 70% arriving in a forty-minute window, three counters plus a spare. M05 chapter 1 taught you why things get slow, and M07 chapter 6 taught you p95 and histograms. Estimating is the Sprint. Measuring is this.
 
-So a team runs their first load test. They point a tool at their homepage, crank it to a thousand virtual users, and watch it serve 12,000 requests per second with a p95 of 40 ms. They screenshot it and feel excellent. What they measured was their CDN, because the homepage is a cached static page, and they never got within a hundred metres of their application. Two weeks later a college festival sends four hundred real students into the app at once and it dies at the order endpoint, which the test never touched.
-
-Second failure, which costs money. Another team does test the real endpoints, from their laptop, for twenty minutes, against their production environment. Three things happen. Their laptop's uplink saturates at about 60 requests per second, so every number they recorded is a measurement of their own hostel wifi. Their cloud egress meter runs for twenty minutes and produces a bill of around ₹3,800 — the exact trap M06 chapter 7 warned about. And their payment provider's sandbox rate-limits them and briefly blocks the key, so real checkouts fail for twenty minutes.
-
-A load test is a controlled experiment. Run as a vibe, it costs money and teaches nothing.
+A team points a tool at their homepage, cranks it to a thousand virtual users, and records 12,000 requests per second at 40 ms p95. They measured their CDN: the homepage is a cached static page. Two weeks later a festival sends four hundred students at the order endpoint, which the test never touched, and the app dies. A load test is a controlled experiment; run as a vibe it teaches nothing.
 
 ### The idea
 
 **A load test's purpose is to find the number of concurrent users at which your system stops getting faster and starts getting wrong, and then to explain why.**
 
-That number is the **knee**. Below it, adding users adds throughput and latency barely moves. At it, throughput flattens while latency climbs — queues are forming somewhere. Past it, errors appear and throughput *falls*, because the system is spending its capacity on work it will never complete. The test is only useful if the journey it drives is realistic and the data it uses is varied, because a test that requests the same URL with the same id measures your cache and nothing else.
+That number is the **knee**. Below it, adding users adds throughput and barely moves latency. At it, throughput flattens while latency climbs, because queues are forming somewhere. Past it, errors appear and throughput *falls*, because capacity is going to work that will never complete.
 
 ### The analogy
 
-The canteen holds a fire drill. Everyone leaves, they time it, the number is written on a form.
+The canteen holds a fire drill: they time it and the number goes on a form. But watch the drill they actually run — the same twenty students, queueing in the same order, on last month's route. Then festival night arrives: four hundred students, half unfamiliar with the building, the side door locked. A real drill varies what it measures and ends with a finding — "the side stairwell takes four minutes because it narrows at the landing" — not a number on a form.
 
-But watch the drill they actually run: the same twenty students, queueing in the same order, walking the same route they walked last month. It takes ninety seconds, as it did last time, and the form says the canteen is safe. Then a festival night arrives — four hundred students, half of them unfamiliar with the building, two carrying trays, one wheelchair, the side door locked because the caretaker went home. The ninety-second figure describes an event that will never happen again.
-
-A real drill varies the thing being measured: different numbers, different entrances, a blocked route, people who do not know where to go. And it ends with a specific finding — "the side stairwell takes four minutes because it narrows at the landing" — not with a number on a form.
-
-**Where the analogy breaks:** the canteen's gas line has a stamped capacity you can read off the pipe and a physical limit everyone can see. Your bottleneck is invisible. It might be a database connection limit, a single-threaded image resize, a free-tier request quota, or your own laptop's wifi. You cannot see it; you can only find it by plotting latency against concurrency and watching where the line bends — and then proving which component bent it.
+**Where the analogy breaks:** the gas line has a stamped capacity anyone can read. Your bottleneck is invisible — a connection limit, a single-threaded image resize, your own wifi — and you find it only by plotting latency against concurrency.
 
 ### Picture it
 
@@ -62,11 +54,13 @@ Throughput rises with concurrency until it flattens; the knee is where latency s
 
 ### Where it lives
 
-This is the measuring instrument for most of M05. The replica and pool limits from M05 chapter 6 are usually what bends the line first. The cache hit rate from M05 chapter 3 is what you must deliberately defeat with varied data, or you measure nothing. The rate limiter from M05 chapter 4 will cut your test off, and you need to know whether that is your limiter working correctly or your test being wrong. M07 chapter 6 is where the p95 comes from, and chapter 6's golden signal of **saturation** is the one that tells you *which* component is the bottleneck.
+This is the measuring instrument for most of M05:
 
-Inside M13, this chapter supplies numbers to three others. Chapter 3's resource requests and limits should come from a load test, not a guess. Chapter 5's canary thresholds are only defensible if you know your normal p95 under load. And chapter 9's failover plan needs to know whether one region alone can carry your traffic.
+- The pool limits from **M05 chapter 6** usually bend the line first, and **M05 chapter 4's** rate limiter will cut your test off.
+- **M07 chapter 6** supplies the p95, and its **saturation** signal names which component is the bottleneck.
+- Inside M13 it feeds **chapter 3's** resource limits, **chapter 5's** canary thresholds and **chapter 9's** failover plan.
 
-The free path is good here. The standard open-source load-testing tool runs locally at no cost with no account, and several hosted services give a small monthly quota of cloud-run test minutes free, which is how you test from a machine that is not your hostel wifi. Run against staging, not production.
+The free path is good: the standard open-source tool runs locally with no account, and several hosted services give a small free monthly quota of cloud-run minutes — how you test from a machine that is not your hostel wifi. Run against staging.
 
 ### Words to own
 
@@ -90,33 +84,27 @@ The free path is good here. The standard open-source load-testing tool runs loca
 
 ### Tradeoffs and gotchas
 
-**Vary the data or you are testing your cache.** This is the single most common wasted load test. Requesting `/dish/42` five million times produces one cache key and a magnificent number. Parameterise: a pool of a few hundred student accounts, a pool of dish ids, randomly chosen per iteration. Then record your cache hit rate *during* the test — if it is 99%, your real users' experience is not what you measured.
+**Vary the data or you are testing your cache.** `/dish/42` five million times produces one cache key and a magnificent number.
 
-**Include think time, or your closed-model test lies in both directions.** Real students read the menu for four seconds. A virtual user with no pause does maybe thirty times the requests of a real one, so "200 virtual users" might represent six thousand real students — or, if your bottleneck is connection count rather than request rate, far fewer. State your conversion explicitly: these N virtual users with this think time represent roughly M concurrent students, and here is the arithmetic.
+**Include think time, and state the conversion.** A virtual user with no pause does perhaps thirty times the requests of a real student, so write down what N virtual users represent.
 
-**Take a baseline first, and smoke test before that.** One virtual user, one full journey, checking the response bodies are actually correct. A test that gets 200s containing error pages is the most confident wrong result you can produce. Then measure at low load so you have something to compare against.
+**Smoke test, then baseline, then assert on errors.** 200s containing error pages are the most confident wrong result you can produce, and past the knee fast failures make p95 *improve*. Fail on error rate too.
 
-**Assert on error rate and correctness, not only on latency.** A system past its knee often returns fast failures, which makes p95 *improve*. If your test's only threshold is latency, your worst run can look like your best. Make the test fail on an error rate above a stated fraction, and check a value in the response body.
+**Do not load test from your laptop, and set the budget alert first.** Your uplink becomes the bottleneck and you measure your wifi. Egress is metered per gigabyte: M06 chapter 7's figure was ₹3,800 for twenty minutes. Against production, go at the quietest hour with a stop condition.
 
-**Do not load test from your laptop, and never against production without a plan.** Your home uplink will be the bottleneck and you will be measuring your wifi. Use a free cloud quota or a small VM in a region near your users. Against production, you risk real users and you definitely risk the bill — and if you must, do it at the quietest hour, with a stop condition, having warned your team.
+**Never load test a third-party provider.** Payment sandboxes, maps, model endpoints: it breaks their terms, gets your key blocked and can fail real checkouts. Stub them at your boundary, which also exercises your M05 chapter 8 timeouts.
 
-**Never load test a third-party provider.** Payment sandboxes, mapping APIs, AI model endpoints, email services. It violates their terms, it gets your key rate-limited or blocked, and it can break real checkouts. Stub them at your boundary and load test your own code. This also means your test exercises your timeouts from M05 chapter 8, which is worth knowing separately.
-
-**Set a budget alert before the first run, not after.** Egress is metered per gigabyte and a load test is an egress machine. M06 chapter 7's figure was ₹3,800 for twenty minutes. Set the alert, keep runs short, and prefer a staging environment with small payloads.
-
-**Finding the knee is half the work; naming the bottleneck is the other half.** A knee with no explanation is a number. Go look at saturation: connection pool usage, CPU, memory, queue depth, lock waits. "We flatten at 400 users because the pool of 20 connections is fully occupied and requests queue" is a finding you can act on, and it is what M18 will ask you for.
+**Naming the bottleneck is the other half of the work.** "We flatten at 400 users because the pool of 20 connections is fully occupied" is what M18 will ask you for.
 
 ### Verify it
 
-1. **Check the cache hit rate during the test.** High hit rate on data that should be varied means your test is measuring the cache. Fix the data, not the conclusion.
-2. **Read one response body from the run.** Confirm it contains real, correct data for the right student. 200s full of empty results are the classic false pass.
-3. **Confirm the load generator was not the bottleneck.** Check its own CPU and network. If the generator was saturated, every number is invalid; this is why you do not run from a laptop.
-4. **Ask where the threshold numbers came from.** A test with `p95 < 500ms` must be able to say why 500. Your SLO from M05 chapter 8 is the only legitimate source.
-5. **Demand the bottleneck, named, with its saturation metric.** If the report is only a knee value, the test is unfinished.
-6. **Confirm no third-party service was called.** Look at the script for any external host. One payment sandbox call per iteration at 400 users is how you get a provider key blocked.
-7. **Check the bill the next morning.** Not the estimate — the actual meter. Record the rupees per test run so your team knows what an experiment costs.
+1. **Check the cache hit rate during the test.** A high rate on varied data means you measured the cache.
+2. **Read one response body** and confirm it holds correct data for the right student.
+3. **Confirm the load generator was not itself saturated.** If it was, every number is invalid.
+4. **Ask where the threshold numbers came from.** A test asserting `p95 < 500ms` must say why 500, and your M05 chapter 8 SLO is the only source.
+5. **Demand the bottleneck, named, with its saturation metric,** then check the actual bill and record the rupees per run.
 
-Red flags: a load test that hits a cache and proves nothing; a test with no error-rate threshold; a test run from a laptop; identical ids on every iteration; no think time and no stated conversion to real users; a test against production with no stop condition; a payment sandbox in the script; a knee reported with no named bottleneck; and a result quoted with no baseline to compare it against.
+Red flags: a test that hits a cache and proves nothing; no error-rate threshold; a run from a laptop; identical ids every iteration; a payment sandbox in the script; a knee with no named bottleneck.
 
 ## Walkthrough
 1. Write down the one user journey that matters most in your product — the sequence a real student actually performs, with the pauses. For the canteen that is open the menu, view a dish, add it, pay. Then, using M05 chapter 9's method, estimate your realistic peak in requests per second and write it down before you measure anything.

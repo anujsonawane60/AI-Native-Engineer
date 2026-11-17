@@ -4,7 +4,7 @@ module: m04-backend-data-auth-payments
 slug: designing-your-schema
 title: "Designing Your Schema"
 order: 7
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,31 +22,21 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-A team gives an AI one line: "design a database for a canteen ordering app". Eleven seconds later they have fourteen tables: `users`, `roles`, `permissions`, `restaurants`, `branches`, `cuisines`, `tags`, `coupons`, `loyalty_points`, `reviews`, `delivery_zones`, `riders`, `payment_methods`, `audit_logs`.
+A team gives an AI one line: "design a database for a canteen ordering app". Eleven seconds later they have fourteen tables, including `branches`, `coupons`, `delivery_zones` and `riders` — a generic food-delivery schema fitting a company of 400. Their product is one canteen, demo in eleven weeks.
 
-It looks impressive. It is a generic food-delivery schema from the training data, and it fits a company of 400 people. Their product is one canteen, no delivery, no riders, no branches, and a demo in eleven weeks.
-
-Worse, the parts they actually need are wrong. There is no way to record that a dish ran out at 1:15 p.m. and came back at 1:40. There is nowhere to store that a student paid by UPI and the webhook has not confirmed it yet. The `price` column is a float. And the one question their whole product depends on — can a student order on behalf of a friend who is in class? — has no answer anywhere in fourteen tables.
-
-They now spend three weeks building on a schema nobody designed, deleting tables they never used, and discovering in week nine that the thing they needed was never possible.
+Worse, the parts they need are wrong: nowhere to record a dish running out at 1:15 p.m., nowhere to store an unconfirmed UPI payment, `price` as a float, and no answer to the question their product depends on — can a student order for a friend?
 
 ### The idea
 
 **A schema is derived from your user stories, one at a time, and the hard part is the questions it forces you to answer about your product.**
 
-You do not ask AI for a schema. You bring AI a list of the things your product must be able to record and the things it must make impossible, and have it propose tables that satisfy that list. Then you check its proposal against your list, not against its own summary of its work.
-
-The method is four passes. Nouns become tables. Facts become columns. Relationships become keys. Rules become constraints.
+You do not ask AI for a schema. You bring it a list of what your product must record and what it must make impossible, then check its proposal against your list, not against its own summary.
 
 ### The analogy
 
-The canteen manager does not buy a register from a shop that sells "restaurant registers". She sits down and asks what she needs to be able to answer at the end of the day.
+The canteen manager does not buy a register from a shop selling "restaurant registers". She asks what she must answer at day's end: how much did we take, which dishes ran out, who has an unpaid tab. Each question becomes a column. An off-the-shelf register has a column for "table number" and none for "token number", so she writes tokens in the margin.
 
-How much did we take? Which dishes ran out, and when? Who has an unpaid tab? Which student complained about the dal, and on which day? Each question becomes a column somewhere, and the register gets exactly the lines it needs.
-
-A register bought off the shelf has a column for "table number" and no column for "token number", because it was designed for a sit-down restaurant. She would spend six months writing token numbers in the margin.
-
-**Where the analogy breaks:** the manager can add a column with a pen in three seconds. You cannot. Once a thousand rows exist, adding a required column means a migration, a default value for the old rows, and a decision about what that default means — which is chapter 11. The register analogy makes schema change sound free, and it is the most expensive kind of change you will make.
+**Where the analogy breaks:** the manager adds a column with a pen; you cannot. Once a thousand rows exist, a new required column means a migration and a default for the old rows whose meaning you must choose.
 
 ### Picture it
 
@@ -71,31 +61,24 @@ A register bought off the shelf has a column for "table number" and no column fo
               means the schema is incomplete
 ```
 
-Each user story contributes nouns, facts, links and rules; a story that cannot be recorded by the resulting tables is the signal that the design is not finished.
+Each user story contributes nouns, facts, links and rules; a story the resulting tables cannot record is the signal that the design is not finished.
+
+The method is four passes.
+
+| Pass | Turns this into that | The test |
+|---|---|---|
+| 1 | nouns → tables | "student" survives; "total" is a fact about something else |
+| 2 | facts → columns | type, nullability, default — money in paise, timestamps UTC |
+| 3 | relationships → keys | key on the "many" side; many-to-many gets a join table |
+| 4 | always-true sentences → constraints | a rule you cannot express is one your code remembers forever |
+
+Pass four is the one everyone skips and the one that pays. Write your list of **impossible states** too — an order with no items, a payment for a missing order — because that is what you test against.
 
 ### Where it lives
 
-This chapter closes a loop that opened in M01. There you wrote a PRD and a scope document, and you were told the schema is a product decision rather than Tech's call. Here is the proof: almost every interesting schema question is a product question.
+This chapter closes a loop from M01: the schema is a product decision, not Tech's call. Can a student order for a friend? Then `orders` needs both `placed_by_student_id` and `for_student_id`, and every screen saying "your orders" must decide which it means. One sentence from a founder, three tables of consequence — so all three belong in the room.
 
-Can a student order for a friend? If yes, `orders` needs both `placed_by_student_id` and `for_student_id`, and every screen that says "your orders" now has to decide which it means. That is not a database detail; it changes the product.
-
-Can one dish have two prices — one for students, one for staff? Then price does not belong on `menu_items` at all; it belongs in a separate table keyed by dish and audience. One sentence from a founder, three tables of consequence.
-
-Is an order editable after it is placed? If yes, you need history, because "what did this order look like when it was paid?" stops having an obvious answer.
-
-All three founders should be in the room for these, and the answers belong in the decision log. Downstream, chapter 9 reads queries across these tables, chapter 11 changes them safely, chapter 14 restricts who can see which rows, and M11's checkpoints will ask you to defend the design.
-
-### The four passes, concretely
-
-**Pass one: nouns become tables.** Read your user stories and underline every noun that has its own identity and its own lifecycle. "Student", "order", "dish" survive. "Total", "name" and "status" do not — they are facts about something else. Resist the urge to create a table for something that only ever appears as a column.
-
-**Pass two: facts become columns, with types and nullability decided.** For each column, three questions. What type? Can it genuinely be absent? Does it have a sensible default? Money is integer paise. Timestamps are UTC. Statuses are a fixed, named list, not free text — `placed`, `preparing`, `ready`, `collected`, `cancelled` — because free text becomes "Ready", "ready" and "redy" within a month.
-
-**Pass three: relationships become keys.** One-to-many puts the foreign key on the many side. Many-to-many creates a join table, and you then ask whether the pairing has facts of its own.
-
-**Pass four: rules become constraints.** This is the pass everyone skips and the one that pays. Write out the sentences that must always be true of your data, then make the database enforce each one. "A quantity is between 1 and 10." "An email appears at most once." "A completed order has a payment reference." "An order total is never negative." Every rule you cannot express as a constraint is a rule your application code must remember forever, across every path, including the ones AI writes next month.
-
-Alongside those, write the list of **impossible states** — the rows your product must never be able to hold. An order with no items. A payment for an order that does not exist. Two students with the same account. A dish marked both available and deleted. That list is the most valuable artifact of this chapter, because it is what you test against.
+Downstream: chapter 9 reads across these tables · chapter 11 changes them safely · chapter 14 restricts who sees which rows.
 
 ### Words to own
 
@@ -114,30 +97,24 @@ Alongside those, write the list of **impossible states** — the rows your produ
 
 ### Tradeoffs and gotchas
 
-**Design for the product you are shipping in eleven weeks, not the one in your pitch deck.** Multi-branch, multi-city, multi-currency and loyalty tiers all cost you columns, joins and bugs today for a future that may not arrive. The cheap future-proofing is clean naming and a surrogate key on everything; the expensive kind is tables for features nobody has agreed to build.
+**Design for the product you ship in eleven weeks, not the one in your pitch deck.** Multi-branch and loyalty tiers cost columns, joins and bugs today for a future that may not arrive. Cheap future-proofing is clean naming and surrogate keys; the expensive kind is speculative tables.
 
-**But do not design yourself into a corner on identity and money.** Those two are genuinely hard to change later. Surrogate ids, integer paise, UTC timestamps, and a status column with a fixed vocabulary. Four decisions, made once, that save you a migration each.
+**But do not corner yourself on identity and money.** Surrogate ids, integer paise, UTC timestamps and a fixed status vocabulary are hard to change later — four decisions that save a migration each. Status is the one AI always gets wrong: `status: string` becomes three spellings of "ready" within a month.
 
-**AI will give you a generic schema for your category unless you stop it.** Food app gets riders. Marketplace gets sellers and commissions. Social app gets follows and feeds. The defence is to put your user stories in the brief and add a non-goal: "do not add any table that is not required by a story I listed."
-
-**Status as free text is a slow disaster.** It arrives as `status: string` in almost every AI schema. Within a month you will have three spellings of "ready", a screen that filters on the wrong one, and no way to know which rows are affected.
-
-**Every table wants `created_at` and `updated_at` in UTC.** It costs nothing on day one. Without them, your first "when did this break?" question in M07 is unanswerable.
-
-**A table per user role is a trap.** `students`, `staff` and `admins` as three tables means three login paths, three sets of permissions, and no way to make one person both. One `users` table with a role column is almost always right, and chapter 14 builds on exactly that.
+**AI gives you a generic schema for your category unless you stop it.** Food app gets riders, marketplace gets commissions, and roles arrive as three tables — `students`, `staff`, `admins` — meaning three login paths and nobody able to be both. The defence is your stories plus a non-goal: "add no table not required by a story I listed."
 
 ### Verify it
 
-Six checks, and the first two are the ones that actually catch things.
+Six checks; the first two catch most.
 
-1. **Walk every user story through the schema out loud.** For each story, name the rows that would be created or changed. A story you cannot trace is a missing table or column, and finding it now costs minutes rather than weeks.
-2. **Attempt every impossible state.** Take your list and try to insert each one directly into the database. Every single one that succeeds is a missing constraint. This is the single highest-value hour in the module.
-3. **Count the tables you cannot justify.** For each table, name the user story that needs it. Any table with no story gets deleted now, while deleting is free.
-4. **Check the four hard-to-change decisions.** Surrogate primary keys, integer paise, UTC timestamps, fixed status vocabulary. All four present, everywhere.
-5. **Ask what happens on delete, for every foreign key.** Refuse, cascade, or soft delete — chosen, not defaulted.
-6. **Have the non-technical founder read the table and column names.** If they cannot tell you what `order_items.unit_price_paise` means, rename it. A schema your own team cannot read is a schema your own team will misuse.
+1. **Walk every story through the schema out loud.** Name the rows each creates; a story you cannot trace is a missing table.
+2. **Attempt every impossible state.** Insert each directly — every success is a missing constraint. The highest-value hour here.
+3. **Count the tables you cannot justify.** Name the story needing each; storyless tables get deleted while deleting is free.
+4. **Check the four hard-to-change decisions.** Surrogate keys, integer paise, UTC timestamps, fixed status vocabulary.
+5. **Ask what happens on delete, per foreign key.** Refuse, cascade or soft delete — chosen, not defaulted.
+6. **Have the non-technical founder read the names.** If they cannot say what `order_items.unit_price_paise` means, rename it.
 
-Red flags in AI-generated schemas: tables for a business model you do not have; `status` as free text; any float in a money column; everything nullable; no `created_at`; a `users` table with twenty columns of unrelated profile data; separate tables per role; a `metadata` or `extra_data` column that will become a dumping ground for decisions nobody wanted to make; and a schema delivered with no constraints at all beyond primary keys, which is a drawing rather than a design.
+Red flags: tables for a business model you do not have · `status` as free text · a float in a money column · everything nullable · no `created_at` · a `metadata` dumping ground · no constraints beyond primary keys, which is a drawing, not a design.
 
 ## Walkthrough
 1. Open your PRD from M01. Copy out six to ten user stories in the form "as a [role] I can [action] so that [reason]". If you do not have six, your PRD is the thing to fix first.

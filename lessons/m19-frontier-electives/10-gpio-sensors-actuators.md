@@ -4,7 +4,7 @@ module: m19-frontier-electives
 slug: gpio-sensors-actuators
 title: "GPIO, Sensors, Actuators and Power"
 order: 10
-duration_min: 25
+duration_min: 15
 is_free: false
 mission: false
 volatility: low
@@ -22,27 +22,25 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-The fridge sensor from last chapter is built, and it lies. On the bench it read 6 degrees; in the fridge room it reports 6, then 41, then minus 12, then 6 again. The soil probe in the college's demonstration plot reported perfect moisture for three weeks and then nothing, because its electrodes corroded in wet soil. And when the team added a relay so the node could switch on a small exhaust fan, the board rebooted the instant the fan started, every single time.
+The fridge sensor from last chapter is built, and it lies. On the bench it read 6 degrees; in the fridge room it reports 6, then 41, then minus 12, then 6 again. The soil probe reported perfect moisture for three weeks and then nothing, its electrodes corroded. And when the team added a relay to switch a small exhaust fan, the board rebooted the instant the fan started, every time.
 
-Three separate failures, one shared cause: the physical layer was treated as if it were software. A pin was assumed to deliver a clean number. A sensor was assumed to tell the truth. A supply was assumed to be infinite. None of those assumptions survive contact with a fridge room.
+Three failures, one cause: the physical layer was treated as if it were software. A pin was assumed to deliver a clean number, a sensor to tell the truth, a supply to be infinite.
 
-This chapter is the layer where your data is born. Everything downstream — the schema in M04, the dashboards in M07, the model in M09 — inherits whatever quality this layer produced, and no amount of cleverness later recovers a reading that was wrong at the pin.
+This chapter is where your data is born. Everything downstream inherits whatever quality this layer produced, and no cleverness later recovers a reading that was wrong at the pin.
 
 ### The idea
 
-**A pin either reads a voltage or drives one; a sensor converts something physical into a voltage or a digital message; an actuator converts current into motion; and power is the budget every one of those spends from.**
+**A pin reads a voltage or drives one, a sensor turns something physical into a voltage, an actuator turns current into motion, and power is the budget all three spend from.**
 
-Reading is the input direction. The pin reports whether the voltage on it is near the supply or near zero — high or low — or, if the pin can measure, an analog-to-digital converter turns the voltage into a number with a fixed number of steps. Driving is the output direction: the pin connects itself to the supply or to zero, and it can supply only a tiny current, on the order of tens of milliamps.
+Reading is the input direction: the pin reports whether the voltage on it is high or low, or — if the pin can measure — an analog-to-digital converter turns that voltage into a number with a fixed number of steps. Driving is the output direction: the pin connects itself to the supply or to zero, and can supply only tens of milliamps.
 
-That current limit is why actuators need a driver. A relay coil, a motor or a pump wants hundreds of milliamps to amperes. The pin's job is to tell a transistor or a relay module what to do; the heavy current comes from its own supply, and the two supplies must share a common ground or nothing works.
+That limit is why actuators need a driver. A relay coil, motor or pump wants hundreds of milliamps to amperes. The pin tells a transistor or relay module what to do, the heavy current comes from its own supply, and the two supplies must share a common ground.
 
 ### The analogy
 
-The canteen's electrical board. The switches on the wall are inputs: somebody's hand decides their state. The mixer and the exhaust fan are outputs that draw serious current. Everything shares one 15 A line, and when the mixer starts the tube lights visibly dim for a moment — the supply sagged because a large load started suddenly.
+The canteen's electrical board. The wall switches are inputs: somebody's hand decides their state. The mixer and the exhaust fan are outputs drawing serious current. Everything shares one 15 A line, and when the mixer starts the tube lights visibly dim, because a large load started suddenly and the supply sagged. That dimming is a brownout; on a microcontroller it is a reboot.
 
-That dimming is a brownout, and on a microcontroller it is a reboot. The fan is the mixer, and the board is the tube light.
-
-**Where the analogy breaks** in the way that matters most: the canteen is on mains. Current is effectively unlimited and free, so nobody computes a budget. A field node has a 2,000 mAh cell and must last a season, which turns every milliamp into an engineering decision — the radio's on-time, the sensor's warm-up, how often you wake. On mains you design for function; on a battery you design for sleep, and that inverts the whole shape of the firmware.
+**Where the analogy breaks** in the way that matters most: the canteen is on mains, where current is effectively unlimited and free, so nobody computes a budget. A field node has a 2,000 mAh cell and must last a season, which turns every milliamp into a decision. On mains you design for function; on a battery you design for sleep, and that inverts the shape of the firmware.
 
 ### Picture it
 
@@ -87,11 +85,9 @@ A power budget is four numbers and one division, and running it before building 
 
 ### Where it lives
 
-M00's four boxes get a fifth thing in front of them: the physical world. This is the only layer in the whole course where your data does not arrive from a user, and that changes your defaults. In M04 a bad value usually came from a user typing wrongly, and validation caught it. Here a bad value comes from a wire that fell off, and it looks exactly like a real value — which is why range checks, rate-of-change checks and a "last heard from" timestamp belong in the schema from day one.
+M00's four boxes get a fifth thing in front of them: the physical world. This is the only layer in the course where your data does not arrive from a user. In M04 a bad value came from a user typing wrongly and validation caught it; here it comes from a wire that fell off and looks exactly like a real value — which is why range checks, rate-of-change checks and a "last heard from" timestamp belong in the schema from day one.
 
-M05's reliability thinking applies directly. A node that reports once a minute will miss readings; the server must tolerate gaps, duplicates and out-of-order arrivals, which is chapter 11's territory. M09's data-quality lesson is the same lesson here: a model trained on a drifting sensor learns the drift.
-
-Everything in this chapter can be done free in a browser. Simulators give you buttons, temperature and humidity sensors, potentiometers, LEDs, servos, relays and a serial monitor, and they will happily show you a floating input reading garbage. What a simulator cannot show you is brownout, electrical noise, corrosion and heat — so where this chapter says a design fails in the field, take that on trust and design for it anyway. A student who owns a board can see all four.
+Everything here can be done free in a browser. Simulators give you buttons, sensors, LEDs, servos, relays and a serial monitor, and will happily show a floating input reading garbage. What a simulator cannot show is brownout, noise, corrosion and heat — so where this chapter says a design fails in the field, design for it anyway.
 
 ### Words to own
 
@@ -114,29 +110,25 @@ Everything in this chapter can be done free in a browser. Simulators give you bu
 
 ### Tradeoffs and gotchas
 
-**Never drive a load from a logic pin.** A pin supplies tens of milliamps. A relay coil, pump or motor wants far more, and the pin or the chip dies — sometimes immediately, sometimes three weeks later in the field, which is worse.
+**Never drive a load from a logic pin.** The pin or the chip dies — sometimes immediately, sometimes three weeks later in the field, which is worse.
 
 **Floating inputs read garbage.** An unconnected pin picks up noise and reports it as data. Every input needs a defined idle state, from a pull-up or pull-down resistor.
 
-**Mixing 5 V and 3.3 V damages things.** Many sensors are 5 V parts and most modern boards are 3.3 V. Feeding 5 V into a 3.3 V pin is a slow way to kill a board, and it needs a level shifter rather than optimism.
+**Sensors drift, self-heat and corrode.** A temperature sensor near its own regulator reads high, a cheap humidity sensor drifts over months, and bare-electrode soil probes corrode in weeks. Plan recalibration into the product.
 
-**Sensors drift, self-heat and corrode.** A temperature sensor near its own power regulator reads high. A cheap humidity sensor drifts over months. Bare-electrode soil probes corrode in weeks; capacitive ones last. Plan recalibration into the product, not into the hope.
+**Deep sleep is the only real battery strategy.** Not a smaller processor, not a bigger battery. And remember the radio: a sleeping processor with a listening radio is not asleep.
 
-**Deep sleep is the only real battery strategy.** Not a smaller processor, not a bigger battery. Sleep, wake, read, send, sleep. And remember the radio: a sleeping processor with a listening radio is not asleep.
-
-**Solar is not free power.** A panel in Nashik through a cloudy monsoon week delivers a fraction of its rating, so a solar node needs a battery sized for the worst week and a design that degrades gracefully when it runs short.
+**Solar is not free power.** A panel through a cloudy monsoon week delivers a fraction of its rating, so a solar node needs a battery sized for the worst week.
 
 ### Verify it
 
-**Red flag: a relay or motor connected straight to a pin.** The first thing to check in any AI-produced wiring description. Look for a transistor, a driver module or an explicit "relay module with its own supply". If the load's current is never mentioned, the design has not been thought about.
+**Red flag: a relay or motor connected straight to a pin.** The first thing to check in any AI wiring description. If the load's current is never mentioned, the design has not been thought about.
 
 **Red flag: no common ground.** Two supplies and no statement that their grounds are joined. Ask directly: where do the two grounds meet? A design that cannot answer will behave randomly.
 
-**Red flag: no power budget.** Same as last chapter, now at the pin level. Demand wake interval, awake duration, current awake, current asleep, battery capacity, and the resulting life. Six numbers, one answer.
+**Red flag: 5 V assumed on a 3.3 V board.** Most modern boards are 3.3 V and many sensors are 5 V parts, and an AI will often answer in generic 5 V Arduino terms. Ask the board's logic voltage, what the sensor expects, and whether a level shifter is needed.
 
-**Red flag: 5 V assumed on a 3.3 V board.** Ask what the logic voltage of the board is and what the sensor expects, and whether a level shifter is needed. An AI will often answer in generic 5 V Arduino terms for a 3.3 V board.
-
-**Red flag: readings used with no calibration or plausibility check.** This is the one that silently ruins a dataset. Ask what the valid range is, what rate of change is physically possible, and what the system does when a reading falls outside it. A fridge in Nashik reporting minus forty degrees is a disconnected wire, and your code should say so rather than storing it.
+**Red flag: readings used with no calibration or plausibility check.** This is the one that silently ruins a dataset. Ask the valid range, the possible rate of change, and what the system does outside it. A fridge reporting minus forty degrees is a disconnected wire, and your code should say so rather than storing it.
 
 ## Walkthrough
 1. In a free in-browser simulator, place a board and a push button wired to an input pin with no resistor at all. Print the pin's value continuously and watch it when nothing is pressed.

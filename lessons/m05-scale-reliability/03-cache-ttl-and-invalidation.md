@@ -4,7 +4,7 @@ module: m05-scale-reliability
 slug: cache-ttl-and-invalidation
 title: "Hits, Misses, TTL, Eviction and Invalidation"
 order: 3
-duration_min: 35
+duration_min: 25
 is_free: false
 mission: true
 volatility: low
@@ -22,35 +22,19 @@ last_reviewed: 2026-11-16
 
 ### The pain
 
-At 1:06 pm the chef runs out of paneer and marks it sold out. He watches the admin screen confirm it. He is satisfied.
-
-At 1:07 pm a student orders paneer. At 1:09 pm another one does. By 1:17 pm eleven students have paid for a dish that does not exist, there is a queue of angry people at the counter, and your team is processing refunds by hand through UPI while the rush is still happening.
-
-Nothing was broken. The database row said `is_available = false` the entire time. Your cache had a copy that said `true`, with a one-hour lifetime, and you never wrote the three lines that throw that copy away when the chef changes something. The cache did exactly what you told it to. You simply never told it when to stop believing itself.
-
-This is the part of caching that is actually hard. Making a cache fast takes ten minutes. Making a cache correct is a design decision you have to make per piece of data, and it is the decision AI skips most often.
+At 1:06 pm the chef marks paneer sold out. By 1:17 eleven students have paid for a dish that does not exist, and you are refunding by hand over UPI mid-rush. Nothing was broken: the row said `is_available = false` the whole time, but your cache held a copy saying `true` with a one-hour lifetime, and nobody wrote the three lines that throw that copy away when the chef changes something. Making a cache fast takes ten minutes; making it correct is the decision AI skips most often.
 
 ### The idea
 
 **Every cached entry needs an answer to one question: when do you stop believing this? There are only two good answers — after N seconds, or when the underlying thing changes — and most data needs both.**
 
-Time is the safety net. A TTL, or time to live, is a number of seconds after which the cache throws the copy away whether anybody asked it to or not. It guarantees your staleness never exceeds that number, which is the only guarantee you get for free.
-
-Events are the precision. When the chef writes to the database, you delete the cache key in the same breath. The next read misses, refills from the truth, and the staleness window drops from an hour to roughly zero.
-
-TTL alone is survivable. Invalidation alone is not, because you will eventually miss a write path. Both together is the answer for almost everything you will build.
+A TTL is the safety net: the copy is discarded after N seconds whether or not anybody asked, which bounds your staleness for free. Invalidation is the precision: the chef's write deletes the key in the same breath, the next read refills from the truth, and the window drops to roughly zero. TTL alone is survivable; invalidation alone is not, because you will eventually miss a write path.
 
 ### The analogy
 
-Watch the samosa warmer at the counter through a whole lunch rush.
+Samosas go in at noon and are pulled at 12:30 whether or not anyone bought them: a **TTL**, a blind lifetime bounding how wrong the counter can be. The warmer holds forty plates, so a fresh batch means clearing out whatever sat longest: **eviction**, about space rather than freshness, and decided by the cache. And "paneer is finished, pull it off the board" changes the board in three seconds whatever the clock says: **invalidation**, triggered by the write that made the old answer wrong.
 
-Samosas go in at noon and are pulled at 12:30 whether anyone bought them or not. That is a **TTL**: a fixed lifetime, applied blindly, that bounds how wrong the counter can be.
-
-The warmer holds forty plates. When a fresh batch arrives and there is no room, the staff clear out whatever has been sitting longest to make space. That is **eviction**: not a decision about freshness at all, but about running out of room, and it is the cache deciding, not you.
-
-And when the chef shouts "paneer is finished, pull it off the board", the board changes in three seconds regardless of what any clock says. That is **invalidation**: an event-driven removal, triggered by the write that made the old answer wrong.
-
-**Where the analogy breaks:** a samosa past its TTL looks and smells wrong, so somebody notices. Stale data looks immaculate. It has the right shape, the right fields and a plausible timestamp, and the only way anybody finds out is a student paying ₹60 for a dish that ran out eleven minutes ago. The whole discipline exists because staleness is invisible.
+**Where the analogy breaks:** a samosa past its TTL looks and smells wrong, so somebody notices. Stale data looks immaculate, and the only way anybody finds out is a student paying ₹60 for a dish that ran out eleven minutes ago.
 
 ### Picture it
 
@@ -71,9 +55,7 @@ WRITE PATH
 
 A read checks the cache first and falls through to the database only on a miss; a write updates the database and then deletes the key, so the very next read rebuilds a correct copy.
 
-### Three ways an entry dies
-
-Keep these separate in your head, because people use the word "expired" for all three and then cannot debug any of them.
+Keep the three ways an entry dies apart, because people say "expired" for all three and then cannot debug any of them.
 
 | How it dies | Who decides | What it protects you from |
 |---|---|---|
@@ -81,23 +63,11 @@ Keep these separate in your head, because people use the word "expired" for all 
 | Eviction | The cache, when memory is full | Running out of memory |
 | Invalidation | Your write path | Being wrong after a known change |
 
-Eviction is the one students meet first on a free tier, because free Redis plans are small — often around 25 to 30 MB with a cap on simultaneous connections. When that fills, the cache starts throwing things out under a policy. The usual default is **LRU**, least recently used: the entry nobody has asked for in the longest time goes first, which is a good guess most of the time. Some setups instead refuse new writes when full, which is worse, because your cache silently stops caching and nothing errors.
-
-Hit rate is how you know any of this is working. If the cache answered 940 of the last 1,000 requests, your hit rate is 94%. Below about 70% on data you expected to be hot, something is wrong with your key — usually it is too specific, so every request invents a brand new key and nothing is ever reused.
-
-### The stampede
-
-One more failure mode, because it will happen to you at 1:10 pm specifically.
-
-A popular key expires. Forty requests arrive in the same second. All forty miss. All forty query the database at once for the identical answer, and the database — which was coping fine — now has forty copies of its most expensive query running together. That is a **cache stampede**, or thundering herd, and it is how a cache designed to protect your database ends up being the thing that takes it down.
-
-Two cheap defences. Add **jitter**: instead of a flat 300-second TTL on everything, use 300 seconds plus a random 0 to 60, so a thousand keys do not expire in lockstep. And allow **stale-while-revalidate** where the data tolerates it: serve the slightly old copy immediately while one single request goes off to refresh it. The student gets a 1 ms answer, the database gets one query instead of forty, and nobody notices the two seconds of staleness.
+Free Redis plans are often 25 to 30 MB, and when one fills the default is **LRU**: the entry nobody asked for longest goes first. Some setups instead refuse new writes, which is worse, because the cache silently stops caching and nothing errors. Hit rate tells you it works at all — 940 of 1,000 lookups is 94%, and under 70% on hot data your key is too specific.
 
 ### Where it lives
 
-This chapter is the rules for the Redis layer from Chapter 2, and the same rules apply one layer out: a CDN entry has a TTL, and purging a CDN path is invalidation.
-
-It connects outward in three directions. M04's queues are the clean place to put invalidation work that must not slow down the write. M07's metrics are where hit rate and miss rate belong on a dashboard, next to p95. And M10 reuses this exact vocabulary for language-model calls — a semantic cache has a TTL and an invalidation problem just like a menu does, and the cost of a stale AI answer is measured in rupees per call rather than milliseconds.
+These are the rules for Chapter 2's Redis layer, and they apply one layer out: a CDN entry has a TTL, and purging a path is invalidation. M04's queues hold invalidation work that must not slow the write, M07 puts hit rate on a dashboard beside p95, and M10 reuses the vocabulary for model calls, where a stale answer costs rupees rather than milliseconds.
 
 ### Words to own
 
@@ -118,31 +88,24 @@ It connects outward in three directions. M04's queues are the clean place to put
 
 ### Tradeoffs and gotchas
 
-**A short TTL is almost always the right first answer.** Sixty seconds on a shared read removes 98% of your database load at lunch rush and bounds your wrongness at one minute. Teams reach for clever invalidation and end up with neither correctness nor simplicity. Start with a number of seconds you can defend out loud, and add event invalidation where one minute is genuinely too long.
+**A short TTL is almost always the right first answer.** Sixty seconds on a shared read removes 98% of your lunch-rush database load and bounds your wrongness at one minute.
 
-**You will forget a write path.** The admin page deletes the key. The bulk-import script does not. The scheduled job that marks yesterday's specials unavailable does not. The teammate's new endpoint does not. This is why the TTL stays even after you add invalidation: it is the thing that limits the damage from the write path nobody remembered.
+**You will forget a write path.** The admin page deletes the key; the bulk import, the nightly job and your teammate's new endpoint do not — which is why the TTL stays even after you add invalidation.
 
-**Never let `flushall` be your invalidation strategy.** Wiping the entire cache to fix one stale key makes every other key cold at once, which is a self-inflicted stampede across your whole app. Delete the key you meant.
+**Beware the stampede.** A popular key expires, forty requests miss in the same second, and your database gets forty copies of its dearest query. Two cheap defences: **jitter**, so a 300-second TTL becomes 300 plus a random 0–60 and keys do not expire in lockstep, and **stale-while-revalidate**, serving the old copy while one request refreshes.
 
-**Do not cache errors for long.** If the database is briefly down and you cache the failure for an hour, you have extended a thirty-second outage into an hour-long one. Negative caching is useful — storing "this dish does not exist" stops a hammering lookup — but at five or ten seconds, never minutes.
+**Never let `flushall` be your invalidation strategy, and do not cache errors for long.** Wiping everything to fix one key is a self-inflicted stampede; a failure cached for an hour turns a thirty-second outage into an hour-long one, so negative caching belongs at ten seconds.
 
-**Hit rate without a denominator is meaningless.** "We have a 99% hit rate" on a key looked up four times a day tells you nothing. Ask how many lookups, over what window.
-
-**Caching hides a bad query rather than fixing it.** If your uncached query takes 900 ms for want of an index, a cache turns that into 900 ms for one unlucky student in sixty rather than all of them. A real improvement, and still a missing index. M04 taught you to read the query plan; do that first, then cache.
+**Caching hides a bad query rather than fixing it.** A 900 ms query for want of an index becomes 900 ms for one unlucky student in sixty — real improvement, still a missing index.
 
 ### Verify it
 
-**Demand the invalidation story before the code.** The question is: "list every code path that writes this data, and show me the key deletion in each one." If the AI shows you a read path with a TTL and no write path, you have the paneer bug already written down.
-
-**Red flag: a TTL with no reasoning attached.** 3600 appears constantly in AI-generated caching code because it is a round number of seconds, not because anyone decided an hour of staleness was acceptable. Make it state the number and the sentence that justifies it: "60 seconds, because the chef expects a sold-out flag to reach students within a minute."
-
-**Red flag: caching with no invalidation at all, described as complete.** Ask what happens if the data changes one second after it is cached. The honest answer is a number of seconds of wrongness. If you get "the cache will update automatically", push back — that phrase almost always means "it expires eventually" and sometimes means nothing at all.
-
-**Red flag: a key that is missing one of its inputs.** Read the key aloud and list everything the answer depends on. A menu key that omits the date serves yesterday's specials. A dashboard key that omits the user serves a stranger's data.
-
-**Red flag: the same fix again — a cache added in front of something that was never the bottleneck,** or "increase the Redis memory" proposed for what is actually an unbounded key pattern writing a new entry per request and never reusing one. More memory does not fix a leak; it postpones it.
-
-Then prove it by hand rather than reading a summary. Load the page twice and check the second is dramatically faster. Change the underlying row and time, by stopwatch, how long until it appears — that number must be at or under your stated TTL. Watch hit and miss counters over five real minutes. And check key count after an hour; if it climbs forever, something has no TTL.
+- **Demand the invalidation story first:** "list every path that writes this data and show me the key deletion in each". A TTL with no write path is the paneer bug, pre-installed.
+- **Red flag: a TTL with no reasoning.** 3600 appears constantly because it is round; make it state the sentence justifying the number.
+- **Red flag: caching with no invalidation, called complete.** Ask what happens if the data changes one second later; "it updates automatically" means "it expires eventually".
+- **Red flag: a key missing an input.** No date serves yesterday's specials; no user serves a stranger's data.
+- **Red flag: "increase the Redis memory"** for an unbounded key pattern. More memory postpones a leak.
+- Prove it by hand: the second load must be dramatically faster; change the row and stopwatch how long until it shows, which must be at or under your TTL; watch hit and miss counters for five real minutes; and if key count climbs forever, something has no TTL.
 
 ## Walkthrough
 1. In your own app, pick the single read that is slowest and most repeated. Write it down with its measured time from Chapter 1 and roughly how many times an hour it runs.
